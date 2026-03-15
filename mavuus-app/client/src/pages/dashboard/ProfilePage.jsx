@@ -12,10 +12,12 @@ import Select from '../../components/ui/Select'
 import TagInput from '../../components/ui/TagInput'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import Input, { Textarea } from '../../components/ui/Input'
+import ReviewCard from '../../components/ui/ReviewCard'
+import RecommendationCard from '../../components/ui/RecommendationCard'
 import {
   Pencil, MapPin, Calendar, Briefcase, ExternalLink,
   Plus, Trash2, GraduationCap, FileText, Upload,
-  CreditCard, Shield, Users,
+  CreditCard, Shield, Users, Star, ThumbsUp,
 } from 'lucide-react'
 
 const INDUSTRY_OPTIONS = [
@@ -69,6 +71,13 @@ export default function ProfilePage() {
   // Save in-progress flag
   const [saving, setSaving] = useState(false)
 
+  // Reviews and recommendations
+  const [reviews, setReviews] = useState([])
+  const [recommendations, setRecommendations] = useState([])
+
+  // Resume upload
+  const [uploadingResume, setUploadingResume] = useState(false)
+
   const authHeaders = {
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
@@ -92,8 +101,23 @@ export default function ProfilePage() {
     }
   }
 
+  const fetchReviewsAndRecs = async () => {
+    if (!user) return
+    try {
+      const [reviewsRes, recsRes] = await Promise.all([
+        fetch(`/api/reviews/user/${user.id}`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`/api/recommendations/user/${user.id}`, { headers: { Authorization: `Bearer ${token}` } }),
+      ])
+      if (reviewsRes.ok) setReviews(await reviewsRes.json())
+      if (recsRes.ok) setRecommendations(await recsRes.json())
+    } catch {
+      // silently fail
+    }
+  }
+
   useEffect(() => {
     fetchProfile()
+    fetchReviewsAndRecs()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Profile field update ────────────────────────────────────
@@ -222,6 +246,58 @@ export default function ProfilePage() {
   const updateNotification = async (key, value) => {
     setProfile((prev) => ({ ...prev, [key]: value ? 1 : 0 }))
     await updateProfile({ [key]: value ? 1 : 0 })
+  }
+
+  // ─── Resume upload ──────────────────────────────────────────
+
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.type !== 'application/pdf') {
+      toast.error('Only PDF files are allowed')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File must be under 5MB')
+      return
+    }
+    setUploadingResume(true)
+    try {
+      const formData = new FormData()
+      formData.append('resume', file)
+      const res = await fetch('/api/profile/me/resume', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setProfile(prev => ({ ...prev, resume_filename: data.filename, resume_url: data.url }))
+        toast.success('Resume uploaded!')
+      } else {
+        const data = await res.json()
+        toast.error(data.error || 'Upload failed')
+      }
+    } catch {
+      toast.error('Upload failed')
+    } finally {
+      setUploadingResume(false)
+    }
+  }
+
+  const handleDeleteResume = async () => {
+    try {
+      const res = await fetch('/api/profile/me/resume', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        setProfile(prev => ({ ...prev, resume_filename: null, resume_url: null }))
+        toast.success('Resume removed')
+      }
+    } catch {
+      toast.error('Failed to remove resume')
+    }
   }
 
   // ─── Loading / empty states ─────────────────────────────────
@@ -411,6 +487,34 @@ export default function ProfilePage() {
               />
             </div>
           </div>
+
+          {/* Ratings & Reviews */}
+          {reviews.length > 0 && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+              <h3 className="text-lg font-semibold text-dark-blue mb-4 flex items-center gap-2">
+                <Star size={18} /> Ratings & Reviews
+              </h3>
+              <div className="space-y-3">
+                {reviews.map(review => (
+                  <ReviewCard key={review.id} {...review} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recommendations */}
+          {recommendations.length > 0 && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+              <h3 className="text-lg font-semibold text-dark-blue mb-4 flex items-center gap-2">
+                <ThumbsUp size={18} /> Recommendations
+              </h3>
+              <div className="space-y-3">
+                {recommendations.map(rec => (
+                  <RecommendationCard key={rec.id} {...rec} />
+                ))}
+              </div>
+            </div>
+          )}
           </div>
         )}
 
@@ -463,7 +567,7 @@ export default function ProfilePage() {
               ))
             )}
 
-            {/* Resume placeholder */}
+            {/* Resume upload */}
             <div className="bg-white rounded-2xl border border-neutral-100 p-6">
               <h4 className="font-semibold text-dark-blue mb-3 flex items-center gap-2">
                 <FileText size={18} /> Resume / CV
@@ -474,13 +578,24 @@ export default function ProfilePage() {
                   <span className="text-sm font-medium text-dark-blue flex-1">
                     {profile.resume_filename}
                   </span>
-                  <Button size="sm" variant="ghost">Replace</Button>
+                  <label className="cursor-pointer">
+                    <Button size="sm" variant="ghost" as="span">Replace</Button>
+                    <input type="file" accept=".pdf" className="hidden" onChange={handleResumeUpload} disabled={uploadingResume} />
+                  </label>
+                  <Button size="sm" variant="ghost" onClick={handleDeleteResume} className="text-red-500">
+                    <Trash2 size={14} />
+                  </Button>
                 </div>
               ) : (
                 <div className="border-2 border-dashed border-neutral-200 rounded-xl p-8 text-center">
                   <Upload size={24} className="text-neutral-400 mx-auto mb-2" />
                   <p className="text-sm text-neutral-500 mb-3">Upload your resume (PDF, max 5MB)</p>
-                  <Button size="sm" variant="outline">Upload Resume</Button>
+                  <label className="cursor-pointer inline-block">
+                    <Button size="sm" variant="outline" as="span">
+                      {uploadingResume ? 'Uploading...' : 'Upload Resume'}
+                    </Button>
+                    <input type="file" accept=".pdf" className="hidden" onChange={handleResumeUpload} disabled={uploadingResume} />
+                  </label>
                 </div>
               )}
             </div>

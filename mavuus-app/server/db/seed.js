@@ -637,8 +637,8 @@ vendorData.forEach(v => insertVendor.run(...v))
 
 // Seed jobs (with seniority and expanded descriptions)
 const insertJob = db.prepare(`
-  INSERT OR IGNORE INTO jobs (title, company, description, location, type, category, salary_range, seniority, posted_by, created_at)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT OR IGNORE INTO jobs (title, company, description, location, type, category, salary_range, seniority, status, hired_user_id, posted_by, created_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
 const jobData = [
@@ -664,7 +664,7 @@ const jobData = [
 - Unlimited PTO
 - Remote-first culture
 - $2,000 annual learning budget
-- Health, dental, and vision insurance`, 'Remote', 'full-time', 'Content', '$120k - $150k', 'Senior', 1, '2026-02-28T10:00:00Z'],
+- Health, dental, and vision insurance`, 'Remote', 'full-time', 'Content', '$120k - $150k', 'Senior', 'completed', 3, 1, '2026-02-28T10:00:00Z'],
 
   ['Growth Marketing Manager', 'GrowthBase', `Drive pipeline growth through multi-channel marketing campaigns. You'll own paid acquisition, email nurture, and conversion optimization across the full funnel.
 
@@ -686,7 +686,7 @@ const jobData = [
 - Performance bonuses tied to pipeline targets
 - Flexible hybrid work (2 days in office)
 - 401(k) with 4% match
-- Comprehensive health benefits`, 'New York, NY', 'full-time', 'Growth', '$130k - $160k', 'Mid', 2, '2026-03-01T09:00:00Z'],
+- Comprehensive health benefits`, 'New York, NY', 'full-time', 'Growth', '$130k - $160k', 'Mid', 'completed', 5, 2, '2026-03-01T09:00:00Z'],
 
   ['Freelance Brand Designer', 'BrandSpark Studio', `Create brand assets and visual identity for our tech startup clients. We need a versatile designer who can work across brand guidelines, web design, and campaign creative.
 
@@ -705,7 +705,7 @@ const jobData = [
 **Benefits:**
 - Flexible project-based work
 - Remote-friendly
-- Long-term retainer opportunities`, 'Remote', 'freelance', 'Design', '$80 - $120/hr', 'Mid', 6, '2026-03-02T14:00:00Z'],
+- Long-term retainer opportunities`, 'Remote', 'freelance', 'Design', '$80 - $120/hr', 'Mid', 'open', null, 6, '2026-03-02T14:00:00Z'],
 
   ['Marketing Analytics Lead', 'Stripe', `Drive marketing measurement and attribution strategy. Own the marketing data infrastructure and reporting. Collaborate with growth, product, and finance teams to optimize marketing spend.
 
@@ -727,7 +727,7 @@ const jobData = [
 - Top-of-market compensation
 - Annual $5,000 learning and wellness stipend
 - Generous parental leave
-- Hybrid work (3 days in SF office)`, 'San Francisco, CA', 'full-time', 'Analytics', '$140k - $180k', 'Senior', 9, '2026-03-03T10:00:00Z'],
+- Hybrid work (3 days in SF office)`, 'San Francisco, CA', 'full-time', 'Analytics', '$140k - $180k', 'Senior', 'open', null, 9, '2026-03-03T10:00:00Z'],
 
   ['Content Marketing Manager', 'Notion', `Create and manage content programs that drive awareness and adoption. Work cross-functionally with product, design, and community teams to tell Notion's story.
 
@@ -749,7 +749,7 @@ const jobData = [
 - Fully remote role
 - Unlimited PTO
 - Home office stipend
-- Monthly team off-sites`, 'Remote', 'full-time', 'Content', '$110k - $140k', 'Mid', 12, '2026-03-04T14:00:00Z'],
+- Monthly team off-sites`, 'Remote', 'full-time', 'Content', '$110k - $140k', 'Mid', 'open', null, 12, '2026-03-04T14:00:00Z'],
 
   ['Head of Brand Strategy', 'Spotify', `Lead brand strategy and creative direction for marketing campaigns. Build and mentor a team of brand marketers who shape how Spotify shows up in culture.
 
@@ -772,7 +772,7 @@ const jobData = [
 - Industry-leading compensation
 - Music and entertainment perks
 - Flexible work arrangements
-- Generous equity package`, 'Los Angeles, CA', 'full-time', 'Brand', '$160k - $200k', 'Lead', 10, '2026-03-05T09:00:00Z'],
+- Generous equity package`, 'Los Angeles, CA', 'full-time', 'Brand', '$160k - $200k', 'Lead', 'open', null, 10, '2026-03-05T09:00:00Z'],
 
   ['Demand Gen Specialist', 'HubSpot', `Execute multi-channel demand generation campaigns. Manage paid media, email nurture, and webinar programs to drive qualified pipeline.
 
@@ -794,7 +794,7 @@ const jobData = [
 - Hybrid work (Cambridge, MA office)
 - Education reimbursement
 - Sabbatical program (5-year tenure)
-- Health and wellness benefits`, 'Cambridge, MA', 'full-time', 'Growth', '$90k - $120k', 'Junior', 8, '2026-03-06T11:00:00Z'],
+- Health and wellness benefits`, 'Cambridge, MA', 'full-time', 'Growth', '$90k - $120k', 'Junior', 'open', null, 8, '2026-03-06T11:00:00Z'],
 
   ['Freelance SEO Consultant', 'Mavuus', `Help our community platform improve organic search visibility. Audit existing content and develop keyword strategy to drive organic member acquisition.
 
@@ -815,7 +815,7 @@ const jobData = [
 **Benefits:**
 - Flexible hours and fully remote
 - 3-month initial engagement with extension potential
-- Access to Mavuus Pro membership`, 'Remote', 'freelance', 'SEO', '$100 - $150/hr', 'Senior', 7, '2026-03-07T16:00:00Z'],
+- Access to Mavuus Pro membership`, 'Remote', 'freelance', 'SEO', '$100 - $150/hr', 'Senior', 'open', null, 7, '2026-03-07T16:00:00Z'],
 ]
 
 jobData.forEach(j => insertJob.run(...j))
@@ -1046,6 +1046,51 @@ const notificationData = [
   [7, 'system', 'Profile Tip', 'Add your skills and experience to get better job and connection recommendations', '/dashboard/profile', 1, '2026-03-01T12:05:00Z'],
 ]
 notificationData.forEach(n => insertNotification.run(...n))
+
+// Seed reviews (member-to-member for completed jobs + member-to-vendor)
+const insertReview = db.prepare(`
+  INSERT OR IGNORE INTO reviews (reviewer_id, reviewee_id, vendor_id, job_id, rating, text, created_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
+`)
+
+const reviewData = [
+  // Job 1 completed: Sarah (poster) reviews Priya (hired), and Priya reviews Sarah
+  [1, 3, null, 1, 5, 'Priya was exceptional as our Senior Content Strategist. She scaled our content output while maintaining quality and brought innovative data-driven approaches to our content program.', '2026-03-10T10:00:00Z'],
+  [3, 1, null, 1, 5, 'Working with Sarah and the TechFlow team was a fantastic experience. Clear direction, great support, and a truly collaborative environment.', '2026-03-10T14:00:00Z'],
+  // Job 2 completed: Marcus (poster) reviews David (hired), and David reviews Marcus
+  [2, 5, null, 2, 4, 'David brought strong strategic thinking to our growth marketing efforts. His paid media expertise helped us exceed pipeline targets by 20%.', '2026-03-08T09:00:00Z'],
+  [5, 2, null, 2, 5, 'Marcus is an outstanding leader. The GrowthBase team is well-organized and the growth marketing role was exactly as described. Highly recommend working here.', '2026-03-08T12:00:00Z'],
+  // Vendor reviews
+  [1, 7, 1, null, 5, 'ContentPro Agency transformed our content pipeline. Their team understood our B2B audience perfectly and delivered consistent, high-quality work.', '2026-02-15T10:00:00Z'],
+  [4, 7, 3, null, 4, 'BrandSpark Studio delivered a stunning rebrand for us. Creative, professional, and great at meeting deadlines. Would definitely work with them again.', '2026-02-20T14:00:00Z'],
+]
+reviewData.forEach(r => insertReview.run(...r))
+
+// Update vendor ratings based on reviews
+db.prepare(`
+  UPDATE vendors SET
+    rating = (SELECT ROUND(AVG(rating), 1) FROM reviews WHERE vendor_id = vendors.id),
+    reviews_count = (SELECT COUNT(*) FROM reviews WHERE vendor_id = vendors.id)
+  WHERE id IN (SELECT DISTINCT vendor_id FROM reviews WHERE vendor_id IS NOT NULL)
+`).run()
+
+// Seed recommendations
+const insertRecommendation = db.prepare(`
+  INSERT OR IGNORE INTO recommendations (from_user_id, to_user_id, vendor_id, message, created_at)
+  VALUES (?, ?, ?, ?, ?)
+`)
+
+const recommendationData = [
+  [1, 7, 1, 'Highly recommend ContentPro Agency for any B2B content needs. They helped us triple our content output while maintaining quality.', '2026-02-18T10:00:00Z'],
+  [4, 7, 3, 'BrandSpark Studio did an incredible job on our rebrand. If you need design or branding work, they are the best in the business.', '2026-02-22T14:00:00Z'],
+  [2, 1, 2, 'PipelineHQ completely transformed our ABM program. Their consultants are world-class and really understand enterprise pipeline.', '2026-02-25T09:00:00Z'],
+  [8, 7, null, 'I highly recommend connecting with the Datadog marketing team — Tom Bradley is doing incredible work in developer marketing.', '2026-03-01T11:00:00Z'],
+]
+recommendationData.forEach(r => insertRecommendation.run(...r))
+
+// Add job applications for the completed jobs (hired applicants)
+insertApplication.run(1, 3, 'Excited to bring my demand gen and data-driven approach to content strategy at TechFlow.', 'hired', '2026-02-10T10:00:00Z')
+insertApplication.run(2, 5, 'Eager to apply my marketing leadership experience to drive growth at GrowthBase.', 'hired', '2026-02-12T09:00:00Z')
 
 console.log('Database seeded successfully!')
 db.close()

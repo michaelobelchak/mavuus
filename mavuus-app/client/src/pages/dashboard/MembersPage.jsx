@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/ui/Toast'
 import Card from '../../components/ui/Card'
@@ -9,7 +9,7 @@ import Button from '../../components/ui/Button'
 import { CardSkeleton } from '../../components/ui/Skeleton'
 import useApiData from '../../hooks/useApiData'
 import { members as fallbackMembers } from '../../data/mockData'
-import { Search, UserPlus, UserCheck, Clock } from 'lucide-react'
+import { Search, UserPlus, UserCheck, Clock, MessageCircle, Check, X } from 'lucide-react'
 
 const tiers = ['All', 'Pro', 'Free']
 
@@ -17,39 +17,56 @@ export default function MembersPage() {
   const { data: members, loading } = useApiData('/api/members', fallbackMembers)
   const { user, token } = useAuth()
   const toast = useToast()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
   const [tier, setTier] = useState('All')
   const [connections, setConnections] = useState({})
   const [connectingIds, setConnectingIds] = useState(new Set())
+  const [pendingIncoming, setPendingIncoming] = useState([])
+  const [myConnectionIds, setMyConnectionIds] = useState(new Set())
 
-  // Fetch connection statuses for all members
+  const filter = searchParams.get('filter') || 'all'
+
+  // Fetch connection statuses and pending requests
   useEffect(() => {
     if (!token) return
 
     const fetchConnections = async () => {
       try {
-        const res = await fetch('/api/connections', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.ok) {
-          const data = await res.json()
-          // Build a map of userId -> { status, direction, id }
+        const [connRes, pendingRes] = await Promise.all([
+          fetch('/api/connections', { headers: { Authorization: `Bearer ${token}` } }),
+          fetch('/api/connections/pending', { headers: { Authorization: `Bearer ${token}` } }),
+        ])
+        if (connRes.ok) {
+          const data = await connRes.json()
           const connMap = {}
+          const connIds = new Set()
           if (Array.isArray(data)) {
             data.forEach((conn) => {
-              const otherId =
-                conn.from_user_id === user?.id
-                  ? conn.to_user_id
-                  : conn.from_user_id
-              connMap[otherId] = {
-                status: conn.status,
-                direction:
-                  conn.from_user_id === user?.id ? 'outgoing' : 'incoming',
-                id: conn.id,
-              }
+              const otherId = conn.connected_user_id
+              connMap[otherId] = { status: 'accepted', id: conn.id }
+              connIds.add(otherId)
             })
           }
           setConnections(connMap)
+          setMyConnectionIds(connIds)
+        }
+        if (pendingRes.ok) {
+          const pending = await pendingRes.json()
+          setPendingIncoming(pending.incoming || [])
+          // Add pending statuses to connections map
+          if (pending.outgoing) {
+            setConnections(prev => {
+              const updated = { ...prev }
+              pending.outgoing.forEach(p => {
+                updated[p.user_id] = { status: 'pending', direction: 'outgoing', id: p.id }
+              })
+              pending.incoming.forEach(p => {
+                updated[p.user_id] = { status: 'pending', direction: 'incoming', id: p.id }
+              })
+              return updated
+            })
+          }
         }
       } catch {
         // Silently fail — connection status is non-critical
@@ -57,7 +74,7 @@ export default function MembersPage() {
     }
 
     fetchConnections()
-  }, [token, user?.id])
+  }, [token])
 
   const handleConnect = useCallback(
     async (e, memberId) => {
@@ -97,36 +114,57 @@ export default function MembersPage() {
     [token, toast]
   )
 
+  const handleAcceptPending = async (e, connId, userId) => {
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      const res = await fetch(`/api/connections/${connId}/accept`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      })
+      if (res.ok) {
+        setPendingIncoming(prev => prev.filter(p => p.id !== connId))
+        setConnections(prev => ({ ...prev, [userId]: { status: 'accepted', id: connId } }))
+        setMyConnectionIds(prev => new Set([...prev, userId]))
+        toast.success('Connection accepted!')
+      }
+    } catch {
+      toast.error('Failed to accept')
+    }
+  }
+
+  const handleDeclinePending = async (e, connId, userId) => {
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      const res = await fetch(`/api/connections/${connId}/decline`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      })
+      if (res.ok) {
+        setPendingIncoming(prev => prev.filter(p => p.id !== connId))
+        setConnections(prev => {
+          const updated = { ...prev }
+          delete updated[userId]
+          return updated
+        })
+        toast.info('Connection declined')
+      }
+    } catch {
+      toast.error('Failed to decline')
+    }
+  }
+
   const filtered = (members || []).filter((m) => {
     const matchesSearch =
       m.name.toLowerCase().includes(search.toLowerCase()) ||
-      m.company.toLowerCase().includes(search.toLowerCase()) ||
-      m.title.toLowerCase().includes(search.toLowerCase())
+      m.company?.toLowerCase().includes(search.toLowerCase()) ||
+      m.title?.toLowerCase().includes(search.toLowerCase())
     const memberTier = m.tier || m.membership_tier
     const matchesTier = tier === 'All' || memberTier?.toLowerCase() === tier.toLowerCase()
-    return matchesSearch && matchesTier
+    const matchesFilter = filter === 'all' || (filter === 'connections' && myConnectionIds.has(m.id))
+    return matchesSearch && matchesTier && matchesFilter
   })
-
-  const renderConnectionIndicator = (memberId) => {
-    const conn = connections[memberId]
-    if (!conn) return null
-
-    if (conn.status === 'accepted') {
-      return (
-        <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
-          <UserCheck size={12} /> Connected
-        </span>
-      )
-    }
-    if (conn.status === 'pending') {
-      return (
-        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
-          <Clock size={12} /> Pending
-        </span>
-      )
-    }
-    return null
-  }
 
   const renderConnectButton = (member) => {
     const conn = connections[member.id]
@@ -136,9 +174,15 @@ export default function MembersPage() {
 
     if (conn?.status === 'accepted') {
       return (
-        <Button variant="outline" size="sm" className="w-full mt-4" disabled>
-          <UserCheck size={14} /> Connected
-        </Button>
+        <Link
+          to={`/dashboard/messages?user=${member.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="block"
+        >
+          <Button variant="outline" size="sm" className="w-full mt-4">
+            <MessageCircle size={14} /> Message
+          </Button>
+        </Link>
       )
     }
 
@@ -165,6 +209,27 @@ export default function MembersPage() {
     )
   }
 
+  const renderConnectionIndicator = (memberId) => {
+    const conn = connections[memberId]
+    if (!conn) return null
+
+    if (conn.status === 'accepted') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
+          <UserCheck size={12} /> Connected
+        </span>
+      )
+    }
+    if (conn.status === 'pending') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
+          <Clock size={12} /> Pending
+        </span>
+      )
+    }
+    return null
+  }
+
   return (
     <div>
       <div className="mb-8">
@@ -175,6 +240,42 @@ export default function MembersPage() {
           Connect with marketing leaders in the community.
         </p>
       </div>
+
+      {/* Pending Incoming Requests */}
+      {pendingIncoming.length > 0 && filter !== 'connections' && (
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4">
+          <h3 className="text-sm font-semibold text-amber-800 mb-3">
+            Pending Connection Requests ({pendingIncoming.length})
+          </h3>
+          <div className="space-y-2">
+            {pendingIncoming.map((req) => (
+              <div key={req.id} className="flex items-center justify-between bg-white rounded-xl p-3">
+                <Link to={`/dashboard/members/${req.user_id}`} className="flex items-center gap-3 no-underline">
+                  <Avatar name={req.name} src={req.avatar_url} size="sm" />
+                  <div>
+                    <p className="text-sm font-medium text-dark-blue">{req.name}</p>
+                    <p className="text-xs text-neutral-500">{req.title} at {req.company}</p>
+                  </div>
+                </Link>
+                <div className="flex gap-2">
+                  <button
+                    onClick={(e) => handleAcceptPending(e, req.id, req.user_id)}
+                    className="p-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors cursor-pointer"
+                  >
+                    <Check size={16} />
+                  </button>
+                  <button
+                    onClick={(e) => handleDeclinePending(e, req.id, req.user_id)}
+                    className="p-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors cursor-pointer"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Search & Filter */}
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -192,12 +293,22 @@ export default function MembersPage() {
           />
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setSearchParams(filter === 'connections' ? {} : { filter: 'connections' })}
+            className={`px-3 py-2 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+              filter === 'connections'
+                ? 'bg-brand-pink text-white'
+                : 'bg-white text-neutral-500 hover:bg-neutral-100 border border-neutral-200'
+            }`}
+          >
+            My Connections
+          </button>
           {tiers.map((t) => (
             <button
               key={t}
-              onClick={() => setTier(t)}
+              onClick={() => { setTier(t); if (filter === 'connections') setSearchParams({}) }}
               className={`px-3 py-2 rounded-full text-xs font-medium transition-colors cursor-pointer ${
-                tier === t
+                tier === t && filter !== 'connections'
                   ? 'bg-brand-pink text-white'
                   : 'bg-white text-neutral-500 hover:bg-neutral-100 border border-neutral-200'
               }`}
@@ -216,8 +327,12 @@ export default function MembersPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-neutral-500">
-          <p className="text-lg font-medium mb-1">No members found</p>
-          <p className="text-sm">Try adjusting your search or filters.</p>
+          <p className="text-lg font-medium mb-1">
+            {filter === 'connections' ? 'No connections yet' : 'No members found'}
+          </p>
+          <p className="text-sm">
+            {filter === 'connections' ? 'Connect with members to see them here.' : 'Try adjusting your search or filters.'}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 stagger-children">

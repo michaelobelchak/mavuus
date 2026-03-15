@@ -1,49 +1,44 @@
-# Phase 2: Complete Incomplete Pages
+# Phase 2: Complete Remaining Incomplete Pages
 
-## Goal
-Finish all dashboard detail pages that are currently shells. After this phase, every page in the app is fully functional with proper UI and backend support.
+## What Changed
+Phase 4 and 5 of the existing build already completed most of what was originally planned here:
+- ✅ SessionDetailPage — built with register button
+- ✅ ResourceDetailPage — built with blog-style layout
+- ✅ VendorDetailPage — built with job cross-links, reviews, recommendations
+- ✅ Reviews system — built (reviewer→reviewee with vendor_id and job_id support)
+- ✅ Recommendations — built with routes and notifications
 
-## Claude Code Prompt
+## What Still Needs To Be Done
 
 ```
-Read the project at this directory. This is a React + Vite + Tailwind frontend with an Express + SQLite backend. Complete these partially-built pages. Match the existing design system: brand-pink (#F26D92) for CTAs, brand-blue (#1F648D) for headings, rounded corners, card-based layouts, Manrope font.
+Read the project at this directory. This is a React + Vite + Tailwind frontend with an Express + SQLite backend. Several detail pages were already built in previous phases. Complete the remaining gaps:
 
-1. SESSION DETAIL PAGE (src/pages/dashboard/SessionDetailPage.jsx):
-   - Redesign with a hero section: large thumbnail, title, speaker avatar + name + title, date/time, duration badge, category badge
-   - Add RSVP button for live sessions:
-     - Add to schema.sql: CREATE TABLE IF NOT EXISTS rsvps (id INTEGER PRIMARY KEY, session_id INTEGER, user_id INTEGER, created_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(session_id, user_id))
-     - Add to server/routes/sessions.js: POST /:id/rsvp (toggle RSVP), GET /:id/rsvps (count + check if current user RSVP'd)
-     - Button shows "RSVP'd" state if already registered, with attendee count
-   - Add speaker bio section below the main content
-   - Add "Related Sessions" section: 3 cards of sessions in the same category (exclude current)
-   - For on-demand sessions, show a video embed area (placeholder with play button if no video_url, or an iframe if video_url is a YouTube/Vimeo link)
+1. SESSION DETAIL PAGE — ENHANCEMENTS:
+   The page exists but check if these are missing:
+   - Related Sessions section (3 cards of sessions in same category, excluding current)
+   - Speaker bio section (separate from the session description)
+   - For on-demand sessions: video embed area (YouTube/Vimeo iframe or HTML5 video if video_url exists)
    - Breadcrumbs: Dashboard > Live Sessions > [Session Title]
+   If any of these already exist, skip them. Only add what's missing.
 
-2. RESOURCE DETAIL PAGE (src/pages/dashboard/ResourceDetailPage.jsx):
-   - Full content rendering with proper typography (headings, paragraphs, lists)
-   - Author info section: avatar, name, title
-   - Add bookmark functionality:
+2. RESOURCE DETAIL PAGE — ENHANCEMENTS:
+   The page exists but check if these are missing:
+   - Bookmark functionality:
      - Add to schema.sql: CREATE TABLE IF NOT EXISTS bookmarks (id INTEGER PRIMARY KEY, user_id INTEGER, resource_id INTEGER, created_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, resource_id))
      - Add to server/routes/resources.js: POST /:id/bookmark (toggle), GET /bookmarked (list user's bookmarks)
-     - Bookmark icon button that toggles state
-   - "Related Resources" section: 3 cards in same category
-   - Breadcrumbs: Dashboard > Community Resources > [Resource Title]
+     - Bookmark icon button on the page
+   - Related Resources section (3 cards in same category)
+   - Breadcrumbs
+   Only add what's missing.
 
-3. VENDOR DETAIL PAGE (src/pages/dashboard/VendorDetailPage.jsx):
-   - Full vendor profile: company logo/avatar, company name, description, categories as badges, location, website link, rating stars display
-   - Reviews section:
-     - Add to schema.sql: CREATE TABLE IF NOT EXISTS reviews (id INTEGER PRIMARY KEY, vendor_id INTEGER, user_id INTEGER, rating INTEGER CHECK(rating >= 1 AND rating <= 5), comment TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(vendor_id, user_id))
-     - Add to server/routes/vendors.js: GET /:id/reviews, POST /:id/reviews
-     - Display existing reviews (avatar, name, star rating, comment, date)
-     - "Write a Review" form: star rating selector (1-5 clickable stars) + comment textarea + submit button
-     - Only show write form if user hasn't already reviewed
-   - "Request Introduction" button:
-     - Uses the existing recommendations table
-     - Opens a modal with a message textarea
-     - POST /api/recommendations creates the record
+3. VENDOR DETAIL PAGE — ENHANCEMENTS:
+   The page exists with reviews and recommendations already. Check if these are missing:
    - Breadcrumbs: Dashboard > Search for Vendors > [Vendor Name]
+   - Portfolio / case studies section (placeholder for future content)
+   Only add what's missing.
 
 4. BLOG DETAIL PAGE (src/pages/public/BlogDetailPage.jsx):
+   This page is still minimal. Build it properly:
    - Fetch article data by slug from mockData
    - Hero: large thumbnail, title, author name + avatar, date, read time
    - Full article body with rich typography
@@ -57,24 +52,26 @@ Read the project at this directory. This is a React + Vite + Tailwind frontend w
    - Create server/routes/contact.js: POST /api/contact (validate fields, insert, return success)
    - Register route in server/index.js
    - Update src/pages/public/ContactPage.jsx to POST to /api/contact instead of just showing client-side success
-   - Show proper loading state during submission
-   - Show error message if submission fails
+   - Show proper loading state during submission and error handling
 
-6. VERIFY:
-   - Navigate to each detail page and verify all sections render
-   - Test RSVP toggle on a live session
-   - Test bookmark toggle on a resource
-   - Test writing a vendor review (star selection + comment)
+6. COMMENTS SYSTEM (if not already built — check first):
+   - Check if a comments table and routes already exist. If NOT:
+   - Create table: comments (id, entity_type TEXT, entity_id INTEGER, user_id INTEGER, content TEXT, parent_id INTEGER NULL for replies, created_at TEXT)
+   - Create server/routes/comments.js: GET /api/comments?entity_type=session&entity_id=1, POST /api/comments, DELETE /api/comments/:id
+   - Create reusable CommentSection.jsx component
+   - Add to SessionDetailPage, ResourceDetailPage, VendorDetailPage
+
+7. VERIFY:
+   - Navigate to each detail page, verify all sections render
+   - Test bookmark toggle on a resource (if newly added)
    - Test contact form submission
-   - Check breadcrumbs work on all detail pages
+   - Test comments on a session page (if newly added)
    - No console errors
 ```
 
 ## Acceptance Criteria
-- [ ] Session detail page has hero, RSVP, speaker bio, related sessions, video area
-- [ ] Resource detail page has full content, bookmark, author info, related resources
-- [ ] Vendor detail page has reviews (read + write), request introduction, full profile
-- [ ] Blog detail page renders full article with author info
+- [ ] Session detail has related sessions, video area for on-demand, breadcrumbs
+- [ ] Resource detail has bookmark functionality, related resources, breadcrumbs
+- [ ] Blog detail page renders full article with author info and related articles
 - [ ] Contact form submits to backend and stores in database
-- [ ] All new database tables created and seeded
-- [ ] All breadcrumbs functional
+- [ ] Comments system works (if it didn't already exist)

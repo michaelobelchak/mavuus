@@ -5,6 +5,8 @@ import { useToast } from '../../components/ui/Toast'
 import Avatar from '../../components/ui/Avatar'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
+import ReviewCard from '../../components/ui/ReviewCard'
+import RecommendationCard from '../../components/ui/RecommendationCard'
 import {
   MapPin,
   Briefcase,
@@ -16,6 +18,9 @@ import {
   Clock,
   ArrowLeft,
   ExternalLink,
+  Lock,
+  FileText,
+  Download,
 } from 'lucide-react'
 
 export default function MemberProfilePage() {
@@ -27,6 +32,10 @@ export default function MemberProfilePage() {
   const [loading, setLoading] = useState(true)
   const [connectionStatus, setConnectionStatus] = useState({ status: 'none' })
   const [connecting, setConnecting] = useState(false)
+  const [postedJobs, setPostedJobs] = useState([])
+  const [completedJobs, setCompletedJobs] = useState([])
+  const [reviews, setReviews] = useState([])
+  const [recommendations, setRecommendations] = useState([])
 
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -51,7 +60,24 @@ export default function MemberProfilePage() {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ])
-        if (memberRes.ok) setMember(await memberRes.json())
+        if (memberRes.ok) {
+          const memberData = await memberRes.json()
+          setMember(memberData)
+
+          // Only fetch extra data if profile is not limited
+          if (!memberData.limited) {
+            const [jobsRes, completedRes, reviewsRes, recsRes] = await Promise.all([
+              fetch(`/api/jobs?posted_by=${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+              fetch(`/api/jobs/completed-by/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+              fetch(`/api/reviews/user/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+              fetch(`/api/recommendations/user/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+            ])
+            if (jobsRes.ok) setPostedJobs(await jobsRes.json())
+            if (completedRes.ok) setCompletedJobs(await completedRes.json())
+            if (reviewsRes.ok) setReviews(await reviewsRes.json())
+            if (recsRes.ok) setRecommendations(await recsRes.json())
+          }
+        }
         if (connRes.ok) setConnectionStatus(await connRes.json())
       } catch {
         // Network error — keep defaults
@@ -160,6 +186,13 @@ export default function MemberProfilePage() {
     )
   }
 
+  const statusColors = {
+    open: 'green',
+    'in-progress': 'blue',
+    completed: 'pink',
+    closed: 'gray',
+  }
+
   return (
     <div>
       {/* Back link */}
@@ -169,6 +202,20 @@ export default function MemberProfilePage() {
       >
         <ArrowLeft size={16} /> Back
       </button>
+
+      {/* Limited visibility notice */}
+      {member.limited && (
+        <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl mb-3">
+          <Lock size={18} className="text-amber-600 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-800">Limited Profile</p>
+            <p className="text-xs text-amber-600">
+              This member has restricted their profile visibility.
+              {member.profile_visibility === 'connections' && ' Connect to see their full profile.'}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Profile Header */}
       <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
@@ -203,41 +250,43 @@ export default function MemberProfilePage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-4 mt-3 text-sm text-neutral-500">
-              {member.location && (
+            {!member.limited && (
+              <div className="flex flex-wrap gap-4 mt-3 text-sm text-neutral-500">
+                {member.location && (
+                  <span className="flex items-center gap-1">
+                    <MapPin size={14} />
+                    {member.location}
+                  </span>
+                )}
+                {member.industry && (
+                  <span className="flex items-center gap-1">
+                    <Briefcase size={14} />
+                    {member.industry}
+                  </span>
+                )}
+                {member.years_experience && (
+                  <span className="flex items-center gap-1">
+                    {member.years_experience}+ years experience
+                  </span>
+                )}
+                {member.connection_count > 0 && (
+                  <span className="flex items-center gap-1">
+                    <Users size={14} />
+                    {member.connection_count} connection{member.connection_count !== 1 ? 's' : ''}
+                  </span>
+                )}
                 <span className="flex items-center gap-1">
-                  <MapPin size={14} />
-                  {member.location}
+                  <Calendar size={14} />
+                  Member since{' '}
+                  {new Date(member.created_at).toLocaleDateString('en-US', {
+                    month: 'long',
+                    year: 'numeric',
+                  })}
                 </span>
-              )}
-              {member.industry && (
-                <span className="flex items-center gap-1">
-                  <Briefcase size={14} />
-                  {member.industry}
-                </span>
-              )}
-              {member.years_experience && (
-                <span className="flex items-center gap-1">
-                  {member.years_experience}+ years experience
-                </span>
-              )}
-              {member.connection_count > 0 && (
-                <span className="flex items-center gap-1">
-                  <Users size={14} />
-                  {member.connection_count} connection{member.connection_count !== 1 ? 's' : ''}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <Calendar size={14} />
-                Member since{' '}
-                {new Date(member.created_at).toLocaleDateString('en-US', {
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </span>
-            </div>
+              </div>
+            )}
 
-            {member.linkedin_url && (
+            {!member.limited && member.linkedin_url && (
               <a
                 href={member.linkedin_url}
                 target="_blank"
@@ -251,63 +300,159 @@ export default function MemberProfilePage() {
         </div>
       </div>
 
-      {/* Bio */}
-      {member.bio && (
-        <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
-          <h3 className="text-lg font-semibold text-dark-blue mb-3">About</h3>
-          <p className="text-sm text-neutral-600 leading-relaxed">
-            {member.bio}
-          </p>
-        </div>
-      )}
+      {/* Full profile sections — only shown if not limited */}
+      {!member.limited && (
+        <>
+          {/* Bio */}
+          {member.bio && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
+              <h3 className="text-lg font-semibold text-dark-blue mb-3">About</h3>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                {member.bio}
+              </p>
+            </div>
+          )}
 
-      {/* Skills */}
-      {member.skills && member.skills.length > 0 && (
-        <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
-          <h3 className="text-lg font-semibold text-dark-blue mb-3">
-            Skills & Expertise
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {member.skills.map((skill) => (
-              <Badge key={skill} variant="blue">
-                {skill}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
+          {/* Resume download */}
+          {member.resume_url && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
+              <h3 className="text-lg font-semibold text-dark-blue mb-3 flex items-center gap-2">
+                <FileText size={18} /> Resume
+              </h3>
+              <a
+                href={member.resume_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-brand-blue hover:underline"
+              >
+                <Download size={14} /> {member.resume_filename || 'Download Resume'}
+              </a>
+            </div>
+          )}
 
-      {/* Experience */}
-      {member.experience && member.experience.length > 0 && (
-        <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-          <h3 className="text-lg font-semibold text-dark-blue mb-4">
-            Experience
-          </h3>
-          <div className="space-y-4">
-            {member.experience.map((exp) => (
-              <div key={exp.id} className="flex gap-4">
-                <div className="w-10 h-10 rounded-xl bg-brand-blue/10 flex items-center justify-center flex-shrink-0">
-                  <Briefcase size={18} className="text-brand-blue" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-dark-blue">{exp.title}</h4>
-                  <p className="text-sm text-neutral-600">{exp.company}</p>
-                  <p className="text-xs text-neutral-500 mt-1">
-                    {exp.start_date || 'Unknown'} —{' '}
-                    {exp.is_current
-                      ? 'Present'
-                      : exp.end_date || 'Unknown'}
-                  </p>
-                  {exp.description && (
-                    <p className="text-sm text-neutral-600 mt-2">
-                      {exp.description}
-                    </p>
-                  )}
-                </div>
+          {/* Skills */}
+          {member.skills && member.skills.length > 0 && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
+              <h3 className="text-lg font-semibold text-dark-blue mb-3">
+                Skills & Expertise
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {member.skills.map((skill) => (
+                  <Badge key={skill} variant="blue">
+                    {skill}
+                  </Badge>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          )}
+
+          {/* Experience */}
+          {member.experience && member.experience.length > 0 && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
+              <h3 className="text-lg font-semibold text-dark-blue mb-4">
+                Experience
+              </h3>
+              <div className="space-y-4">
+                {member.experience.map((exp) => (
+                  <div key={exp.id} className="flex gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-brand-blue/10 flex items-center justify-center flex-shrink-0">
+                      <Briefcase size={18} className="text-brand-blue" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-dark-blue">{exp.title}</h4>
+                      <p className="text-sm text-neutral-600">{exp.company}</p>
+                      <p className="text-xs text-neutral-500 mt-1">
+                        {exp.start_date || 'Unknown'} —{' '}
+                        {exp.is_current
+                          ? 'Present'
+                          : exp.end_date || 'Unknown'}
+                      </p>
+                      {exp.description && (
+                        <p className="text-sm text-neutral-600 mt-2">
+                          {exp.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Jobs Posted */}
+          {postedJobs.length > 0 && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
+              <h3 className="text-lg font-semibold text-dark-blue mb-4 flex items-center gap-2">
+                <Briefcase size={18} /> Jobs Posted
+              </h3>
+              <div className="space-y-3">
+                {postedJobs.map(job => (
+                  <Link
+                    key={job.id}
+                    to={`/dashboard/jobs/${job.id}`}
+                    className="block p-3 rounded-xl border border-neutral-100 hover:border-brand-pink/30 hover:bg-brand-pink/5 transition-colors no-underline"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-dark-blue">{job.title}</p>
+                        <p className="text-xs text-neutral-500">{job.company} · {job.location}</p>
+                      </div>
+                      <Badge variant={statusColors[job.status] || 'gray'}>{job.status}</Badge>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Completed Jobs */}
+          {completedJobs.length > 0 && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
+              <h3 className="text-lg font-semibold text-dark-blue mb-4">Completed Jobs</h3>
+              <div className="space-y-3">
+                {completedJobs.map(job => (
+                  <Link
+                    key={job.id}
+                    to={`/dashboard/jobs/${job.id}`}
+                    className="block p-3 rounded-xl border border-neutral-100 hover:border-brand-pink/30 hover:bg-brand-pink/5 transition-colors no-underline"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-dark-blue">{job.title}</p>
+                        <p className="text-xs text-neutral-500">{job.company} · Posted by {job.poster_name}</p>
+                      </div>
+                      <Badge variant="pink">Completed</Badge>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Ratings & Reviews */}
+          {reviews.length > 0 && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
+              <h3 className="text-lg font-semibold text-dark-blue mb-4">Ratings & Reviews</h3>
+              <div className="space-y-3">
+                {reviews.map(review => (
+                  <ReviewCard key={review.id} {...review} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recommendations */}
+          {recommendations.length > 0 && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+              <h3 className="text-lg font-semibold text-dark-blue mb-4">Recommendations</h3>
+              <div className="space-y-3">
+                {recommendations.map(rec => (
+                  <RecommendationCard key={rec.id} {...rec} />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

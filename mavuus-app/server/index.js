@@ -16,6 +16,8 @@ import profileRoutes from './routes/profile.js'
 import connectionsRoutes from './routes/connections.js'
 import messagesRoutes from './routes/messages.js'
 import notificationsRoutes from './routes/notifications.js'
+import reviewsRoutes from './routes/reviews.js'
+import recommendationsRoutes from './routes/recommendations.js'
 import { sanitizeBody } from './middleware/sanitize.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -81,6 +83,8 @@ app.use('/api/profile', profileRoutes)
 app.use('/api/connections', connectionsRoutes)
 app.use('/api/messages', messagesRoutes)
 app.use('/api/notifications', notificationsRoutes)
+app.use('/api/reviews', reviewsRoutes)
+app.use('/api/recommendations', recommendationsRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {

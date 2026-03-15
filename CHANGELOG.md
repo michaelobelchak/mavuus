@@ -70,3 +70,38 @@ All notable changes to the Mavuus project are documented here, organized by phas
 - Visual QA against Figma designs
 - Responsive design (mobile/tablet)
 - Deployment to Vercel + Railway
+
+## Phase 5: Connections, Ratings, Recommendations & Privacy — 2026-03-15
+**Status:** Complete
+
+### Database & Schema
+- Added `status` (`open`/`in-progress`/`completed`/`closed`) + `hired_user_id` to `jobs` table
+- Created `reviews` table (reviewer_id, reviewee_id, vendor_id, job_id, rating 1-5, text, unique constraint)
+- Seed: 2 completed jobs with hired users, 6 reviews (4 job + 2 vendor), 4 recommendations, vendor ratings recalculated
+
+### New Backend Routes
+- `server/routes/reviews.js` — `POST /`, `GET /user/:userId`, `GET /vendor/:vendorId`, `DELETE /:id` (auto-recalculates vendor rating)
+- `server/routes/recommendations.js` — `POST /`, `GET /user/:userId`, `GET /vendor/:vendorId` (creates notifications)
+
+### Modified Backend Routes
+- `jobs.js` — `?posted_by=` + `?status=` filters, `GET /completed-by/:userId`, hire flow (`'hired'` status auto-sets job to `in-progress`), status/hired_user_id in PUT + GET
+- `members.js` — Optional auth middleware, `isConnected()` helper, privacy enforcement on profiles (`public`/`connections`/`private`), `limited` flag in response
+- `profile.js` — `POST /me/resume` (multer PDF upload, 5MB max), `DELETE /me/resume`
+- `index.js` — Registered reviews + recommendations routes
+
+### New Frontend Components
+- `StarRating.jsx` — Interactive (clickable) + readonly star display
+- `ReviewCard.jsx` — Avatar + name + stars + text + date + optional vendor badge
+- `RecommendationCard.jsx` — Avatar + name + message + optional vendor badge
+
+### Modified Frontend Pages
+- `MembersPage` — "My Connections" filter tab, "Message" button for connections, pending requests with Accept/Decline
+- `MemberProfilePage` — Jobs Posted, Completed Jobs, Ratings & Reviews, Recommendations sections; resume download; "Limited Profile" notice for restricted visibility
+- `JobDetailPage` — Status badge, status dropdown for poster, hire from applicant list, "Leave a Review" modal, "Recommend a Vendor" modal
+- `VendorDetailPage` — Reviews list from API, "Write a Review" modal, recommendations section
+- `ProfilePage` — Reviews + recommendations in About tab, real resume upload/delete in Experience tab
+
+### Files Changed (16 total)
+- Modified: `schema.sql`, `seed.js`, `index.js`, `jobs.js`, `members.js`, `profile.js`
+- Modified: `MembersPage`, `MemberProfilePage`, `JobDetailPage`, `VendorDetailPage`, `ProfilePage`
+- New: `reviews.js`, `recommendations.js`, `StarRating.jsx`, `ReviewCard.jsx`, `RecommendationCard.jsx`

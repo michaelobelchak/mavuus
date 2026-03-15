@@ -6,8 +6,10 @@ import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
 import Avatar from '../../components/ui/Avatar'
+import StarRating from '../../components/ui/StarRating'
+import ReviewCard from '../../components/ui/ReviewCard'
 import { Textarea } from '../../components/ui/Input'
-import { MapPin, Clock, DollarSign, Bookmark, BookmarkCheck, ArrowLeft, Building2, Calendar, Send, CheckCircle, Users, Briefcase } from 'lucide-react'
+import { MapPin, Clock, DollarSign, Bookmark, BookmarkCheck, ArrowLeft, Building2, Send, CheckCircle, Users, Briefcase, Star, ThumbsUp } from 'lucide-react'
 
 function renderDescription(text) {
   if (!text) return null
@@ -16,13 +18,11 @@ function renderDescription(text) {
     const trimmed = section.trim()
     if (!trimmed) return null
 
-    // Bold header like **Responsibilities:**
     if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
       const heading = trimmed.replace(/\*\*/g, '')
       return <h4 key={i} className="text-base font-semibold text-dark-blue mt-6 mb-2">{heading}</h4>
     }
 
-    // Section with bold header followed by bullet list
     if (trimmed.startsWith('**')) {
       const lines = trimmed.split('\n')
       const headingLine = lines[0].replace(/\*\*/g, '')
@@ -44,7 +44,6 @@ function renderDescription(text) {
       }
     }
 
-    // Bullet list without heading
     if (trimmed.startsWith('-')) {
       const bullets = trimmed.split('\n').filter(l => l.trim().startsWith('-'))
       return (
@@ -59,9 +58,15 @@ function renderDescription(text) {
       )
     }
 
-    // Plain paragraph
     return <p key={i} className="text-sm text-neutral-600 leading-relaxed mt-2">{trimmed}</p>
   })
+}
+
+const jobStatusColors = {
+  open: 'green',
+  'in-progress': 'blue',
+  completed: 'pink',
+  closed: 'gray',
 }
 
 export default function JobDetailPage() {
@@ -76,6 +81,21 @@ export default function JobDetailPage() {
   const [showApplyModal, setShowApplyModal] = useState(false)
   const [coverLetter, setCoverLetter] = useState('')
   const [applying, setApplying] = useState(false)
+  const [applicants, setApplicants] = useState([])
+
+  // Review modal state
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [reviewRating, setReviewRating] = useState(0)
+  const [reviewText, setReviewText] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [reviews, setReviews] = useState([])
+
+  // Recommend vendor modal state
+  const [showRecommendModal, setShowRecommendModal] = useState(false)
+  const [vendors, setVendors] = useState([])
+  const [selectedVendor, setSelectedVendor] = useState(null)
+  const [recommendMessage, setRecommendMessage] = useState('')
+  const [submittingRec, setSubmittingRec] = useState(false)
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
 
@@ -87,7 +107,25 @@ export default function JobDetailPage() {
           fetch('/api/jobs/saved', { headers: { Authorization: `Bearer ${token}` } }),
           fetch('/api/jobs/my-applications', { headers: { Authorization: `Bearer ${token}` } }),
         ])
-        if (jobRes.ok) setJob(await jobRes.json())
+        if (jobRes.ok) {
+          const jobData = await jobRes.json()
+          setJob(jobData)
+
+          // Fetch applicants if this is my job
+          if (jobData.posted_by === user?.id) {
+            const appRes = await fetch(`/api/jobs/${id}/applicants`, { headers: { Authorization: `Bearer ${token}` } })
+            if (appRes.ok) setApplicants(await appRes.json())
+          }
+
+          // Fetch reviews if completed
+          if (jobData.status === 'completed' && jobData.hired_user_id) {
+            const reviewsRes = await fetch(`/api/reviews/user/${jobData.hired_user_id}`, { headers: { Authorization: `Bearer ${token}` } })
+            if (reviewsRes.ok) {
+              const allReviews = await reviewsRes.json()
+              setReviews(allReviews.filter(r => r.job_id === parseInt(id)))
+            }
+          }
+        }
         if (savedRes.ok) {
           const savedJobs = await savedRes.json()
           setSaved(savedJobs.some(j => j.id === parseInt(id)))
@@ -134,6 +172,109 @@ export default function JobDetailPage() {
     finally { setApplying(false) }
   }
 
+  const handleStatusChange = async (newStatus) => {
+    try {
+      const res = await fetch(`/api/jobs/${id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (res.ok) {
+        setJob(prev => ({ ...prev, status: newStatus }))
+        toast.success(`Job marked as ${newStatus}`)
+      }
+    } catch {
+      toast.error('Failed to update status')
+    }
+  }
+
+  const handleHire = async (applicationId, userId) => {
+    try {
+      const res = await fetch(`/api/jobs/applications/${applicationId}/status`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ status: 'hired' }),
+      })
+      if (res.ok) {
+        setJob(prev => ({ ...prev, status: 'in-progress', hired_user_id: userId }))
+        setApplicants(prev => prev.map(a =>
+          a.id === applicationId ? { ...a, status: 'hired' } : a
+        ))
+        toast.success('Applicant hired! Job status changed to in-progress.')
+      }
+    } catch {
+      toast.error('Failed to hire applicant')
+    }
+  }
+
+  const handleSubmitReview = async () => {
+    if (!reviewRating) return toast.error('Please select a rating')
+    setSubmittingReview(true)
+    try {
+      const revieweeId = job.posted_by === user?.id ? job.hired_user_id : job.posted_by
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          reviewee_id: revieweeId,
+          job_id: parseInt(id),
+          rating: reviewRating,
+          text: reviewText,
+        }),
+      })
+      if (res.ok) {
+        toast.success('Review submitted!')
+        setShowReviewModal(false)
+        setReviewRating(0)
+        setReviewText('')
+        // Refresh reviews
+        const reviewsRes = await fetch(`/api/reviews/user/${revieweeId}`, { headers: { Authorization: `Bearer ${token}` } })
+        if (reviewsRes.ok) {
+          const allReviews = await reviewsRes.json()
+          setReviews(allReviews.filter(r => r.job_id === parseInt(id)))
+        }
+      } else {
+        const data = await res.json()
+        toast.error(data.error || 'Failed to submit review')
+      }
+    } catch { toast.error('Network error') }
+    finally { setSubmittingReview(false) }
+  }
+
+  const handleRecommendVendor = async () => {
+    if (!selectedVendor || !recommendMessage) return
+    setSubmittingRec(true)
+    try {
+      const res = await fetch('/api/recommendations', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          to_user_id: job.posted_by,
+          vendor_id: selectedVendor,
+          message: recommendMessage,
+        }),
+      })
+      if (res.ok) {
+        toast.success('Recommendation sent!')
+        setShowRecommendModal(false)
+        setSelectedVendor(null)
+        setRecommendMessage('')
+      } else {
+        const data = await res.json()
+        toast.error(data.error || 'Failed to send recommendation')
+      }
+    } catch { toast.error('Network error') }
+    finally { setSubmittingRec(false) }
+  }
+
+  const openRecommendModal = async () => {
+    try {
+      const res = await fetch('/api/vendors', { headers: { Authorization: `Bearer ${token}` } })
+      if (res.ok) setVendors(await res.json())
+    } catch {}
+    setShowRecommendModal(true)
+  }
+
   if (loading) {
     return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-2 border-brand-pink border-t-transparent rounded-full animate-spin" /></div>
   }
@@ -148,8 +289,10 @@ export default function JobDetailPage() {
   }
 
   const isMyJob = job.posted_by === user?.id
-  const statusColors = {
-    applied: 'blue', reviewing: 'pink', interview: 'green', offer: 'green', rejected: 'gray'
+  const isCompleted = job.status === 'completed'
+  const isInvolved = isMyJob || job.hired_user_id === user?.id
+  const appStatusColors = {
+    applied: 'blue', reviewing: 'pink', interview: 'green', offer: 'green', rejected: 'gray', hired: 'pink'
   }
 
   return (
@@ -168,6 +311,7 @@ export default function JobDetailPage() {
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-2xl font-bold text-dark-blue">{job.title}</h1>
                   {job.seniority && <Badge variant="pink">{job.seniority}</Badge>}
+                  <Badge variant={jobStatusColors[job.status] || 'gray'}>{job.status}</Badge>
                 </div>
                 <p className="text-lg text-neutral-600 flex items-center gap-2">
                   <Building2 size={18} /> {job.company}
@@ -197,13 +341,26 @@ export default function JobDetailPage() {
               {job.category && <Badge variant="blue">{job.category}</Badge>}
             </div>
 
+            {/* Hired user info */}
+            {job.hired_name && (
+              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl mb-6">
+                <Avatar name={job.hired_name} src={job.hired_avatar} size="sm" />
+                <div>
+                  <p className="text-sm font-medium text-blue-800">
+                    {job.hired_user_id === user?.id ? 'You were' : `${job.hired_name} was`} hired for this role
+                  </p>
+                  <p className="text-xs text-blue-600">Status: {job.status}</p>
+                </div>
+              </div>
+            )}
+
             {applied && (
               <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl mb-6">
                 <CheckCircle size={18} className="text-green-600" />
                 <div>
                   <p className="text-sm font-medium text-green-800">You applied for this position</p>
                   <p className="text-xs text-green-600">
-                    Applied {new Date(applied.applied_at).toLocaleDateString()} · Status: <Badge variant={statusColors[applied.status] || 'gray'}>{applied.status}</Badge>
+                    Applied {new Date(applied.applied_at).toLocaleDateString()} · Status: <Badge variant={appStatusColors[applied.status] || 'gray'}>{applied.status}</Badge>
                   </p>
                 </div>
               </div>
@@ -219,6 +376,50 @@ export default function JobDetailPage() {
               )}
             </div>
           </div>
+
+          {/* Applicants (for job poster) */}
+          {isMyJob && applicants.length > 0 && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+              <h3 className="text-lg font-semibold text-dark-blue mb-4 flex items-center gap-2">
+                <Users size={18} /> Applicants ({applicants.length})
+              </h3>
+              <div className="space-y-3">
+                {applicants.map(app => (
+                  <div key={app.id} className="flex items-center justify-between p-3 rounded-xl border border-neutral-100">
+                    <Link to={`/dashboard/members/${app.user_id}`} className="flex items-center gap-3 no-underline">
+                      <Avatar name={app.name} src={app.avatar_url} size="sm" />
+                      <div>
+                        <p className="text-sm font-medium text-dark-blue">{app.name}</p>
+                        <p className="text-xs text-neutral-500">{app.user_title} at {app.user_company}</p>
+                      </div>
+                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={appStatusColors[app.status] || 'gray'}>{app.status}</Badge>
+                      {app.status !== 'hired' && job.status === 'open' && (
+                        <Button size="sm" onClick={() => handleHire(app.id, app.user_id)}>
+                          Hire
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Reviews for completed job */}
+          {reviews.length > 0 && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+              <h3 className="text-lg font-semibold text-dark-blue mb-4 flex items-center gap-2">
+                <Star size={18} /> Reviews
+              </h3>
+              <div className="space-y-3">
+                {reviews.map(review => (
+                  <ReviewCard key={review.id} {...review} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -228,17 +429,47 @@ export default function JobDetailPage() {
             {isMyJob ? (
               <>
                 <p className="text-sm text-neutral-500 mb-3">You posted this job</p>
+                {/* Status change dropdown */}
+                <div className="mb-3">
+                  <label className="text-xs text-neutral-500 mb-1 block">Change Status</label>
+                  <select
+                    value={job.status}
+                    onChange={(e) => handleStatusChange(e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-pink/20"
+                  >
+                    <option value="open">Open</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="closed">Closed</option>
+                  </select>
+                </div>
+                {isCompleted && job.hired_user_id && (
+                  <Button className="w-full mb-3" onClick={() => setShowReviewModal(true)}>
+                    <Star size={16} /> Leave a Review
+                  </Button>
+                )}
                 <Link to="/dashboard/my-jobs">
                   <Button variant="outline" className="w-full"><Users size={16} /> View Applicants</Button>
                 </Link>
               </>
             ) : applied ? (
-              <Button variant="outline" className="w-full" disabled>
-                <CheckCircle size={16} /> Applied
-              </Button>
-            ) : (
+              <>
+                <Button variant="outline" className="w-full" disabled>
+                  <CheckCircle size={16} /> Applied
+                </Button>
+                {isCompleted && job.hired_user_id === user?.id && (
+                  <Button className="w-full mt-3" onClick={() => setShowReviewModal(true)}>
+                    <Star size={16} /> Leave a Review
+                  </Button>
+                )}
+              </>
+            ) : job.status === 'open' ? (
               <Button className="w-full" onClick={() => setShowApplyModal(true)}>
                 <Send size={16} /> Apply Now
+              </Button>
+            ) : (
+              <Button variant="outline" className="w-full" disabled>
+                This position is {job.status}
               </Button>
             )}
             <Button variant="outline" className="w-full mt-3" onClick={toggleSave}>
@@ -246,10 +477,23 @@ export default function JobDetailPage() {
             </Button>
           </div>
 
+          {/* Recommend a Vendor */}
+          {!isMyJob && job.status === 'open' && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+              <Button variant="outline" className="w-full" onClick={openRecommendModal}>
+                <ThumbsUp size={16} /> Recommend a Vendor
+              </Button>
+            </div>
+          )}
+
           {/* Job Meta */}
           <div className="bg-white rounded-2xl border border-neutral-100 p-6">
             <h4 className="font-semibold text-dark-blue mb-3">Job Details</h4>
             <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-neutral-500">Status</span>
+                <Badge variant={jobStatusColors[job.status] || 'gray'}>{job.status}</Badge>
+              </div>
               <div className="flex justify-between">
                 <span className="text-neutral-500">Posted</span>
                 <span className="text-dark-blue">{new Date(job.created_at).toLocaleDateString()}</span>
@@ -312,6 +556,70 @@ export default function JobDetailPage() {
             <Button variant="ghost" onClick={() => setShowApplyModal(false)}>Cancel</Button>
             <Button onClick={handleApply} disabled={applying}>
               {applying ? 'Submitting...' : 'Submit Application'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Review Modal */}
+      <Modal isOpen={showReviewModal} onClose={() => setShowReviewModal(false)} title="Leave a Review">
+        <div className="space-y-4">
+          <div className="p-3 bg-neutral-50 rounded-xl">
+            <p className="text-sm font-medium text-dark-blue">{job.title}</p>
+            <p className="text-xs text-neutral-500">
+              Reviewing: {isMyJob ? job.hired_name : job.poster_name}
+            </p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-dark-blue mb-2 block">Rating</label>
+            <StarRating rating={reviewRating} onChange={setReviewRating} size={24} />
+          </div>
+          <Textarea
+            label="Your Review"
+            value={reviewText}
+            onChange={(e) => setReviewText(e.target.value)}
+            rows={4}
+            placeholder="Share your experience working together..."
+          />
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="ghost" onClick={() => setShowReviewModal(false)}>Cancel</Button>
+            <Button onClick={handleSubmitReview} disabled={submittingReview || !reviewRating}>
+              {submittingReview ? 'Submitting...' : 'Submit Review'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Recommend Vendor Modal */}
+      <Modal isOpen={showRecommendModal} onClose={() => setShowRecommendModal(false)} title="Recommend a Vendor">
+        <div className="space-y-4">
+          <p className="text-sm text-neutral-500">
+            Recommend a vendor for this job to {job.poster_name}.
+          </p>
+          <div>
+            <label className="text-sm font-medium text-dark-blue mb-2 block">Select Vendor</label>
+            <select
+              value={selectedVendor || ''}
+              onChange={(e) => setSelectedVendor(e.target.value ? parseInt(e.target.value) : null)}
+              className="w-full px-3 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-pink/20"
+            >
+              <option value="">Choose a vendor...</option>
+              {vendors.map(v => (
+                <option key={v.id} value={v.id}>{v.company_name} — {v.categories}</option>
+              ))}
+            </select>
+          </div>
+          <Textarea
+            label="Message"
+            value={recommendMessage}
+            onChange={(e) => setRecommendMessage(e.target.value)}
+            rows={3}
+            placeholder="Why do you recommend this vendor for this role?"
+          />
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="ghost" onClick={() => setShowRecommendModal(false)}>Cancel</Button>
+            <Button onClick={handleRecommendVendor} disabled={submittingRec || !selectedVendor || !recommendMessage}>
+              {submittingRec ? 'Sending...' : 'Send Recommendation'}
             </Button>
           </div>
         </div>

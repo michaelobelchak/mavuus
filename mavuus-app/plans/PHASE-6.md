@@ -96,8 +96,9 @@ Read the project at this directory. This is a React + Vite + Tailwind frontend w
 
    Add columns to existing tables:
    - users: add is_banned INTEGER DEFAULT 0, ban_reason TEXT, banned_at DATETIME, is_deleted INTEGER DEFAULT 0, deleted_at DATETIME, last_login_at DATETIME
-   - jobs: add status TEXT DEFAULT 'active' CHECK(status IN ('active', 'hidden', 'removed')), admin_notes TEXT
-   - vendors: add status TEXT DEFAULT 'active' CHECK(status IN ('active', 'pending', 'suspended')), admin_notes TEXT
+   - jobs: IMPORTANT — the jobs table already has a `status` column for the JOB LIFECYCLE (open/in-progress/completed/closed) and a `hired_user_id` column. Do NOT modify these. Instead add: moderation_status TEXT DEFAULT 'approved' CHECK(moderation_status IN ('approved', 'hidden', 'removed')), admin_notes TEXT
+   - vendors: add moderation_status TEXT DEFAULT 'approved' CHECK(moderation_status IN ('approved', 'pending', 'suspended')), admin_notes TEXT
+   - IMPORTANT: The reviews table already exists with structure: reviewer_id, reviewee_id, vendor_id (optional), job_id (optional), rating, text. It supports BOTH job reviews and vendor reviews. Do NOT recreate it. The admin panel should handle this dual-purpose structure.
 
    Seed data:
    - Seed categories for each type (sessions: CRM, SaaS, Marketing Tech, AI, Growth, Branding, Analytics, SEO, Content Strategy, ABM, Paid Media; resources: Guide, Template, Report, Article; jobs: Marketing, Engineering, Design, Sales, Operations; vendors: Design, Web Dev, Copywriting, Social Media, Video, Consulting, SEO, Paid Ads)
@@ -170,7 +171,7 @@ Read the project at this directory. This is a React + Vite + Tailwind frontend w
    JOBS:
    - GET /api/admin/jobs — search, filter (type, status), sort, pagination. Include poster name, applicant count.
    - GET /api/admin/jobs/:id/applications — list all applications with applicant info, status, resume URL
-   - PUT /api/admin/jobs/:id — update status (active/hidden/removed), admin_notes. Log audit.
+   - PUT /api/admin/jobs/:id — update moderation_status (approved/hidden/removed), admin_notes. NOTE: The job's lifecycle `status` (open/in-progress/completed/closed) is managed by the job poster, NOT admin. Admin controls moderation_status. Log audit.
    - PUT /api/admin/jobs/:id/applications/:appId — admin can override application status (for disputes). Log audit.
    - DELETE /api/admin/jobs/:id — hard delete. Log audit.
 
@@ -178,9 +179,9 @@ Read the project at this directory. This is a React + Vite + Tailwind frontend w
    - GET /api/admin/comments — search, filter (entity_type), sort (newest), pagination. Include author name, entity title.
    - DELETE /api/admin/comments/:id — delete. Log audit.
 
-   REVIEWS:
-   - GET /api/admin/reviews — search, filter (rating), sort, pagination. Include author name, vendor name.
-   - DELETE /api/admin/reviews/:id — delete. Recalculate vendor rating. Log audit.
+   REVIEWS (note: reviews table supports BOTH job reviews and vendor reviews):
+   - GET /api/admin/reviews — search, filter by rating, filter by type (job/vendor based on which foreign key is set), sort, pagination. Include reviewer name, reviewee name, vendor name (if vendor review), job title (if job review).
+   - DELETE /api/admin/reviews/:id — delete. If vendor review, recalculate vendor rating/reviews_count. Log audit.
 
    RECOMMENDATIONS:
    - GET /api/admin/recommendations — search, sort, pagination. Include recommender name, vendor name.
@@ -370,7 +371,7 @@ Continue building the admin panel frontend. The backend from Part A should alrea
    - Delete confirmation
 
    JOBS MODERATION (src/pages/admin/AdminJobsPage.jsx):
-   - Search + type filter + status filter (active/hidden/removed)
+   - Search + type filter + moderation_status filter (approved/hidden/removed) + lifecycle status filter (open/in-progress/completed/closed)
    - Table: title, company, posted by (link to user detail), date, applicant count, status badge, actions
    - Actions: View Applications (modal with applicant list, statuses, resume download links, admin can override status), Hide/Restore, Remove, Edit admin notes
    - Inline admin_notes field
@@ -381,9 +382,9 @@ Continue building the admin panel frontend. The backend from Part A should alrea
    - Actions: View full (modal), Delete (confirmation)
 
    REVIEWS MODERATION (src/pages/admin/AdminReviewsPage.jsx):
-   - Search + rating filter (1-5 dropdown)
-   - Table: vendor name, reviewer (link to user detail), rating (stars), comment preview, date, actions
-   - Actions: View full, Delete (confirmation + note that vendor rating will be recalculated)
+   - Search + rating filter (1-5 dropdown) + type filter (Job Review / Vendor Review)
+   - Table: type badge (Job/Vendor), reviewer (link to user detail), reviewee (link to user detail), vendor name or job title (depending on type), rating (stars), text preview, date, actions
+   - Actions: View full, Delete (confirmation — if vendor review, note that vendor rating will be recalculated)
 
    RECOMMENDATIONS MODERATION (src/pages/admin/AdminRecommendationsPage.jsx):
    - Table: recommender (link to user), vendor name, message preview, date, actions

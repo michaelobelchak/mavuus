@@ -1,111 +1,93 @@
 # Phase 3: Core Missing Features
 
-## Goal
-Add the features that users expect but don't exist yet: recommendation engine, comments, password reset, invite system, and speakers directory.
+## What Changed
+Phase 5 of the existing build already completed:
+- ✅ Reviews system — built with reviewer→reviewee pattern, supports job AND vendor reviews
+- ✅ Recommendations — built with API routes, UI modals, notifications
+- ✅ Resume upload — built via multer (PDF, 5MB max)
+- ✅ StarRating, ReviewCard, RecommendationCard components
 
-## Claude Code Prompt
+## What Still Needs To Be Done
 
 ```
-Read the project at this directory. This is a React + Vite + Tailwind frontend with an Express + SQLite backend. Add these missing core features:
+Read the project at this directory. This is a React + Vite + Tailwind frontend with an Express + SQLite backend.
 
-1. RECOMMENDATION ENGINE:
-   - The recommendations table already exists in schema.sql (from_user_id, to_user_id, vendor_id, message)
-   - Add API endpoints in server/routes/vendors.js or create server/routes/recommendations.js:
-     - POST /api/recommendations — create recommendation (from_user_id from JWT, to_user_id optional, vendor_id required, message required)
-     - GET /api/vendors/:id/recommendations — list recommendations for a vendor (include recommender name, title, avatar)
-     - GET /api/profile/me/recommendations — list recommendations the current user has given
-     - DELETE /api/recommendations/:id — delete own recommendation
-   - Update VendorDetailPage:
-     - Show "Recommendations" section with list of recommendations (avatar, name, message, date)
-     - Show recommendation count on the vendor card
-     - "Recommend this Vendor" button opens modal with message textarea
-     - Don't allow self-recommendation or duplicate recommendations
-   - Update VendorsPage:
-     - Show recommendation count on each vendor card
-   - Add seed data: at least 5 recommendations across different vendors
+IMPORTANT: Reviews, recommendations, and resume upload are ALREADY BUILT. Do NOT rebuild them. Check existing code before building anything.
 
-2. COMMENTS SYSTEM:
-   - Create table: comments (id, entity_type TEXT, entity_id INTEGER, user_id INTEGER, content TEXT, parent_id INTEGER NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP)
-     - entity_type can be: 'session', 'resource', 'vendor', 'job'
-     - parent_id allows threaded replies (one level deep only)
+The reviews table uses: reviewer_id, reviewee_id, vendor_id, job_id, rating, text — it supports both job reviews and vendor reviews.
+The jobs table has: status (open/in-progress/completed/closed) and hired_user_id for the hire flow.
+Resume upload exists via POST /api/profile/me/resume.
+
+Add these REMAINING missing features:
+
+1. COMMENTS SYSTEM (verify not already built first):
+   - Check if a comments table and server/routes/comments.js already exist
+   - If NOT already built:
+     - Create table: comments (id INTEGER PRIMARY KEY, entity_type TEXT, entity_id INTEGER, user_id INTEGER, content TEXT, parent_id INTEGER NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP)
+     - entity_type: 'session', 'resource', 'vendor', 'job'
+     - parent_id allows one-level-deep threaded replies
    - Create server/routes/comments.js:
-     - GET /api/comments?entity_type=session&entity_id=1 — list comments with user info (name, avatar), ordered by created_at DESC. Include replies nested under parent.
+     - GET /api/comments?entity_type=session&entity_id=1 — list comments with user info, ordered by created_at DESC, replies nested under parent
      - POST /api/comments — create comment (requires auth). Fields: entity_type, entity_id, content, parent_id (optional)
-     - DELETE /api/comments/:id — delete own comment
+     - DELETE /api/comments/:id — delete own comment only
    - Register route in server/index.js
    - Create reusable src/components/ui/CommentSection.jsx:
      - Props: entityType, entityId
      - Shows comment list with avatar, name, content, timestamp
-     - "Reply" button on each comment shows inline reply form
-     - New comment form at top: textarea + submit button
-     - Loading state, empty state ("No comments yet. Be the first!")
-   - Add CommentSection to:
-     - SessionDetailPage
-     - ResourceDetailPage
-     - VendorDetailPage (below reviews)
-   - Add seed data: at least 10 comments across different entities
+     - "Reply" button shows inline reply form
+     - New comment form at top
+     - Loading state, empty state
+   - Add CommentSection to SessionDetailPage, ResourceDetailPage, VendorDetailPage
+   - Seed at least 10 comments across different entities
 
-3. PASSWORD RESET FLOW:
+2. PASSWORD RESET FLOW:
    - Add table: password_reset_tokens (id, user_id INTEGER, token TEXT UNIQUE, expires_at TEXT, used INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)
    - Add to server/routes/auth.js:
-     - POST /api/auth/forgot-password — accepts { email }. If user exists, generate a random token (crypto.randomUUID()), store it with 1-hour expiry. Log the reset link to console: http://localhost:5173/reset-password?token=xxx (no email service yet). Always return success (don't reveal if email exists).
-     - POST /api/auth/reset-password — accepts { token, newPassword }. Validate token exists, not expired, not used. Hash new password. Update user. Mark token as used.
-   - Create src/pages/auth/ForgotPasswordPage.jsx:
-     - Simple form: email input + submit button
-     - Success state: "If an account exists with this email, we've sent reset instructions."
-     - Link back to login
-   - Create src/pages/auth/ResetPasswordPage.jsx:
-     - Reads ?token from URL
-     - Form: new password + confirm password
-     - Validation: passwords match, min 8 chars
-     - Success state: "Password reset successfully" + link to login
-     - Error state: "Invalid or expired token"
+     - POST /api/auth/forgot-password — generate token, log reset link to console, always return success
+     - POST /api/auth/reset-password — validate token, update password, mark token used
+   - Create src/pages/auth/ForgotPasswordPage.jsx: email form, success message
+   - Create src/pages/auth/ResetPasswordPage.jsx: reads ?token, new password + confirm form
    - Add routes to App.jsx: /forgot-password, /reset-password
-   - Add "Forgot password?" link below the login form on LoginPage
+   - Add "Forgot password?" link on LoginPage
 
-4. INVITE / REFERRAL SYSTEM:
+3. INVITE / REFERRAL SYSTEM:
    - Add tables:
-     - referral_codes (id, user_id INTEGER UNIQUE, code TEXT UNIQUE, created_at TEXT DEFAULT CURRENT_TIMESTAMP)
-     - referral_tracking (id, referrer_id INTEGER, referred_user_id INTEGER UNIQUE, created_at TEXT DEFAULT CURRENT_TIMESTAMP)
+     - referral_codes (id, user_id INTEGER UNIQUE, code TEXT UNIQUE, created_at TEXT)
+     - referral_tracking (id, referrer_id INTEGER, referred_user_id INTEGER UNIQUE, created_at TEXT)
    - Add server/routes/referrals.js:
-     - GET /api/referrals/my-code — get or generate referral code for current user (auto-generate on first call using first 4 chars of name + random 4 digits)
-     - GET /api/referrals/stats — get referral count for current user
-     - POST /api/auth/register should accept optional ?ref=CODE param and track it in referral_tracking
+     - GET /api/referrals/my-code — get or auto-generate code
+     - GET /api/referrals/stats — referral count + list
+     - Update POST /api/auth/register to accept ?ref=CODE and track
    - Create src/pages/dashboard/InvitePage.jsx:
-     - Show the user's unique referral link: https://mavuus.com/register?ref=CODE
-     - Copy-to-clipboard button
-     - Show stats: "You've invited X people"
-     - List of people who joined via your referral (name, date joined)
-   - Add route to App.jsx: /dashboard/invite
-   - Wire the "Invite a Friend" CTA card in DashboardSidebar to link to /dashboard/invite
-   - Update RegisterPage to read ?ref param from URL and pass it during registration
+     - Show referral link with copy button
+     - Stats: "You've invited X people"
+     - List of referred users
+   - Add route to App.jsx
+   - Wire "Invite a Friend" sidebar CTA to this page
 
-5. SPEAKERS DIRECTORY:
-   - The speakers table already exists in schema.sql
-   - Add to server/routes/sessions.js or create server/routes/speakers.js:
-     - GET /api/speakers — list all speakers (name, title, company, avatar, bio, linkedin)
+4. SPEAKERS DIRECTORY:
+   - The speakers table exists and is seeded
+   - Check if server/routes/speakers.js exists. If not:
+     - GET /api/speakers — list all speakers
      - GET /api/speakers/:id — single speaker with their sessions
    - Create src/pages/dashboard/SpeakersPage.jsx:
-     - Grid of speaker cards: circular avatar, name, title, company, LinkedIn icon link
+     - Grid of speaker cards: avatar, name, title, company, LinkedIn link
      - Search by name
-     - Click a speaker card to see their bio and list of sessions they've spoken at
-   - Add to sidebar navigation in DashboardSidebar (between "Community Resources" and "Meet The Members")
+     - Click to see bio and past sessions
+   - Add to sidebar navigation in DashboardSidebar
    - Add route to App.jsx: /dashboard/speakers
-   - Ensure seed.js has at least 8 speakers with bios
 
-6. VERIFY:
-   - Test vendor recommendation: give a recommendation, see it appear on vendor page
+5. VERIFY:
    - Test comments: add comment on a session, reply to it, delete it
-   - Test password reset: trigger forgot password, copy token from console, reset password, login with new password
-   - Test referral: get referral code, copy link, register new user with ref param, check referral stats
-   - Test speakers page: search, click through to speaker detail
+   - Test password reset: forgot password → console token → reset → login with new password
+   - Test referral: get code, register new user with ?ref=CODE, check stats
+   - Test speakers page: search, click through to detail
    - No console errors
 ```
 
 ## Acceptance Criteria
-- [ ] Vendor recommendations: create, view on vendor page, count on vendor cards
 - [ ] Comments: add, reply, delete on sessions/resources/vendors
 - [ ] Password reset: full flow from forgot to reset to login
 - [ ] Referral system: generate code, share link, track referrals
-- [ ] Speakers page: grid, search, speaker detail with sessions
-- [ ] All new tables created and seeded with demo data
+- [ ] Speakers page: grid with search, speaker detail with past sessions
+- [ ] All new tables created and seeded

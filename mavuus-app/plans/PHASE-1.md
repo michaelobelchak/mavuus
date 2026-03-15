@@ -1,12 +1,24 @@
 # Phase 1: Technical Foundation
 
+## What Changed
+Per the changelog, some items may already be partially done:
+- Rate limiting on auth endpoints — partially done (Phase 7 prep)
+- Input sanitization — partially done (sanitize.js middleware exists)
+- Lazy loading — partially done
+
+Check what exists before rebuilding anything.
+
 ## Goal
 Fix critical technical issues that will block all future development. After this phase, the app has proper env config, pagination, server-side search, and input validation.
 
 ## Claude Code Prompt
 
 ```
-Read the project at this directory. This is a React + Vite + Tailwind frontend with an Express + SQLite backend. Fix the following technical issues:
+Read the project at this directory. This is a React + Vite + Tailwind frontend with an Express + SQLite backend.
+
+IMPORTANT: Check what already exists before building. Rate limiting, input sanitization, and lazy loading may be partially implemented. Build on top of what's there.
+
+Fix the following technical issues:
 
 1. ENVIRONMENT VARIABLES:
    - Create a .env file in server/ with: JWT_SECRET, PORT (default 3001), CORS_ORIGIN (default http://localhost:5173), NODE_ENV

@@ -70,6 +70,8 @@ CREATE TABLE IF NOT EXISTS jobs (
   category TEXT,
   salary_range TEXT,
   seniority TEXT,
+  status TEXT DEFAULT 'open' CHECK(status IN ('open', 'in-progress', 'completed', 'closed')),
+  hired_user_id INTEGER REFERENCES users(id),
   posted_by INTEGER REFERENCES users(id),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -93,6 +95,19 @@ CREATE TABLE IF NOT EXISTS recommendations (
   vendor_id INTEGER REFERENCES vendors(id),
   message TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Reviews
+CREATE TABLE IF NOT EXISTS reviews (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  reviewer_id INTEGER NOT NULL REFERENCES users(id),
+  reviewee_id INTEGER NOT NULL REFERENCES users(id),
+  vendor_id INTEGER REFERENCES vendors(id),
+  job_id INTEGER REFERENCES jobs(id),
+  rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
+  text TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(reviewer_id, reviewee_id, job_id)
 );
 
 -- User Profiles (extends users)

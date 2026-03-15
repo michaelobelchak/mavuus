@@ -1,5 +1,32 @@
 import { Router } from 'express'
+import multer from 'multer'
+import { fileURLToPath } from 'url'
+import { dirname, join, extname } from 'path'
+import { unlinkSync, existsSync } from 'fs'
 import { authenticateToken } from '../middleware/auth.js'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const uploadsDir = join(__dirname, '..', 'uploads', 'resumes')
+
+const resumeStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => {
+    const ext = extname(file.originalname)
+    cb(null, `resume-${req.user.id}-${Date.now()}${ext}`)
+  },
+})
+
+const resumeUpload = multer({
+  storage: resumeStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true)
+    } else {
+      cb(new Error('Only PDF files are allowed'))
+    }
+  },
+})
 
 const router = Router()
 
@@ -116,6 +143,59 @@ router.put('/me/experience/:id', (req, res) => {
 router.delete('/me/experience/:id', (req, res) => {
   const db = req.app.locals.db
   db.prepare('DELETE FROM user_experience WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id)
+  res.json({ success: true })
+})
+
+// Resume upload
+router.post('/me/resume', (req, res) => {
+  resumeUpload.single('resume')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message || 'Upload failed' })
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' })
+    }
+
+    const db = req.app.locals.db
+    const resumeUrl = `/uploads/resumes/${req.file.filename}`
+
+    // Remove old resume file if exists
+    const existing = db.prepare('SELECT resume_url FROM user_profiles WHERE user_id = ?').get(req.user.id)
+    if (existing?.resume_url) {
+      const oldPath = join(__dirname, '..', existing.resume_url)
+      if (existsSync(oldPath)) {
+        try { unlinkSync(oldPath) } catch { /* ignore */ }
+      }
+    }
+
+    db.prepare(`
+      INSERT INTO user_profiles (user_id, resume_filename, resume_url, updated_at)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(user_id) DO UPDATE SET
+        resume_filename = excluded.resume_filename,
+        resume_url = excluded.resume_url,
+        updated_at = CURRENT_TIMESTAMP
+    `).run(req.user.id, req.file.originalname, resumeUrl)
+
+    res.json({ success: true, filename: req.file.originalname, url: resumeUrl })
+  })
+})
+
+// Resume delete
+router.delete('/me/resume', (req, res) => {
+  const db = req.app.locals.db
+  const existing = db.prepare('SELECT resume_url FROM user_profiles WHERE user_id = ?').get(req.user.id)
+
+  if (existing?.resume_url) {
+    const filePath = join(__dirname, '..', existing.resume_url)
+    if (existsSync(filePath)) {
+      try { unlinkSync(filePath) } catch { /* ignore */ }
+    }
+  }
+
+  db.prepare('UPDATE user_profiles SET resume_filename = NULL, resume_url = NULL, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?')
+    .run(req.user.id)
+
   res.json({ success: true })
 })
 

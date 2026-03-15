@@ -5,7 +5,7 @@ const router = Router()
 
 // Public: Get all jobs (no auth needed for browsing)
 router.get('/', (req, res) => {
-  const { type, category } = req.query
+  const { type, category, posted_by, status } = req.query
   const db = req.app.locals.db
 
   let query = 'SELECT * FROM jobs'
@@ -20,6 +20,14 @@ router.get('/', (req, res) => {
     conditions.push('category = ?')
     params.push(category)
   }
+  if (posted_by) {
+    conditions.push('posted_by = ?')
+    params.push(posted_by)
+  }
+  if (status) {
+    conditions.push('status = ?')
+    params.push(status)
+  }
 
   if (conditions.length) {
     query += ' WHERE ' + conditions.join(' AND ')
@@ -27,6 +35,19 @@ router.get('/', (req, res) => {
 
   query += ' ORDER BY created_at DESC'
   const jobs = db.prepare(query).all(...params)
+  res.json(jobs)
+})
+
+// Public: Get jobs completed by a user (where user was hired)
+router.get('/completed-by/:userId', (req, res) => {
+  const db = req.app.locals.db
+  const jobs = db.prepare(`
+    SELECT j.*, u.name as poster_name, u.avatar_url as poster_avatar
+    FROM jobs j
+    LEFT JOIN users u ON u.id = j.posted_by
+    WHERE j.hired_user_id = ? AND j.status = 'completed'
+    ORDER BY j.created_at DESC
+  `).all(req.params.userId)
   res.json(jobs)
 })
 
@@ -71,9 +92,11 @@ router.get('/my-postings', authenticateToken, (req, res) => {
 router.get('/:id', (req, res) => {
   const db = req.app.locals.db
   const job = db.prepare(`
-    SELECT j.*, u.name as poster_name, u.title as poster_title, u.avatar_url as poster_avatar
+    SELECT j.*, u.name as poster_name, u.title as poster_title, u.avatar_url as poster_avatar,
+           h.name as hired_name, h.avatar_url as hired_avatar
     FROM jobs j
     LEFT JOIN users u ON u.id = j.posted_by
+    LEFT JOIN users h ON h.id = j.hired_user_id
     WHERE j.id = ?
   `).get(req.params.id)
 
@@ -100,9 +123,9 @@ router.put('/:id', authenticateToken, (req, res) => {
   const existing = db.prepare('SELECT * FROM jobs WHERE id = ? AND posted_by = ?').get(req.params.id, req.user.id)
   if (!existing) return res.status(404).json({ error: 'Job not found or not authorized' })
 
-  const { title, company, description, location, type, category, salary_range } = req.body
-  db.prepare('UPDATE jobs SET title = ?, company = ?, description = ?, location = ?, type = ?, category = ?, salary_range = ? WHERE id = ?')
-    .run(title || existing.title, company || existing.company, description ?? existing.description, location ?? existing.location, type ?? existing.type, category ?? existing.category, salary_range ?? existing.salary_range, req.params.id)
+  const { title, company, description, location, type, category, salary_range, status, hired_user_id } = req.body
+  db.prepare('UPDATE jobs SET title = ?, company = ?, description = ?, location = ?, type = ?, category = ?, salary_range = ?, status = ?, hired_user_id = ? WHERE id = ?')
+    .run(title || existing.title, company || existing.company, description ?? existing.description, location ?? existing.location, type ?? existing.type, category ?? existing.category, salary_range ?? existing.salary_range, status ?? existing.status, hired_user_id !== undefined ? hired_user_id : existing.hired_user_id, req.params.id)
 
   res.json({ success: true })
 })
@@ -158,16 +181,22 @@ router.get('/:id/applicants', authenticateToken, (req, res) => {
 router.put('/applications/:id/status', authenticateToken, (req, res) => {
   const db = req.app.locals.db
   const { status } = req.body
-  const validStatuses = ['applied', 'reviewing', 'interview', 'offer', 'rejected']
+  const validStatuses = ['applied', 'reviewing', 'interview', 'offer', 'rejected', 'hired']
   if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' })
 
   const app = db.prepare(`
-    SELECT ja.*, j.posted_by, j.title as job_title FROM job_applications ja
+    SELECT ja.*, j.posted_by, j.title as job_title, j.id as the_job_id FROM job_applications ja
     JOIN jobs j ON j.id = ja.job_id WHERE ja.id = ?
   `).get(req.params.id)
   if (!app || app.posted_by !== req.user.id) return res.status(404).json({ error: 'Application not found or not authorized' })
 
   db.prepare('UPDATE job_applications SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, req.params.id)
+
+  // When hired, set job to in-progress and hired_user_id
+  if (status === 'hired') {
+    db.prepare('UPDATE jobs SET status = ?, hired_user_id = ? WHERE id = ?')
+      .run('in-progress', app.user_id, app.the_job_id)
+  }
 
   // Notify applicant
   db.prepare('INSERT INTO notifications (user_id, type, title, message, link) VALUES (?, ?, ?, ?, ?)')
