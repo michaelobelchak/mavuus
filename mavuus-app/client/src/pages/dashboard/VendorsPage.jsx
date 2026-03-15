@@ -73,12 +73,17 @@ export default function VendorsPage() {
           {filtered.map(vendor => (
             <Link key={vendor.id} to={`/dashboard/vendors/${vendor.id}`} className="block no-underline">
             <Card hover>
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-10 h-10 bg-brand-blue/10 rounded-xl flex items-center justify-center flex-shrink-0 text-brand-blue font-bold text-sm">
+                  {vendor.company_name ? vendor.company_name.slice(0, 2).toUpperCase() : '??'}
+                </div>
+                <div className="flex-1 flex items-start justify-between">
                 <h3 className="text-base font-semibold text-dark-blue">{vendor.company_name}</h3>
                 <div className="flex items-center gap-1 text-xs text-yellow-500">
                   <Star size={12} className="fill-yellow-400" />
                   <span className="font-medium">{vendor.rating}</span>
                   <span className="text-neutral-400">({vendor.reviews_count})</span>
+                </div>
                 </div>
               </div>
               <p className="text-sm text-neutral-500 mb-4 leading-relaxed">{vendor.description}</p>

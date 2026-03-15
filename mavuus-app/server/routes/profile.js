@@ -23,8 +23,9 @@ router.get('/me', (req, res) => {
 
   const skills = db.prepare('SELECT skill FROM user_skills WHERE user_id = ?').all(req.user.id).map(s => s.skill)
   const experience = db.prepare('SELECT * FROM user_experience WHERE user_id = ? ORDER BY is_current DESC, start_date DESC').all(req.user.id)
+  const connections_count = db.prepare("SELECT COUNT(*) as count FROM connections WHERE (requester_id = ? OR receiver_id = ?) AND status = 'accepted'").get(req.user.id, req.user.id)?.count || 0
 
-  res.json({ ...user, skills, experience })
+  res.json({ ...user, skills, experience, connections_count })
 })
 
 // PUT /api/profile/me - Update profile

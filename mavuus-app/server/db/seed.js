@@ -62,6 +62,13 @@ const sessions = [
   ['SEO Strategy for B2B SaaS in 2026', 'A comprehensive look at modern B2B SEO — from programmatic pages to AI-powered content briefs. Covers technical SEO audits, content clusters, and link building strategies that moved Asana from page 3 to page 1.', 'Rachel Foster', 'Head of Content, Asana', 'https://i.pravatar.cc/150?u=rachel@asana.com', 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=600&h=340&fit=crop', 'on-demand', 'SEO', null, '47 min', 1830],
   ['Retention Marketing Masterclass', 'How to reduce churn and increase LTV through lifecycle marketing. Covers email nurture sequences, in-app messaging, customer health scoring, and win-back campaigns that recovered 15% of churned accounts.', 'Ryan Cooper', 'CMO, Shopify', 'https://i.pravatar.cc/150?u=ryan@shopify.com', 'https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=600&h=340&fit=crop', 'on-demand', 'Growth', null, '51 min', 2150],
   ['Building a Marketing Tech Stack That Scales', 'Navigate the martech landscape and build a stack that grows with your company. Covers evaluation frameworks, integration strategies, and how to avoid the common pitfalls of tool sprawl.', 'Nina Vasquez', 'VP Growth Marketing, Intercom', 'https://i.pravatar.cc/150?u=nina@intercom.com', 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=340&fit=crop', 'on-demand', 'MarTech', null, '44 min', 1580],
+  // Additional on-demand sessions
+  ['Scaling Organic Growth Without Burning Out Your Team', 'Discover sustainable growth strategies that compound over time without exhausting your marketing team. Learn frameworks for prioritizing high-impact initiatives, automating repetitive workflows, and building a growth engine that runs on systems rather than heroics.', 'Danielle Park', 'VP of Growth, Notion', 'https://i.pravatar.cc/150?u=danielle@notion.com', 'https://picsum.photos/seed/video7/800/450', 'on-demand', 'Growth', null, '48 min', 2340],
+  ['Rebranding in Public: Lessons from a $500M Company Rebrand', 'A candid behind-the-scenes look at what it takes to rebrand a well-known B2B company while keeping customers, employees, and investors aligned. Covers timeline planning, stakeholder management, creative development, and the rollout strategy that kept churn below 1%.', 'Tomás Guerrero', 'Chief Brand Officer, Zendesk', 'https://i.pravatar.cc/150?u=tomas@zendesk.com', 'https://picsum.photos/seed/video8/800/450', 'on-demand', 'Brand', null, '55 min', 1870],
+  ['Content Repurposing at Scale: One Idea, Ten Formats', 'Stop creating content from scratch every time. This session walks through a repeatable content atomization framework that turns a single piece of long-form content into ten or more assets across channels — blog posts, social snippets, email sequences, video clips, and more.', 'Keiko Tanaka', 'Head of Content, HubSpot', 'https://i.pravatar.cc/150?u=keiko@hubspot.com', 'https://picsum.photos/seed/video9/800/450', 'on-demand', 'Content', null, '37 min', 2780],
+  ['Marketing Attribution Beyond Last Touch', 'Multi-touch attribution is broken — but you still need to prove ROI. This session explores practical alternatives including incrementality testing, media mix modeling, and self-reported attribution. Learn how top B2B teams are measuring what actually drives pipeline in a privacy-first world.', 'Andre Williams', 'VP Analytics, Salesforce', 'https://i.pravatar.cc/150?u=andre@salesforce.com', 'https://picsum.photos/seed/video10/800/450', 'on-demand', 'Analytics', null, '42 min', 1560],
+  ['Technical SEO for B2B: Beyond the Basics', 'Go past keyword research and on-page optimization into the technical foundations that separate page-one results from the rest. Covers site architecture for enterprise sites, Core Web Vitals optimization, JavaScript rendering strategies, and international SEO structures that doubled organic traffic at Moz.', 'Laura Chen', 'Director of SEO, Moz', 'https://i.pravatar.cc/150?u=laura@moz.com', 'https://picsum.photos/seed/video11/800/450', 'on-demand', 'SEO', null, '52 min', 980],
+  ['Launching Products That Stick: A Product Marketing Masterclass', 'Most product launches fail to move the needle. This masterclass covers the end-to-end product launch process — from positioning and messaging to sales enablement and post-launch measurement. Includes real examples from launches that generated over $20M in first-year pipeline.', 'Simone Adler', 'VP of Product Marketing, Slack', 'https://i.pravatar.cc/150?u=simone@slack.com', 'https://picsum.photos/seed/video12/800/450', 'on-demand', 'Product Marketing', null, '60 min', 2150],
 ]
 
 sessions.forEach(s => insertSession.run(...s))
@@ -317,6 +324,295 @@ Individual campaign performance with:
     'Template',
     'template',
     '8 min read',
+  ],
+  // Additional resources
+  [
+    'The Content Strategy Playbook for Lean Teams',
+    'How to produce high-impact content with a small team by focusing on strategy, systems, and smart repurposing.',
+    `Running content marketing with a lean team is not about doing less — it is about doing the right things. This playbook shows you how to build a content strategy that punches above its weight, even with limited headcount and budget.
+
+**Why Most Small Teams Struggle with Content**
+
+The biggest mistake lean content teams make is trying to compete with larger organizations on volume. You will never out-publish a team with ten writers, and you should not try. Instead, focus on creating fewer pieces that are significantly better than anything else in your space. Depth, originality, and distribution are your competitive advantages.
+
+**Step 1: Define Your Content Pillars**
+
+Start by identifying three to five core topics that sit at the intersection of what your audience cares about and what your product solves. These pillars should be broad enough to generate dozens of subtopics but specific enough that you can build genuine authority. For example, if you sell a project management tool, your pillars might be remote team productivity, agile workflows, and cross-functional collaboration.
+
+- Map each pillar to a stage in the buyer journey (awareness, consideration, decision)
+- Assign ownership of each pillar to a team member
+- Create a keyword universe for each pillar using tools like Ahrefs or SEMrush
+- Build a quarterly editorial calendar with two to three pieces per pillar per month
+
+**Step 2: Create Cornerstone Content First**
+
+Each pillar should have one comprehensive cornerstone piece — a definitive guide, original research report, or interactive tool that becomes the anchor for everything else. These pieces should be 3,000 to 5,000 words, thoroughly researched, and better than anything else ranking for the same terms.
+
+**Step 3: Atomize Everything**
+
+Once you have a cornerstone piece, break it into smaller assets. A single 4,000-word guide can yield a LinkedIn carousel summarizing the key frameworks, three to five blog posts diving deeper into individual sections, an email nurture sequence introducing each concept over a week, pull quotes and statistics formatted as social media graphics, and a short video walkthrough covering the highlights.
+
+**Step 4: Build Distribution Into Your Process**
+
+Content without distribution is just a file on a server. Allocate at least 30 percent of your content time to distribution. This includes sharing on social channels multiple times with different angles, submitting to relevant newsletters and communities, repurposing into guest posts for partner blogs, sending to your email list segmented by interest, and having your sales team share relevant pieces with prospects.
+
+**Step 5: Measure and Iterate**
+
+Track these metrics monthly to understand what is working. Monitor organic traffic by pillar to see which topics resonate, track conversion rate from content to email subscriber or demo request, measure time on page and scroll depth to gauge content quality, and watch social engagement rates to understand what your audience shares.
+
+Review your metrics quarterly and double down on what works. Kill content formats that consistently underperform and reallocate that time to your winners.
+
+**Common Traps to Avoid**
+
+First, do not chase trends at the expense of your pillars. It is tempting to write about the hot topic of the week, but consistency in your core topics builds compounding authority. Second, do not skip the editing process. One well-edited piece outperforms three rushed ones. Third, do not neglect internal linking. Every new piece should link to and from your cornerstone content, strengthening your topical authority signals.`,
+    'Keiko Tanaka',
+    'https://picsum.photos/seed/resource7/800/450',
+    'Content Strategy',
+    'guide',
+    '12 min read',
+  ],
+  [
+    'Growth Experimentation Framework for B2B',
+    'A structured approach to running growth experiments that generate learnings and pipeline, not just vanity metrics.',
+    `Growth in B2B does not happen by accident. The most effective marketing teams treat growth as a disciplined practice of hypothesis formation, experimentation, measurement, and iteration. This framework gives you the structure to run experiments that actually move the needle.
+
+**The Problem with Ad Hoc Growth Tactics**
+
+Most B2B teams approach growth in one of two dysfunctional ways. Either they copy tactics they saw at a conference without adapting them to their context, or they run scattered experiments without a clear hypothesis or measurement plan. Both approaches waste time and budget while producing unreliable results.
+
+**The Experiment Lifecycle**
+
+Every growth experiment should follow five stages: Hypothesis, Design, Execution, Analysis, and Documentation.
+
+**Stage 1: Hypothesis Formation**
+
+A good hypothesis has three components — an observation about current performance, a proposed change, and a predicted outcome. For example: We have observed that our trial-to-paid conversion rate drops significantly after day three. We believe that adding an in-app onboarding checklist will increase activation. We predict this will improve trial-to-paid conversion by 15 percent within 30 days.
+
+- Base hypotheses on data, not gut feelings
+- Prioritize experiments using an ICE framework (Impact, Confidence, Ease)
+- Maintain a backlog of at least 20 experiment ideas at all times
+- Limit active experiments to three to five at a time to maintain rigor
+
+**Stage 2: Experiment Design**
+
+Before you start building anything, document the following details. Define the specific metric you are trying to move and what constitutes success. Determine sample size requirements and experiment duration. Identify control and variant groups. List potential confounding variables and how you will account for them. Specify who owns execution and who owns analysis.
+
+**Stage 3: Execution**
+
+Run the experiment with discipline. Do not change variables mid-experiment. Ensure tracking is properly implemented before launch. Communicate with sales and customer success so they are not surprised by what prospects or customers experience. Set calendar reminders for check-in points and the final analysis date.
+
+**Stage 4: Analysis**
+
+When the experiment concludes, analyze results honestly. Check for statistical significance before drawing conclusions. Look at secondary metrics to understand the full impact. Consider whether external factors may have influenced results. Document both what you expected and what actually happened.
+
+**Stage 5: Documentation**
+
+This is the most skipped and most important step. Create a one-page experiment brief that covers the original hypothesis, what you did, the results with supporting data, what you learned, and what you will do next. Store these briefs in a shared experiment library that the whole team can reference.
+
+**Building an Experimentation Culture**
+
+The framework only works if your team embraces experimentation as a core practice. Celebrate learnings from failed experiments, not just wins. Share experiment results in weekly team meetings. Give team members autonomy to propose and run their own experiments. Track your experiment velocity as a team KPI — aim for 8 to 12 completed experiments per quarter.
+
+**Metrics That Matter**
+
+Focus your experiments on metrics that directly impact revenue. Pipeline velocity measures how fast deals move through stages. Activation rate tracks the percentage of new users who reach a key value moment. Expansion revenue measures upsell and cross-sell influenced by marketing. Win rate improvement tracks the impact of sales enablement experiments.`,
+    'Andre Williams',
+    'https://picsum.photos/seed/resource8/800/450',
+    'Growth',
+    'article',
+    '14 min read',
+  ],
+  [
+    'Marketing Analytics Maturity Model',
+    'Assess where your marketing analytics practice stands today and build a roadmap to data-driven decision making.',
+    `Most marketing teams think they are more data-driven than they actually are. This maturity model helps you honestly assess your current analytics capabilities and provides a clear path to improvement across five stages of maturity.
+
+**Stage 1: Reactive Reporting**
+
+At this stage, analytics is mostly backward-looking and manual. Someone pulls numbers into a spreadsheet when leadership asks for them. There is no consistent cadence, no standard definitions, and different people often report different numbers for the same metric.
+
+Signs you are at Stage 1 include spending more than two hours per week compiling marketing reports manually, having no agreed-upon definitions for key terms like MQL or marketing-sourced pipeline, relying on platform-native dashboards without any centralization, and not tracking marketing influence on revenue at all.
+
+How to move to Stage 2: Start by agreeing on definitions. Get marketing, sales, and finance in a room and align on what counts as a lead, an MQL, an opportunity, and marketing-sourced versus marketing-influenced pipeline. Document these definitions and make them accessible to everyone.
+
+**Stage 2: Consistent Tracking**
+
+Your team now has agreed-upon metrics and a regular reporting cadence. You have basic dashboards that update automatically, and you can answer questions like how much pipeline marketing generated last month without scrambling.
+
+Key capabilities at this stage include a weekly or monthly reporting cadence with consistent metrics, basic funnel tracking from lead to opportunity, channel-level spend and performance tracking, and simple attribution using first-touch or last-touch models.
+
+How to move to Stage 3: Invest in your data infrastructure. Connect your CRM, marketing automation, and advertising platforms into a central data warehouse. Hire or train someone who can build and maintain data pipelines.
+
+**Stage 3: Integrated Analytics**
+
+Data from multiple systems flows into a central location, and you can analyze the full customer journey rather than isolated channel metrics. You start to understand how channels interact and influence each other.
+
+Key capabilities include a centralized data warehouse connecting marketing, sales, and product data, multi-touch attribution models providing credit across the funnel, cohort analysis tracking customer behavior over time, and automated alerting when key metrics deviate from targets.
+
+How to move to Stage 4: Start using data to predict, not just report. Build models that forecast pipeline based on current activity levels and historical conversion rates.
+
+**Stage 4: Predictive Analytics**
+
+Your team uses data to forecast future outcomes and make proactive decisions. You can predict pipeline shortfalls before they happen and reallocate resources accordingly. Marketing planning is driven by models rather than intuition.
+
+Key capabilities include pipeline forecasting models with 85 percent or higher accuracy, predictive lead scoring that prioritizes based on likelihood to convert, scenario planning for budget allocation using historical data, and churn prediction models that trigger proactive outreach.
+
+**Stage 5: Prescriptive Analytics**
+
+At the highest level of maturity, your analytics practice does not just predict what will happen — it recommends what to do about it. Machine learning models optimize channel mix in real time, content recommendations are personalized based on behavioral data, and budget reallocation happens dynamically based on performance signals.
+
+Few teams reach this stage fully, but the organizations that do see dramatically better efficiency and predictability in their marketing performance.
+
+**Assessment Checklist**
+
+Rate your team on each of the following dimensions from one to five. Data infrastructure covers how well your systems are connected and how accessible your data is. Metric alignment measures whether the whole organization agrees on definitions and targets. Reporting cadence assesses how regularly and reliably you report on marketing performance. Attribution sophistication evaluates how well you understand which activities drive results. Predictive capability measures your ability to forecast outcomes and take proactive action.
+
+Add up your scores. A total of 5 to 10 indicates Stage 1, 11 to 15 indicates Stage 2, 16 to 20 indicates Stage 3, and 21 to 25 indicates Stages 4 or 5. Use this assessment quarterly to track your progress.`,
+    'James Wright',
+    'https://picsum.photos/seed/resource9/800/450',
+    'Analytics',
+    'guide',
+    '15 min read',
+  ],
+  [
+    'Building a B2B Brand That Commands Premium Pricing',
+    'Why brand investment is the most underleveraged growth lever in B2B, and how to build one that justifies higher prices.',
+    `In B2B marketing, brand is often treated as a nice-to-have — something you invest in after the demand gen machine is humming. This is backwards. A strong brand does not just build awareness. It reduces sales cycles, increases win rates, and lets you charge more than competitors. Here is how to build one.
+
+**The Business Case for Brand Investment**
+
+B2B buyers are not the rational decision-makers we pretend they are. Research from LinkedIn's B2B Institute shows that emotional factors drive B2B purchase decisions just as much as rational ones. Buyers choose vendors they trust, recognize, and feel good about — especially when the stakes are high and the products are complex.
+
+Companies with strong brands enjoy measurable advantages. They see 20 to 30 percent higher win rates in competitive deals. Their sales cycles are 15 to 25 percent shorter because trust is established earlier. They can charge 10 to 20 percent price premiums versus undifferentiated competitors. They experience lower customer acquisition costs because reputation does the heavy lifting. And they attract better talent, which compounds all of the above.
+
+**The Three Pillars of B2B Brand Building**
+
+A strong B2B brand rests on three pillars: Positioning, Consistency, and Distinctiveness.
+
+**Pillar 1: Positioning That Resonates**
+
+Your positioning must answer three questions clearly. What category do you compete in? How are you different from alternatives? Why should your specific audience care? The best B2B positioning is simple enough that any employee can articulate it and specific enough that it excludes customers who are not a good fit.
+
+Avoid the trap of positioning by features. Features are easy to copy and hard to remember. Instead, position around the outcome you deliver or the belief you hold about how your category should work. Salesforce positioned around the end of on-premise software before the product was mature. Slack positioned around the end of email overload. These positions created categories, not just products.
+
+**Pillar 2: Consistency Across Every Touchpoint**
+
+Brand consistency is not just about using the same logo and colors — though that matters. It is about delivering a consistent experience, tone, and message everywhere a prospect or customer encounters you. This includes your website, sales decks, email sequences, customer support interactions, social media presence, event booths, and even your job postings.
+
+Create a brand guidelines document that covers visual identity including logo, color, typography, and photography style. Define your voice and tone with examples of how you sound in different contexts. Establish messaging frameworks including your value proposition, proof points, and objection handling. And provide templates for common assets so that everyone on the team produces on-brand work without needing designer approval for every piece.
+
+**Pillar 3: Distinctiveness That Gets Remembered**
+
+Most B2B brands look and sound identical to their competitors. Blue logos, stock photography of diverse teams in conference rooms, and messaging about being the leading platform for something. If you swapped the logo on most B2B websites, nobody would notice. This is a massive missed opportunity.
+
+Distinctive brand assets — unique colors, visual styles, characters, sounds, or phrases — create mental shortcuts that help buyers remember you when they enter a buying cycle. Think about the brands you remember most easily. They look and sound like nobody else in their category.
+
+Invest in at least two to three distinctive brand assets. A signature color that is different from your category default. A visual style for illustrations or photography that is immediately recognizable. A verbal device like a tagline, naming convention, or editorial voice that stands out. These assets take time to build recognition, so commit to them for years rather than changing with every campaign.
+
+**Measuring Brand Impact**
+
+Brand investment is notoriously hard to measure, but it is not impossible. Track these metrics over time. Share of voice measures your brand mentions relative to competitors across media, social, and analyst coverage. Branded search volume tracks how many people search for your company name each month — this is a direct proxy for awareness. Win rate improvement in competitive deals shows whether brand recognition is giving your sales team an edge. Inbound pipeline percentage measures the proportion of pipeline that comes to you rather than requiring outbound outreach. And premium pricing sustainability tracks whether you can maintain or increase prices without losing deal volume.
+
+Brand building is a long game. Expect to invest consistently for 12 to 18 months before seeing significant movement in these metrics. But when the flywheel starts spinning, the compound returns make it one of the highest-ROI investments in marketing.`,
+    'Tomás Guerrero',
+    'https://picsum.photos/seed/resource10/800/450',
+    'Brand',
+    'article',
+    '13 min read',
+  ],
+  [
+    'Technical SEO Audit Checklist for B2B Websites',
+    'A comprehensive checklist to identify and fix the technical SEO issues that are costing your B2B site organic traffic and pipeline.',
+    `Technical SEO is the foundation everything else is built on. You can have the best content in the world, but if search engines cannot crawl, index, and render your pages efficiently, you are leaving traffic and pipeline on the table. This checklist covers the most common and impactful technical SEO issues we see on B2B websites.
+
+**Section 1: Crawlability and Indexation**
+
+Search engines need to discover and access your pages before they can rank them. Start your audit here because problems in this section make everything else irrelevant.
+
+Check your robots.txt file to ensure you are not accidentally blocking important pages or directories. We have seen B2B sites accidentally block their entire blog or product pages through overly aggressive robots.txt rules. Review your XML sitemap to confirm it includes all important pages, excludes pages you do not want indexed like thank-you pages or internal search results, returns a 200 status code, and is referenced in your robots.txt file. Verify your site has no orphan pages — pages that exist but are not linked from anywhere on the site. These pages are difficult for search engines to discover and typically receive very little organic traffic.
+
+Run a crawl using Screaming Frog or Sitebulb and check for the following issues. Pages returning 4xx or 5xx status codes need to be fixed or redirected. Redirect chains where one redirect points to another redirect should be simplified to direct redirects. Pages with noindex tags should be reviewed to ensure you intentionally want them excluded from search results. And canonical tags should be checked to make sure they point to the correct preferred version of each page.
+
+**Section 2: Site Speed and Core Web Vitals**
+
+Google uses page experience signals as a ranking factor, and slow sites also hurt conversion rates. B2B sites are particularly susceptible to speed issues because of heavy JavaScript frameworks, unoptimized images, and third-party scripts from analytics, chat widgets, and tracking tools.
+
+Measure your Core Web Vitals using Google PageSpeed Insights or the Chrome User Experience Report. Focus on three metrics. Largest Contentful Paint measures how quickly the main content loads and should be under 2.5 seconds. First Input Delay measures interactivity and should be under 100 milliseconds. Cumulative Layout Shift measures visual stability and should be under 0.1.
+
+Common fixes for B2B sites include implementing lazy loading for images below the fold, deferring non-critical JavaScript especially third-party scripts, using a CDN for static assets, compressing images and serving them in modern formats like WebP or AVIF, and reducing the number of render-blocking resources in the document head.
+
+**Section 3: Site Architecture and Internal Linking**
+
+How your site is structured affects both crawlability and the distribution of link authority across your pages. A flat architecture where important pages are reachable within three clicks from the homepage performs better than deeply nested structures.
+
+Review your URL structure for consistency and clarity. URLs should be descriptive, use hyphens rather than underscores, and follow a logical hierarchy. Avoid dynamically generated URLs with excessive query parameters. Check your internal linking strategy to ensure that high-priority pages receive the most internal links. Your cornerstone content and product pages should be linked from multiple relevant pages throughout the site. Use descriptive anchor text rather than generic phrases like click here or learn more.
+
+**Section 4: Structured Data and Rich Results**
+
+Structured data helps search engines understand the content and context of your pages, which can lead to rich results in search that improve click-through rates. For B2B sites, the most relevant schema types include Organization schema on your homepage with company name, logo, and social profiles. FAQ schema on product pages and help articles to capture featured snippet opportunities. Article schema on blog posts with author, date published, and date modified. BreadcrumbList schema to enhance navigation display in search results. And JobPosting schema if you have a careers page, which can surface listings in Google for Jobs.
+
+**Section 5: International and Multi-Language Considerations**
+
+If your B2B site serves multiple countries or languages, implement hreflang tags correctly to ensure the right version of each page appears in the right regional search results. Incorrect hreflang implementation is one of the most common technical SEO errors on international B2B sites. Ensure each language version has a self-referencing hreflang tag, all hreflang annotations are reciprocal between language versions, you include an x-default tag pointing to your primary version, and hreflang tags are implemented consistently either in the HTML head, HTTP headers, or XML sitemap.
+
+**Post-Audit Action Plan**
+
+After completing the audit, prioritize fixes using this framework. Critical issues that are blocking indexation or causing significant traffic loss should be fixed immediately. High-impact issues affecting site speed or large sections of the site should be addressed within two weeks. Medium-impact issues that represent optimization opportunities should be scheduled within the current quarter. Low-impact issues that are nice-to-have improvements can be added to the backlog. Run this audit quarterly to catch new issues before they compound.`,
+    'Laura Chen',
+    'https://picsum.photos/seed/resource11/800/450',
+    'SEO',
+    'guide',
+    '15 min read',
+  ],
+  [
+    'The Marketing Campaign Brief Template',
+    'A ready-to-use campaign brief template that aligns creative, demand gen, and product marketing teams before a single asset is produced.',
+    `A great campaign starts with a great brief. Without one, teams waste time building the wrong things, creative goes off-strategy, and launches miss their targets. This template has been battle-tested across hundreds of B2B campaigns and ensures everyone is aligned before work begins.
+
+**Why Briefs Matter More Than You Think**
+
+The number one reason campaigns underperform is not bad creative or insufficient budget — it is misalignment. The demand gen team optimizes for leads while the brand team optimizes for awareness. Product marketing wants to highlight features while creative wants to tell a story. The brief is where these tensions get resolved, before anyone opens a design tool or writes a single line of copy.
+
+A good brief takes two to four hours to write and saves dozens of hours of rework, misaligned feedback, and missed deadlines. It is the single highest-leverage document in the campaign process.
+
+**Section 1: Campaign Overview**
+
+Start every brief with the basics. Give the campaign a working name that the whole team can reference. State the business objective in one sentence — for example, generate 500 marketing-qualified leads for the new enterprise product tier in Q2. Define the campaign type, whether it is a product launch, seasonal promotion, thought leadership play, or event-driven campaign. List the campaign owner and key stakeholders by name.
+
+**Section 2: Target Audience**
+
+Define exactly who you are trying to reach. Specify the primary persona including their job title, seniority level, company size, and industry. Describe their key pain points that this campaign addresses — be specific rather than generic. Explain what they are currently doing about this problem today, whether that is using a competitor, using an internal workaround, or doing nothing. And define the desired action you want them to take after encountering the campaign, such as requesting a demo, downloading a resource, or attending an event.
+
+**Section 3: Messaging and Positioning**
+
+This section prevents the most common source of campaign misalignment. State the single most important message. If the audience remembers only one thing from this campaign, what should it be? Write this in one sentence. Provide three supporting proof points — data, customer quotes, or product capabilities that back up the main message. Define the tone of voice for this campaign with specific examples of what it should and should not sound like. And note any messaging guardrails, including claims you cannot make, competitors you should not name, or topics to avoid.
+
+**Section 4: Channel Strategy and Asset List**
+
+Map out every channel and asset the campaign requires. For each channel, define the specific asset needed, the format and dimensions, the audience targeting parameters, the budget allocation, and the owner responsible for production. Common B2B campaign channels include paid social on LinkedIn and Meta, search advertising for branded and non-branded terms, email marketing to segmented lists, organic social across company and employee channels, content marketing including blog posts and resources, webinars or virtual events, direct mail for high-value accounts, and sales enablement materials.
+
+**Section 5: Timeline and Milestones**
+
+Work backward from the launch date. Define key milestones including brief approval date, creative concept review date, first draft review for all assets, final approval date, build and QA period, launch date, and mid-campaign optimization check-in. Build in buffer time. Campaigns always take longer than planned, especially when multiple teams are involved. Add 20 percent buffer to your initial timeline estimate.
+
+**Section 6: Budget**
+
+Break budget into three categories. Media spend covers paid distribution across channels. Production costs cover design, copywriting, video, and development. Tools and technology covers any software or platform costs specific to this campaign. Include a contingency line of 10 to 15 percent for unplanned needs that inevitably arise.
+
+**Section 7: Success Metrics**
+
+Define how you will measure success before the campaign launches, not after. List primary KPIs with specific numeric targets and a measurement timeframe. List secondary metrics you will monitor but that are not the primary measure of success. Define what constitutes a successful campaign, what would be a home run, and what would be a failure. Specify when and how you will report on results and who is responsible for the post-campaign analysis.
+
+**How to Use This Template**
+
+The campaign owner fills out the brief and circulates it for feedback from all stakeholders before any production begins. Schedule a 30-minute brief review meeting where everyone can ask questions and raise concerns. Do not start creative work until the brief is signed off by all stakeholders. If the strategy changes mid-campaign, update the brief and re-circulate rather than relying on verbal communication.
+
+Save completed briefs in a shared folder so the team can reference past campaigns when planning new ones. Over time, this library becomes an invaluable resource for understanding what worked and why.`,
+    'Mavuus Team',
+    'https://picsum.photos/seed/resource12/800/450',
+    'Template',
+    'template',
+    '10 min read',
   ],
 ]
 
@@ -732,14 +1028,22 @@ const insertNotification = db.prepare(`
 `)
 
 const notificationData = [
-  [7, 'connection', 'New Connection Request', 'Priya Patel wants to connect with you', '/dashboard/members/3', 0, '2026-03-01T16:00:00Z'],
-  [7, 'connection', 'New Connection Request', 'Alex Thompson wants to connect with you', '/dashboard/members/9', 0, '2026-03-05T10:00:00Z'],
-  [7, 'connection', 'New Connection Request', 'Nina Vasquez wants to connect with you', '/dashboard/members/14', 0, '2026-03-10T09:00:00Z'],
-  [7, 'message', 'New Message', 'Jennifer Martinez sent you a message', '/dashboard/messages', 0, '2026-03-13T09:00:00Z'],
-  [7, 'message', 'New Message', 'Tom Bradley sent you a message', '/dashboard/messages', 0, '2026-03-14T10:30:00Z'],
-  [7, 'job', 'Application Update', 'Your application for Senior Content Strategist is being reviewed', '/dashboard/my-jobs', 1, '2026-03-03T14:00:00Z'],
-  [7, 'job', 'New Job Posted', 'A new Content Marketing Manager position was posted at Notion', '/dashboard/jobs/5', 0, '2026-03-04T14:00:00Z'],
-  [7, 'session', 'New Live Session', 'Sarah Chen is hosting "Building a Content Engine That Scales" on March 20', '/dashboard/live-sessions', 0, '2026-03-10T10:00:00Z'],
+  // Recent (unread)
+  [7, 'session', 'Live Session Starting Soon', '"The Future of AI in B2B Marketing" with Priya Patel starts in 2 hours', '/dashboard/live-sessions/3', 0, '2026-03-15T08:00:00Z'],
+  [7, 'connection', 'Connection Accepted', 'Sarah Chen accepted your connection request. You can now message each other!', '/dashboard/members/1', 0, '2026-03-15T07:30:00Z'],
+  [7, 'message', 'New Message', 'Tom Bradley: "Let\'s do it! How about Thursday afternoon?"', '/dashboard/messages', 0, '2026-03-14T11:00:00Z'],
+  [7, 'job', 'New Job Match', 'A new VP of Marketing role at Stripe matches your profile', '/dashboard/jobs/3', 0, '2026-03-14T10:30:00Z'],
+  [7, 'connection', 'New Connection Request', 'Nina Vasquez, Head of Growth at Shopify, wants to connect with you', '/dashboard/members/14', 0, '2026-03-14T09:00:00Z'],
+  [7, 'message', 'New Message', 'Jennifer Martinez: "Great! Also, have you connected with Priya and Tom?"', '/dashboard/messages', 0, '2026-03-13T09:00:00Z'],
+  [7, 'session', 'Session Recording Available', '"ABM Playbook: From 0 to Enterprise Pipeline" recording is now available to watch', '/dashboard/on-demand/2', 0, '2026-03-13T08:00:00Z'],
+  // Older (read)
+  [7, 'connection', 'New Connection Request', 'Alex Thompson, Head of Growth at Stripe, wants to connect', '/dashboard/members/9', 1, '2026-03-12T10:00:00Z'],
+  [7, 'job', 'Application Update', 'Your application for Senior Content Strategist is being reviewed', '/dashboard/my-jobs', 1, '2026-03-11T14:00:00Z'],
+  [7, 'session', 'New Live Session', 'Sarah Chen is hosting "Building a Content Engine That Scales" on March 20', '/dashboard/live-sessions/1', 1, '2026-03-10T10:00:00Z'],
+  [7, 'connection', 'Connection Accepted', 'Marcus Johnson accepted your connection request', '/dashboard/members/2', 1, '2026-03-09T16:00:00Z'],
+  [7, 'job', 'New Job Posted', 'A new Content Marketing Manager position was posted at Notion', '/dashboard/jobs/5', 1, '2026-03-08T14:00:00Z'],
+  [7, 'system', 'Welcome to Mavuus!', 'Complete your profile to connect with other marketing leaders', '/dashboard/profile', 1, '2026-03-01T12:00:00Z'],
+  [7, 'system', 'Profile Tip', 'Add your skills and experience to get better job and connection recommendations', '/dashboard/profile', 1, '2026-03-01T12:05:00Z'],
 ]
 notificationData.forEach(n => insertNotification.run(...n))
 

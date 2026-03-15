@@ -20,8 +20,8 @@ export default function AcademyPage() {
   const { data: resources, loading: loadingResources } = useApiData('/api/resources', [])
 
   const liveSessions = (sessions || []).filter(s => s.type === 'live').slice(0, 4)
-  const onDemandVideos = (sessions || []).filter(s => s.type === 'on-demand').slice(0, 3)
-  const communityResources = (resources || []).slice(0, 3)
+  const onDemandVideos = (sessions || []).filter(s => s.type === 'on-demand').slice(0, 4)
+  const communityResources = (resources || []).slice(0, 4)
 
   // Use fallbacks if API returns empty
   const displayLive = liveSessions.length > 0 ? liveSessions : fallbackLive
@@ -62,11 +62,11 @@ export default function AcademyPage() {
             </Link>
           </div>
           {loadingSessions ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
               {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
               {displayLive.map(session => (
                 <Link key={session.id} to={`/dashboard/live-sessions/${session.id}`}>
                   <Card hover className="h-full">
@@ -112,11 +112,11 @@ export default function AcademyPage() {
             </Link>
           </div>
           {loadingSessions ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
               {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
               {displayVideos.map(video => (
                 <Link key={video.id} to={`/dashboard/on-demand/${video.id}`}>
                   <Card hover className="h-full">
@@ -162,11 +162,11 @@ export default function AcademyPage() {
             </Link>
           </div>
           {loadingResources ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
               {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
               {displayResources.map(resource => (
                 <Link key={resource.id} to={`/dashboard/resources/${resource.id}`}>
                   <Card hover className="h-full">
@@ -194,17 +194,26 @@ export default function AcademyPage() {
         </section>
       )}
 
-      {/* Past Speakers */}
-      {activeTab === 'All' && (
+      {/* Past Speakers — derived from session speakers */}
+      {activeTab === 'All' && (sessions || []).length > 0 && (
         <section>
           <h2 className="text-lg font-semibold text-dark-blue mb-5">Past Speakers</h2>
           <div className="flex gap-6 overflow-x-auto pb-2">
-            {speakers.map(speaker => (
-              <div key={speaker.id} className="flex-shrink-0 text-center">
-                <Avatar name={speaker.name} size="xl" className="mx-auto mb-2" />
-                <p className="text-sm font-medium text-dark-blue">{speaker.name}</p>
-                <p className="text-xs text-neutral-500">{speaker.title}</p>
-                <p className="text-xs text-brand-pink">{speaker.company}</p>
+            {(sessions || [])
+              .filter(s => s.speaker_name)
+              .reduce((unique, s) => {
+                if (!unique.find(u => u.speaker_name === s.speaker_name)) {
+                  unique.push(s)
+                }
+                return unique
+              }, [])
+              .slice(0, 8)
+              .map(s => (
+              <div key={s.speaker_name} className="flex-shrink-0 text-center">
+                <Avatar name={s.speaker_name} src={s.speaker_avatar} size="xl" className="mx-auto mb-2" />
+                <p className="text-sm font-medium text-dark-blue">{s.speaker_name}</p>
+                <p className="text-xs text-neutral-500">{s.speaker_title?.split(',')[0]}</p>
+                <p className="text-xs text-brand-pink">{s.speaker_title?.split(',')[1]?.trim()}</p>
               </div>
             ))}
           </div>

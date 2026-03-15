@@ -15,7 +15,7 @@ import Input, { Textarea } from '../../components/ui/Input'
 import {
   Pencil, MapPin, Calendar, Briefcase, ExternalLink,
   Plus, Trash2, GraduationCap, FileText, Upload,
-  CreditCard, Shield,
+  CreditCard, Shield, Users,
 } from 'lucide-react'
 
 const INDUSTRY_OPTIONS = [
@@ -312,7 +312,15 @@ export default function ProfilePage() {
       {/* ── Profile Header ─────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-6">
         <div className="flex flex-col sm:flex-row items-start gap-6">
-          <Avatar name={profile.name} src={profile.avatar_url} size="xl" />
+          <div className="relative group">
+            <Avatar name={profile.name} src={profile.avatar_url} size="xl" />
+            <button
+              onClick={() => toast.info('Photo upload coming soon')}
+              className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+            >
+              <Upload size={20} className="text-white" />
+            </button>
+          </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-4">
@@ -347,6 +355,11 @@ export default function ProfilePage() {
                   year: 'numeric',
                 })}
               </span>
+              {profile.connections_count > 0 && (
+                <Link to="/dashboard/members" className="flex items-center gap-1 text-brand-pink hover:underline">
+                  <Users size={14} /> {profile.connections_count} connection{profile.connections_count !== 1 ? 's' : ''}
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -358,6 +371,19 @@ export default function ProfilePage() {
       <div className="mt-6">
         {/* ── ABOUT TAB ──────────────────────────────────────── */}
         {activeTab === 'about' && (
+          <div className="space-y-4">
+          {/* Personal Info */}
+          <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+            <h3 className="text-lg font-semibold text-dark-blue mb-4">Personal Information</h3>
+
+            <EditableField label="Full Name" value={profile.name} field="name" />
+            <EditableField label="Job Title" value={profile.title} field="title" />
+            <EditableField label="Company" value={profile.company} field="company" />
+            <EditableField label="Location" value={profile.location} field="location" />
+            <EditableField label="Timezone" value={profile.timezone} field="timezone" />
+          </div>
+
+          {/* About & Bio */}
           <div className="bg-white rounded-2xl border border-neutral-100 p-6">
             <h3 className="text-lg font-semibold text-dark-blue mb-4">About</h3>
 
@@ -384,6 +410,7 @@ export default function ProfilePage() {
                 suggestions={SKILL_SUGGESTIONS}
               />
             </div>
+          </div>
           </div>
         )}
 

@@ -161,7 +161,7 @@ export default function MemberProfilePage() {
   }
 
   return (
-    <div className="max-w-6xl">
+    <div>
       {/* Back link */}
       <button
         onClick={() => navigate(-1)}
@@ -171,7 +171,7 @@ export default function MemberProfilePage() {
       </button>
 
       {/* Profile Header */}
-      <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-6">
+      <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
         <div className="flex flex-col sm:flex-row items-start gap-6">
           <Avatar
             name={member.name}
@@ -253,7 +253,7 @@ export default function MemberProfilePage() {
 
       {/* Bio */}
       {member.bio && (
-        <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-4">
+        <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
           <h3 className="text-lg font-semibold text-dark-blue mb-3">About</h3>
           <p className="text-sm text-neutral-600 leading-relaxed">
             {member.bio}
@@ -263,7 +263,7 @@ export default function MemberProfilePage() {
 
       {/* Skills */}
       {member.skills && member.skills.length > 0 && (
-        <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-4">
+        <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-3">
           <h3 className="text-lg font-semibold text-dark-blue mb-3">
             Skills & Expertise
           </h3>

@@ -1,7 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import Avatar from '../ui/Avatar'
-import Badge from '../ui/Badge'
 import {
   Home,
   Radio,
@@ -13,6 +11,7 @@ import {
   BookmarkCheck,
   MessageCircle,
   UserCircle,
+  UserCheck,
   LogOut,
   X,
 } from 'lucide-react'
@@ -30,6 +29,7 @@ const sidebarLinks = [
   { label: 'My Jobs', path: '/dashboard/my-jobs', icon: BookmarkCheck },
   { type: 'separator' },
   { label: 'Messages', path: '/dashboard/messages', icon: MessageCircle, badge: true },
+  { label: 'My Connections', path: '/dashboard/members?filter=connections', icon: UserCheck },
   { label: 'My Profile', path: '/dashboard/profile', icon: UserCircle },
 ]
 
@@ -108,28 +108,13 @@ export default function DashboardSidebar({ mobileOpen, onClose }) {
           })}
         </nav>
 
-        {/* Profile Card + Logout */}
+        {/* Logout */}
         <div className="px-3 py-4 border-t border-neutral-100">
-          <Link
-            to="/dashboard/profile"
-            onClick={handleNavClick}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-neutral-50 transition-colors mb-1"
-          >
-            <Avatar name={user?.name} src={user?.avatar_url} size="sm" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-dark-blue truncate">{user?.name || 'User'}</p>
-              {user?.membership_tier && (
-                <Badge variant={user.membership_tier === 'pro' ? 'pink' : user.membership_tier === 'premium' ? 'blue' : 'gray'}>
-                  {user.membership_tier}
-                </Badge>
-              )}
-            </div>
-          </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-neutral-400 hover:bg-neutral-100 hover:text-dark-blue transition-colors cursor-pointer"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-neutral-400 hover:bg-neutral-100 hover:text-dark-blue transition-colors cursor-pointer"
           >
-            <LogOut size={14} />
+            <LogOut size={16} />
             Log out
           </button>
         </div>

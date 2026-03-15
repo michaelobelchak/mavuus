@@ -51,10 +51,8 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 bg-dark-blue text-white p-16 flex-col justify-between">
         <div>
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand-pink rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">M</span>
-            </div>
-            <span className="text-xl font-bold">Mavuus</span>
+            <img src="/assets/shared/mavuus-icon.svg" alt="" className="w-7 h-7" />
+            <img src="/assets/shared/mavuus-wordmark.svg" alt="Mavuus" className="h-5 brightness-0 invert" />
           </Link>
         </div>
 
@@ -91,10 +89,8 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <div className="lg:hidden mb-8">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-brand-pink rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">M</span>
-              </div>
-              <span className="text-xl font-bold text-dark-blue">Mavuus</span>
+              <img src="/assets/shared/mavuus-icon.svg" alt="" className="w-7 h-7" />
+              <img src="/assets/shared/mavuus-wordmark.svg" alt="Mavuus" className="h-5" />
             </Link>
           </div>
 

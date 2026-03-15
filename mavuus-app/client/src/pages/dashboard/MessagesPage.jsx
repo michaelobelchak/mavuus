@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/ui/Toast'
 import Avatar from '../../components/ui/Avatar'
@@ -55,31 +55,41 @@ export default function MessagesPage() {
 
   // Initial load
   useEffect(() => {
-    const init = async () => {
-      const convs = await fetchConversations()
+    const t = token || localStorage.getItem('mavuus_token')
+    if (!t) {
       setLoading(false)
-      // Auto-select from URL param (by conversation id)
-      const convParam = searchParams.get('conversation')
-      if (convParam && convs.length > 0) {
-        const conv = convs.find(c => c.id === parseInt(convParam))
-        if (conv) {
-          setSelectedConv(conv)
-          fetchMessages(conv.id)
-          return
+      return
+    }
+    const init = async () => {
+      try {
+        const res = await fetch('/api/messages/conversations', { headers: { Authorization: `Bearer ${t}` } })
+        if (res.ok) {
+          const convs = await res.json()
+          setConversations(convs)
+          // Auto-select from URL param (by conversation id)
+          const convParam = searchParams.get('conversation')
+          if (convParam && convs.length > 0) {
+            const conv = convs.find(c => c.id === parseInt(convParam))
+            if (conv) {
+              setSelectedConv(conv)
+              fetchMessages(conv.id)
+            }
+          }
+          // Auto-select from URL param (by user id)
+          const userParam = searchParams.get('user')
+          if (userParam && convs.length > 0) {
+            const conv = convs.find(c => c.other_user_id === parseInt(userParam))
+            if (conv) {
+              setSelectedConv(conv)
+              fetchMessages(conv.id)
+            }
+          }
         }
-      }
-      // Auto-select from URL param (by user id — from member profile "Message" button)
-      const userParam = searchParams.get('user')
-      if (userParam && convs.length > 0) {
-        const conv = convs.find(c => c.other_user_id === parseInt(userParam))
-        if (conv) {
-          setSelectedConv(conv)
-          fetchMessages(conv.id)
-        }
-      }
+      } catch {}
+      setLoading(false)
     }
     init()
-  }, [])
+  }, [token])
 
   // Poll conversations every 10s
   useEffect(() => {
@@ -175,9 +185,17 @@ export default function MessagesPage() {
 
         <div className="flex-1 overflow-y-auto">
           {filteredConvs.length === 0 ? (
-            <div className="px-4 py-8 text-center">
-              <MessageCircle size={24} className="text-neutral-300 mx-auto mb-2" />
-              <p className="text-sm text-neutral-500">No conversations yet</p>
+            <div className="px-6 py-12 text-center">
+              <div className="w-16 h-16 bg-brand-pink/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle size={28} className="text-brand-pink" />
+              </div>
+              <p className="text-sm font-semibold text-dark-blue mb-1">No conversations yet</p>
+              <p className="text-xs text-neutral-500 mb-4 leading-relaxed">
+                Start a conversation by visiting a member&apos;s profile and clicking the &ldquo;Message&rdquo; button.
+              </p>
+              <Link to="/dashboard/members" className="inline-flex items-center gap-1 text-xs font-medium text-brand-pink hover:underline">
+                Browse Members <ArrowLeft size={12} className="rotate-180" />
+              </Link>
             </div>
           ) : (
             filteredConvs.map(conv => (
