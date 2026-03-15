@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Card from '../../components/ui/Card'
 import Avatar from '../../components/ui/Avatar'
 import Badge from '../../components/ui/Badge'
@@ -69,7 +70,8 @@ export default function OnDemandPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(video => (
-            <Card key={video.id} hover className="cursor-pointer group">
+            <Link key={video.id} to={`/dashboard/on-demand/${video.id}`} className="block no-underline">
+            <Card hover className="cursor-pointer group">
               <div className="h-40 rounded-xl mb-4 overflow-hidden relative">
                 {video.thumbnail_url ? (
                   <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover" />
@@ -94,6 +96,7 @@ export default function OnDemandPage() {
                 </div>
               </div>
             </Card>
+            </Link>
           ))}
         </div>
       )}

@@ -31,6 +31,7 @@ import JobsPage from './pages/dashboard/JobsPage'
 import JobDetailPage from './pages/dashboard/JobDetailPage'
 import MyJobsPage from './pages/dashboard/MyJobsPage'
 import ProfilePage from './pages/dashboard/ProfilePage'
+import SessionDetailPage from './pages/dashboard/SessionDetailPage'
 import MessagesPage from './pages/dashboard/MessagesPage'
 
 export default function App() {
@@ -63,7 +64,9 @@ export default function App() {
       >
         <Route index element={<AcademyPage />} />
         <Route path="live-sessions" element={<LiveSessionsPage />} />
+        <Route path="live-sessions/:id" element={<SessionDetailPage />} />
         <Route path="on-demand" element={<OnDemandPage />} />
+        <Route path="on-demand/:id" element={<SessionDetailPage />} />
         <Route path="resources" element={<ResourcesPage />} />
         <Route path="members" element={<MembersPage />} />
         <Route path="members/:id" element={<MemberProfilePage />} />
