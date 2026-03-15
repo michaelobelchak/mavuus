@@ -20,6 +20,8 @@ import BlogDetailPage from './pages/public/BlogDetailPage'
 // Auth Pages (eager — fast login)
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
+import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 
 // Dashboard Pages (lazy — code-split behind auth)
 const AcademyPage = lazy(() => import('./pages/dashboard/AcademyPage'))
@@ -37,6 +39,8 @@ const SessionDetailPage = lazy(() => import('./pages/dashboard/SessionDetailPage
 const ResourceDetailPage = lazy(() => import('./pages/dashboard/ResourceDetailPage'))
 const VendorDetailPage = lazy(() => import('./pages/dashboard/VendorDetailPage'))
 const MessagesPage = lazy(() => import('./pages/dashboard/MessagesPage'))
+const InvitePage = lazy(() => import('./pages/dashboard/InvitePage'))
+const SpeakersPage = lazy(() => import('./pages/dashboard/SpeakersPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 function LazyFallback() {
@@ -68,6 +72,8 @@ export default function App() {
         {/* Auth Pages (no layout wrapper) */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* Dashboard (Protected) */}
         <Route
@@ -94,6 +100,8 @@ export default function App() {
           <Route path="my-jobs" element={<MyJobsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="messages" element={<MessagesPage />} />
+          <Route path="invite" element={<InvitePage />} />
+          <Route path="speakers" element={<SpeakersPage />} />
         </Route>
         {/* 404 Catch-all */}
         <Route path="*" element={<NotFoundPage />} />

@@ -822,19 +822,19 @@ jobData.forEach(j => insertJob.run(...j))
 
 // Seed speakers
 const insertSpeaker = db.prepare(`
-  INSERT OR IGNORE INTO speakers (name, title, company, avatar_url, bio)
-  VALUES (?, ?, ?, ?, ?)
+  INSERT OR IGNORE INTO speakers (name, title, company, avatar_url, bio, linkedin_url)
+  VALUES (?, ?, ?, ?, ?, ?)
 `)
 
 const speakerData = [
-  ['Sarah Chen', 'VP of Marketing', 'TechFlow', 'https://i.pravatar.cc/150?u=sarah@techflow.com', 'Sarah leads marketing at TechFlow, driving 3x pipeline growth in 2 years. She specializes in content-led growth and has built teams from 2 to 30.'],
-  ['Marcus Johnson', 'CMO', 'GrowthBase', 'https://i.pravatar.cc/150?u=marcus@growthbase.com', 'Marcus is a seasoned CMO with 15+ years in B2B marketing. He\'s known for his ABM playbook that generated $50M+ in enterprise pipeline.'],
-  ['Priya Patel', 'Director of Demand Gen', 'CloudScale', 'https://i.pravatar.cc/150?u=priya@cloudscale.com', 'Priya specializes in data-driven demand generation strategies. She\'s a frequent speaker on AI-powered marketing and predictive analytics.'],
-  ['Elena Rodriguez', 'CMO', 'Drift', 'https://i.pravatar.cc/150?u=elena@drift.com', 'Elena has built marketing teams at three successful startups. She\'s an expert in conversational marketing and LinkedIn advertising.'],
-  ['Omar Hassan', 'VP Brand', 'Canva', 'https://i.pravatar.cc/150?u=omar@canva.com', 'Omar leads brand strategy at Canva, overseeing global campaigns that reach millions. He\'s passionate about the intersection of design and marketing.'],
-  ['James Wright', 'VP Growth', 'Amplitude', 'https://i.pravatar.cc/150?u=james@amplitude.com', 'James is a growth analytics expert who has helped dozens of B2B companies build data-driven marketing organizations.'],
-  ['Rachel Foster', 'Head of Content', 'Asana', 'https://i.pravatar.cc/150?u=rachel@asana.com', 'Rachel built Asana\'s content program from scratch, growing organic traffic 10x in 3 years through programmatic SEO and content clusters.'],
-  ['Nina Vasquez', 'VP Growth Marketing', 'Intercom', 'https://i.pravatar.cc/150?u=nina@intercom.com', 'Nina leads growth marketing at Intercom, specializing in martech stack optimization and marketing operations at scale.'],
+  ['Sarah Chen', 'VP of Marketing', 'TechFlow', 'https://i.pravatar.cc/150?u=sarah@techflow.com', 'Sarah leads marketing at TechFlow, driving 3x pipeline growth in 2 years. She specializes in content-led growth and has built teams from 2 to 30.', 'https://linkedin.com/in/sarahchen'],
+  ['Marcus Johnson', 'CMO', 'GrowthBase', 'https://i.pravatar.cc/150?u=marcus@growthbase.com', 'Marcus is a seasoned CMO with 15+ years in B2B marketing. He\'s known for his ABM playbook that generated $50M+ in enterprise pipeline.', 'https://linkedin.com/in/marcusjohnson'],
+  ['Priya Patel', 'Director of Demand Gen', 'CloudScale', 'https://i.pravatar.cc/150?u=priya@cloudscale.com', 'Priya specializes in data-driven demand generation strategies. She\'s a frequent speaker on AI-powered marketing and predictive analytics.', 'https://linkedin.com/in/priyapatel'],
+  ['Elena Rodriguez', 'CMO', 'Drift', 'https://i.pravatar.cc/150?u=elena@drift.com', 'Elena has built marketing teams at three successful startups. She\'s an expert in conversational marketing and LinkedIn advertising.', 'https://linkedin.com/in/elenarodriguez'],
+  ['Omar Hassan', 'VP Brand', 'Canva', 'https://i.pravatar.cc/150?u=omar@canva.com', 'Omar leads brand strategy at Canva, overseeing global campaigns that reach millions. He\'s passionate about the intersection of design and marketing.', 'https://linkedin.com/in/omarhassan'],
+  ['James Wright', 'VP Growth', 'Amplitude', 'https://i.pravatar.cc/150?u=james@amplitude.com', 'James is a growth analytics expert who has helped dozens of B2B companies build data-driven marketing organizations.', 'https://linkedin.com/in/jameswright'],
+  ['Rachel Foster', 'Head of Content', 'Asana', 'https://i.pravatar.cc/150?u=rachel@asana.com', 'Rachel built Asana\'s content program from scratch, growing organic traffic 10x in 3 years through programmatic SEO and content clusters.', 'https://linkedin.com/in/rachelfoster'],
+  ['Nina Vasquez', 'VP Growth Marketing', 'Intercom', 'https://i.pravatar.cc/150?u=nina@intercom.com', 'Nina leads growth marketing at Intercom, specializing in martech stack optimization and marketing operations at scale.', 'https://linkedin.com/in/ninavasquez'],
 ]
 
 speakerData.forEach(s => insertSpeaker.run(...s))
@@ -1091,6 +1091,10 @@ recommendationData.forEach(r => insertRecommendation.run(...r))
 // Add job applications for the completed jobs (hired applicants)
 insertApplication.run(1, 3, 'Excited to bring my demand gen and data-driven approach to content strategy at TechFlow.', 'hired', '2026-02-10T10:00:00Z')
 insertApplication.run(2, 5, 'Eager to apply my marketing leadership experience to drive growth at GrowthBase.', 'hired', '2026-02-12T09:00:00Z')
+
+// Seed referral codes (demo user gets a known code)
+db.prepare('INSERT OR IGNORE INTO referral_codes (user_id, code) VALUES (?, ?)').run(7, 'MAVUUS2026')
+db.prepare('INSERT OR IGNORE INTO referral_codes (user_id, code) VALUES (?, ?)').run(1, 'SARAH123')
 
 // Seed comments
 const insertComment = db.prepare(`

@@ -12,6 +12,8 @@ import {
   MessageCircle,
   UserCircle,
   UserCheck,
+  Mic,
+  UserPlus,
   LogOut,
   X,
 } from 'lucide-react'
@@ -21,6 +23,7 @@ const sidebarLinks = [
   { label: 'Live Sessions', path: '/dashboard/live-sessions', icon: Radio },
   { label: 'On-Demand Videos', path: '/dashboard/on-demand', icon: PlayCircle },
   { label: 'Community Resources', path: '/dashboard/resources', icon: FolderOpen },
+  { label: 'Speakers', path: '/dashboard/speakers', icon: Mic },
   { type: 'separator' },
   { label: 'Meet The Members', path: '/dashboard/members', icon: Users },
   { label: 'Search for Vendors', path: '/dashboard/vendors', icon: Store },
@@ -31,6 +34,8 @@ const sidebarLinks = [
   { label: 'Messages', path: '/dashboard/messages', icon: MessageCircle, badge: true },
   { label: 'My Connections', path: '/dashboard/members?filter=connections', icon: UserCheck },
   { label: 'My Profile', path: '/dashboard/profile', icon: UserCircle },
+  { type: 'separator' },
+  { label: 'Invite a Friend', path: '/dashboard/invite', icon: UserPlus },
 ]
 
 export default function DashboardSidebar({ mobileOpen, onClose }) {

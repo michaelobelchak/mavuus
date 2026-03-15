@@ -20,6 +20,10 @@ import notificationsRoutes from './routes/notifications.js'
 import reviewsRoutes from './routes/reviews.js'
 import recommendationsRoutes from './routes/recommendations.js'
 import searchRoutes from './routes/search.js'
+import contactRoutes from './routes/contact.js'
+import commentsRoutes from './routes/comments.js'
+import referralsRoutes from './routes/referrals.js'
+import speakersRoutes from './routes/speakers.js'
 import { sanitizeBody } from './middleware/sanitize.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -88,6 +92,10 @@ app.use('/api/notifications', notificationsRoutes)
 app.use('/api/reviews', reviewsRoutes)
 app.use('/api/recommendations', recommendationsRoutes)
 app.use('/api/search', searchRoutes)
+app.use('/api/contact', contactRoutes)
+app.use('/api/comments', commentsRoutes)
+app.use('/api/referrals', referralsRoutes)
+app.use('/api/speakers', speakersRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
