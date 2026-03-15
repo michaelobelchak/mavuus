@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { contactFaqItems } from '../../data/mockData'
 import LogoBar from '../../components/sections/LogoBar'
 import TestimonialRow from '../../components/sections/TestimonialRow'
@@ -12,6 +12,14 @@ export default function ContactPage() {
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [faqItems, setFaqItems] = useState(null)
+
+  useEffect(() => {
+    fetch('/api/faq?page=contact')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => setFaqItems(data.map(f => ({ title: f.question, content: f.answer }))))
+      .catch(() => {})
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -172,7 +180,7 @@ export default function ContactPage() {
       <TestimonialRow />
 
       {/* FAQ Section */}
-      <FAQSection items={contactFaqItems} />
+      <FAQSection items={faqItems || contactFaqItems} />
 
       {/* CTA Banner */}
       <CTABannerQuote />

@@ -16,6 +16,7 @@ import {
   UserPlus,
   LogOut,
   X,
+  Shield,
 } from 'lucide-react'
 
 const sidebarLinks = [
@@ -37,6 +38,8 @@ const sidebarLinks = [
   { type: 'separator' },
   { label: 'Invite a Friend', path: '/dashboard/invite', icon: UserPlus },
 ]
+
+const adminLink = { label: 'Admin Panel', path: '/admin', icon: Shield }
 
 export default function DashboardSidebar({ mobileOpen, onClose }) {
   const location = useLocation()
@@ -111,6 +114,25 @@ export default function DashboardSidebar({ mobileOpen, onClose }) {
               </Link>
             )
           })}
+          {user?.role === 'admin' && (
+            <>
+              <div className="h-px bg-neutral-100 my-2" />
+              <Link
+                to={adminLink.path}
+                onClick={handleNavClick}
+                className={`
+                  flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors
+                  ${location.pathname.startsWith('/admin')
+                    ? 'bg-purple-50 text-purple-600'
+                    : 'text-purple-500 hover:bg-purple-50 hover:text-purple-700'
+                  }
+                `}
+              >
+                <Shield size={18} />
+                <span className="flex-1">Admin Panel</span>
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* Logout */}

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 const footerLinks = {
@@ -21,6 +22,15 @@ const footerLinks = {
 }
 
 export default function Footer() {
+  const [settings, setSettings] = useState({})
+
+  useEffect(() => {
+    fetch('/api/settings/public')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(setSettings)
+      .catch(() => {})
+  }, [])
+
   return (
     <footer className="bg-dark-blue text-white">
       <div className="max-w-7xl mx-auto px-6 py-16">
@@ -61,9 +71,9 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} Mavuus. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <a href="#" className="text-neutral-300 hover:text-white text-sm">Twitter</a>
-            <a href="#" className="text-neutral-300 hover:text-white text-sm">LinkedIn</a>
-            <a href="#" className="text-neutral-300 hover:text-white text-sm">Instagram</a>
+            <a href={settings.social_twitter || '#'} target="_blank" rel="noopener noreferrer" className="text-neutral-300 hover:text-white text-sm">Twitter</a>
+            <a href={settings.social_linkedin || '#'} target="_blank" rel="noopener noreferrer" className="text-neutral-300 hover:text-white text-sm">LinkedIn</a>
+            <a href={settings.social_instagram || '#'} target="_blank" rel="noopener noreferrer" className="text-neutral-300 hover:text-white text-sm">Instagram</a>
           </div>
         </div>
       </div>

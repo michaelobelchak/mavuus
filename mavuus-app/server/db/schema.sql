@@ -12,6 +12,12 @@ CREATE TABLE IF NOT EXISTS users (
   email_verified INTEGER DEFAULT 0,
   verification_token TEXT,
   google_id TEXT,
+  is_banned INTEGER DEFAULT 0,
+  ban_reason TEXT,
+  banned_at DATETIME,
+  is_deleted INTEGER DEFAULT 0,
+  deleted_at DATETIME,
+  last_login_at DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -59,6 +65,8 @@ CREATE TABLE IF NOT EXISTS vendors (
   reviews_count INTEGER DEFAULT 0,
   location TEXT,
   website TEXT,
+  moderation_status TEXT DEFAULT 'approved' CHECK(moderation_status IN ('approved', 'pending', 'suspended')),
+  admin_notes TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -76,6 +84,8 @@ CREATE TABLE IF NOT EXISTS jobs (
   status TEXT DEFAULT 'open' CHECK(status IN ('open', 'in-progress', 'completed', 'closed')),
   hired_user_id INTEGER REFERENCES users(id),
   posted_by INTEGER REFERENCES users(id),
+  moderation_status TEXT DEFAULT 'approved' CHECK(moderation_status IN ('approved', 'hidden', 'removed')),
+  admin_notes TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -277,5 +287,88 @@ CREATE TABLE IF NOT EXISTS notifications (
   message TEXT,
   link TEXT,
   is_read INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Categories (dynamic, manageable from admin)
+CREATE TABLE IF NOT EXISTS categories (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  type TEXT NOT NULL CHECK(type IN ('session', 'resource', 'job', 'vendor', 'article')),
+  sort_order INTEGER DEFAULT 0,
+  is_active INTEGER DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Site content (CMS-lite for website pages)
+CREATE TABLE IF NOT EXISTS site_content (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  page TEXT NOT NULL,
+  section TEXT NOT NULL,
+  key TEXT NOT NULL,
+  value TEXT,
+  type TEXT DEFAULT 'text' CHECK(type IN ('text', 'html', 'image', 'number', 'json')),
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_by INTEGER REFERENCES users(id),
+  UNIQUE(page, section, key)
+);
+
+-- Testimonials (manageable from admin)
+CREATE TABLE IF NOT EXISTS testimonials (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  title TEXT,
+  company TEXT,
+  avatar_url TEXT,
+  quote TEXT NOT NULL,
+  rating INTEGER DEFAULT 5,
+  is_featured INTEGER DEFAULT 0,
+  is_active INTEGER DEFAULT 1,
+  sort_order INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Brand logos (manageable from admin)
+CREATE TABLE IF NOT EXISTS brand_logos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  logo_url TEXT NOT NULL,
+  website_url TEXT,
+  is_active INTEGER DEFAULT 1,
+  sort_order INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- FAQ items (manageable from admin)
+CREATE TABLE IF NOT EXISTS faq_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  question TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  page TEXT DEFAULT 'general' CHECK(page IN ('general', 'contact', 'pricing', 'about')),
+  sort_order INTEGER DEFAULT 0,
+  is_active INTEGER DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Platform settings (key-value config)
+CREATE TABLE IF NOT EXISTS platform_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT,
+  description TEXT,
+  type TEXT DEFAULT 'text' CHECK(type IN ('text', 'number', 'boolean', 'json', 'email', 'url')),
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_by INTEGER REFERENCES users(id)
+);
+
+-- Audit log (track all admin actions)
+CREATE TABLE IF NOT EXISTS audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  admin_id INTEGER REFERENCES users(id),
+  action TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id INTEGER,
+  details TEXT,
+  ip_address TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

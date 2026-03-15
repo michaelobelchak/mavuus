@@ -1126,5 +1126,143 @@ const replyData = [
 ]
 replyData.forEach(c => insertComment.run(...c))
 
+// Seed categories
+const insertCategory = db.prepare(`
+  INSERT OR IGNORE INTO categories (name, slug, type, sort_order, is_active)
+  VALUES (?, ?, ?, ?, 1)
+`)
+const categories = [
+  // Session categories
+  ['CRM', 'crm', 'session', 1], ['SaaS', 'saas', 'session', 2], ['Marketing Tech', 'marketing-tech', 'session', 3],
+  ['AI', 'ai', 'session', 4], ['Growth', 'growth', 'session', 5], ['Branding', 'branding', 'session', 6],
+  ['Analytics', 'analytics', 'session', 7], ['SEO', 'seo', 'session', 8], ['Content Strategy', 'content-strategy', 'session', 9],
+  ['ABM', 'abm', 'session', 10], ['Paid Media', 'paid-media', 'session', 11],
+  // Resource categories
+  ['Guide', 'guide', 'resource', 1], ['Template', 'template', 'resource', 2], ['Report', 'report', 'resource', 3], ['Article', 'article', 'resource', 4],
+  // Job categories
+  ['Marketing', 'marketing', 'job', 1], ['Engineering', 'engineering', 'job', 2], ['Design', 'design', 'job', 3],
+  ['Sales', 'sales', 'job', 4], ['Operations', 'operations', 'job', 5],
+  // Vendor categories
+  ['Design', 'vendor-design', 'vendor', 1], ['Web Dev', 'web-dev', 'vendor', 2], ['Copywriting', 'copywriting', 'vendor', 3],
+  ['Social Media', 'social-media', 'vendor', 4], ['Video', 'video', 'vendor', 5], ['Consulting', 'consulting', 'vendor', 6],
+  ['SEO', 'vendor-seo', 'vendor', 7], ['Paid Ads', 'paid-ads', 'vendor', 8],
+]
+categories.forEach(c => insertCategory.run(...c))
+
+// Seed testimonials
+const insertTestimonial = db.prepare(`
+  INSERT OR IGNORE INTO testimonials (name, title, company, avatar_url, quote, rating, is_featured, is_active, sort_order)
+  VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
+`)
+const testimonials = [
+  ['Sarah Chen', 'VP of Marketing', 'TechFlow', null, 'Mavuus has completely transformed how I connect with other marketing leaders. The quality of conversations and resources is unmatched.', 5, 1, 1],
+  ['Marcus Johnson', 'CMO', 'GrowthBase', null, 'The live sessions alone are worth the membership. I\'ve learned strategies that directly impacted our Q3 pipeline growth.', 5, 1, 2],
+  ['Priya Patel', 'Director of Demand Gen', 'CloudScale', null, 'Finding vetted vendors through Mavuus saved us months of research. The community recommendations are incredibly valuable.', 5, 1, 3],
+  ['Nathan Falceso', 'CEO', 'Scotiabank', '/assets/people/nathan-falceso.jpg', 'They work hard providing a wide list of review integrations, showing how the company is built in public, and their constant presence with their customers to address bugs and bring in new features.', 5, 0, 4],
+  ['Cameron Micules', 'Fractional CMO', 'Niuz', '/assets/shared/cta-person.jpg', 'Joining Mavuus gives you the opportunity to expand your network further, and potentially find new work. And they don\'t pump out the typical, formulaic, templated content - it\'s real, it\'s vulnerable, it\'s relatable.', 5, 0, 5],
+]
+testimonials.forEach(t => insertTestimonial.run(...t))
+
+// Seed brand logos
+const insertBrandLogo = db.prepare(`
+  INSERT OR IGNORE INTO brand_logos (name, logo_url, website_url, is_active, sort_order)
+  VALUES (?, ?, ?, 1, ?)
+`)
+const brandLogos = [
+  ['Microsoft', '/assets/logos/microsoft.png', 'https://microsoft.com', 1],
+  ['Uber', '/assets/logos/uber.png', 'https://uber.com', 2],
+  ['PointClickCare', '/assets/logos/pointclickcare.png', 'https://pointclickcare.com', 3],
+  ['Scotiabank', '/assets/logos/scotiabank.png', 'https://scotiabank.com', 4],
+  ['Shopify', '/assets/logos/shopify.png', 'https://shopify.com', 5],
+  ['Terminus', '/assets/logos/terminus.png', 'https://terminus.com', 6],
+  ['Lululemon', '/assets/logos/lululemon.png', 'https://lululemon.com', 7],
+  ['Solvision', '/assets/logos/solvision.png', 'https://solvision.com', 8],
+  ['Salesforce', '/assets/logos/salesforce.png', 'https://salesforce.com', 9],
+  ['Ceridian', '/assets/logos/ceridian.png', 'https://ceridian.com', 10],
+]
+brandLogos.forEach(b => insertBrandLogo.run(...b))
+
+// Seed FAQ items
+const insertFaq = db.prepare(`
+  INSERT OR IGNORE INTO faq_items (question, answer, page, sort_order, is_active)
+  VALUES (?, ?, ?, ?, 1)
+`)
+const faqItems = [
+  // Contact page FAQs
+  ['Is there a limit of how many people I can be recommended by?', 'Since Mavuus\' primary logic is to connect people based on recommendations, we encourage users to provide at least three recommendations upfront (the more recommendations, the better the network). However, if you can\'t think of any vendors at the moment, you can simply recommend Mavuus to the other three peers to join the network.', 'contact', 1],
+  ['What browser do you recommend using for a better platform experience?', 'We recommend using the latest version of Google Chrome, Safari, or Firefox for the best experience on Mavuus. These browsers support all the modern features we use to provide a seamless experience.', 'contact', 2],
+  ['How do I get support?', 'You can reach our support team by emailing support@mavuus.com or using the contact form above. We typically respond within 24 hours on business days.', 'contact', 3],
+  ['What types of freelancers can I find on Mavuus?', 'On Mavuus, you can find a wide range of marketing freelancers, including content strategists, SEO specialists, social media managers, brand designers, copywriters, growth marketers, and more. All freelancers are vetted by the community.', 'contact', 4],
+  ['Can I join Mavuus if I don\'t have anyone to recommend?', 'Absolutely! While recommendations help strengthen the network, you can join Mavuus without initial recommendations. We encourage you to recommend peers as you get to know the community, but it\'s not a requirement to get started.', 'contact', 5],
+  // General FAQs
+  ['What is Mavuus?', 'Mavuus is a premium community platform designed exclusively for marketing leaders. We provide live sessions, on-demand learning, curated vendor recommendations, and networking opportunities to help you grow your career and your team\'s impact.', 'general', 1],
+  ['Who is Mavuus for?', 'Mavuus is built for VP-level and above marketing leaders, CMOs, Heads of Marketing, and Directors who want to connect with peers, learn from industry experts, and access curated resources and vendors.', 'general', 2],
+  ['What\'s included in the Pro membership?', 'Pro members get access to all live sessions, the full on-demand video library, community resources and templates, the member directory, vetted vendor marketplace, and exclusive job postings.', 'general', 3],
+  ['Can I cancel my membership?', 'Yes, you can cancel your membership at any time. If you cancel, you\'ll retain access until the end of your current billing period. We don\'t offer refunds for partial months or years.', 'general', 4],
+  ['How do I become a speaker?', 'We\'re always looking for experienced marketing leaders to share their expertise. Reach out through the contact form and tell us about the topic you\'d like to present on. Our team will review and get back to you within a week.', 'general', 5],
+]
+faqItems.forEach(f => insertFaq.run(...f))
+
+// Seed platform settings
+const insertSetting = db.prepare(`
+  INSERT OR IGNORE INTO platform_settings (key, value, description, type)
+  VALUES (?, ?, ?, ?)
+`)
+const settings = [
+  ['site_name', 'Mavuus', 'Platform name', 'text'],
+  ['support_email', 'support@mavuus.com', 'Support email address', 'email'],
+  ['social_twitter', 'https://twitter.com/mavuus', 'Twitter URL', 'url'],
+  ['social_linkedin', 'https://linkedin.com/company/mavuus', 'LinkedIn URL', 'url'],
+  ['social_instagram', 'https://instagram.com/mavuus', 'Instagram URL', 'url'],
+  ['membership_price_monthly', '15', 'Monthly membership price', 'number'],
+  ['membership_price_yearly', '9.25', 'Yearly membership price (per month)', 'number'],
+  ['maintenance_mode', 'false', 'Enable maintenance mode', 'boolean'],
+  ['max_upload_size_mb', '10', 'Max upload file size in MB', 'number'],
+]
+settings.forEach(s => insertSetting.run(...s))
+
+// Seed site content (CMS-lite)
+const insertContent = db.prepare(`
+  INSERT OR IGNORE INTO site_content (page, section, key, value, type)
+  VALUES (?, ?, ?, ?, ?)
+`)
+const siteContent = [
+  // Homepage
+  ['home', 'hero', 'title', 'We are on a mission to help CMOs elevate their influence at the executive table.', 'text'],
+  ['home', 'hero', 'subtitle', 'Through marketing community, connecting the right people and opening the right conversations.', 'text'],
+  ['home', 'hero', 'cta_text', 'Join the Waitlist', 'text'],
+  ['home', 'stats', 'stat_value', '80%', 'text'],
+  ['home', 'stats', 'stat_title', '80% of CEOs don\'t trust or are unimpressed with their CMOs', 'text'],
+  ['home', 'stats', 'stat_description', 'CMOs who fail to reshape the role, redefine their value, and transform their approach risk losing their seat at the executive table. Marketing leadership demands a new level of strategic impact, measurable outcomes, and cross-functional influence.', 'text'],
+  ['home', 'collaborate', 'badge', 'For Marketers', 'text'],
+  ['home', 'collaborate', 'title', 'Collaborate with peers. Learn from the experts. Exchange contractors. Land clients / jobs.', 'text'],
+  ['home', 'fractional', 'badge', 'For Business', 'text'],
+  ['home', 'fractional', 'title', 'Looking for Fractional Work?', 'text'],
+  ['home', 'fractional', 'description', 'We Are Well-Connected and Will Introduce You to the Right People.', 'text'],
+  ['home', 'academy', 'title', 'Sharpen Your Marketing Expertise with Mavuus Academy', 'text'],
+  ['home', 'academy', 'subtitle', 'Check Out Mavuus\'s Exciting Speakers in Our Library and Recommendations', 'text'],
+  ['home', 'academy', 'description', 'Access on-demand sessions from top marketing leaders covering everything from ABM strategy to brand positioning. New content added weekly.', 'text'],
+  ['home', 'logos', 'title', 'Trusted by leading brands', 'text'],
+  // About page
+  ['about', 'hero', 'heading', 'Empowering Marketing Leaders to Network, Learn and Advance Their Careers Together', 'text'],
+  ['about', 'hero', 'tagline', 'Created from a spark of inspiration — and by two sisters who live and breathe the world of marketing every day', 'text'],
+  ['about', 'leaders', 'title', 'The Ultimate Collective of Marketing Leaders', 'text'],
+  ['about', 'leaders', 'description', 'Our mission is simple — To foster an environment where senior marketing professionals can leverage the power of collaboration, share experiences, and grow together.', 'text'],
+  ['about', 'founder', 'paragraph1', 'Mavuus was born from a spark of inspiration by two sisters, Dilya Abushayeva and Elmira Abushayeva, who live and breathe the world of marketing every day. After over 15 years in the industry, we\'ve come to understand one thing clearly: success in marketing is driven not only by individual expertise but by the strength of the network you build along the way.', 'text'],
+  ['about', 'founder', 'paragraph2', 'Throughout our careers, we\'ve navigated the complexities of leading marketing teams, developing strategies, and driving growth. But perhaps the most valuable lessons came from connecting with fellow marketing leaders who shared our challenges, insights, and solutions. We realized that true career growth doesn\'t happen in isolation. It happens when you can engage in meaningful discussions, share ideas, and tap into the collective wisdom of peers who understand the journey. That\'s why we created Mavuus.', 'text'],
+  ['about', 'founder', 'paragraph3', 'Mavuus is a community built exclusively for senior marketing leaders who are looking to network, learn, and collaborate with like-minded professionals. We bring together seasoned leaders who are passionate about continuous learning, career advancement, and shaping the future of marketing. Whether you\'re seeking career advice, leadership insights, or simply the opportunity to connect with peers, Mavuus is here to empower your journey.', 'text'],
+  ['about', 'stats', 'stat1_value', '08', 'text'], ['about', 'stats', 'stat1_label', 'marketing mentorship programs', 'text'],
+  ['about', 'stats', 'stat2_value', '1,423', 'text'], ['about', 'stats', 'stat2_label', 'educational on-demand videos', 'text'],
+  ['about', 'stats', 'stat3_value', '+100%', 'text'], ['about', 'stats', 'stat3_label', 'get your marketing efficiency boost', 'text'],
+  // Pricing page
+  ['pricing', 'hero', 'title', 'Collaborate with peers. Learn from the experts. Exchange contractors. Land clients.', 'text'],
+  ['pricing', 'plan', 'name', 'Pro Access', 'text'],
+  ['pricing', 'plan', 'description', 'We are on a mission to help CMOs increase their C-suite impact.', 'text'],
+  ['pricing', 'plan', 'price_monthly', '15', 'number'],
+  ['pricing', 'plan', 'price_yearly', '9.25', 'number'],
+  ['pricing', 'plan', 'cta_text', 'Start 30-Day Free Trial', 'text'],
+]
+siteContent.forEach(c => insertContent.run(...c))
+
 console.log('Database seeded successfully!')
 db.close()

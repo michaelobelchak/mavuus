@@ -31,6 +31,8 @@ import commentsRoutes from './routes/comments.js'
 import referralsRoutes from './routes/referrals.js'
 import speakersRoutes from './routes/speakers.js'
 import uploadRoutes from './routes/upload.js'
+import adminRoutes from './routes/admin.js'
+import publicContentRoutes from './routes/public-content.js'
 import { sanitizeBody } from './middleware/sanitize.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -139,6 +141,8 @@ app.use('/api/comments', commentsRoutes)
 app.use('/api/referrals', referralsRoutes)
 app.use('/api/speakers', speakersRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api/admin', adminRoutes)
+app.use('/api', publicContentRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
