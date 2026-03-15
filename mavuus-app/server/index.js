@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import rateLimit from 'express-rate-limit'
 import Database from 'better-sqlite3'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
@@ -15,6 +16,7 @@ import profileRoutes from './routes/profile.js'
 import connectionsRoutes from './routes/connections.js'
 import messagesRoutes from './routes/messages.js'
 import notificationsRoutes from './routes/notifications.js'
+import { sanitizeBody } from './middleware/sanitize.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -31,13 +33,45 @@ db.pragma('journal_mode = WAL')
 // Make db available to routes
 app.locals.db = db
 
-// Middleware
-app.use(cors())
-app.use(express.json())
+// CORS — allow frontend origin in production
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
+  : ['http://localhost:5173', 'http://localhost:4173']
+
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' ? allowedOrigins : true,
+  credentials: true,
+}))
+
+// Body parser with size limit + input sanitization
+app.use(express.json({ limit: '1mb' }))
+app.use(sanitizeBody)
+
+// Static uploads
 app.use('/uploads', express.static(join(__dirname, 'uploads')))
 
+// Rate limiting on auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // 20 attempts per window
+  message: { error: 'Too many attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+// General API rate limiter
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // 100 requests per minute
+  message: { error: 'Too many requests, please slow down' },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+app.use('/api/', apiLimiter)
+app.use('/api/auth', authLimiter, authRoutes)
+
 // Routes
-app.use('/api/auth', authRoutes)
 app.use('/api/sessions', sessionsRoutes)
 app.use('/api/resources', resourcesRoutes)
 app.use('/api/members', membersRoutes)

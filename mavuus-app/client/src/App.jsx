@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 
 // Layouts
@@ -5,7 +6,7 @@ import PublicLayout from './components/layout/PublicLayout'
 import DashboardLayout from './components/layout/DashboardLayout'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 
-// Public Pages
+// Public Pages (eager — landing page performance)
 import HomePage from './pages/public/HomePage'
 import AboutPage from './pages/public/AboutPage'
 import PricingPage from './pages/public/PricingPage'
@@ -15,75 +16,85 @@ import ArticlesPage from './pages/public/ArticlesPage'
 import EventsPage from './pages/public/EventsPage'
 import BlogDetailPage from './pages/public/BlogDetailPage'
 
-// Auth Pages
+// Auth Pages (eager — fast login)
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 
-// Dashboard Pages
-import AcademyPage from './pages/dashboard/AcademyPage'
-import LiveSessionsPage from './pages/dashboard/LiveSessionsPage'
-import OnDemandPage from './pages/dashboard/OnDemandPage'
-import ResourcesPage from './pages/dashboard/ResourcesPage'
-import MembersPage from './pages/dashboard/MembersPage'
-import MemberProfilePage from './pages/dashboard/MemberProfilePage'
-import VendorsPage from './pages/dashboard/VendorsPage'
-import JobsPage from './pages/dashboard/JobsPage'
-import JobDetailPage from './pages/dashboard/JobDetailPage'
-import MyJobsPage from './pages/dashboard/MyJobsPage'
-import ProfilePage from './pages/dashboard/ProfilePage'
-import SessionDetailPage from './pages/dashboard/SessionDetailPage'
-import ResourceDetailPage from './pages/dashboard/ResourceDetailPage'
-import VendorDetailPage from './pages/dashboard/VendorDetailPage'
-import MessagesPage from './pages/dashboard/MessagesPage'
-import NotFoundPage from './pages/NotFoundPage'
+// Dashboard Pages (lazy — code-split behind auth)
+const AcademyPage = lazy(() => import('./pages/dashboard/AcademyPage'))
+const LiveSessionsPage = lazy(() => import('./pages/dashboard/LiveSessionsPage'))
+const OnDemandPage = lazy(() => import('./pages/dashboard/OnDemandPage'))
+const ResourcesPage = lazy(() => import('./pages/dashboard/ResourcesPage'))
+const MembersPage = lazy(() => import('./pages/dashboard/MembersPage'))
+const MemberProfilePage = lazy(() => import('./pages/dashboard/MemberProfilePage'))
+const VendorsPage = lazy(() => import('./pages/dashboard/VendorsPage'))
+const JobsPage = lazy(() => import('./pages/dashboard/JobsPage'))
+const JobDetailPage = lazy(() => import('./pages/dashboard/JobDetailPage'))
+const MyJobsPage = lazy(() => import('./pages/dashboard/MyJobsPage'))
+const ProfilePage = lazy(() => import('./pages/dashboard/ProfilePage'))
+const SessionDetailPage = lazy(() => import('./pages/dashboard/SessionDetailPage'))
+const ResourceDetailPage = lazy(() => import('./pages/dashboard/ResourceDetailPage'))
+const VendorDetailPage = lazy(() => import('./pages/dashboard/VendorDetailPage'))
+const MessagesPage = lazy(() => import('./pages/dashboard/MessagesPage'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
+
+function LazyFallback() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <div className="w-8 h-8 border-2 border-brand-pink border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+}
 
 export default function App() {
   return (
-    <Routes>
-      {/* Public Website */}
-      <Route element={<PublicLayout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/resources" element={<ResourcesHubPage />} />
-        <Route path="/articles" element={<ArticlesPage />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/blog/:slug" element={<BlogDetailPage />} />
-      </Route>
+    <Suspense fallback={<LazyFallback />}>
+      <Routes>
+        {/* Public Website */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/resources" element={<ResourcesHubPage />} />
+          <Route path="/articles" element={<ArticlesPage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/blog/:slug" element={<BlogDetailPage />} />
+        </Route>
 
-      {/* Auth Pages (no layout wrapper) */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+        {/* Auth Pages (no layout wrapper) */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
-      {/* Dashboard (Protected) */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<AcademyPage />} />
-        <Route path="live-sessions" element={<LiveSessionsPage />} />
-        <Route path="live-sessions/:id" element={<SessionDetailPage />} />
-        <Route path="on-demand" element={<OnDemandPage />} />
-        <Route path="on-demand/:id" element={<SessionDetailPage />} />
-        <Route path="resources" element={<ResourcesPage />} />
-        <Route path="resources/:id" element={<ResourceDetailPage />} />
-        <Route path="members" element={<MembersPage />} />
-        <Route path="members/:id" element={<MemberProfilePage />} />
-        <Route path="vendors" element={<VendorsPage />} />
-        <Route path="vendors/:id" element={<VendorDetailPage />} />
-        <Route path="jobs" element={<JobsPage />} />
-        <Route path="jobs/:id" element={<JobDetailPage />} />
-        <Route path="my-jobs" element={<MyJobsPage />} />
-        <Route path="profile" element={<ProfilePage />} />
-        <Route path="messages" element={<MessagesPage />} />
-      </Route>
-      {/* 404 Catch-all */}
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        {/* Dashboard (Protected) */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AcademyPage />} />
+          <Route path="live-sessions" element={<LiveSessionsPage />} />
+          <Route path="live-sessions/:id" element={<SessionDetailPage />} />
+          <Route path="on-demand" element={<OnDemandPage />} />
+          <Route path="on-demand/:id" element={<SessionDetailPage />} />
+          <Route path="resources" element={<ResourcesPage />} />
+          <Route path="resources/:id" element={<ResourceDetailPage />} />
+          <Route path="members" element={<MembersPage />} />
+          <Route path="members/:id" element={<MemberProfilePage />} />
+          <Route path="vendors" element={<VendorsPage />} />
+          <Route path="vendors/:id" element={<VendorDetailPage />} />
+          <Route path="jobs" element={<JobsPage />} />
+          <Route path="jobs/:id" element={<JobDetailPage />} />
+          <Route path="my-jobs" element={<MyJobsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="messages" element={<MessagesPage />} />
+        </Route>
+        {/* 404 Catch-all */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
   )
 }
