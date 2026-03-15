@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 import { CircleCheck, ArrowRight, Play, Briefcase, GraduationCap } from 'lucide-react'
 import { scrollLeaders, pricingFeatures, brandLogos } from '../../data/mockData'
@@ -12,6 +13,12 @@ export default function HomePage() {
 
   return (
     <div>
+      <Helmet>
+        <title>Mavuus — The Marketing Community & Marketplace</title>
+        <meta name="description" content="The premier community for marketing leaders to connect, learn, and grow together." />
+        <link rel="canonical" href="https://mavuus.com/" />
+      </Helmet>
+
       {/* ===== HERO SECTION ===== */}
       <section className="px-6 md:px-12 lg:px-[104px] pt-6 pb-16 relative overflow-hidden">
         <AnimatedSection animation="fade-up">
@@ -144,6 +151,7 @@ export default function HomePage() {
               <img
                 src="/assets/home/stat-image.jpg"
                 alt="Marketing leaders collaboration"
+                loading="lazy"
                 className="w-full h-[300px] md:h-[400px] object-cover rounded-[24px] shadow-lg"
               />
             </div>
@@ -197,6 +205,7 @@ export default function HomePage() {
             <img
               src="/assets/home/section-image-1.jpg"
               alt="Marketing collaboration"
+              loading="lazy"
               className="w-full h-[350px] md:h-[450px] lg:h-[520px] object-cover rounded-[24px] shadow-lg"
             />
           </AnimatedSection>
@@ -234,6 +243,7 @@ export default function HomePage() {
             <img
               src="/assets/home/fractional-image.jpg"
               alt="Fractional work"
+              loading="lazy"
               className="w-full h-[300px] md:h-[400px] lg:h-[450px] object-cover rounded-[24px] shadow-lg"
             />
           </AnimatedSection>
@@ -250,6 +260,7 @@ export default function HomePage() {
                 <img
                   src="/assets/home/academy-image.jpg"
                   alt="Mavuus Academy"
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-dark-blue/30 group-hover:bg-dark-blue/20 transition-colors duration-300 flex items-center justify-center">
@@ -262,6 +273,7 @@ export default function HomePage() {
                 <img
                   src="/assets/home/section-image-2.jpg"
                   alt="Academy session"
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-dark-blue/30 group-hover:bg-dark-blue/20 transition-colors duration-300 flex items-center justify-center">
@@ -274,6 +286,7 @@ export default function HomePage() {
                 <img
                   src="/assets/home/hero-rect.jpg"
                   alt="Academy session"
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-dark-blue/30 group-hover:bg-dark-blue/20 transition-colors duration-300 flex items-center justify-center">

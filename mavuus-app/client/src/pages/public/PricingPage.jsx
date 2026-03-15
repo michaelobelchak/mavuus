@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 import { pricingFeatures } from '../../data/mockData'
 import LogoBar from '../../components/sections/LogoBar'
@@ -12,6 +13,12 @@ export default function PricingPage() {
 
   return (
     <div>
+      <Helmet>
+        <title>Mavuus Pricing — Pro Access $9.25/month</title>
+        <meta name="description" content="Join Mavuus Pro for $9.25/month. Collaborate with peers, learn from experts, exchange contractors, and land clients." />
+        <link rel="canonical" href="https://mavuus.com/pricing" />
+      </Helmet>
+
       {/* Hero Title */}
       <section className="px-6 md:px-12 lg:px-[104px] pt-9 pb-14">
         <AnimatedSection animation="fade-up">

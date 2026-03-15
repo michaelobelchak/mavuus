@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async'
 import { liveEvents } from '../../data/mockData'
 import Breadcrumbs from '../../components/ui/Breadcrumbs'
 import AnimatedSection from '../../components/ui/AnimatedSection'
@@ -20,6 +21,12 @@ export default function EventsPage() {
 
   return (
     <div>
+      <Helmet>
+        <title>Mavuus Events</title>
+        <meta name="description" content="Discover upcoming and past live events for marketing leaders at Mavuus." />
+        <link rel="canonical" href="https://mavuus.com/events" />
+      </Helmet>
+
       {/* Header */}
       <section className="px-6 md:px-12 lg:px-[104px] pt-[74px] pb-6">
         <AnimatedSection animation="fade-up">
@@ -89,6 +96,7 @@ export default function EventsPage() {
                       <img
                         src={event.image}
                         alt={event.title}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>

@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 import {
   featuredArticle,
@@ -13,6 +14,12 @@ import { Clock, Tag, ArrowRight, Play } from 'lucide-react'
 export default function ResourcesHubPage() {
   return (
     <div>
+      <Helmet>
+        <title>Mavuus Resources Hub</title>
+        <meta name="description" content="Explore Mavuus resources including articles, live events, and on-demand videos for marketing leaders." />
+        <link rel="canonical" href="https://mavuus.com/resources" />
+      </Helmet>
+
       {/* Header + Featured Article */}
       <section className="px-6 md:px-12 lg:px-[104px] pt-[74px] pb-14">
         <AnimatedSection animation="fade-up">
@@ -37,6 +44,7 @@ export default function ResourcesHubPage() {
               <img
                 src={featuredArticle.image}
                 alt={featuredArticle.title}
+                loading="lazy"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
               />
             </div>
@@ -124,6 +132,7 @@ export default function ResourcesHubPage() {
                   <img
                     src={event.image}
                     alt={event.title}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
@@ -181,6 +190,7 @@ export default function ResourcesHubPage() {
                   <img
                     src={video.image}
                     alt={video.title}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -239,6 +249,7 @@ export default function ResourcesHubPage() {
                   <img
                     src={article.image}
                     alt={article.title}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>

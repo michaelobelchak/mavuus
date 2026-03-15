@@ -1,7 +1,7 @@
 export default function Tabs({ tabs, activeTab, onChange }) {
   return (
-    <div className="border-b border-neutral-200">
-      <nav className="flex gap-6 -mb-px">
+    <div className="border-b border-neutral-200 overflow-x-auto">
+      <nav className="flex gap-6 -mb-px whitespace-nowrap">
         {tabs.map(tab => (
           <button
             key={tab.id}

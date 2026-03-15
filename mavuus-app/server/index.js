@@ -149,6 +149,14 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
+// Serve client in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(join(__dirname, '../client/dist')))
+  app.get('*', (req, res) => {
+    res.sendFile(join(__dirname, '../client/dist/index.html'))
+  })
+}
+
 app.listen(PORT, () => {
   console.log(`Mavuus API running on http://localhost:${PORT}`)
 })

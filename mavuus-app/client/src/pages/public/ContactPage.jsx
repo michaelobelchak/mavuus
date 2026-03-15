@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { contactFaqItems } from '../../data/mockData'
 import LogoBar from '../../components/sections/LogoBar'
 import TestimonialRow from '../../components/sections/TestimonialRow'
@@ -50,6 +51,12 @@ export default function ContactPage() {
 
   return (
     <div>
+      <Helmet>
+        <title>Contact Mavuus</title>
+        <meta name="description" content="Get in touch with the Mavuus team. Whether you have a question, need support, or want to explore partnerships, we'd love to connect." />
+        <link rel="canonical" href="https://mavuus.com/contact" />
+      </Helmet>
+
       {/* Hero + Form Section */}
       <section className="px-6 md:px-12 lg:px-24 pt-6 pb-10">
         {/* Header Row */}

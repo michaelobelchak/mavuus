@@ -143,6 +143,7 @@ export default function BlogDetailPage() {
                 <img
                   src={blogPost.heroImage}
                   alt={blogPost.title}
+                  loading="lazy"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -224,6 +225,7 @@ export default function BlogDetailPage() {
                       <img
                         src={article.image}
                         alt={article.title}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
@@ -259,6 +261,7 @@ export default function BlogDetailPage() {
                   <img
                     src={event.image}
                     alt={event.title}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
