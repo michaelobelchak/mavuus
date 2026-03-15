@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom'
 import DashboardSidebar from './DashboardSidebar'
 import { Bell, Search, Menu, User, Settings, LogOut, ChevronDown, X, UserPlus, MessageCircle, Briefcase, Radio, CheckCircle, Star } from 'lucide-react'
 import Avatar from '../ui/Avatar'
+import SearchResultsDropdown from '../ui/SearchResultsDropdown'
 import { useAuth } from '../../context/AuthContext'
 
 const notifIcons = {
@@ -47,7 +48,12 @@ export default function DashboardLayout() {
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState(null)
+  const [searchOpen, setSearchOpen] = useState(false)
   const userMenuRef = useRef(null)
+  const searchRef = useRef(null)
+  const searchTimerRef = useRef(null)
 
   // Fetch unread count
   useEffect(() => {
@@ -82,10 +88,38 @@ export default function DashboardLayout() {
     fetchNotifs()
   }, [notifOpen, token])
 
-  // Close user menu on outside click
+  // Debounced global search
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    if (!searchQuery || searchQuery.trim().length < 2) {
+      setSearchResults(null)
+      setSearchOpen(false)
+      return
+    }
+    searchTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`)
+        if (res.ok) {
+          const data = await res.json()
+          setSearchResults(data)
+          setSearchOpen(true)
+        }
+      } catch {}
+    }, 300)
+    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current) }
+  }, [searchQuery])
+
+  // Close search on route change
+  useEffect(() => {
+    setSearchOpen(false)
+    setSearchQuery('')
+  }, [location.pathname])
+
+  // Close user menu and search on outside click
   useEffect(() => {
     const handleClick = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenuOpen(false)
+      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -147,13 +181,19 @@ export default function DashboardLayout() {
             >
               <Menu size={22} />
             </button>
-            <div className="hidden sm:flex items-center gap-3 flex-1 max-w-md">
+            <div className="hidden sm:flex items-center gap-3 flex-1 max-w-md relative" ref={searchRef}>
               <Search size={18} className="text-neutral-300" />
               <input
                 type="text"
                 placeholder="Search sessions, resources, members..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => { if (searchResults) setSearchOpen(true) }}
                 className="w-full bg-transparent text-sm text-neutral-600 placeholder:text-neutral-300 focus:outline-none"
               />
+              {searchOpen && searchResults && (
+                <SearchResultsDropdown results={searchResults} onClose={() => { setSearchOpen(false); setSearchQuery('') }} />
+              )}
             </div>
           </div>
 

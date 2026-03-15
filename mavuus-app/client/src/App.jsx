@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import PublicLayout from './components/layout/PublicLayout'
 import DashboardLayout from './components/layout/DashboardLayout'
 import ProtectedRoute from './components/layout/ProtectedRoute'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // Public Pages (eager — landing page performance)
 import HomePage from './pages/public/HomePage'
@@ -48,6 +49,7 @@ function LazyFallback() {
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <Suspense fallback={<LazyFallback />}>
       <Routes>
         {/* Public Website */}
@@ -97,5 +99,6 @@ export default function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
+    </ErrorBoundary>
   )
 }

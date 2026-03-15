@@ -3,10 +3,9 @@ import { Router } from 'express'
 const router = Router()
 
 router.get('/', (req, res) => {
-  const { category, type } = req.query
+  const { category, type, search, page = 1, limit = 20 } = req.query
   const db = req.app.locals.db
 
-  let query = 'SELECT * FROM resources'
   const conditions = []
   const params = []
 
@@ -18,15 +17,25 @@ router.get('/', (req, res) => {
     conditions.push('type = ?')
     params.push(type)
   }
-
-  if (conditions.length) {
-    query += ' WHERE ' + conditions.join(' AND ')
+  if (search) {
+    conditions.push('(title LIKE ? OR description LIKE ? OR author LIKE ?)')
+    const term = `%${search}%`
+    params.push(term, term, term)
   }
 
-  query += ' ORDER BY created_at DESC'
+  const whereClause = conditions.length ? ' WHERE ' + conditions.join(' AND ') : ''
 
-  const resources = db.prepare(query).all(...params)
-  res.json(resources)
+  const total = db.prepare(`SELECT COUNT(*) as count FROM resources${whereClause}`).get(...params).count
+  const pageNum = Math.max(1, parseInt(page))
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
+  const totalPages = Math.ceil(total / limitNum)
+  const offset = (pageNum - 1) * limitNum
+
+  const data = db.prepare(
+    `SELECT * FROM resources${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`
+  ).all(...params, limitNum, offset)
+
+  res.json({ data, total, page: pageNum, totalPages, limit: limitNum })
 })
 
 router.get('/:id', (req, res) => {

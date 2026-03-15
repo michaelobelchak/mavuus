@@ -1,14 +1,14 @@
 import { Router } from 'express'
 import { authenticateToken } from '../middleware/auth.js'
+import { validateLength, MAX_LENGTHS } from '../middleware/validate.js'
 
 const router = Router()
 
 // Public: Get all jobs (no auth needed for browsing)
 router.get('/', (req, res) => {
-  const { type, category, posted_by, status } = req.query
+  const { type, category, posted_by, status, search, page = 1, limit = 20 } = req.query
   const db = req.app.locals.db
 
-  let query = 'SELECT * FROM jobs'
   const conditions = []
   const params = []
 
@@ -28,14 +28,25 @@ router.get('/', (req, res) => {
     conditions.push('status = ?')
     params.push(status)
   }
-
-  if (conditions.length) {
-    query += ' WHERE ' + conditions.join(' AND ')
+  if (search) {
+    conditions.push('(title LIKE ? OR company LIKE ? OR description LIKE ?)')
+    const term = `%${search}%`
+    params.push(term, term, term)
   }
 
-  query += ' ORDER BY created_at DESC'
-  const jobs = db.prepare(query).all(...params)
-  res.json(jobs)
+  const whereClause = conditions.length ? ' WHERE ' + conditions.join(' AND ') : ''
+
+  const total = db.prepare(`SELECT COUNT(*) as count FROM jobs${whereClause}`).get(...params).count
+  const pageNum = Math.max(1, parseInt(page))
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
+  const totalPages = Math.ceil(total / limitNum)
+  const offset = (pageNum - 1) * limitNum
+
+  const data = db.prepare(
+    `SELECT * FROM jobs${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`
+  ).all(...params, limitNum, offset)
+
+  res.json({ data, total, page: pageNum, totalPages, limit: limitNum })
 })
 
 // Public: Get jobs completed by a user (where user was hired)
@@ -109,6 +120,8 @@ router.post('/', authenticateToken, (req, res) => {
   const db = req.app.locals.db
   const { title, company, description, location, type, category, salary_range } = req.body
   if (!title || !company) return res.status(400).json({ error: 'Title and company are required' })
+  if (!validateLength(title, MAX_LENGTHS.title)) return res.status(400).json({ error: `Title must be ${MAX_LENGTHS.title} characters or less` })
+  if (!validateLength(description, MAX_LENGTHS.description)) return res.status(400).json({ error: `Description must be ${MAX_LENGTHS.description} characters or less` })
 
   const result = db.prepare(
     'INSERT INTO jobs (title, company, description, location, type, category, salary_range, posted_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'

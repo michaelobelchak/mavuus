@@ -2,6 +2,7 @@ import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { JWT_SECRET } from '../middleware/auth.js'
+import { validateEmail, validateLength, MAX_LENGTHS } from '../middleware/validate.js'
 
 const router = Router()
 
@@ -11,6 +12,18 @@ router.post('/register', (req, res) => {
 
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'Email, password, and name are required' })
+  }
+
+  if (!validateEmail(email)) {
+    return res.status(400).json({ error: 'Invalid email format' })
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' })
+  }
+
+  if (!validateLength(name, MAX_LENGTHS.name)) {
+    return res.status(400).json({ error: `Name must be ${MAX_LENGTHS.name} characters or less` })
   }
 
   const db = req.app.locals.db
