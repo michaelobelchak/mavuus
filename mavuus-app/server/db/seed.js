@@ -35,17 +35,17 @@ users.forEach(u => insertUser.run(...u))
 
 // Seed sessions
 const insertSession = db.prepare(`
-  INSERT OR IGNORE INTO sessions (title, description, speaker_name, speaker_title, type, category, scheduled_date, duration)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT OR IGNORE INTO sessions (title, description, speaker_name, speaker_title, type, category, scheduled_date, duration, views)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `)
 
 const sessions = [
-  ['Building a Content Engine That Scales', 'Learn how to build a scalable content machine that drives organic growth.', 'Sarah Chen', 'VP of Marketing, TechFlow', 'live', 'Content Strategy', '2026-03-15T14:00:00Z', '60 min'],
-  ['ABM Playbook: From 0 to Enterprise Pipeline', 'A practical guide to implementing account-based marketing from scratch.', 'Marcus Johnson', 'CMO, GrowthBase', 'live', 'ABM', '2026-03-18T16:00:00Z', '45 min'],
-  ['The Future of AI in B2B Marketing', 'Exploring how AI is reshaping demand generation and customer engagement.', 'Priya Patel', 'Director of Demand Gen, CloudScale', 'live', 'AI & Tech', '2026-03-20T15:00:00Z', '60 min'],
-  ['Mastering LinkedIn Ads for B2B', 'Deep dive into LinkedIn advertising strategies that drive quality leads.', 'Elena Rodriguez', 'CMO, Drift', 'on-demand', 'Paid Media', null, '42 min'],
-  ['Brand Storytelling Workshop', 'Craft compelling brand narratives that resonate with your audience.', 'Omar Hassan', 'VP Brand, Canva', 'on-demand', 'Branding', null, '55 min'],
-  ['Data-Driven Campaign Optimization', 'Use analytics and data to continuously improve campaign performance.', 'James Wright', 'VP Growth, Amplitude', 'on-demand', 'Analytics', null, '38 min'],
+  ['Building a Content Engine That Scales', 'Learn how to build a scalable content machine that drives organic growth.', 'Sarah Chen', 'VP of Marketing, TechFlow', 'live', 'Content Strategy', '2026-03-15T14:00:00Z', '60 min', 0],
+  ['ABM Playbook: From 0 to Enterprise Pipeline', 'A practical guide to implementing account-based marketing from scratch.', 'Marcus Johnson', 'CMO, GrowthBase', 'live', 'ABM', '2026-03-18T16:00:00Z', '45 min', 0],
+  ['The Future of AI in B2B Marketing', 'Exploring how AI is reshaping demand generation and customer engagement.', 'Priya Patel', 'Director of Demand Gen, CloudScale', 'live', 'AI & Tech', '2026-03-20T15:00:00Z', '60 min', 0],
+  ['Mastering LinkedIn Ads for B2B', 'Deep dive into LinkedIn advertising strategies that drive quality leads.', 'Elena Rodriguez', 'CMO, Drift', 'on-demand', 'Paid Media', null, '42 min', 1240],
+  ['Brand Storytelling Workshop', 'Craft compelling brand narratives that resonate with your audience.', 'Omar Hassan', 'VP Brand, Canva', 'on-demand', 'Branding', null, '55 min', 2870],
+  ['Data-Driven Campaign Optimization', 'Use analytics and data to continuously improve campaign performance.', 'James Wright', 'VP Growth, Amplitude', 'on-demand', 'Analytics', null, '38 min', 956],
 ]
 
 sessions.forEach(s => insertSession.run(...s))

@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   scheduled_date DATETIME,
   duration TEXT,
   video_url TEXT,
+  views INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

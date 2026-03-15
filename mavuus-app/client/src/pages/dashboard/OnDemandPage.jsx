@@ -7,7 +7,7 @@ import useApiData from '../../hooks/useApiData'
 import { onDemandVideos as fallbackVideos } from '../../data/mockData'
 import { PlayCircle, Clock, Search } from 'lucide-react'
 
-const categories = ['All', 'Growth', 'Brand', 'Content', 'Analytics', 'SEO']
+const categories = ['All', 'Paid Media', 'Branding', 'Analytics']
 
 export default function OnDemandPage() {
   const { data: videos, loading } = useApiData('/api/sessions?type=on-demand', fallbackVideos)
@@ -77,7 +77,7 @@ export default function OnDemandPage() {
               <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{video.title}</h3>
               <div className="flex items-center gap-3 text-xs text-neutral-500 mb-3">
                 <span className="flex items-center gap-1"><Clock size={12} />{video.duration}</span>
-                <span>{video.views.toLocaleString()} views</span>
+                <span>{(video.views || 0).toLocaleString()} views</span>
               </div>
               <div className="flex items-center gap-2 pt-3 border-t border-neutral-100">
                 <Avatar name={video.speaker_name} size="sm" />
