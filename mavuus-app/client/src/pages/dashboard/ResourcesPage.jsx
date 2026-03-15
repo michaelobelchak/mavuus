@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import { CardSkeleton } from '../../components/ui/Skeleton'
@@ -68,7 +69,8 @@ export default function ResourcesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(resource => (
-            <Card key={resource.id} hover className="cursor-pointer group">
+            <Link key={resource.id} to={`/dashboard/resources/${resource.id}`} className="block no-underline">
+            <Card hover className="cursor-pointer group">
               <div className="h-40 rounded-xl mb-4 overflow-hidden">
                 {resource.thumbnail_url ? (
                   <img src={resource.thumbnail_url} alt={resource.title} className="w-full h-full object-cover" />
@@ -89,6 +91,7 @@ export default function ResourcesPage() {
                 <span>{resource.read_time}</span>
               </div>
             </Card>
+            </Link>
           ))}
         </div>
       )}
