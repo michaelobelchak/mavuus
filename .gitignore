@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Uploads
+mavuus-app/server/uploads/
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build output
+dist/
+
+# Claude Code local config
+.claude/
+
+# Claude Code skills/tests (not part of Mavuus app)
+skills/
+tests/
+agents/
+commands/
