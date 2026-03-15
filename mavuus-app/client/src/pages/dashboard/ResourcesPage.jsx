@@ -6,7 +6,7 @@ import useApiData from '../../hooks/useApiData'
 import { communityResources as fallbackResources } from '../../data/mockData'
 import { FileText, ExternalLink, Search } from 'lucide-react'
 
-const types = ['All', 'Guide', 'Template', 'Report', 'Checklist']
+const types = ['All', 'Guide', 'Template', 'Report', 'Playbook']
 
 export default function ResourcesPage() {
   const { data: resources, loading } = useApiData('/api/resources', fallbackResources)
@@ -69,8 +69,14 @@ export default function ResourcesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(resource => (
             <Card key={resource.id} hover className="cursor-pointer group">
-              <div className="h-40 bg-gradient-to-br from-green-50 to-blue-50 rounded-xl mb-4 flex items-center justify-center">
-                <FileText size={36} className="text-brand-blue/40" />
+              <div className="h-40 rounded-xl mb-4 overflow-hidden">
+                {resource.thumbnail_url ? (
+                  <img src={resource.thumbnail_url} alt={resource.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+                    <FileText size={36} className="text-brand-blue/40" />
+                  </div>
+                )}
               </div>
               <Badge variant="gray">{resource.category}</Badge>
               <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2 group-hover:text-brand-pink transition-colors flex items-center gap-2">

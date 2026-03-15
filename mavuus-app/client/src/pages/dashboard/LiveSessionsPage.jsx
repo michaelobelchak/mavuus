@@ -8,7 +8,7 @@ import useApiData from '../../hooks/useApiData'
 import { liveSessions as fallbackSessions } from '../../data/mockData'
 import { Calendar, Clock, Search } from 'lucide-react'
 
-const categories = ['All', 'Growth', 'Brand', 'Content', 'Analytics', 'SEO']
+const categories = ['All', 'Content Strategy', 'ABM', 'AI & Tech', 'Growth']
 
 export default function LiveSessionsPage() {
   const { data: sessions, loading } = useApiData('/api/sessions?type=live', fallbackSessions)
@@ -71,8 +71,14 @@ export default function LiveSessionsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(session => (
             <Card key={session.id} hover>
-              <div className="h-40 bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 rounded-xl mb-4 flex items-center justify-center">
-                <Calendar size={36} className="text-brand-blue/40" />
+              <div className="h-40 rounded-xl mb-4 overflow-hidden">
+                {session.thumbnail_url ? (
+                  <img src={session.thumbnail_url} alt={session.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 flex items-center justify-center">
+                    <Calendar size={36} className="text-brand-blue/40" />
+                  </div>
+                )}
               </div>
               <Badge variant="blue">{session.category}</Badge>
               <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{session.title}</h3>
@@ -83,7 +89,7 @@ export default function LiveSessionsPage() {
                 <span>{session.duration}</span>
               </div>
               <div className="flex items-center gap-2 pt-4 border-t border-neutral-100">
-                <Avatar name={session.speaker_name} size="sm" />
+                <Avatar name={session.speaker_name} src={session.speaker_avatar} size="sm" />
                 <div>
                   <p className="text-xs font-medium text-dark-blue">{session.speaker_name}</p>
                   <p className="text-[11px] text-neutral-500">{session.speaker_title}</p>

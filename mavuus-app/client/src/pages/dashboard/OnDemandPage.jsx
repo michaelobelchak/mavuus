@@ -70,8 +70,15 @@ export default function OnDemandPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(video => (
             <Card key={video.id} hover className="cursor-pointer group">
-              <div className="h-40 bg-gradient-to-br from-brand-pink/10 to-purple-100 rounded-xl mb-4 flex items-center justify-center">
-                <PlayCircle size={48} className="text-brand-pink/60 group-hover:text-brand-pink transition-colors" />
+              <div className="h-40 rounded-xl mb-4 overflow-hidden relative">
+                {video.thumbnail_url ? (
+                  <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-brand-pink/10 to-purple-100" />
+                )}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors">
+                  <PlayCircle size={48} className="text-white/80 group-hover:text-white transition-colors drop-shadow-lg" />
+                </div>
               </div>
               <Badge>{video.category}</Badge>
               <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{video.title}</h3>
@@ -80,7 +87,7 @@ export default function OnDemandPage() {
                 <span>{(video.views || 0).toLocaleString()} views</span>
               </div>
               <div className="flex items-center gap-2 pt-3 border-t border-neutral-100">
-                <Avatar name={video.speaker_name} size="sm" />
+                <Avatar name={video.speaker_name} src={video.speaker_avatar} size="sm" />
                 <div>
                   <p className="text-xs font-medium text-dark-blue">{video.speaker_name}</p>
                   <p className="text-[11px] text-neutral-500">{video.speaker_title}</p>

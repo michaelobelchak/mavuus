@@ -102,7 +102,8 @@ export default function MembersPage() {
       m.name.toLowerCase().includes(search.toLowerCase()) ||
       m.company.toLowerCase().includes(search.toLowerCase()) ||
       m.title.toLowerCase().includes(search.toLowerCase())
-    const matchesTier = tier === 'All' || m.tier === tier
+    const memberTier = m.tier || m.membership_tier
+    const matchesTier = tier === 'All' || memberTier?.toLowerCase() === tier.toLowerCase()
     return matchesSearch && matchesTier
   })
 
@@ -229,6 +230,7 @@ export default function MembersPage() {
               <Card hover className="text-center h-full">
                 <Avatar
                   name={member.name}
+                  src={member.avatar_url}
                   size="xl"
                   className="mx-auto mb-4"
                 />
@@ -238,7 +240,7 @@ export default function MembersPage() {
                 <p className="text-sm text-neutral-500 mb-1">{member.title}</p>
                 <p className="text-sm text-brand-pink mb-3">{member.company}</p>
                 <div className="flex items-center justify-center gap-2">
-                  <Badge variant="pink">{member.tier} Member</Badge>
+                  <Badge variant="pink">{member.tier || member.membership_tier} Member</Badge>
                   {renderConnectionIndicator(member.id)}
                 </div>
                 {renderConnectButton(member)}
