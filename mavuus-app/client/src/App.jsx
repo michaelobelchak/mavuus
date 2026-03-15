@@ -33,6 +33,7 @@ import MyJobsPage from './pages/dashboard/MyJobsPage'
 import ProfilePage from './pages/dashboard/ProfilePage'
 import SessionDetailPage from './pages/dashboard/SessionDetailPage'
 import ResourceDetailPage from './pages/dashboard/ResourceDetailPage'
+import VendorDetailPage from './pages/dashboard/VendorDetailPage'
 import MessagesPage from './pages/dashboard/MessagesPage'
 
 export default function App() {
@@ -73,6 +74,7 @@ export default function App() {
         <Route path="members" element={<MembersPage />} />
         <Route path="members/:id" element={<MemberProfilePage />} />
         <Route path="vendors" element={<VendorsPage />} />
+        <Route path="vendors/:id" element={<VendorDetailPage />} />
         <Route path="jobs" element={<JobsPage />} />
         <Route path="jobs/:id" element={<JobDetailPage />} />
         <Route path="my-jobs" element={<MyJobsPage />} />

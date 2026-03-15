@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -7,7 +8,7 @@ import useApiData from '../../hooks/useApiData'
 import { vendors as fallbackVendors } from '../../data/mockData'
 import { Star, MapPin, ExternalLink, Search } from 'lucide-react'
 
-const vendorCategories = ['All', 'SEO', 'Content', 'Analytics', 'Design', 'Social Media']
+const vendorCategories = ['All', 'Content Marketing', 'Demand Gen', 'Branding', 'Analytics', 'PR', 'Video Production']
 
 export default function VendorsPage() {
   const { data: vendors, loading } = useApiData('/api/vendors', fallbackVendors)
@@ -70,7 +71,8 @@ export default function VendorsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(vendor => (
-            <Card key={vendor.id} hover>
+            <Link key={vendor.id} to={`/dashboard/vendors/${vendor.id}`} className="block no-underline">
+            <Card hover>
               <div className="flex items-start justify-between mb-3">
                 <h3 className="text-base font-semibold text-dark-blue">{vendor.company_name}</h3>
                 <div className="flex items-center gap-1 text-xs text-yellow-500">
@@ -93,6 +95,7 @@ export default function VendorsPage() {
                 View Profile <ExternalLink size={14} />
               </Button>
             </Card>
+            </Link>
           ))}
         </div>
       )}
