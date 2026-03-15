@@ -25,8 +25,11 @@ router.get('/:id/profile', (req, res) => {
 
   const skills = db.prepare('SELECT skill FROM user_skills WHERE user_id = ?').all(req.params.id).map(s => s.skill)
   const experience = db.prepare('SELECT id, company, title, start_date, end_date, is_current, description FROM user_experience WHERE user_id = ? ORDER BY is_current DESC, start_date DESC').all(req.params.id)
+  const connectionCount = db.prepare(
+    "SELECT COUNT(*) as count FROM connections WHERE (requester_id = ? OR receiver_id = ?) AND status = 'accepted'"
+  ).get(req.params.id, req.params.id).count
 
-  res.json({ ...member, skills, experience })
+  res.json({ ...member, skills, experience, connection_count: connectionCount })
 })
 
 router.get('/:id', (req, res) => {

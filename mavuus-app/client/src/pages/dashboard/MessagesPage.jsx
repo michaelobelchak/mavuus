@@ -58,10 +58,20 @@ export default function MessagesPage() {
     const init = async () => {
       const convs = await fetchConversations()
       setLoading(false)
-      // Auto-select from URL param
+      // Auto-select from URL param (by conversation id)
       const convParam = searchParams.get('conversation')
       if (convParam && convs.length > 0) {
         const conv = convs.find(c => c.id === parseInt(convParam))
+        if (conv) {
+          setSelectedConv(conv)
+          fetchMessages(conv.id)
+          return
+        }
+      }
+      // Auto-select from URL param (by user id — from member profile "Message" button)
+      const userParam = searchParams.get('user')
+      if (userParam && convs.length > 0) {
+        const conv = convs.find(c => c.other_user_id === parseInt(userParam))
         if (conv) {
           setSelectedConv(conv)
           fetchMessages(conv.id)

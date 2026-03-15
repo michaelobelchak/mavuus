@@ -12,6 +12,7 @@ import {
   MessageCircle,
   UserPlus,
   UserCheck,
+  Users,
   Clock,
   ArrowLeft,
   ExternalLink,
@@ -99,7 +100,7 @@ export default function MemberProfilePage() {
   }
 
   const handleMessage = () => {
-    navigate('/dashboard/messages')
+    navigate(`/dashboard/messages?user=${id}`)
   }
 
   if (loading) {
@@ -218,6 +219,12 @@ export default function MemberProfilePage() {
               {member.years_experience && (
                 <span className="flex items-center gap-1">
                   {member.years_experience}+ years experience
+                </span>
+              )}
+              {member.connection_count > 0 && (
+                <span className="flex items-center gap-1">
+                  <Users size={14} />
+                  {member.connection_count} connection{member.connection_count !== 1 ? 's' : ''}
                 </span>
               )}
               <span className="flex items-center gap-1">
