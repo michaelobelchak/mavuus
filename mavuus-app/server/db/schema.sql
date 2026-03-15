@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS resources (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   description TEXT,
+  content TEXT,
   author TEXT,
   thumbnail_url TEXT,
   category TEXT,
@@ -68,6 +69,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   type TEXT CHECK(type IN ('full-time', 'contract', 'freelance')),
   category TEXT,
   salary_range TEXT,
+  seniority TEXT,
   posted_by INTEGER REFERENCES users(id),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

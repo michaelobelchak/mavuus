@@ -7,7 +7,7 @@ import useApiData from '../../hooks/useApiData'
 import { onDemandVideos as fallbackVideos } from '../../data/mockData'
 import { PlayCircle, Clock, Search } from 'lucide-react'
 
-const categories = ['All', 'Paid Media', 'Branding', 'Analytics']
+const categories = ['All', 'Paid Media', 'Branding', 'Analytics', 'SEO', 'Growth', 'MarTech']
 
 export default function OnDemandPage() {
   const { data: videos, loading } = useApiData('/api/sessions?type=on-demand', fallbackVideos)
