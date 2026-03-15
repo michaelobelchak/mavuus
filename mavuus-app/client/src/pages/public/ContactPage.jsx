@@ -10,9 +10,30 @@ export default function ContactPage() {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' })
   const [submitted, setSubmitted] = useState(false)
 
-  const handleSubmit = (e) => {
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitted(true)
+    setSubmitting(true)
+    setError('')
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      if (res.ok) {
+        setSubmitted(true)
+      } else {
+        const data = await res.json()
+        setError(data.error || 'Something went wrong. Please try again.')
+      }
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleChange = (field) => (e) => {
@@ -130,11 +151,15 @@ export default function ContactPage() {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="bg-brand-pink text-white font-bold text-base px-8 py-4 rounded-[16px] shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:bg-brand-pink-hover transition-all duration-300 btn-press whitespace-nowrap flex-shrink-0"
+                  disabled={submitting}
+                  className="bg-brand-pink text-white font-bold text-base px-8 py-4 rounded-[16px] shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:bg-brand-pink-hover transition-all duration-300 btn-press whitespace-nowrap flex-shrink-0 disabled:opacity-50"
                 >
-                  Send Request
+                  {submitting ? 'Sending...' : 'Send Request'}
                 </button>
               </div>
+              {error && (
+                <p className="text-red-500 text-sm px-4 pb-4">{error}</p>
+              )}
             </form>
           )}
         </AnimatedSection>

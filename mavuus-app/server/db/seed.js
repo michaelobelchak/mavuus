@@ -1092,5 +1092,35 @@ recommendationData.forEach(r => insertRecommendation.run(...r))
 insertApplication.run(1, 3, 'Excited to bring my demand gen and data-driven approach to content strategy at TechFlow.', 'hired', '2026-02-10T10:00:00Z')
 insertApplication.run(2, 5, 'Eager to apply my marketing leadership experience to drive growth at GrowthBase.', 'hired', '2026-02-12T09:00:00Z')
 
+// Seed comments
+const insertComment = db.prepare(`
+  INSERT OR IGNORE INTO comments (user_id, entity_type, entity_id, content, parent_id, created_at)
+  VALUES (?, ?, ?, ?, ?, ?)
+`)
+
+const commentData = [
+  // Session comments
+  [1, 'session', 1, 'Really looking forward to this session! Content scaling is exactly what our team needs right now.', null, '2026-03-10T09:00:00Z'],
+  [2, 'session', 1, 'Sarah always delivers amazing insights. Her last talk on editorial calendars was a game-changer.', null, '2026-03-10T11:00:00Z'],
+  [3, 'session', 1, 'Will there be a recording available for those who can\'t attend live?', null, '2026-03-11T08:00:00Z'],
+  [4, 'session', 2, 'ABM is the future of B2B marketing. Can\'t wait to learn from Marcus\'s experience.', null, '2026-03-12T10:00:00Z'],
+  [5, 'session', 3, 'AI in marketing is evolving so fast. Great to have Priya cover what\'s real vs hype.', null, '2026-03-13T14:00:00Z'],
+  // Resource comments
+  [1, 'resource', 1, 'This guide was incredibly helpful for structuring our Q2 content calendar.', null, '2026-03-05T10:00:00Z'],
+  [6, 'resource', 1, 'The section on content repurposing frameworks saved us so much time. Highly recommend.', null, '2026-03-06T14:00:00Z'],
+  [2, 'resource', 2, 'Great ABM playbook. We implemented the tiered approach and saw 3x pipeline improvement.', null, '2026-03-07T09:00:00Z'],
+  // Vendor comments
+  [1, 'vendor', 1, 'ContentPro has been our go-to agency for the past year. Excellent work consistently.', null, '2026-03-01T10:00:00Z'],
+  [3, 'vendor', 2, 'PipelineHQ helped us set up our entire ABM tech stack. Very knowledgeable team.', null, '2026-03-02T11:00:00Z'],
+]
+commentData.forEach(c => insertComment.run(...c))
+
+// Add some replies to comments
+const replyData = [
+  [7, 'session', 1, 'Yes! All live sessions are recorded and available in the on-demand library within 24 hours.', 3, '2026-03-11T10:00:00Z'],
+  [2, 'resource', 1, 'Agreed! The templates included are really practical and easy to customize.', 1, '2026-03-05T15:00:00Z'],
+]
+replyData.forEach(c => insertComment.run(...c))
+
 console.log('Database seeded successfully!')
 db.close()

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/ui/Toast'
 import Badge from '../../components/ui/Badge'
@@ -9,6 +9,7 @@ import StarRating from '../../components/ui/StarRating'
 import ReviewCard from '../../components/ui/ReviewCard'
 import RecommendationCard from '../../components/ui/RecommendationCard'
 import { Textarea } from '../../components/ui/Input'
+import CommentSection from '../../components/ui/CommentSection'
 import {
   ArrowLeft,
   Star,
@@ -17,6 +18,7 @@ import {
   ExternalLink,
   Briefcase,
   MessageCircle,
+  ChevronRight,
 } from 'lucide-react'
 
 export default function VendorDetailPage() {
@@ -49,7 +51,8 @@ export default function VendorDetailPage() {
           const v = await vendorRes.json()
           setVendor(v)
           if (jobsRes.ok) {
-            const allJobs = await jobsRes.json()
+            const allJobsData = await jobsRes.json()
+            const allJobs = allJobsData.data || allJobsData
             setJobs(allJobs.filter(j =>
               j.company.toLowerCase() === v.company_name.toLowerCase()
             ))
@@ -124,13 +127,14 @@ export default function VendorDetailPage() {
 
   return (
     <div className="max-w-6xl">
-      {/* Back link */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-sm text-neutral-500 hover:text-dark-blue mb-4 cursor-pointer"
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-1.5 text-sm text-neutral-500 mb-4">
+        <Link to="/dashboard" className="hover:text-dark-blue">Dashboard</Link>
+        <ChevronRight size={14} />
+        <Link to="/dashboard/vendors" className="hover:text-dark-blue">Search for Vendors</Link>
+        <ChevronRight size={14} />
+        <span className="text-dark-blue font-medium truncate max-w-[200px]">{vendor?.company_name}</span>
+      </nav>
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Main content */}
@@ -228,6 +232,11 @@ export default function VendorDetailPage() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Comments */}
+          <div className="mt-4">
+            <CommentSection entityType="vendor" entityId={parseInt(id)} />
           </div>
 
           {/* Recommendations */}
