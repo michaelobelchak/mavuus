@@ -7,7 +7,62 @@ import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
 import Avatar from '../../components/ui/Avatar'
 import { Textarea } from '../../components/ui/Input'
-import { MapPin, Clock, DollarSign, Briefcase, Bookmark, BookmarkCheck, ArrowLeft, Building2, Calendar, Send, CheckCircle, Users } from 'lucide-react'
+import { MapPin, Clock, DollarSign, Bookmark, BookmarkCheck, ArrowLeft, Building2, Calendar, Send, CheckCircle, Users, Briefcase } from 'lucide-react'
+
+function renderDescription(text) {
+  if (!text) return null
+  const sections = text.split('\n\n')
+  return sections.map((section, i) => {
+    const trimmed = section.trim()
+    if (!trimmed) return null
+
+    // Bold header like **Responsibilities:**
+    if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+      const heading = trimmed.replace(/\*\*/g, '')
+      return <h4 key={i} className="text-base font-semibold text-dark-blue mt-6 mb-2">{heading}</h4>
+    }
+
+    // Section with bold header followed by bullet list
+    if (trimmed.startsWith('**')) {
+      const lines = trimmed.split('\n')
+      const headingLine = lines[0].replace(/\*\*/g, '')
+      const bullets = lines.slice(1).filter(l => l.trim().startsWith('-'))
+      if (bullets.length > 0) {
+        return (
+          <div key={i} className="mt-5">
+            <h4 className="text-base font-semibold text-dark-blue mb-2">{headingLine}</h4>
+            <ul className="space-y-1.5 ml-1">
+              {bullets.map((b, j) => (
+                <li key={j} className="flex items-start gap-2 text-sm text-neutral-600">
+                  <span className="w-1.5 h-1.5 bg-brand-pink rounded-full mt-1.5 flex-shrink-0" />
+                  {b.replace(/^-\s*/, '').trim()}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    }
+
+    // Bullet list without heading
+    if (trimmed.startsWith('-')) {
+      const bullets = trimmed.split('\n').filter(l => l.trim().startsWith('-'))
+      return (
+        <ul key={i} className="space-y-1.5 ml-1 mt-2">
+          {bullets.map((b, j) => (
+            <li key={j} className="flex items-start gap-2 text-sm text-neutral-600">
+              <span className="w-1.5 h-1.5 bg-brand-pink rounded-full mt-1.5 flex-shrink-0" />
+              {b.replace(/^-\s*/, '').trim()}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    // Plain paragraph
+    return <p key={i} className="text-sm text-neutral-600 leading-relaxed mt-2">{trimmed}</p>
+  })
+}
 
 export default function JobDetailPage() {
   const { id } = useParams()
@@ -17,7 +72,7 @@ export default function JobDetailPage() {
   const [job, setJob] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
-  const [applied, setApplied] = useState(null) // null = not applied, object = application
+  const [applied, setApplied] = useState(null)
   const [showApplyModal, setShowApplyModal] = useState(false)
   const [coverLetter, setCoverLetter] = useState('')
   const [applying, setApplying] = useState(false)
@@ -98,7 +153,7 @@ export default function JobDetailPage() {
   }
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-5xl">
       <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-neutral-500 hover:text-dark-blue mb-4 cursor-pointer">
         <ArrowLeft size={16} /> Back to Jobs
       </button>
@@ -106,11 +161,15 @@ export default function JobDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-4">
+          {/* Header card */}
           <div className="bg-white rounded-2xl border border-neutral-100 p-6">
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
-                <h1 className="text-2xl font-bold text-dark-blue">{job.title}</h1>
-                <p className="text-lg text-neutral-600 mt-1 flex items-center gap-2">
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-2xl font-bold text-dark-blue">{job.title}</h1>
+                  {job.seniority && <Badge variant="pink">{job.seniority}</Badge>}
+                </div>
+                <p className="text-lg text-neutral-600 flex items-center gap-2">
                   <Building2 size={18} /> {job.company}
                 </p>
               </div>
@@ -149,10 +208,15 @@ export default function JobDetailPage() {
                 </div>
               </div>
             )}
+          </div>
 
-            <div className="prose prose-sm max-w-none">
-              <h3 className="text-lg font-semibold text-dark-blue mb-3">About this role</h3>
-              <p className="text-neutral-600 leading-relaxed whitespace-pre-line">{job.description || 'No detailed description provided.'}</p>
+          {/* Description card */}
+          <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+            <h3 className="text-lg font-semibold text-dark-blue mb-3">About this role</h3>
+            <div>
+              {renderDescription(job.description) || (
+                <p className="text-neutral-500">No detailed description provided.</p>
+              )}
             </div>
           </div>
         </div>
@@ -194,6 +258,12 @@ export default function JobDetailPage() {
                 <span className="text-neutral-500">Type</span>
                 <span className="text-dark-blue capitalize">{job.type || 'N/A'}</span>
               </div>
+              {job.seniority && (
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Seniority</span>
+                  <span className="text-dark-blue">{job.seniority}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-neutral-500">Category</span>
                 <span className="text-dark-blue">{job.category || 'N/A'}</span>
