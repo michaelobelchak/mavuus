@@ -18,7 +18,7 @@ const Button = forwardRef(({ children, variant = 'primary', size = 'md', pill = 
     <button
       ref={ref}
       className={`
-        inline-flex items-center justify-center gap-2 font-medium transition-all duration-200
+        inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 btn-press
         ${pill ? 'rounded-full' : 'rounded-[16px]'}
         ${variants[variant]}
         ${sizes[size]}

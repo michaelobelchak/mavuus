@@ -156,10 +156,10 @@ export default function DashboardLayout() {
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="flex items-center gap-3 cursor-pointer"
               >
-                <Avatar name={user?.name || 'User'} size="sm" />
+                <Avatar name={user?.name || 'User'} src={user?.avatar_url} size="sm" />
                 <div className="hidden sm:block text-left">
                   <p className="text-sm font-medium text-dark-blue">{user?.name || 'User'}</p>
-                  <p className="text-xs text-neutral-500">Pro Member</p>
+                  <p className="text-xs text-neutral-500 capitalize">{user?.membership_tier || 'Member'}</p>
                 </div>
                 <ChevronDown size={14} className="hidden sm:block text-neutral-400" />
               </button>

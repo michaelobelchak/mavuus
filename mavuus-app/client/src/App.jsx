@@ -35,6 +35,7 @@ import SessionDetailPage from './pages/dashboard/SessionDetailPage'
 import ResourceDetailPage from './pages/dashboard/ResourceDetailPage'
 import VendorDetailPage from './pages/dashboard/VendorDetailPage'
 import MessagesPage from './pages/dashboard/MessagesPage'
+import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
   return (
@@ -81,6 +82,8 @@ export default function App() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="messages" element={<MessagesPage />} />
       </Route>
+      {/* 404 Catch-all */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }

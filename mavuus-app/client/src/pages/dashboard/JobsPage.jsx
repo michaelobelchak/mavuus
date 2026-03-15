@@ -188,7 +188,7 @@ export default function JobsPage() {
           <p className="text-sm">Try adjusting your search or filters.</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 stagger-children">
           {filtered.map(job => (
             <Link key={job.id} to={`/dashboard/jobs/${job.id}`} className="block group">
               <div className="bg-white rounded-2xl border border-neutral-100 p-5 hover:border-brand-pink/30 hover:shadow-sm transition-all">

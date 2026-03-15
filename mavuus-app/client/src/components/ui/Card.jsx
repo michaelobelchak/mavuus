@@ -4,7 +4,7 @@ export default function Card({ children, className = '', padding = true, hover =
       className={`
         bg-white rounded-2xl border border-neutral-100
         ${padding ? 'p-6' : ''}
-        ${hover ? 'hover:shadow-md transition-shadow duration-200' : ''}
+        ${hover ? 'hover-lift' : ''}
         ${className}
       `}
       {...props}

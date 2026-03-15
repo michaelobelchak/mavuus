@@ -69,7 +69,7 @@ export default function LiveSessionsPage() {
           <p className="text-sm">Try adjusting your search or filters.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
           {filtered.map(session => (
             <Link key={session.id} to={`/dashboard/live-sessions/${session.id}`} className="block no-underline">
             <Card hover>
