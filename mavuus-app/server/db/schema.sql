@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS users (
   avatar_url TEXT,
   role TEXT DEFAULT 'member' CHECK(role IN ('member', 'admin')),
   membership_tier TEXT DEFAULT 'pro',
+  email_verified INTEGER DEFAULT 0,
+  verification_token TEXT,
+  google_id TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

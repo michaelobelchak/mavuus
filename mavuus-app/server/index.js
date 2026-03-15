@@ -1,12 +1,18 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import helmet from 'helmet'
+import cookieParser from 'cookie-parser'
 import rateLimit from 'express-rate-limit'
+import passport from 'passport'
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
+import jwt from 'jsonwebtoken'
 import Database from 'better-sqlite3'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { mkdirSync } from 'fs'
 
+import { JWT_SECRET } from './middleware/auth.js'
 import authRoutes from './routes/auth.js'
 import sessionsRoutes from './routes/sessions.js'
 import resourcesRoutes from './routes/resources.js'
@@ -42,6 +48,15 @@ db.pragma('journal_mode = WAL')
 // Make db available to routes
 app.locals.db = db
 
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: false, // Allow inline scripts for dev
+  crossOriginEmbedderPolicy: false,
+}))
+
+// Cookie parser
+app.use(cookieParser())
+
 // CORS — allow frontend origin in production
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',')
@@ -58,6 +73,32 @@ app.use(sanitizeBody)
 
 // Static uploads
 app.use('/uploads', express.static(join(__dirname, 'uploads')))
+
+// Passport Google OAuth setup
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3001/api/auth/google/callback',
+  }, (accessToken, refreshToken, profile, done) => {
+    const email = profile.emails?.[0]?.value
+    if (!email) return done(null, false)
+
+    let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email)
+    if (!user) {
+      const result = db.prepare(
+        'INSERT INTO users (email, password_hash, name, avatar_url, email_verified, google_id) VALUES (?, ?, ?, ?, 1, ?)'
+      ).run(email, 'google-oauth', profile.displayName || email.split('@')[0], profile.photos?.[0]?.value || null, profile.id)
+      user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid)
+    } else if (!user.google_id) {
+      db.prepare('UPDATE users SET google_id = ?, email_verified = 1 WHERE id = ?').run(profile.id, user.id)
+    }
+
+    done(null, user)
+  }))
+
+  app.use(passport.initialize())
+}
 
 // Rate limiting on auth endpoints
 const authLimiter = rateLimit({

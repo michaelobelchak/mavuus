@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
+import PasswordStrength from '../../components/ui/PasswordStrength'
 import { CheckCircle, AlertCircle } from 'lucide-react'
 
 export default function ResetPasswordPage() {
@@ -87,14 +88,17 @@ export default function ResetPasswordPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              <Input
-                label="New Password"
-                type="password"
-                placeholder="At least 8 characters"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
+              <div>
+                <Input
+                  label="New Password"
+                  type="password"
+                  placeholder="At least 8 characters"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                />
+                <PasswordStrength password={password} />
+              </div>
               <Input
                 label="Confirm Password"
                 type="password"

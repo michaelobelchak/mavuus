@@ -9,32 +9,48 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('mavuus_token'))
   const [loading, setLoading] = useState(true)
 
-  // On mount, check if we have a token and validate it
+  // On mount, try to restore session from cookie (GET /api/auth/me) or localStorage token
   useEffect(() => {
-    if (token) {
-      // Decode JWT payload (no verification — that's server-side)
+    const init = async () => {
+      // Try cookie-based auth first
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        setUser({
-          id: payload.id,
-          email: payload.email,
-          name: payload.name,
-          avatar_url: payload.avatar_url,
-          membership_tier: payload.membership_tier,
-        })
-      } catch {
-        localStorage.removeItem('mavuus_token')
-        setToken(null)
+        const res = await fetch(`${API_BASE}/auth/me`, { credentials: 'include' })
+        if (res.ok) {
+          const data = await res.json()
+          setUser(data.user)
+          setLoading(false)
+          return
+        }
+      } catch {}
+
+      // Fallback to localStorage token
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]))
+          setUser({
+            id: payload.id,
+            email: payload.email,
+            name: payload.name,
+            avatar_url: payload.avatar_url,
+            membership_tier: payload.membership_tier,
+            email_verified: payload.email_verified,
+          })
+        } catch {
+          localStorage.removeItem('mavuus_token')
+          setToken(null)
+        }
       }
+      setLoading(false)
     }
-    setLoading(false)
-  }, [token])
+    init()
+  }, [])
 
   async function login(email, password) {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
+      credentials: 'include',
     })
 
     if (!res.ok) {
@@ -54,6 +70,7 @@ export function AuthProvider({ children }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password }),
+      credentials: 'include',
     })
 
     if (!res.ok) {
@@ -68,7 +85,10 @@ export function AuthProvider({ children }) {
     return data.user
   }
 
-  function logout() {
+  async function logout() {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' })
+    } catch {}
     localStorage.removeItem('mavuus_token')
     setToken(null)
     setUser(null)
@@ -79,12 +99,29 @@ export function AuthProvider({ children }) {
     return login('demo@mavuus.com', 'demo123')
   }
 
+  // For OAuth callback
+  function setTokenFromOAuth(newToken) {
+    localStorage.setItem('mavuus_token', newToken)
+    setToken(newToken)
+    try {
+      const payload = JSON.parse(atob(newToken.split('.')[1]))
+      setUser({
+        id: payload.id,
+        email: payload.email,
+        name: payload.name,
+        avatar_url: payload.avatar_url,
+        membership_tier: payload.membership_tier,
+        email_verified: payload.email_verified,
+      })
+    } catch {}
+  }
+
   function updateUser(updates) {
     setUser(prev => prev ? { ...prev, ...updates } : prev)
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, demoLogin, updateUser, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, demoLogin, setTokenFromOAuth, updateUser, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   )

@@ -214,6 +214,28 @@ export default function DashboardLayout() {
           </div>
         </header>
 
+        {/* Email Verification Banner */}
+        {user && user.email_verified === 0 && (
+          <div className="bg-yellow-50 border-b border-yellow-200 px-4 lg:px-8 py-3 flex items-center justify-between">
+            <p className="text-sm text-yellow-800">
+              Please verify your email. Check your console/email for the verification link.
+            </p>
+            <button
+              onClick={async () => {
+                try {
+                  await fetch('/api/auth/resend-verification', {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` },
+                  })
+                } catch {}
+              }}
+              className="text-sm font-medium text-yellow-900 hover:underline cursor-pointer ml-4 whitespace-nowrap"
+            >
+              Resend
+            </button>
+          </div>
+        )}
+
         {/* Page Content */}
         <main className="flex-1 p-4 lg:p-8">
           <div key={location.pathname} className="animate-fade-in">

@@ -17,8 +17,8 @@ db.exec(schema)
 // Seed users (IDs 1-12, with avatar_url)
 const passwordHash = bcrypt.hashSync('demo123', 10)
 const insertUser = db.prepare(`
-  INSERT OR IGNORE INTO users (email, password_hash, name, title, company, avatar_url, role, membership_tier)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT OR IGNORE INTO users (email, password_hash, name, title, company, avatar_url, role, membership_tier, email_verified)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
 `)
 
 const users = [
