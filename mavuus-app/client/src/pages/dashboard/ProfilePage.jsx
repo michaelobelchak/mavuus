@@ -308,7 +308,7 @@ export default function ProfilePage() {
   // ─── Render ─────────────────────────────────────────────────
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-6xl">
       {/* ── Profile Header ─────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-6">
         <div className="flex flex-col sm:flex-row items-start gap-6">

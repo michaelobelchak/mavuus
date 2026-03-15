@@ -59,7 +59,7 @@ export default function OnDemandPage() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
           {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
         </div>
       ) : filtered.length === 0 ? (
@@ -68,7 +68,7 @@ export default function OnDemandPage() {
           <p className="text-sm">Try adjusting your search or filters.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 stagger-children">
           {filtered.map(video => (
             <Link key={video.id} to={`/dashboard/on-demand/${video.id}`} className="block no-underline">
             <Card hover className="cursor-pointer group">

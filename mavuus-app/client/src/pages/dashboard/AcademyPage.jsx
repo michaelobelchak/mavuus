@@ -3,7 +3,9 @@ import Card from '../../components/ui/Card'
 import Avatar from '../../components/ui/Avatar'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
-import { liveSessions, onDemandVideos, communityResources, speakers } from '../../data/mockData'
+import { CardSkeleton } from '../../components/ui/Skeleton'
+import useApiData from '../../hooks/useApiData'
+import { liveSessions as fallbackLive, onDemandVideos as fallbackVideos, communityResources as fallbackResources, speakers } from '../../data/mockData'
 import { Calendar, Clock, PlayCircle, FileText, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
@@ -13,6 +15,18 @@ const tabs = ['All', 'Live Sessions', 'On-Demand', 'Resources']
 export default function AcademyPage() {
   const [activeTab, setActiveTab] = useState('All')
   const { user } = useAuth()
+
+  const { data: sessions, loading: loadingSessions } = useApiData('/api/sessions', [])
+  const { data: resources, loading: loadingResources } = useApiData('/api/resources', [])
+
+  const liveSessions = (sessions || []).filter(s => s.type === 'live').slice(0, 4)
+  const onDemandVideos = (sessions || []).filter(s => s.type === 'on-demand').slice(0, 3)
+  const communityResources = (resources || []).slice(0, 3)
+
+  // Use fallbacks if API returns empty
+  const displayLive = liveSessions.length > 0 ? liveSessions : fallbackLive
+  const displayVideos = onDemandVideos.length > 0 ? onDemandVideos : fallbackVideos
+  const displayResources = communityResources.length > 0 ? communityResources : fallbackResources
 
   return (
     <div>
@@ -47,30 +61,44 @@ export default function AcademyPage() {
               View all <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {liveSessions.map(session => (
-              <Card key={session.id} hover>
-                <div className="h-36 bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 rounded-xl mb-4 flex items-center justify-center">
-                  <Calendar size={32} className="text-brand-blue/40" />
-                </div>
-                <Badge variant="blue">{session.category}</Badge>
-                <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{session.title}</h3>
-                <div className="flex items-center gap-2 text-xs text-neutral-500 mb-3">
-                  <Calendar size={12} />
-                  <span>{new Date(session.scheduled_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                  <Clock size={12} className="ml-2" />
-                  <span>{session.duration}</span>
-                </div>
-                <div className="flex items-center gap-2 pt-3 border-t border-neutral-100">
-                  <Avatar name={session.speaker_name} size="sm" />
-                  <div>
-                    <p className="text-xs font-medium text-dark-blue">{session.speaker_name}</p>
-                    <p className="text-[11px] text-neutral-500">{session.speaker_title}</p>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+          {loadingSessions ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+              {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+              {displayLive.map(session => (
+                <Link key={session.id} to={`/dashboard/live-sessions/${session.id}`}>
+                  <Card hover className="h-full">
+                    <div className="h-36 rounded-xl mb-4 overflow-hidden">
+                      {session.thumbnail_url ? (
+                        <img src={session.thumbnail_url} alt={session.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 flex items-center justify-center">
+                          <Calendar size={32} className="text-brand-blue/40" />
+                        </div>
+                      )}
+                    </div>
+                    <Badge variant="blue">{session.category}</Badge>
+                    <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{session.title}</h3>
+                    <div className="flex items-center gap-2 text-xs text-neutral-500 mb-3">
+                      <Calendar size={12} />
+                      <span>{session.scheduled_date ? new Date(session.scheduled_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}</span>
+                      <Clock size={12} className="ml-2" />
+                      <span>{session.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-3 border-t border-neutral-100">
+                      <Avatar name={session.speaker_name} src={session.speaker_avatar} size="sm" />
+                      <div>
+                        <p className="text-xs font-medium text-dark-blue">{session.speaker_name}</p>
+                        <p className="text-[11px] text-neutral-500">{session.speaker_title}</p>
+                      </div>
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -83,25 +111,44 @@ export default function AcademyPage() {
               View all <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {onDemandVideos.map(video => (
-              <Card key={video.id} hover>
-                <div className="h-36 bg-gradient-to-br from-brand-pink/10 to-purple-100 rounded-xl mb-4 flex items-center justify-center">
-                  <PlayCircle size={32} className="text-brand-pink/40" />
-                </div>
-                <Badge>{video.category}</Badge>
-                <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{video.title}</h3>
-                <div className="flex items-center gap-3 text-xs text-neutral-500 mb-3">
-                  <span className="flex items-center gap-1"><Clock size={12} />{video.duration}</span>
-                  <span>{video.views.toLocaleString()} views</span>
-                </div>
-                <div className="flex items-center gap-2 pt-3 border-t border-neutral-100">
-                  <Avatar name={video.speaker_name} size="sm" />
-                  <p className="text-xs font-medium text-dark-blue">{video.speaker_name}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
+          {loadingSessions ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+              {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+              {displayVideos.map(video => (
+                <Link key={video.id} to={`/dashboard/on-demand/${video.id}`}>
+                  <Card hover className="h-full">
+                    <div className="h-36 rounded-xl mb-4 overflow-hidden relative">
+                      {video.thumbnail_url ? (
+                        <>
+                          <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                            <PlayCircle size={40} className="text-white/80" />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-brand-pink/10 to-purple-100 flex items-center justify-center">
+                          <PlayCircle size={32} className="text-brand-pink/40" />
+                        </div>
+                      )}
+                    </div>
+                    <Badge>{video.category}</Badge>
+                    <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{video.title}</h3>
+                    <div className="flex items-center gap-3 text-xs text-neutral-500 mb-3">
+                      <span className="flex items-center gap-1"><Clock size={12} />{video.duration}</span>
+                      <span>{(video.views || 0).toLocaleString()} views</span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-3 border-t border-neutral-100">
+                      <Avatar name={video.speaker_name} src={video.speaker_avatar} size="sm" />
+                      <p className="text-xs font-medium text-dark-blue">{video.speaker_name}</p>
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -114,22 +161,36 @@ export default function AcademyPage() {
               View all <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {communityResources.map(resource => (
-              <Card key={resource.id} hover>
-                <div className="h-36 bg-gradient-to-br from-green-50 to-blue-50 rounded-xl mb-4 flex items-center justify-center">
-                  <FileText size={32} className="text-brand-blue/40" />
-                </div>
-                <Badge variant="gray">{resource.category}</Badge>
-                <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{resource.title}</h3>
-                <p className="text-sm text-neutral-500 mb-3 line-clamp-2">{resource.description}</p>
-                <div className="flex items-center justify-between pt-3 border-t border-neutral-100 text-xs text-neutral-500">
-                  <span>{resource.author}</span>
-                  <span>{resource.read_time}</span>
-                </div>
-              </Card>
-            ))}
-          </div>
+          {loadingResources ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+              {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+              {displayResources.map(resource => (
+                <Link key={resource.id} to={`/dashboard/resources/${resource.id}`}>
+                  <Card hover className="h-full">
+                    <div className="h-36 rounded-xl mb-4 overflow-hidden">
+                      {resource.thumbnail_url ? (
+                        <img src={resource.thumbnail_url} alt={resource.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+                          <FileText size={32} className="text-brand-blue/40" />
+                        </div>
+                      )}
+                    </div>
+                    <Badge variant="gray">{resource.category}</Badge>
+                    <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{resource.title}</h3>
+                    <p className="text-sm text-neutral-500 mb-3 line-clamp-2">{resource.description}</p>
+                    <div className="flex items-center justify-between pt-3 border-t border-neutral-100 text-xs text-neutral-500">
+                      <span>{resource.author}</span>
+                      <span>{resource.read_time}</span>
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
       )}
 

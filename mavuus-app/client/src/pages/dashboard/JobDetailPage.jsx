@@ -153,7 +153,7 @@ export default function JobDetailPage() {
   }
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-6xl">
       <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-neutral-500 hover:text-dark-blue mb-4 cursor-pointer">
         <ArrowLeft size={16} /> Back to Jobs
       </button>

@@ -161,7 +161,7 @@ export default function MemberProfilePage() {
   }
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-6xl">
       {/* Back link */}
       <button
         onClick={() => navigate(-1)}
