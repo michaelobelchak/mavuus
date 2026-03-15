@@ -58,12 +58,12 @@ router.get('/me', (req, res) => {
 // PUT /api/profile/me - Update profile
 router.put('/me', (req, res) => {
   const db = req.app.locals.db
-  const { name, title, company, bio, industry, years_experience, linkedin_url, website_url, location, timezone, profile_visibility, notification_email, notification_messages, notification_connections, notification_jobs } = req.body
+  const { name, title, company, avatar_url, bio, industry, years_experience, linkedin_url, website_url, location, timezone, profile_visibility, notification_email, notification_messages, notification_connections, notification_jobs } = req.body
 
   // Update users table fields
-  if (name || title !== undefined || company !== undefined) {
-    db.prepare('UPDATE users SET name = COALESCE(?, name), title = COALESCE(?, title), company = COALESCE(?, company) WHERE id = ?')
-      .run(name || null, title !== undefined ? title : null, company !== undefined ? company : null, req.user.id)
+  if (name || title !== undefined || company !== undefined || avatar_url !== undefined) {
+    db.prepare('UPDATE users SET name = COALESCE(?, name), title = COALESCE(?, title), company = COALESCE(?, company), avatar_url = COALESCE(?, avatar_url) WHERE id = ?')
+      .run(name || null, title !== undefined ? title : null, company !== undefined ? company : null, avatar_url !== undefined ? avatar_url : null, req.user.id)
   }
 
   // Upsert user_profiles

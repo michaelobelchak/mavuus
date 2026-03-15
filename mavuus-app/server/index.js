@@ -24,6 +24,7 @@ import contactRoutes from './routes/contact.js'
 import commentsRoutes from './routes/comments.js'
 import referralsRoutes from './routes/referrals.js'
 import speakersRoutes from './routes/speakers.js'
+import uploadRoutes from './routes/upload.js'
 import { sanitizeBody } from './middleware/sanitize.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -96,6 +97,7 @@ app.use('/api/contact', contactRoutes)
 app.use('/api/comments', commentsRoutes)
 app.use('/api/referrals', referralsRoutes)
 app.use('/api/speakers', speakersRoutes)
+app.use('/api/upload', uploadRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {

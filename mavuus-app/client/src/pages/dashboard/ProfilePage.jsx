@@ -42,7 +42,7 @@ const VISIBILITY_OPTIONS = [
 ]
 
 export default function ProfilePage() {
-  const { user, token } = useAuth()
+  const { user, token, updateUser } = useAuth()
   const toast = useToast()
   const [searchParams] = useSearchParams()
 
@@ -390,12 +390,42 @@ export default function ProfilePage() {
         <div className="flex flex-col sm:flex-row items-start gap-6">
           <div className="relative group">
             <Avatar name={profile.name} src={profile.avatar_url} size="xl" />
-            <button
-              onClick={() => toast.info('Photo upload coming soon')}
+            <label
               className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
             >
               <Upload size={20} className="text-white" />
-            </button>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  const formData = new FormData()
+                  formData.append('image', file)
+                  try {
+                    toast.info('Uploading photo...')
+                    const uploadRes = await fetch('/api/upload/image', {
+                      method: 'POST',
+                      headers: { Authorization: `Bearer ${token}` },
+                      body: formData,
+                    })
+                    if (!uploadRes.ok) { toast.error('Upload failed'); return }
+                    const { url } = await uploadRes.json()
+                    const updateRes = await fetch('/api/profile/me', {
+                      method: 'PUT',
+                      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ avatar_url: url }),
+                    })
+                    if (updateRes.ok) {
+                      setProfile(prev => ({ ...prev, avatar_url: url }))
+                      updateUser({ avatar_url: url })
+                      toast.success('Profile photo updated!')
+                    }
+                  } catch { toast.error('Upload failed') }
+                }}
+              />
+            </label>
           </div>
 
           <div className="flex-1 min-w-0">

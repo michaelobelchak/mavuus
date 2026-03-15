@@ -79,8 +79,12 @@ export function AuthProvider({ children }) {
     return login('demo@mavuus.com', 'demo123')
   }
 
+  function updateUser(updates) {
+    setUser(prev => prev ? { ...prev, ...updates } : prev)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, demoLogin, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, demoLogin, updateUser, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   )

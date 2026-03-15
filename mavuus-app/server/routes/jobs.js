@@ -153,13 +153,13 @@ router.delete('/:id', authenticateToken, (req, res) => {
 // Auth: Apply to a job
 router.post('/:id/apply', authenticateToken, (req, res) => {
   const db = req.app.locals.db
-  const { cover_letter } = req.body
+  const { cover_letter, resume_url } = req.body
 
   const job = db.prepare('SELECT * FROM jobs WHERE id = ?').get(req.params.id)
   if (!job) return res.status(404).json({ error: 'Job not found' })
 
   try {
-    db.prepare('INSERT INTO job_applications (job_id, user_id, cover_letter) VALUES (?, ?, ?)').run(req.params.id, req.user.id, cover_letter || null)
+    db.prepare('INSERT INTO job_applications (job_id, user_id, cover_letter, resume_url) VALUES (?, ?, ?, ?)').run(req.params.id, req.user.id, cover_letter || null, resume_url || null)
 
     // Notify job poster
     if (job.posted_by) {
@@ -180,9 +180,11 @@ router.get('/:id/applicants', authenticateToken, (req, res) => {
   if (!job) return res.status(404).json({ error: 'Job not found or not authorized' })
 
   const applicants = db.prepare(`
-    SELECT ja.*, u.name, u.title as user_title, u.company as user_company, u.avatar_url, u.email
+    SELECT ja.*, u.name, u.title as user_title, u.company as user_company, u.avatar_url, u.email,
+    up.resume_url as profile_resume_url
     FROM job_applications ja
     JOIN users u ON u.id = ja.user_id
+    LEFT JOIN user_profiles up ON up.user_id = ja.user_id
     WHERE ja.job_id = ?
     ORDER BY ja.applied_at DESC
   `).all(req.params.id)
