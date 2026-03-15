@@ -29,9 +29,17 @@ export default function RegisterPage() {
     }
   }
 
-  const handleDemoLogin = () => {
-    demoLogin()
-    navigate('/dashboard')
+  const handleDemoLogin = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      await demoLogin()
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const t = testimonials[1]

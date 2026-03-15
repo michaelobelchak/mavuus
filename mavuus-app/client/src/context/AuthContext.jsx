@@ -15,7 +15,13 @@ export function AuthProvider({ children }) {
       // Decode JWT payload (no verification — that's server-side)
       try {
         const payload = JSON.parse(atob(token.split('.')[1]))
-        setUser({ id: payload.id, email: payload.email, name: payload.name })
+        setUser({
+          id: payload.id,
+          email: payload.email,
+          name: payload.name,
+          avatar_url: payload.avatar_url,
+          membership_tier: payload.membership_tier,
+        })
       } catch {
         localStorage.removeItem('mavuus_token')
         setToken(null)
@@ -68,14 +74,9 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
-  // Demo login — skip API, just set user directly
-  function demoLogin() {
-    const demoUser = { id: 7, email: 'demo@mavuus.com', name: 'Demo User', title: 'Marketing Director', company: 'Mavuus' }
-    const fakeToken = btoa(JSON.stringify({ alg: 'none' })) + '.' + btoa(JSON.stringify(demoUser)) + '.demo'
-    localStorage.setItem('mavuus_token', fakeToken)
-    setToken(fakeToken)
-    setUser(demoUser)
-    return demoUser
+  // Demo login — call real API so we get a valid JWT
+  async function demoLogin() {
+    return login('demo@mavuus.com', 'demo123')
   }
 
   return (
