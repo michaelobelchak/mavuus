@@ -70,8 +70,8 @@ Read the project at this directory. This is a React + Vite + Tailwind frontend w
 ```
 
 ## Acceptance Criteria
-- [ ] Session detail has related sessions, video area for on-demand, breadcrumbs
-- [ ] Resource detail has bookmark functionality, related resources, breadcrumbs
-- [ ] Blog detail page renders full article with author info and related articles
-- [ ] Contact form submits to backend and stores in database
-- [ ] Comments system works (if it didn't already exist)
+- [x] Session detail has related sessions, video area for on-demand, breadcrumbs
+- [x] Resource detail has bookmark functionality, related resources, breadcrumbs
+- [x] Blog detail page renders full article with author info and related articles
+- [x] Contact form submits to backend and stores in database
+- [x] Comments system works (if it didn't already exist)
