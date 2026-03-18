@@ -69,6 +69,7 @@ const AdminNotificationsPage = lazy(() => import('./pages/admin/AdminNotificatio
 const AdminReferralsPage = lazy(() => import('./pages/admin/AdminReferralsPage'))
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'))
 const AdminExportsPage = lazy(() => import('./pages/admin/AdminExportsPage'))
+const AdminConnectionsPage = lazy(() => import('./pages/admin/AdminConnectionsPage'))
 const AdminAuditLogPage = lazy(() => import('./pages/admin/AdminAuditLogPage'))
 
 function LazyFallback() {
@@ -145,6 +146,7 @@ export default function App() {
           <Route index element={<AdminDashboardPage />} />
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="users/:id" element={<AdminUserDetailPage />} />
+          <Route path="connections" element={<AdminConnectionsPage />} />
           <Route path="sessions" element={<AdminSessionsPage />} />
           <Route path="resources" element={<AdminResourcesPage />} />
           <Route path="speakers" element={<AdminSpeakersPage />} />

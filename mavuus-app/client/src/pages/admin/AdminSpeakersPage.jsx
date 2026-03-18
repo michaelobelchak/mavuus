@@ -127,8 +127,44 @@ export default function AdminSpeakersPage() {
 
       <p className="text-sm text-neutral-500">Showing {total === 0 ? 0 : (page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total} speakers</p>
 
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {speakers.map(s => (
+          <div key={s.id} className="bg-white rounded-xl border border-neutral-100 p-4 space-y-2">
+            <div className="flex items-center gap-3">
+              {s.avatar_url ? (
+                <img src={s.avatar_url} alt={s.name} className="w-8 h-8 rounded-full object-cover" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-medium text-neutral-500">
+                  {s.name ? s.name.charAt(0).toUpperCase() : '?'}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <h3 className="font-medium text-dark-blue truncate">{s.name}</h3>
+                {s.title && <p className="text-xs text-neutral-500 truncate">{s.title}</p>}
+              </div>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-neutral-500">
+              {s.company && <span>{s.company}</span>}
+              <span>{s.session_count ?? 0} sessions</span>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-1 border-t border-neutral-50">
+              <button onClick={() => openEdit(s)} className="text-xs text-brand-pink hover:underline font-medium cursor-pointer flex items-center gap-1">
+                <Edit2 size={12} /> Edit
+              </button>
+              <button onClick={() => setDeleteId(s.id)} className="text-xs text-red-500 hover:underline cursor-pointer flex items-center gap-1">
+                <Trash2 size={12} /> Delete
+              </button>
+            </div>
+          </div>
+        ))}
+        {speakers.length === 0 && (
+          <p className="text-center text-neutral-400 py-8">No speakers found.</p>
+        )}
+      </div>
+
       {/* Table */}
-      <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
+      <div className="hidden md:block bg-white rounded-xl border border-neutral-100 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-100 text-left text-neutral-500">
@@ -206,7 +242,7 @@ export default function AdminSpeakersPage() {
               <button onClick={closeModal} className="text-neutral-400 hover:text-neutral-600 cursor-pointer"><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1">Name</label>
                   <input name="name" value={formData.name} onChange={handleChange} required className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-pink/30" />
@@ -216,7 +252,7 @@ export default function AdminSpeakersPage() {
                   <input name="title" value={formData.title} onChange={handleChange} className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-pink/30" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1">Company</label>
                   <input name="company" value={formData.company} onChange={handleChange} className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-pink/30" />

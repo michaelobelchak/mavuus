@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, Video, BookOpen, Mic, Store, Briefcase,
   MessageSquare, Star, ThumbsUp, FileText, Quote, Image, HelpCircle,
   Tag, Bell, Gift, Settings, Shield, Download, ChevronDown, ChevronRight,
-  ArrowLeft, Menu, X, Mail
+  ArrowLeft, Menu, X, Mail, Link2
 } from 'lucide-react'
 
 const sections = [
@@ -20,6 +20,7 @@ const sections = [
     label: 'USERS',
     items: [
       { label: 'User Management', icon: Users, path: '/admin/users' },
+      { label: 'Connections', icon: Link2, path: '/admin/connections' },
     ],
   },
   {

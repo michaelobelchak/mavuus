@@ -178,16 +178,16 @@ router.get('/sessions', (req, res) => {
 
 router.post('/sessions', (req, res) => {
   const db = req.app.locals.db
-  const { title, description, speaker_name, speaker_title, speaker_avatar, thumbnail_url, type, category, scheduled_date, duration, video_url } = req.body
+  const { title, description, speaker_name, speaker_title, speaker_avatar, thumbnail_url, type, category, scheduled_date, duration, video_url, status } = req.body
   if (!title || !speaker_name || !type) return res.status(400).json({ error: 'Title, speaker, and type required' })
-  const result = db.prepare('INSERT INTO sessions (title, description, speaker_name, speaker_title, speaker_avatar, thumbnail_url, type, category, scheduled_date, duration, video_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(title, description, speaker_name, speaker_title, speaker_avatar, thumbnail_url, type, category, scheduled_date, duration, video_url)
+  const result = db.prepare('INSERT INTO sessions (title, description, speaker_name, speaker_title, speaker_avatar, thumbnail_url, type, category, scheduled_date, duration, video_url, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(title, description, speaker_name, speaker_title, speaker_avatar, thumbnail_url, type, category, scheduled_date, duration, video_url, status || 'published')
   logAudit(db, req.user.id, 'create_session', 'session', result.lastInsertRowid, { title }, req.ip)
   res.status(201).json(db.prepare('SELECT * FROM sessions WHERE id = ?').get(result.lastInsertRowid))
 })
 
 router.put('/sessions/:id', (req, res) => {
   const db = req.app.locals.db
-  const fields = ['title', 'description', 'speaker_name', 'speaker_title', 'speaker_avatar', 'thumbnail_url', 'type', 'category', 'scheduled_date', 'duration', 'video_url']
+  const fields = ['title', 'description', 'speaker_name', 'speaker_title', 'speaker_avatar', 'thumbnail_url', 'type', 'category', 'scheduled_date', 'duration', 'video_url', 'status']
   const updates = []; const params = []
   fields.forEach(f => { if (req.body[f] !== undefined) { updates.push(`${f} = ?`); params.push(req.body[f]) } })
   if (updates.length) { params.push(req.params.id); db.prepare(`UPDATE sessions SET ${updates.join(', ')} WHERE id = ?`).run(...params) }
@@ -220,16 +220,16 @@ router.get('/resources', (req, res) => {
 
 router.post('/resources', (req, res) => {
   const db = req.app.locals.db
-  const { title, description, content, author, thumbnail_url, category, type, read_time, url } = req.body
+  const { title, description, content, author, thumbnail_url, category, type, read_time, url, status } = req.body
   if (!title) return res.status(400).json({ error: 'Title required' })
-  const result = db.prepare('INSERT INTO resources (title, description, content, author, thumbnail_url, category, type, read_time, url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(title, description, content, author, thumbnail_url, category, type, read_time, url)
+  const result = db.prepare('INSERT INTO resources (title, description, content, author, thumbnail_url, category, type, read_time, url, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(title, description, content, author, thumbnail_url, category, type, read_time, url, status || 'published')
   logAudit(db, req.user.id, 'create_resource', 'resource', result.lastInsertRowid, { title }, req.ip)
   res.status(201).json(db.prepare('SELECT * FROM resources WHERE id = ?').get(result.lastInsertRowid))
 })
 
 router.put('/resources/:id', (req, res) => {
   const db = req.app.locals.db
-  const fields = ['title', 'description', 'content', 'author', 'thumbnail_url', 'category', 'type', 'read_time', 'url']
+  const fields = ['title', 'description', 'content', 'author', 'thumbnail_url', 'category', 'type', 'read_time', 'url', 'status']
   const updates = []; const params = []
   fields.forEach(f => { if (req.body[f] !== undefined) { updates.push(`${f} = ?`); params.push(req.body[f]) } })
   if (updates.length) { params.push(req.params.id); db.prepare(`UPDATE resources SET ${updates.join(', ')} WHERE id = ?`).run(...params) }
@@ -344,10 +344,11 @@ router.get('/jobs/:id/applications', (req, res) => {
 
 router.put('/jobs/:id', (req, res) => {
   const db = req.app.locals.db
-  const { moderation_status, admin_notes } = req.body
+  const { moderation_status, admin_notes, status } = req.body
   const updates = []; const params = []
   if (moderation_status) { updates.push('moderation_status = ?'); params.push(moderation_status) }
   if (admin_notes !== undefined) { updates.push('admin_notes = ?'); params.push(admin_notes) }
+  if (status) { updates.push('status = ?'); params.push(status) }
   if (updates.length) { params.push(req.params.id); db.prepare(`UPDATE jobs SET ${updates.join(', ')} WHERE id = ?`).run(...params) }
   logAudit(db, req.user.id, 'update_job', 'job', parseInt(req.params.id), req.body, req.ip)
   res.json({ success: true })
@@ -406,6 +407,16 @@ router.get('/reviews', (req, res) => {
   res.json({ data, total, page: pageNum, totalPages: Math.ceil(total / limitNum), limit: limitNum })
 })
 
+router.put('/reviews/:id', (req, res) => {
+  const db = req.app.locals.db
+  const { moderation_status } = req.body
+  if (moderation_status) {
+    db.prepare('UPDATE reviews SET moderation_status = ? WHERE id = ?').run(moderation_status, req.params.id)
+  }
+  logAudit(db, req.user.id, 'update_review', 'review', parseInt(req.params.id), { moderation_status }, req.ip)
+  res.json({ success: true })
+})
+
 router.delete('/reviews/:id', (req, res) => {
   const db = req.app.locals.db
   const review = db.prepare('SELECT vendor_id FROM reviews WHERE id = ?').get(req.params.id)
@@ -431,6 +442,36 @@ router.delete('/recommendations/:id', (req, res) => {
   const db = req.app.locals.db
   db.prepare('DELETE FROM recommendations WHERE id = ?').run(req.params.id)
   logAudit(db, req.user.id, 'delete_recommendation', 'recommendation', parseInt(req.params.id), null, req.ip)
+  res.json({ success: true })
+})
+
+// ─── CONNECTIONS ────────────────────────────────────────
+router.get('/connections', (req, res) => {
+  const db = req.app.locals.db
+  const { status, page = 1, limit = 20 } = req.query
+  const conditions = []; const params = []
+  if (status) { conditions.push('c.status = ?'); params.push(status) }
+  const where = conditions.length ? ' WHERE ' + conditions.join(' AND ') : ''
+  const total = db.prepare(`SELECT COUNT(*) as cnt FROM connections c${where}`).get(...params).cnt
+  const pageNum = Math.max(1, parseInt(page)); const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
+  const data = db.prepare(`SELECT c.*, u1.name as requester_name, u1.email as requester_email, u2.name as receiver_name, u2.email as receiver_email FROM connections c JOIN users u1 ON u1.id = c.requester_id JOIN users u2 ON u2.id = c.receiver_id${where} ORDER BY c.created_at DESC LIMIT ? OFFSET ?`).all(...params, limitNum, (pageNum - 1) * limitNum)
+  res.json({ data, total, page: pageNum, totalPages: Math.ceil(total / limitNum), limit: limitNum })
+})
+
+router.put('/connections/:id', (req, res) => {
+  const db = req.app.locals.db
+  const { status } = req.body
+  if (status) {
+    db.prepare('UPDATE connections SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, req.params.id)
+  }
+  logAudit(db, req.user.id, 'update_connection', 'connection', parseInt(req.params.id), { status }, req.ip)
+  res.json({ success: true })
+})
+
+router.delete('/connections/:id', (req, res) => {
+  const db = req.app.locals.db
+  db.prepare('DELETE FROM connections WHERE id = ?').run(req.params.id)
+  logAudit(db, req.user.id, 'delete_connection', 'connection', parseInt(req.params.id), null, req.ip)
   res.json({ success: true })
 })
 

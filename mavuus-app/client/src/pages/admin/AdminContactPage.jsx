@@ -75,8 +75,44 @@ export default function AdminContactPage() {
 
       <p className="text-sm text-neutral-500">Showing {total > 0 ? (page - 1) * limit + 1 : 0}-{Math.min(page * limit, total)} of {total} submissions</p>
 
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {submissions.map(sub => (
+          <div key={sub.id} className="bg-white rounded-xl border border-neutral-100 p-4 space-y-2">
+            <div className="flex items-start justify-between">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-medium text-dark-blue text-sm">{sub.name}</h3>
+                <p className="text-xs text-neutral-500">{sub.email}</p>
+              </div>
+              <div className="ml-2 flex-shrink-0">{statusBadge(sub.status)}</div>
+            </div>
+            <p className="text-xs text-neutral-600 line-clamp-2">
+              {sub.message?.length > 80 ? sub.message.slice(0, 80) + '...' : sub.message}
+            </p>
+            <div className="flex items-center justify-between pt-1 border-t border-neutral-50">
+              <span className="text-xs text-neutral-400">{new Date(sub.created_at).toLocaleDateString()}</span>
+              <div className="flex items-center gap-2">
+                <select
+                  value={sub.status || 'new'}
+                  onChange={e => updateStatus(sub.id, e.target.value)}
+                  className="text-xs border border-neutral-200 rounded-lg px-2 py-1 cursor-pointer"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <option value="new">New</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="handled">Handled</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        ))}
+        {submissions.length === 0 && (
+          <p className="text-center text-neutral-400 py-8">No submissions found.</p>
+        )}
+      </div>
+
       {/* Table */}
-      <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
+      <div className="hidden md:block bg-white rounded-xl border border-neutral-100 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-100 text-left text-neutral-500">
@@ -152,7 +188,7 @@ export default function AdminContactPage() {
         </table>
       </div>
 
-      {/* Pagination */}
+      {/* Pagination (Contact) */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 rounded-lg border border-neutral-200 disabled:opacity-30 cursor-pointer">

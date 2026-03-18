@@ -154,7 +154,7 @@ export default function AdminUserDetailPage() {
             {user.profile ? (
               <>
                 {user.profile.bio && <div><span className="font-medium text-neutral-500">Bio:</span> <p className="mt-1 text-dark-blue">{user.profile.bio}</p></div>}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[['Industry', user.profile.industry], ['Years Experience', user.profile.years_experience], ['Location', user.profile.location], ['Timezone', user.profile.timezone], ['LinkedIn', user.profile.linkedin_url], ['Website', user.profile.website_url], ['Visibility', user.profile.profile_visibility]].map(([l, v]) => v && (
                     <div key={l}><span className="font-medium text-neutral-500">{l}:</span> <span className="text-dark-blue ml-1">{v}</span></div>
                   ))}
@@ -247,7 +247,7 @@ export default function AdminUserDetailPage() {
 
         {activeTab === 'Account' && (
           <div className="space-y-6 text-sm">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><span className="font-medium text-neutral-500">Created:</span> <span className="ml-1">{new Date(u.created_at).toLocaleString()}</span></div>
               <div><span className="font-medium text-neutral-500">Last Login:</span> <span className="ml-1">{u.last_login_at ? new Date(u.last_login_at).toLocaleString() : 'Never'}</span></div>
               <div><span className="font-medium text-neutral-500">Email Verified:</span> <span className="ml-1">{u.email_verified ? 'Yes' : 'No'}</span></div>

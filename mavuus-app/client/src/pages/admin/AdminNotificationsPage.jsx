@@ -234,7 +234,26 @@ export default function AdminNotificationsPage() {
       {broadcasts.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold text-dark-blue mb-4">Broadcast History</h2>
-          <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {broadcasts.map(b => (
+              <div key={b.id} className="bg-white rounded-xl border border-neutral-100 p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-medium text-dark-blue text-sm">{b.title}</p>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
+                    {targetLabels[b.target] || b.target}
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-500 mb-2 line-clamp-2">{b.message}</p>
+                <div className="flex items-center justify-between text-xs text-neutral-400">
+                  <span>{new Date(b.created_at).toLocaleString()}</span>
+                  <span>{b.recipient_count != null ? `${b.recipient_count} recipients` : ''}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden md:block bg-white rounded-xl border border-neutral-100 overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-neutral-100 text-left text-neutral-500">

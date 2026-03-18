@@ -80,8 +80,37 @@ export default function AdminCommentsPage() {
 
       <p className="text-sm text-neutral-500">Showing {total > 0 ? (page - 1) * limit + 1 : 0}-{Math.min(page * limit, total)} of {total} comments</p>
 
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {comments.map(comment => (
+          <div key={comment.id} className="bg-white rounded-xl border border-neutral-100 p-4 space-y-2">
+            <div className="flex items-start justify-between">
+              <span className="font-medium text-dark-blue text-sm">{comment.author_name}</span>
+              {entityBadge(comment.entity_type)}
+            </div>
+            <p className="text-xs text-neutral-600 line-clamp-2">
+              {comment.content?.length > 100 ? comment.content.slice(0, 100) + '...' : comment.content}
+            </p>
+            <div className="flex items-center justify-between pt-1 border-t border-neutral-50">
+              <span className="text-xs text-neutral-400">{new Date(comment.created_at).toLocaleDateString()}</span>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setViewModal(comment)} className="text-xs text-brand-pink hover:underline font-medium cursor-pointer flex items-center gap-1">
+                  <Eye size={12} /> View
+                </button>
+                <button onClick={() => setDeleteConfirm(comment)} className="text-xs text-red-500 hover:underline cursor-pointer flex items-center gap-1">
+                  <Trash2 size={12} /> Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+        {comments.length === 0 && (
+          <p className="text-center text-neutral-400 py-8">No comments found.</p>
+        )}
+      </div>
+
       {/* Table */}
-      <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
+      <div className="hidden md:block bg-white rounded-xl border border-neutral-100 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-100 text-left text-neutral-500">

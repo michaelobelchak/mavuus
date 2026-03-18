@@ -160,8 +160,69 @@ export default function AdminTestimonialsPage() {
         />
       </div>
 
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {loading ? (
+          <div className="text-center py-8 text-neutral-400 text-sm">Loading...</div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-8 text-neutral-400 text-sm">No testimonials found.</div>
+        ) : (
+          filtered.map((t) => (
+            <div key={t.id} className="bg-white rounded-xl border border-neutral-100 p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <p className="font-medium text-dark-blue text-sm">{t.name}</p>
+                  <p className="text-xs text-neutral-500">
+                    {t.title}
+                    {t.company ? ` @ ${t.company}` : ''}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => openEdit(t)}
+                    className="p-1.5 text-neutral-400 hover:text-brand-pink hover:bg-brand-pink/5 rounded-lg cursor-pointer"
+                    title="Edit"
+                  >
+                    <Edit2 size={15} />
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirm(t.id)}
+                    className="p-1.5 text-neutral-400 hover:text-red-500 hover:bg-red-50 rounded-lg cursor-pointer"
+                    title="Delete"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-neutral-500 mb-3">
+                {t.quote?.substring(0, 100)}
+                {t.quote?.length > 100 ? '...' : ''}
+              </p>
+              <div className="flex items-center gap-0.5 mb-3">{renderStars(t.rating)}</div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {t.is_featured && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">Featured</span>
+                )}
+                <button
+                  onClick={() => toggleActive(t)}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                    t.is_active ? 'bg-green-500' : 'bg-neutral-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                      t.is_active ? 'translate-x-4.5' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Table */}
-      <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
+      <div className="hidden md:block bg-white rounded-xl border border-neutral-100 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-100 text-left text-neutral-500">
@@ -271,7 +332,7 @@ export default function AdminTestimonialsPage() {
                   className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-pink/30 focus:border-brand-pink"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1">Title</label>
                   <input
@@ -311,7 +372,7 @@ export default function AdminTestimonialsPage() {
                   className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-pink/30 focus:border-brand-pink resize-y"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1">Rating</label>
                   <select

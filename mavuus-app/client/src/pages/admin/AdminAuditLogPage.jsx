@@ -150,8 +150,53 @@ export default function AdminAuditLogPage() {
         </div>
       </div>
 
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-4 border-brand-pink border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : logs.length === 0 ? (
+          <div className="text-center py-8 text-neutral-400 text-sm">No audit log entries found</div>
+        ) : (
+          logs.map(log => {
+            const badgeColor = ENTITY_BADGE_COLORS[log.entity_type] || 'bg-neutral-100 text-neutral-500'
+            const isExpanded = expandedRow === log.id
+            return (
+              <div
+                key={log.id}
+                className="bg-white rounded-xl border border-neutral-100 p-4 cursor-pointer"
+                onClick={() => setExpandedRow(isExpanded ? null : log.id)}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-dark-blue text-sm">{log.admin_name || log.admin_email || '-'}</span>
+                  {log.entity_type && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${badgeColor}`}>
+                      {log.entity_type}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-dark-blue mb-1">{log.action || '-'}</p>
+                <p className="text-xs text-neutral-400 mb-2">
+                  {log.created_at ? new Date(log.created_at).toLocaleString() : '-'}
+                </p>
+                <p className="text-xs text-neutral-400 truncate">{previewDetails(log.details)}</p>
+                {isExpanded && (
+                  <div className="mt-3 pt-3 border-t border-neutral-100">
+                    <p className="text-xs font-medium text-neutral-500 mb-2">Full Details</p>
+                    <pre className="text-xs text-dark-blue bg-neutral-50 border border-neutral-200 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">
+                      {formatDetails(log.details)}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            )
+          })
+        )}
+      </div>
+
       {/* Table */}
-      <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
+      <div className="hidden md:block bg-white rounded-xl border border-neutral-100 overflow-x-auto">
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="w-8 h-8 border-4 border-brand-pink border-t-transparent rounded-full animate-spin" />

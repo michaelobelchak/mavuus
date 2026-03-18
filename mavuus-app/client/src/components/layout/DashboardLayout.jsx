@@ -181,15 +181,15 @@ export default function DashboardLayout() {
             >
               <Menu size={22} />
             </button>
-            <div className="hidden sm:flex items-center gap-3 flex-1 max-w-md relative" ref={searchRef}>
-              <Search size={18} className="text-neutral-300" />
+            <div className="flex items-center gap-3 flex-1 max-w-md relative" ref={searchRef}>
+              <Search size={18} className="text-neutral-300 flex-shrink-0" />
               <input
                 type="text"
-                placeholder="Search sessions, resources, members..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => { if (searchResults) setSearchOpen(true) }}
-                className="w-full bg-transparent text-sm text-neutral-600 placeholder:text-neutral-300 focus:outline-none"
+                className="w-full bg-transparent text-sm text-neutral-600 placeholder:text-neutral-300 focus:outline-none min-w-0"
               />
               {searchOpen && searchResults && (
                 <SearchResultsDropdown results={searchResults} onClose={() => { setSearchOpen(false); setSearchQuery('') }} />

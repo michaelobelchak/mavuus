@@ -132,14 +132,14 @@ export default function AdminBrandLogosPage() {
       </div>
 
       {/* Search */}
-      <div className="flex items-center gap-2 bg-white border border-neutral-200 rounded-lg px-3 py-2 w-fit">
-        <Search size={16} className="text-neutral-400" />
+      <div className="flex items-center gap-2 bg-white border border-neutral-200 rounded-lg px-3 py-2 w-full sm:w-fit">
+        <Search size={16} className="text-neutral-400 flex-shrink-0" />
         <input
           type="text"
           placeholder="Search logos..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="text-sm focus:outline-none w-64"
+          className="text-sm focus:outline-none w-full sm:w-64"
         />
       </div>
 

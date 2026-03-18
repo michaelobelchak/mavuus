@@ -186,8 +186,40 @@ export default function AdminVendorsPage() {
 
       <p className="text-sm text-neutral-500">Showing {total === 0 ? 0 : (page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total} vendors</p>
 
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {vendors.map(v => (
+          <div key={v.id} className="bg-white rounded-xl border border-neutral-100 p-4 space-y-3">
+            <div className="flex items-start justify-between">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-medium text-dark-blue truncate">{v.company_name}</h3>
+                {v.company_description && (
+                  <p className="text-xs text-neutral-500 mt-1 line-clamp-2">{v.company_description}</p>
+                )}
+              </div>
+              <div className="ml-2 flex-shrink-0">{statusBadge(v.moderation_status || v.status)}</div>
+            </div>
+            <div className="flex items-center gap-3">
+              {renderStars(v.rating)}
+              <span className="text-xs text-neutral-500">{v.reviews_count ?? 0} reviews</span>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-1 border-t border-neutral-50">
+              <button onClick={() => openEdit(v)} className="text-xs text-brand-pink hover:underline font-medium cursor-pointer flex items-center gap-1">
+                <Edit2 size={12} /> Edit
+              </button>
+              <button onClick={() => setDeleteId(v.id)} className="text-xs text-red-500 hover:underline cursor-pointer flex items-center gap-1">
+                <Trash2 size={12} /> Delete
+              </button>
+            </div>
+          </div>
+        ))}
+        {vendors.length === 0 && (
+          <p className="text-center text-neutral-400 py-8">No vendors found.</p>
+        )}
+      </div>
+
       {/* Table */}
-      <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
+      <div className="hidden md:block bg-white rounded-xl border border-neutral-100 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-100 text-left text-neutral-500">
@@ -264,7 +296,7 @@ export default function AdminVendorsPage() {
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Company Description</label>
                 <textarea name="company_description" value={formData.company_description} onChange={handleChange} rows={3} className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-pink/30" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1">Website</label>
                   <input name="website" value={formData.website} onChange={handleChange} className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-pink/30" />

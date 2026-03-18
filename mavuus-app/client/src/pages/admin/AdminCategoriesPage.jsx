@@ -201,8 +201,48 @@ export default function AdminCategoriesPage() {
         />
       </div>
 
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {loading ? (
+          <p className="text-center text-neutral-400 py-8">Loading...</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-neutral-400 py-8">No categories found.</p>
+        ) : (
+          filtered.map(cat => (
+            <div key={cat.id} className="bg-white rounded-xl border border-neutral-100 p-4 space-y-2">
+              <div className="flex items-start justify-between">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-medium text-dark-blue text-sm">{cat.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    {typeBadge(cat.type)}
+                    <span className="text-xs text-neutral-400">Order: {cat.sort_order ?? 0}</span>
+                  </div>
+                </div>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${cat.is_active ? 'bg-green-50 text-green-600' : 'bg-neutral-100 text-neutral-500'}`}>
+                  {cat.is_active ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-1 border-t border-neutral-50">
+                <button
+                  onClick={() => toggleActive(cat)}
+                  className="text-xs text-neutral-500 hover:underline cursor-pointer"
+                >
+                  {cat.is_active ? 'Deactivate' : 'Activate'}
+                </button>
+                <button onClick={() => openEdit(cat)} className="text-xs text-brand-pink hover:underline font-medium cursor-pointer flex items-center gap-1">
+                  <Edit2 size={12} /> Edit
+                </button>
+                <button onClick={() => { setDeleteError(null); setDeleteConfirm(cat.id) }} className="text-xs text-red-500 hover:underline cursor-pointer flex items-center gap-1">
+                  <Trash2 size={12} /> Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Table */}
-      <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
+      <div className="hidden md:block bg-white rounded-xl border border-neutral-100 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-100 text-left text-neutral-500">

@@ -61,6 +61,18 @@ export default function AdminUsersPage() {
     return <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-600">Active</span>
   }
 
+  const roleBadge = (u) => (
+    <span className={`text-xs px-2 py-0.5 rounded-full ${u.role === 'admin' ? 'bg-purple-50 text-purple-600' : 'bg-neutral-100 text-neutral-500'}`}>
+      {u.role}
+    </span>
+  )
+
+  const tierBadge = (u) => (
+    <span className={`text-xs px-2 py-0.5 rounded-full ${u.membership_tier === 'pro' ? 'bg-amber-50 text-amber-600' : 'bg-neutral-100 text-neutral-500'}`}>
+      {u.membership_tier}
+    </span>
+  )
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-dark-blue">User Management</h1>
@@ -96,58 +108,84 @@ export default function AdminUsersPage() {
 
       <p className="text-sm text-neutral-500">Showing {(page - 1) * limit + 1}-{Math.min(page * limit, total)} of {total} users</p>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-neutral-100 text-left text-neutral-500">
-              <th className="px-4 py-3 font-medium">User</th>
-              <th className="px-4 py-3 font-medium">Role</th>
-              <th className="px-4 py-3 font-medium">Tier</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Joined</th>
-              <th className="px-4 py-3 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(u => (
-              <tr key={u.id} className="border-b border-neutral-50 hover:bg-neutral-50">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar src={u.avatar_url} name={u.name} size="sm" />
-                    <div>
-                      <p className="font-medium text-dark-blue">{u.name}</p>
-                      <p className="text-xs text-neutral-400">{u.email}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${u.role === 'admin' ? 'bg-purple-50 text-purple-600' : 'bg-neutral-100 text-neutral-500'}`}>
-                    {u.role}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${u.membership_tier === 'pro' ? 'bg-amber-50 text-amber-600' : 'bg-neutral-100 text-neutral-500'}`}>
-                    {u.membership_tier}
-                  </span>
-                </td>
-                <td className="px-4 py-3">{statusBadge(u)}</td>
-                <td className="px-4 py-3 text-neutral-500">{new Date(u.created_at).toLocaleDateString()}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Link to={`/admin/users/${u.id}`} className="text-brand-pink hover:underline text-xs font-medium">View</Link>
-                    <button
-                      onClick={() => handleBan(u.id, u.is_banned)}
-                      className={`text-xs font-medium cursor-pointer ${u.is_banned ? 'text-green-600 hover:underline' : 'text-red-500 hover:underline'}`}
-                    >
-                      {u.is_banned ? 'Unban' : 'Ban'}
-                    </button>
-                  </div>
-                </td>
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {users.map(u => (
+          <div key={u.id} className="bg-white rounded-xl border border-neutral-100 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <Avatar src={u.avatar_url} name={u.name} size="sm" />
+                <div className="min-w-0">
+                  <p className="font-medium text-dark-blue truncate">{u.name}</p>
+                  <p className="text-xs text-neutral-400 truncate">{u.email}</p>
+                </div>
+              </div>
+              {statusBadge(u)}
+            </div>
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              {roleBadge(u)}
+              {tierBadge(u)}
+              <span className="text-xs text-neutral-400">Joined {new Date(u.created_at).toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center gap-3 mt-3 pt-3 border-t border-neutral-100">
+              <Link to={`/admin/users/${u.id}`} className="text-brand-pink hover:underline text-xs font-medium">View</Link>
+              <button
+                onClick={() => handleBan(u.id, u.is_banned)}
+                className={`text-xs font-medium cursor-pointer ${u.is_banned ? 'text-green-600 hover:underline' : 'text-red-500 hover:underline'}`}
+              >
+                {u.is_banned ? 'Unban' : 'Ban'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden md:block">
+        <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-neutral-100 text-left text-neutral-500">
+                <th className="px-4 py-3 font-medium">User</th>
+                <th className="px-4 py-3 font-medium">Role</th>
+                <th className="px-4 py-3 font-medium">Tier</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Joined</th>
+                <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users.map(u => (
+                <tr key={u.id} className="border-b border-neutral-50 hover:bg-neutral-50">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar src={u.avatar_url} name={u.name} size="sm" />
+                      <div>
+                        <p className="font-medium text-dark-blue">{u.name}</p>
+                        <p className="text-xs text-neutral-400">{u.email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">{roleBadge(u)}</td>
+                  <td className="px-4 py-3">{tierBadge(u)}</td>
+                  <td className="px-4 py-3">{statusBadge(u)}</td>
+                  <td className="px-4 py-3 text-neutral-500">{new Date(u.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Link to={`/admin/users/${u.id}`} className="text-brand-pink hover:underline text-xs font-medium">View</Link>
+                      <button
+                        onClick={() => handleBan(u.id, u.is_banned)}
+                        className={`text-xs font-medium cursor-pointer ${u.is_banned ? 'text-green-600 hover:underline' : 'text-red-500 hover:underline'}`}
+                      >
+                        {u.is_banned ? 'Unban' : 'Ban'}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Pagination */}

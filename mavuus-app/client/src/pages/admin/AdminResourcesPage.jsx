@@ -12,6 +12,7 @@ const emptyForm = {
   read_time: '',
   url: '',
   thumbnail_url: '',
+  status: 'published',
 }
 
 export default function AdminResourcesPage() {
@@ -23,6 +24,7 @@ export default function AdminResourcesPage() {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
   const limit = 20
 
   const [showModal, setShowModal] = useState(false)
@@ -35,6 +37,7 @@ export default function AdminResourcesPage() {
     if (search) params.set('search', search)
     if (typeFilter) params.set('type', typeFilter)
     if (categoryFilter) params.set('category', categoryFilter)
+    if (statusFilter) params.set('status', statusFilter)
     try {
       const res = await fetch(`/api/admin/resources?${params}`, { headers: { Authorization: `Bearer ${token}` } })
       if (res.ok) {
@@ -56,7 +59,7 @@ export default function AdminResourcesPage() {
   }
 
   useEffect(() => { fetchCategories() }, [token])
-  useEffect(() => { fetchResources() }, [page, typeFilter, categoryFilter, token])
+  useEffect(() => { fetchResources() }, [page, typeFilter, categoryFilter, statusFilter, token])
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -82,6 +85,7 @@ export default function AdminResourcesPage() {
       read_time: resource.read_time || '',
       url: resource.url || '',
       thumbnail_url: resource.thumbnail_url || '',
+      status: resource.status || 'published',
     })
     setShowModal(true)
   }
@@ -138,6 +142,15 @@ export default function AdminResourcesPage() {
     return <span className={`text-xs px-2 py-0.5 rounded-full ${styles[type] || 'bg-neutral-100 text-neutral-500'}`}>{type}</span>
   }
 
+  const statusBadge = (status) => {
+    const styles = {
+      draft: 'bg-amber-50 text-amber-600',
+      published: 'bg-green-50 text-green-600',
+      archived: 'bg-neutral-100 text-neutral-500',
+    }
+    return <span className={`text-xs px-2 py-0.5 rounded-full ${styles[status] || 'bg-neutral-100 text-neutral-500'}`}>{status || 'published'}</span>
+  }
+
   const categoryName = (catId) => {
     const cat = categories.find(c => c.id === catId)
     return cat ? cat.name : '—'
@@ -169,12 +182,50 @@ export default function AdminResourcesPage() {
           <option value="">All Categories</option>
           {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
+        <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1) }} className="text-sm border border-neutral-200 rounded-lg px-3 py-2 bg-white cursor-pointer">
+          <option value="">All Statuses</option>
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+          <option value="archived">Archived</option>
+        </select>
       </div>
 
       <p className="text-sm text-neutral-500">Showing {total === 0 ? 0 : (page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total} resources</p>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
+      {/* Mobile Card Layout */}
+      <div className="md:hidden space-y-3">
+        {resources.map(r => (
+          <div key={r.id} className="bg-white rounded-xl border border-neutral-100 p-4 space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="font-medium text-dark-blue text-sm leading-snug">{r.title}</h3>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={() => openEdit(r)} className="text-neutral-400 hover:text-brand-pink cursor-pointer" title="Edit">
+                  <Edit2 size={15} />
+                </button>
+                <button onClick={() => setDeleteId(r.id)} className="text-neutral-400 hover:text-red-500 cursor-pointer" title="Delete">
+                  <Trash2 size={15} />
+                </button>
+              </div>
+            </div>
+            {r.author && <p className="text-xs text-neutral-500">by {r.author}</p>}
+            <div className="flex flex-wrap items-center gap-2">
+              {typeBadge(r.type)}
+              {statusBadge(r.status)}
+              <span className="text-xs text-neutral-500">{categoryName(r.category_id)}</span>
+            </div>
+            <div className="flex items-center gap-4 text-xs text-neutral-500">
+              {r.read_time && <span>{r.read_time} min read</span>}
+              <span>{r.bookmark_count ?? 0} bookmarks</span>
+            </div>
+          </div>
+        ))}
+        {resources.length === 0 && (
+          <div className="bg-white rounded-xl border border-neutral-100 p-8 text-center text-neutral-400 text-sm">No resources found.</div>
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-white rounded-xl border border-neutral-100 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-100 text-left text-neutral-500">
@@ -184,6 +235,7 @@ export default function AdminResourcesPage() {
               <th className="px-4 py-3 font-medium">Category</th>
               <th className="px-4 py-3 font-medium">Read Time</th>
               <th className="px-4 py-3 font-medium">Bookmarks</th>
+              <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
@@ -196,6 +248,7 @@ export default function AdminResourcesPage() {
                 <td className="px-4 py-3 text-neutral-600">{categoryName(r.category_id)}</td>
                 <td className="px-4 py-3 text-neutral-500">{r.read_time ? `${r.read_time} min` : '—'}</td>
                 <td className="px-4 py-3 text-neutral-500">{r.bookmark_count ?? 0}</td>
+                <td className="px-4 py-3">{statusBadge(r.status)}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <button onClick={() => openEdit(r)} className="text-neutral-400 hover:text-brand-pink cursor-pointer" title="Edit">
@@ -209,7 +262,7 @@ export default function AdminResourcesPage() {
               </tr>
             ))}
             {resources.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-neutral-400">No resources found.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-neutral-400">No resources found.</td></tr>
             )}
           </tbody>
         </table>
@@ -249,7 +302,7 @@ export default function AdminResourcesPage() {
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Content</label>
                 <textarea name="content" value={formData.content} onChange={handleChange} rows={8} className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-pink/30" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1">Author</label>
                   <input name="author" value={formData.author} onChange={handleChange} className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-pink/30" />
@@ -259,7 +312,7 @@ export default function AdminResourcesPage() {
                   <input type="number" name="read_time" value={formData.read_time} onChange={handleChange} className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-pink/30" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1">Type</label>
                   <select name="type" value={formData.type} onChange={handleChange} className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-pink/30">
@@ -273,6 +326,14 @@ export default function AdminResourcesPage() {
                   <select name="category_id" value={formData.category_id} onChange={handleChange} className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-pink/30">
                     <option value="">Select category</option>
                     {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">Status</label>
+                  <select name="status" value={formData.status} onChange={handleChange} className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-pink/30">
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
                   </select>
                 </div>
               </div>

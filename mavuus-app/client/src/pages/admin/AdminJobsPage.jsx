@@ -80,6 +80,17 @@ export default function AdminJobsPage() {
     } catch {}
   }
 
+  const updateJobStatus = async (jobId, status) => {
+    try {
+      await fetch(`/api/admin/jobs/${jobId}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      fetchJobs()
+    } catch {}
+  }
+
   const saveAdminNotes = async () => {
     if (!notesModal) return
     try {
@@ -103,6 +114,55 @@ export default function AdminJobsPage() {
     }
     return <span className={`text-xs px-2 py-0.5 rounded-full ${colors[status] || 'bg-neutral-100 text-neutral-500'}`}>{status}</span>
   }
+
+  const statusBadge = (status) => {
+    const colors = {
+      open: 'bg-green-50 text-green-600',
+      'in-progress': 'bg-blue-50 text-blue-600',
+      completed: 'bg-purple-50 text-purple-600',
+      closed: 'bg-neutral-100 text-neutral-500',
+    }
+    return <span className={`text-xs px-2 py-0.5 rounded-full ${colors[status] || 'bg-neutral-100 text-neutral-500'}`}>{status}</span>
+  }
+
+  const renderActionButtons = (job) => (
+    <div className="flex items-center gap-2 flex-wrap">
+      <button onClick={() => openApplicantsModal(job)} className="text-xs text-brand-pink hover:underline font-medium cursor-pointer flex items-center gap-1">
+        <FileText size={12} /> Applications
+      </button>
+      {job.moderation_status !== 'hidden' && (
+        <button onClick={() => updateModeration(job.id, 'hidden')} className="text-xs text-amber-600 hover:underline cursor-pointer flex items-center gap-1">
+          <EyeOff size={12} /> Hide
+        </button>
+      )}
+      {job.moderation_status === 'hidden' && (
+        <button onClick={() => updateModeration(job.id, 'approved')} className="text-xs text-green-600 hover:underline cursor-pointer flex items-center gap-1">
+          <RotateCcw size={12} /> Restore
+        </button>
+      )}
+      {job.moderation_status !== 'removed' && (
+        <button onClick={() => updateModeration(job.id, 'removed')} className="text-xs text-red-500 hover:underline cursor-pointer flex items-center gap-1">
+          <Trash2 size={12} /> Remove
+        </button>
+      )}
+      <button onClick={() => { setNotesModal(job); setAdminNotes(job.admin_notes || '') }} className="text-xs text-neutral-500 hover:underline cursor-pointer flex items-center gap-1">
+        <StickyNote size={12} /> Notes
+      </button>
+    </div>
+  )
+
+  const renderStatusSelect = (job) => (
+    <select
+      value={job.status || 'open'}
+      onChange={e => updateJobStatus(job.id, e.target.value)}
+      className="text-xs border border-neutral-200 rounded-lg px-2 py-1 cursor-pointer bg-white"
+    >
+      <option value="open">Open</option>
+      <option value="in-progress">In Progress</option>
+      <option value="completed">Completed</option>
+      <option value="closed">Closed</option>
+    </select>
+  )
 
   return (
     <div className="space-y-6">
@@ -137,8 +197,36 @@ export default function AdminJobsPage() {
 
       <p className="text-sm text-neutral-500">Showing {total > 0 ? (page - 1) * limit + 1 : 0}-{Math.min(page * limit, total)} of {total} jobs</p>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
+      {/* Mobile Card Layout */}
+      <div className="md:hidden space-y-3">
+        {jobs.map(job => (
+          <div key={job.id} className="bg-white rounded-xl border border-neutral-100 p-4 space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="font-medium text-dark-blue text-sm truncate">{job.title}</h3>
+                <p className="text-xs text-neutral-500">{job.company}</p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {statusBadge(job.status || 'open')}
+                {moderationBadge(job.moderation_status)}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-500">
+              <span>By {job.posted_by_name}</span>
+              <span>{new Date(job.created_at).toLocaleDateString()}</span>
+              <span>{job.applicant_count || 0} applicants</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-neutral-500">Status:</span>
+              {renderStatusSelect(job)}
+            </div>
+            {renderActionButtons(job)}
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-white rounded-xl border border-neutral-100 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-100 text-left text-neutral-500">
@@ -147,6 +235,7 @@ export default function AdminJobsPage() {
               <th className="px-4 py-3 font-medium">Posted By</th>
               <th className="px-4 py-3 font-medium">Date</th>
               <th className="px-4 py-3 font-medium">Applicants</th>
+              <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Moderation</th>
               <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
@@ -159,31 +248,15 @@ export default function AdminJobsPage() {
                 <td className="px-4 py-3 text-neutral-600">{job.posted_by_name}</td>
                 <td className="px-4 py-3 text-neutral-500">{new Date(job.created_at).toLocaleDateString()}</td>
                 <td className="px-4 py-3 text-neutral-600">{job.applicant_count || 0}</td>
-                <td className="px-4 py-3">{moderationBadge(job.moderation_status)}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <button onClick={() => openApplicantsModal(job)} className="text-xs text-brand-pink hover:underline font-medium cursor-pointer flex items-center gap-1">
-                      <FileText size={12} /> Applications
-                    </button>
-                    {job.moderation_status !== 'hidden' && (
-                      <button onClick={() => updateModeration(job.id, 'hidden')} className="text-xs text-amber-600 hover:underline cursor-pointer flex items-center gap-1">
-                        <EyeOff size={12} /> Hide
-                      </button>
-                    )}
-                    {job.moderation_status === 'hidden' && (
-                      <button onClick={() => updateModeration(job.id, 'approved')} className="text-xs text-green-600 hover:underline cursor-pointer flex items-center gap-1">
-                        <RotateCcw size={12} /> Restore
-                      </button>
-                    )}
-                    {job.moderation_status !== 'removed' && (
-                      <button onClick={() => updateModeration(job.id, 'removed')} className="text-xs text-red-500 hover:underline cursor-pointer flex items-center gap-1">
-                        <Trash2 size={12} /> Remove
-                      </button>
-                    )}
-                    <button onClick={() => { setNotesModal(job); setAdminNotes(job.admin_notes || '') }} className="text-xs text-neutral-500 hover:underline cursor-pointer flex items-center gap-1">
-                      <StickyNote size={12} /> Notes
-                    </button>
+                    {statusBadge(job.status || 'open')}
+                    {renderStatusSelect(job)}
                   </div>
+                </td>
+                <td className="px-4 py-3">{moderationBadge(job.moderation_status)}</td>
+                <td className="px-4 py-3">
+                  {renderActionButtons(job)}
                 </td>
               </tr>
             ))}
@@ -227,11 +300,12 @@ export default function AdminJobsPage() {
                       onChange={e => updateApplicationStatus(app.id, e.target.value)}
                       className="text-xs border border-neutral-200 rounded-lg px-2 py-1 cursor-pointer"
                     >
-                      <option value="pending">Pending</option>
-                      <option value="reviewed">Reviewed</option>
-                      <option value="shortlisted">Shortlisted</option>
+                      <option value="applied">Applied</option>
+                      <option value="reviewing">Reviewing</option>
+                      <option value="interview">Interview</option>
+                      <option value="offer">Offer</option>
                       <option value="rejected">Rejected</option>
-                      <option value="hired">Hired</option>
+                      <option value="withdrawn">Withdrawn</option>
                     </select>
                     {app.resume_url && (
                       <a href={app.resume_url} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-pink hover:underline flex items-center gap-1">

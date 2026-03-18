@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { Search, ChevronLeft, ChevronRight, Trash2, Star, X } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, Trash2, Star, X, Shield, ShieldAlert, EyeOff, CheckCircle } from 'lucide-react'
 
 export default function AdminReviewsPage() {
   const { token } = useAuth()
@@ -9,6 +9,7 @@ export default function AdminReviewsPage() {
   const [page, setPage] = useState(1)
   const [ratingFilter, setRatingFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
+  const [moderationFilter, setModerationFilter] = useState('')
   const limit = 20
 
   const [deleteConfirm, setDeleteConfirm] = useState(null)
@@ -17,6 +18,7 @@ export default function AdminReviewsPage() {
     const params = new URLSearchParams({ page, limit })
     if (ratingFilter) params.set('rating', ratingFilter)
     if (typeFilter) params.set('type', typeFilter)
+    if (moderationFilter) params.set('moderation_status', moderationFilter)
     try {
       const res = await fetch(`/api/admin/reviews?${params}`, { headers: { Authorization: `Bearer ${token}` } })
       if (res.ok) {
@@ -27,7 +29,7 @@ export default function AdminReviewsPage() {
     } catch {}
   }
 
-  useEffect(() => { fetchReviews() }, [page, ratingFilter, typeFilter, token])
+  useEffect(() => { fetchReviews() }, [page, ratingFilter, typeFilter, moderationFilter, token])
 
   const handleDelete = async (id) => {
     try {
@@ -40,6 +42,20 @@ export default function AdminReviewsPage() {
     } catch {}
   }
 
+  const updateModeration = async (id, moderation_status) => {
+    try {
+      await fetch(`/api/admin/reviews/${id}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ moderation_status }),
+      })
+      fetchReviews()
+    } catch {}
+  }
+
   const totalPages = Math.ceil(total / limit)
 
   const typeBadge = (review) => {
@@ -48,6 +64,43 @@ export default function AdminReviewsPage() {
       <span className={`text-xs px-2 py-0.5 rounded-full ${isVendor ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'}`}>
         {isVendor ? 'Vendor' : 'Job'}
       </span>
+    )
+  }
+
+  const moderationBadge = (status) => {
+    const config = {
+      approved: { bg: 'bg-green-50', text: 'text-green-600', label: 'Approved' },
+      flagged: { bg: 'bg-amber-50', text: 'text-amber-600', label: 'Flagged' },
+      hidden: { bg: 'bg-red-50', text: 'text-red-600', label: 'Hidden' },
+    }
+    const c = config[status] || config.approved
+    return (
+      <span className={`text-xs px-2 py-0.5 rounded-full ${c.bg} ${c.text}`}>
+        {c.label}
+      </span>
+    )
+  }
+
+  const moderationActions = (review) => {
+    const status = review.moderation_status || 'approved'
+    return (
+      <div className="flex items-center gap-1 flex-wrap">
+        {status !== 'approved' && (
+          <button onClick={() => updateModeration(review.id, 'approved')} className="text-xs text-green-600 hover:underline cursor-pointer flex items-center gap-0.5" title="Approve">
+            <CheckCircle size={12} /> Approve
+          </button>
+        )}
+        {status !== 'flagged' && (
+          <button onClick={() => updateModeration(review.id, 'flagged')} className="text-xs text-amber-600 hover:underline cursor-pointer flex items-center gap-0.5" title="Flag">
+            <ShieldAlert size={12} /> Flag
+          </button>
+        )}
+        {status !== 'hidden' && (
+          <button onClick={() => updateModeration(review.id, 'hidden')} className="text-xs text-red-500 hover:underline cursor-pointer flex items-center gap-0.5" title="Hide">
+            <EyeOff size={12} /> Hide
+          </button>
+        )}
+      </div>
     )
   }
 
@@ -78,12 +131,58 @@ export default function AdminReviewsPage() {
           <option value="vendor">Vendor</option>
           <option value="job">Job</option>
         </select>
+        <select value={moderationFilter} onChange={e => { setModerationFilter(e.target.value); setPage(1) }} className="text-sm border border-neutral-200 rounded-lg px-3 py-2 bg-white cursor-pointer">
+          <option value="">All Moderation</option>
+          <option value="approved">Approved</option>
+          <option value="flagged">Flagged</option>
+          <option value="hidden">Hidden</option>
+        </select>
       </div>
 
       <p className="text-sm text-neutral-500">Showing {total > 0 ? (page - 1) * limit + 1 : 0}-{Math.min(page * limit, total)} of {total} reviews</p>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-neutral-100 overflow-x-auto">
+      {/* Mobile Card Layout */}
+      <div className="md:hidden space-y-3">
+        {reviews.map(review => (
+          <div key={review.id} className="bg-white rounded-xl border border-neutral-100 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {typeBadge(review)}
+                {moderationBadge(review.moderation_status || 'approved')}
+              </div>
+              <span className="text-xs text-neutral-400">{new Date(review.created_at).toLocaleDateString()}</span>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-sm text-neutral-700">
+                <span className="text-neutral-400">Reviewer:</span> {review.reviewer_name}
+              </p>
+              <p className="text-sm text-neutral-700">
+                <span className="text-neutral-400">Reviewee:</span> {review.reviewee_name}
+              </p>
+              <p className="text-sm text-neutral-700">
+                <span className="text-neutral-400">{review.vendor_id ? 'Vendor:' : 'Job:'}</span> {review.vendor_name || review.job_title || '-'}
+              </p>
+            </div>
+
+            <div>{renderStars(review.rating)}</div>
+
+            {review.text && (
+              <p className="text-sm text-neutral-600 line-clamp-3">{review.text}</p>
+            )}
+
+            <div className="flex items-center justify-between pt-2 border-t border-neutral-100">
+              {moderationActions(review)}
+              <button onClick={() => setDeleteConfirm(review)} className="text-xs text-red-500 hover:underline cursor-pointer flex items-center gap-1">
+                <Trash2 size={12} /> Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-white rounded-xl border border-neutral-100 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-100 text-left text-neutral-500">
@@ -94,6 +193,7 @@ export default function AdminReviewsPage() {
               <th className="px-4 py-3 font-medium">Rating</th>
               <th className="px-4 py-3 font-medium">Review</th>
               <th className="px-4 py-3 font-medium">Date</th>
+              <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
@@ -109,10 +209,14 @@ export default function AdminReviewsPage() {
                   {review.text?.length > 80 ? review.text.slice(0, 80) + '...' : review.text}
                 </td>
                 <td className="px-4 py-3 text-neutral-500">{new Date(review.created_at).toLocaleDateString()}</td>
+                <td className="px-4 py-3">{moderationBadge(review.moderation_status || 'approved')}</td>
                 <td className="px-4 py-3">
-                  <button onClick={() => setDeleteConfirm(review)} className="text-xs text-red-500 hover:underline cursor-pointer flex items-center gap-1">
-                    <Trash2 size={12} /> Delete
-                  </button>
+                  <div className="space-y-1">
+                    {moderationActions(review)}
+                    <button onClick={() => setDeleteConfirm(review)} className="text-xs text-red-500 hover:underline cursor-pointer flex items-center gap-1">
+                      <Trash2 size={12} /> Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

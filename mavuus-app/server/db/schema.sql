@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   duration TEXT,
   video_url TEXT,
   views INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'published' CHECK(status IN ('draft', 'published', 'archived')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -51,6 +52,7 @@ CREATE TABLE IF NOT EXISTS resources (
   type TEXT CHECK(type IN ('article', 'guide', 'template')),
   read_time TEXT,
   url TEXT,
+  status TEXT DEFAULT 'published' CHECK(status IN ('draft', 'published', 'archived')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -119,6 +121,7 @@ CREATE TABLE IF NOT EXISTS reviews (
   job_id INTEGER REFERENCES jobs(id),
   rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
   text TEXT,
+  moderation_status TEXT DEFAULT 'approved' CHECK(moderation_status IN ('approved', 'flagged', 'hidden')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(reviewer_id, reviewee_id, job_id)
 );
