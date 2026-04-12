@@ -15,6 +15,7 @@ import ResourcesHubPage from './pages/public/ResourcesHubPage'
 import ArticlesPage from './pages/public/ArticlesPage'
 import EventsPage from './pages/public/EventsPage'
 import BlogDetailPage from './pages/public/BlogDetailPage'
+import EventConfirmationPage from './pages/public/EventConfirmationPage'
 
 // Auth Pages (eager — fast login)
 import LoginPage from './pages/auth/LoginPage'
@@ -61,6 +62,7 @@ export default function App() {
           <Route path="/articles" element={<ArticlesPage />} />
           <Route path="/articles/:id" element={<BlogDetailPage />} />
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/events/:id/confirmation" element={<EventConfirmationPage />} />
           <Route path="/blog/:id" element={<BlogDetailPage />} />
         </Route>
 
