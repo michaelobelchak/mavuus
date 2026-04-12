@@ -31,8 +31,12 @@ export default function AcademyPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-dark-blue mb-1">Academy</h1>
-        <p className="text-neutral-500">Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''}! Here&apos;s what&apos;s happening in the community.</p>
+        <h1 className="text-[28px] md:text-[32px] font-semibold text-dark-blue leading-tight mb-1">
+          Mavuus academy
+        </h1>
+        <p className="text-neutral-500">
+          Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''} — here&apos;s what&apos;s new in the community.
+        </p>
       </div>
 
       {/* Filter Tabs */}

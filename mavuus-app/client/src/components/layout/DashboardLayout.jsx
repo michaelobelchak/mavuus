@@ -158,9 +158,19 @@ export default function DashboardLayout() {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Messages shortcut */}
+            <Link
+              to="/dashboard/messages"
+              aria-label="Messages"
+              className="text-neutral-500 hover:text-dark-blue transition-colors cursor-pointer"
+            >
+              <MessageCircle size={20} />
+            </Link>
+
             {/* Notifications Bell */}
             <button
               onClick={() => setNotifOpen(true)}
+              aria-label="Notifications"
               className="relative text-neutral-500 hover:text-dark-blue transition-colors cursor-pointer"
             >
               <Bell size={20} />
@@ -171,6 +181,46 @@ export default function DashboardLayout() {
               )}
             </button>
 
+            {/* User menu */}
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setUserMenuOpen((v) => !v)}
+                aria-label="Account menu"
+                className="flex items-center gap-2 pl-2 cursor-pointer"
+              >
+                <Avatar name={user?.name} src={user?.avatar_url} size="sm" />
+                <ChevronDown size={14} className="text-neutral-400 hidden sm:block" />
+              </button>
+
+              {userMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-neutral-100 shadow-lg py-1 z-40">
+                  <div className="px-4 py-3 border-b border-neutral-100">
+                    <p className="text-sm font-semibold text-dark-blue truncate">{user?.name}</p>
+                    <p className="text-xs text-neutral-500 truncate">{user?.email}</p>
+                  </div>
+                  <Link
+                    to="/dashboard/profile"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 transition-colors"
+                  >
+                    <User size={16} /> Profile
+                  </Link>
+                  <Link
+                    to="/dashboard/profile?tab=account"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 transition-colors"
+                  >
+                    <Settings size={16} /> Settings
+                  </Link>
+                  <button
+                    onClick={() => { setUserMenuOpen(false); handleLogout() }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 transition-colors cursor-pointer"
+                  >
+                    <LogOut size={16} /> Log out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
