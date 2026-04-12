@@ -35,6 +35,40 @@ export default function VendorDetailPage() {
   const [reviewRating, setReviewRating] = useState(0)
   const [reviewText, setReviewText] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
+  const [contactingVendor, setContactingVendor] = useState(false)
+
+  const handleContactVendor = async () => {
+    if (contactingVendor) return
+    if (!vendor?.user_id) {
+      toast.error('This vendor is not set up for direct messaging yet.')
+      return
+    }
+    if (vendor.user_id === user.id) {
+      toast.error('You can\'t message yourself.')
+      return
+    }
+    setContactingVendor(true)
+    try {
+      const res = await fetch('/api/messages/conversations', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: vendor.user_id,
+          message: `Hi ${vendor.company_name} — I'd like to connect about your services.`,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || 'Could not start conversation.')
+        return
+      }
+      navigate(`/dashboard/messages?conversation=${data.conversationId}`)
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setContactingVendor(false)
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -51,7 +85,7 @@ export default function VendorDetailPage() {
           if (jobsRes.ok) {
             const allJobs = await jobsRes.json()
             setJobs(allJobs.filter(j =>
-              j.company.toLowerCase() === v.company_name.toLowerCase()
+              v.user_id && j.posted_by === v.user_id
             ))
           }
         }
@@ -247,8 +281,12 @@ export default function VendorDetailPage() {
         <div className="w-full lg:w-72 space-y-4">
           {/* Contact card */}
           <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-            <Button className="w-full mb-3">
-              <MessageCircle size={16} /> Contact Vendor
+            <Button
+              className="w-full mb-3"
+              onClick={handleContactVendor}
+              disabled={contactingVendor || !vendor.user_id}
+            >
+              <MessageCircle size={16} /> {contactingVendor ? 'Connecting…' : 'Contact Vendor'}
             </Button>
             {vendor.website && (
               <a

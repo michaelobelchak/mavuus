@@ -27,10 +27,15 @@ export default function SessionDetailPage() {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const res = await fetch(`/api/sessions/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.ok) setSession(await res.json())
+        const [sRes, rRes] = await Promise.all([
+          fetch(`/api/sessions/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`/api/sessions/${id}/registration-status`, { headers: { Authorization: `Bearer ${token}` } }),
+        ])
+        if (sRes.ok) setSession(await sRes.json())
+        if (rRes.ok) {
+          const data = await rRes.json()
+          setRegistered(!!data.registered)
+        }
       } catch {
         // Network error
       } finally {
@@ -40,14 +45,28 @@ export default function SessionDetailPage() {
     fetchSession()
   }, [id, token])
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
+    if (registering) return
     setRegistering(true)
-    // Simulate registration (no backend table needed for demo)
-    setTimeout(() => {
+    try {
+      const res = await fetch(`/api/sessions/${id}/register`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || 'Could not register for this session.')
+        return
+      }
       setRegistered(true)
+      toast.success(data.alreadyRegistered
+        ? 'You were already registered for this session.'
+        : 'You\'re registered! We\'ll send you a reminder before the session.')
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
       setRegistering(false)
-      toast.success('You\'re registered! We\'ll send you a reminder before the session.')
-    }, 600)
+    }
   }
 
   if (loading) {

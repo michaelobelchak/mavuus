@@ -5,14 +5,42 @@ import TestimonialRow from '../../components/sections/TestimonialRow'
 import CTABannerQuote from '../../components/sections/CTABannerQuote'
 import FAQSection from '../../components/sections/FAQSection'
 import AnimatedSection from '../../components/ui/AnimatedSection'
+import { useToast } from '../../components/ui/Toast'
 
 export default function ContactPage() {
+  const toast = useToast()
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' })
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitted(true)
+    if (submitting) return
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          message: formData.phone
+            ? `${formData.message}\n\nPhone: ${formData.phone}`
+            : formData.message,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || 'Could not send message. Please try again.')
+        return
+      }
+      setSubmitted(true)
+      toast.success('Message sent — we\'ll get back to you shortly.')
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleChange = (field) => (e) => {
@@ -130,9 +158,10 @@ export default function ContactPage() {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="bg-brand-pink text-white font-bold text-base px-8 py-4 rounded-[16px] shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:bg-brand-pink-hover transition-all duration-300 btn-press whitespace-nowrap flex-shrink-0"
+                  disabled={submitting}
+                  className="bg-brand-pink text-white font-bold text-base px-8 py-4 rounded-[16px] shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:bg-brand-pink-hover transition-all duration-300 btn-press whitespace-nowrap flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Send Request
+                  {submitting ? 'Sending…' : 'Send Request'}
                 </button>
               </div>
             </form>

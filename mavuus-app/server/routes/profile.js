@@ -7,6 +7,7 @@ import { authenticateToken } from '../middleware/auth.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const uploadsDir = join(__dirname, '..', 'uploads', 'resumes')
+const avatarsDir = join(__dirname, '..', 'uploads', 'avatars')
 
 const resumeStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
@@ -24,6 +25,28 @@ const resumeUpload = multer({
       cb(null, true)
     } else {
       cb(new Error('Only PDF files are allowed'))
+    }
+  },
+})
+
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, avatarsDir),
+  filename: (req, file, cb) => {
+    const ext = extname(file.originalname)
+    cb(null, `avatar-${req.user.id}-${Date.now()}${ext}`)
+  },
+})
+
+const AVATAR_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: (req, file, cb) => {
+    if (AVATAR_MIMES.has(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only JPEG, PNG, WebP, or GIF images are allowed'))
     }
   },
 })
@@ -178,6 +201,33 @@ router.post('/me/resume', (req, res) => {
     `).run(req.user.id, req.file.originalname, resumeUrl)
 
     res.json({ success: true, filename: req.file.originalname, url: resumeUrl })
+  })
+})
+
+// Avatar upload
+router.post('/me/avatar', (req, res) => {
+  avatarUpload.single('avatar')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message || 'Upload failed' })
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' })
+    }
+
+    const db = req.app.locals.db
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`
+
+    const existing = db.prepare('SELECT avatar_url FROM users WHERE id = ?').get(req.user.id)
+    if (existing?.avatar_url && existing.avatar_url.startsWith('/uploads/avatars/')) {
+      const oldPath = join(__dirname, '..', existing.avatar_url)
+      if (existsSync(oldPath)) {
+        try { unlinkSync(oldPath) } catch { /* ignore */ }
+      }
+    }
+
+    db.prepare('UPDATE users SET avatar_url = ? WHERE id = ?').run(avatarUrl, req.user.id)
+
+    res.json({ success: true, avatar_url: avatarUrl })
   })
 })
 

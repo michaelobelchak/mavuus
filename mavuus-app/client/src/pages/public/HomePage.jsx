@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { CircleCheck, ArrowRight, Play, Briefcase, GraduationCap } from 'lucide-react'
 import { scrollLeaders, pricingFeatures, brandLogos } from '../../data/mockData'
 import InfiniteLeaderScroll from '../../components/sections/InfiniteLeaderScroll'
@@ -8,7 +8,32 @@ import CTABannerQuote from '../../components/sections/CTABannerQuote'
 import AnimatedSection from '../../components/ui/AnimatedSection'
 
 export default function HomePage() {
+  const navigate = useNavigate()
   const [heroTab, setHeroTab] = useState('marketers')
+  const [heroEmail, setHeroEmail] = useState('')
+  const [heroSubmitting, setHeroSubmitting] = useState(false)
+
+  const handleJoinWaitlist = async (e) => {
+    e?.preventDefault?.()
+    const email = heroEmail.trim()
+    if (!email) {
+      navigate('/register')
+      return
+    }
+    setHeroSubmitting(true)
+    try {
+      await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+    } catch {
+      // non-blocking — still proceed to register
+    } finally {
+      setHeroSubmitting(false)
+      navigate(`/register?email=${encodeURIComponent(email)}`)
+    }
+  }
 
   return (
     <div>
@@ -58,21 +83,24 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-[520px]">
+          <form onSubmit={handleJoinWaitlist} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-[520px]">
             <div className="flex-1 relative">
               <input
                 type="email"
+                value={heroEmail}
+                onChange={(e) => setHeroEmail(e.target.value)}
                 placeholder="Enter your Email"
                 className="w-full bg-white border border-neutral-300 rounded-full pl-5 pr-4 py-3.5 text-sm outline-none focus:border-brand-pink transition-colors"
               />
             </div>
-            <Link
-              to="/register"
-              className="bg-brand-pink text-white font-bold text-sm px-6 py-3.5 rounded-full hover:bg-brand-pink-hover transition-all duration-300 btn-press shadow-lg shadow-brand-pink/25 whitespace-nowrap text-center"
+            <button
+              type="submit"
+              disabled={heroSubmitting}
+              className="bg-brand-pink text-white font-bold text-sm px-6 py-3.5 rounded-full hover:bg-brand-pink-hover transition-all duration-300 btn-press shadow-lg shadow-brand-pink/25 whitespace-nowrap text-center disabled:opacity-60 cursor-pointer"
             >
-              Join the Waitlist
-            </Link>
-          </div>
+              {heroSubmitting ? 'Joining…' : 'Join the Waitlist'}
+            </button>
+          </form>
 
           {/* Avatar stack */}
           <div className="flex items-center gap-3 mt-5">

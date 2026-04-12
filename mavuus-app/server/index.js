@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit'
 import Database from 'better-sqlite3'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
-import { mkdirSync } from 'fs'
+import { mkdirSync, readFileSync } from 'fs'
 
 import authRoutes from './routes/auth.js'
 import sessionsRoutes from './routes/sessions.js'
@@ -18,6 +18,8 @@ import messagesRoutes from './routes/messages.js'
 import notificationsRoutes from './routes/notifications.js'
 import reviewsRoutes from './routes/reviews.js'
 import recommendationsRoutes from './routes/recommendations.js'
+import contactRoutes from './routes/contact.js'
+import waitlistRoutes from './routes/waitlist.js'
 import { sanitizeBody } from './middleware/sanitize.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -31,6 +33,10 @@ mkdirSync(join(__dirname, 'uploads', 'resumes'), { recursive: true })
 // Database
 const db = new Database(join(__dirname, 'db', 'mavuus.db'))
 db.pragma('journal_mode = WAL')
+
+// Ensure schema is applied (idempotent — uses CREATE TABLE IF NOT EXISTS)
+const schemaSQL = readFileSync(join(__dirname, 'db', 'schema.sql'), 'utf-8')
+db.exec(schemaSQL)
 
 // Make db available to routes
 app.locals.db = db
@@ -85,6 +91,8 @@ app.use('/api/messages', messagesRoutes)
 app.use('/api/notifications', notificationsRoutes)
 app.use('/api/reviews', reviewsRoutes)
 app.use('/api/recommendations', recommendationsRoutes)
+app.use('/api/contact', contactRoutes)
+app.use('/api/waitlist', waitlistRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {

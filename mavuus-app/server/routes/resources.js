@@ -3,7 +3,7 @@ import { Router } from 'express'
 const router = Router()
 
 router.get('/', (req, res) => {
-  const { category, type } = req.query
+  const { category, type, limit, exclude } = req.query
   const db = req.app.locals.db
 
   let query = 'SELECT * FROM resources'
@@ -18,12 +18,22 @@ router.get('/', (req, res) => {
     conditions.push('type = ?')
     params.push(type)
   }
+  if (exclude) {
+    conditions.push('id != ?')
+    params.push(Number(exclude))
+  }
 
   if (conditions.length) {
     query += ' WHERE ' + conditions.join(' AND ')
   }
 
   query += ' ORDER BY created_at DESC'
+
+  const limNum = Math.max(0, Math.min(100, Number(limit) || 0))
+  if (limNum > 0) {
+    query += ' LIMIT ?'
+    params.push(limNum)
+  }
 
   const resources = db.prepare(query).all(...params)
   res.json(resources)

@@ -1,16 +1,24 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { JWT_SECRET } from '../middleware/auth.js'
+import { JWT_SECRET, authenticateToken } from '../middleware/auth.js'
 
 const router = Router()
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 // Register
 router.post('/register', (req, res) => {
   const { email, password, name, title, company } = req.body
 
-  if (!email || !password || !name) {
-    return res.status(400).json({ error: 'Email, password, and name are required' })
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Name is required' })
+  }
+  if (!email || !EMAIL_RE.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' })
+  }
+  if (!password || password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' })
   }
 
   const db = req.app.locals.db
@@ -42,11 +50,11 @@ router.post('/login', (req, res) => {
 
   const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email)
   if (!user) {
-    return res.status(401).json({ error: 'Invalid credentials' })
+    return res.status(401).json({ error: 'Invalid email or password' })
   }
 
   if (!bcrypt.compareSync(password, user.password_hash)) {
-    return res.status(401).json({ error: 'Invalid credentials' })
+    return res.status(401).json({ error: 'Invalid email or password' })
   }
 
   const token = jwt.sign(
@@ -67,6 +75,32 @@ router.post('/login', (req, res) => {
       membership_tier: user.membership_tier,
     },
   })
+})
+
+// Change password (auth required)
+router.put('/change-password', authenticateToken, (req, res) => {
+  const { currentPassword, newPassword } = req.body || {}
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Current and new password are required' })
+  }
+  if (newPassword.length < 8) {
+    return res.status(400).json({ error: 'New password must be at least 8 characters' })
+  }
+
+  const db = req.app.locals.db
+  const user = db.prepare('SELECT id, password_hash FROM users WHERE id = ?').get(req.user.id)
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' })
+  }
+  if (!bcrypt.compareSync(currentPassword, user.password_hash)) {
+    return res.status(401).json({ error: 'Current password is incorrect' })
+  }
+
+  const newHash = bcrypt.hashSync(newPassword, 10)
+  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, user.id)
+
+  res.json({ success: true })
 })
 
 export default router

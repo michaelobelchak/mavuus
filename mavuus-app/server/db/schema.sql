@@ -219,3 +219,28 @@ CREATE TABLE IF NOT EXISTS notifications (
   is_read INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Contact form submissions
+CREATE TABLE IF NOT EXISTS contact_submissions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  message TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Session registrations
+CREATE TABLE IF NOT EXISTS session_registrations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id INTEGER NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  registered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(session_id, user_id)
+);
+
+-- Waitlist (marketing signups)
+CREATE TABLE IF NOT EXISTS waitlist (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL UNIQUE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

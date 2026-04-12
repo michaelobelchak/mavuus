@@ -91,16 +91,20 @@ export default function MessagesPage() {
     init()
   }, [token])
 
-  // Poll conversations every 10s
+  // Poll conversations every 10s — paused when tab is hidden
   useEffect(() => {
-    const interval = setInterval(fetchConversations, 10000)
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchConversations()
+    }, 10000)
     return () => clearInterval(interval)
   }, [fetchConversations])
 
-  // Poll messages every 5s when conversation is active
+  // Poll messages every 5s when conversation is active — paused when tab is hidden
   useEffect(() => {
     if (!selectedConv) return
-    const interval = setInterval(() => fetchMessages(selectedConv.id), 5000)
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchMessages(selectedConv.id)
+    }, 5000)
     return () => clearInterval(interval)
   }, [selectedConv, fetchMessages])
 

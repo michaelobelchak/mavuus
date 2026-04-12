@@ -75,7 +75,7 @@ export default function VendorsPage() {
             <Card hover>
               <div className="flex items-start gap-3 mb-3">
                 <div className="w-10 h-10 bg-brand-blue/10 rounded-xl flex items-center justify-center flex-shrink-0 text-brand-blue font-bold text-sm">
-                  {vendor.company_name ? vendor.company_name.slice(0, 2).toUpperCase() : '??'}
+                  {(vendor.company_name || 'Mv').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || 'MV'}
                 </div>
                 <div className="flex-1 flex items-start justify-between">
                 <h3 className="text-base font-semibold text-dark-blue">{vendor.company_name}</h3>

@@ -42,7 +42,7 @@ const VISIBILITY_OPTIONS = [
 ]
 
 export default function ProfilePage() {
-  const { user, token } = useAuth()
+  const { user, token, updateUser } = useAuth()
   const toast = useToast()
   const [searchParams] = useSearchParams()
 
@@ -77,6 +77,12 @@ export default function ProfilePage() {
 
   // Resume upload
   const [uploadingResume, setUploadingResume] = useState(false)
+
+  // Avatar upload
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+
+  // Password change
+  const [changingPassword, setChangingPassword] = useState(false)
 
   const authHeaders = {
     Authorization: `Bearer ${token}`,
@@ -285,6 +291,83 @@ export default function ProfilePage() {
     }
   }
 
+  // ─── Avatar upload ──────────────────────────────────────────
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      toast.error('Please upload a JPEG, PNG, WebP, or GIF image')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image must be under 2MB')
+      return
+    }
+    setUploadingAvatar(true)
+    try {
+      const formData = new FormData()
+      formData.append('avatar', file)
+      const res = await fetch('/api/profile/me/avatar', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok) {
+        setProfile((prev) => ({ ...prev, avatar_url: data.avatar_url }))
+        updateUser({ avatar_url: data.avatar_url })
+        toast.success('Photo updated!')
+      } else {
+        toast.error(data.error || 'Upload failed')
+      }
+    } catch {
+      toast.error('Upload failed')
+    } finally {
+      setUploadingAvatar(false)
+      e.target.value = ''
+    }
+  }
+
+  // ─── Password change ────────────────────────────────────────
+
+  const handleChangePassword = async () => {
+    if (!passwordForm.current || !passwordForm.new || !passwordForm.confirm) {
+      toast.error('All password fields are required')
+      return
+    }
+    if (passwordForm.new.length < 8) {
+      toast.error('New password must be at least 8 characters')
+      return
+    }
+    if (passwordForm.new !== passwordForm.confirm) {
+      toast.error('New passwords don\'t match')
+      return
+    }
+    setChangingPassword(true)
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'PUT',
+        headers: authHeaders,
+        body: JSON.stringify({
+          currentPassword: passwordForm.current,
+          newPassword: passwordForm.new,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok) {
+        toast.success('Password updated')
+        setPasswordForm({ current: '', new: '', confirm: '' })
+      } else {
+        toast.error(data.error || 'Failed to update password')
+      }
+    } catch {
+      toast.error('Network error')
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
   const handleDeleteResume = async () => {
     try {
       const res = await fetch('/api/profile/me/resume', {
@@ -390,12 +473,23 @@ export default function ProfilePage() {
         <div className="flex flex-col sm:flex-row items-start gap-6">
           <div className="relative group">
             <Avatar name={profile.name} src={profile.avatar_url} size="xl" />
-            <button
-              onClick={() => toast.info('Photo upload coming soon')}
+            <label
               className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+              title="Upload new photo"
             >
-              <Upload size={20} className="text-white" />
-            </button>
+              {uploadingAvatar ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Upload size={20} className="text-white" />
+              )}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleAvatarUpload}
+                disabled={uploadingAvatar}
+              />
+            </label>
           </div>
 
           <div className="flex-1 min-w-0">
@@ -678,8 +772,8 @@ export default function ProfilePage() {
                   value={passwordForm.confirm}
                   onChange={(e) => setPasswordForm((p) => ({ ...p, confirm: e.target.value }))}
                 />
-                <Button size="sm" onClick={() => toast.info('Password change coming soon')}>
-                  Update Password
+                <Button size="sm" onClick={handleChangePassword} disabled={changingPassword}>
+                  {changingPassword ? 'Updating…' : 'Update Password'}
                 </Button>
               </div>
             </div>

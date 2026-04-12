@@ -74,13 +74,17 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  function updateUser(patch) {
+    setUser((prev) => (prev ? { ...prev, ...patch } : prev))
+  }
+
   // Demo login — call real API so we get a valid JWT
   async function demoLogin() {
     return login('demo@mavuus.com', 'demo123')
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, demoLogin, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, demoLogin, updateUser, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   )

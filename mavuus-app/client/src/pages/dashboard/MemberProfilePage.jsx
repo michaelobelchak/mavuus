@@ -44,7 +44,7 @@ export default function MemberProfilePage() {
 
   // Redirect to own profile
   useEffect(() => {
-    if (user && parseInt(id) === user.id) {
+    if (user && String(id) === String(user.id)) {
       navigate('/dashboard/profile', { replace: true })
     }
   }, [id, user, navigate])

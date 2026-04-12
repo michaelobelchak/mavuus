@@ -59,8 +59,9 @@ export default function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/resources" element={<ResourcesHubPage />} />
           <Route path="/articles" element={<ArticlesPage />} />
+          <Route path="/articles/:id" element={<BlogDetailPage />} />
           <Route path="/events" element={<EventsPage />} />
-          <Route path="/blog/:slug" element={<BlogDetailPage />} />
+          <Route path="/blog/:id" element={<BlogDetailPage />} />
         </Route>
 
         {/* Auth Pages (no layout wrapper) */}
