@@ -5,6 +5,7 @@ import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import DetailPageHeader from '../../components/ui/DetailPageHeader'
 import ShareModal from '../../components/ui/ShareModal'
+import ScrollProgress from '../../components/ui/ScrollProgress'
 import {
   Clock,
   User,
@@ -130,6 +131,7 @@ export default function ResourceDetailPage() {
 
   return (
     <div className="max-w-6xl">
+      <ScrollProgress />
       <DetailPageHeader onShare={() => setShareOpen(true)} />
 
       {/* Hero image */}

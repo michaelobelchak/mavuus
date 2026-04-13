@@ -116,6 +116,37 @@
   to { width: 0%; }
 }
 
+/* ========== ACCESSIBILITY ========== */
+
+/* Skip-to-main link — visible on Tab focus, hidden otherwise */
+.skip-to-main {
+  position: fixed;
+  top: -100px;
+  left: 16px;
+  z-index: 250;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--color-dark-blue);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  transition: top 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.skip-to-main:focus {
+  top: 16px;
+  outline: 2px solid var(--color-brand-pink);
+  outline-offset: 2px;
+}
+
+/* Global focus-visible ring — brand pink at 30% opacity, 2px */
+:where(button, a, [role='button'], [tabindex]):focus-visible {
+  outline: 2px solid var(--color-brand-pink);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 /* Base styles */
 body {
   font-family: var(--font-body);

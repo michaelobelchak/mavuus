@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Breadcrumbs from '../../components/ui/Breadcrumbs'
 import AnimatedSection from '../../components/ui/AnimatedSection'
+import ScrollProgress from '../../components/ui/ScrollProgress'
 import { Clock, ArrowLeft, ArrowRight } from 'lucide-react'
 
 function formatDate(dateStr) {
@@ -113,6 +114,7 @@ export default function BlogDetailPage() {
 
   return (
     <div>
+      <ScrollProgress />
       <section className="px-6 md:px-12 lg:px-[104px] pt-[74px] pb-6">
         <AnimatedSection animation="fade-up">
           <Breadcrumbs

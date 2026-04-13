@@ -6,7 +6,7 @@ export default function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
       <PublicHeader />
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <PageTransition />
       </main>
       <Footer />
