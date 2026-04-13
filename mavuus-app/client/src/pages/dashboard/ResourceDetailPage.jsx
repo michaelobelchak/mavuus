@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
+import DetailPageHeader from '../../components/ui/DetailPageHeader'
+import ShareModal from '../../components/ui/ShareModal'
 import {
-  ArrowLeft,
   Clock,
   User,
   Download,
@@ -17,6 +18,7 @@ export default function ResourceDetailPage() {
   const navigate = useNavigate()
   const [resource, setResource] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [shareOpen, setShareOpen] = useState(false)
 
   useEffect(() => {
     const fetchResource = async () => {
@@ -128,13 +130,7 @@ export default function ResourceDetailPage() {
 
   return (
     <div className="max-w-6xl">
-      {/* Back link */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-sm text-neutral-500 hover:text-dark-blue mb-4 cursor-pointer"
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+      <DetailPageHeader onShare={() => setShareOpen(true)} />
 
       {/* Hero image */}
       {resource.thumbnail_url && (
@@ -233,6 +229,13 @@ export default function ResourceDetailPage() {
           </div>
         </div>
       </div>
+
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={`Share ${resource.title}`}
+        shareTitle={resource.title}
+      />
     </div>
   )
 }

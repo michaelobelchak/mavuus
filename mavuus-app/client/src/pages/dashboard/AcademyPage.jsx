@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import HoverCard from '../../components/ui/HoverCard'
 import StatusDot from '../../components/ui/StatusDot'
+import LazyImage from '../../components/ui/LazyImage'
 import Avatar from '../../components/ui/Avatar'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -76,13 +77,17 @@ export default function AcademyPage() {
                 <Link key={session.id} to={`/dashboard/live-sessions/${session.id}`}>
                   <HoverCard className="h-full">
                     <div className="relative h-36 rounded-xl mb-4 overflow-hidden">
-                      {session.thumbnail_url ? (
-                        <img src={session.thumbnail_url} alt={session.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 flex items-center justify-center">
-                          <Calendar size={32} className="text-brand-blue/40" />
-                        </div>
-                      )}
+                      <LazyImage
+                        src={session.thumbnail_url}
+                        alt={session.title}
+                        className="absolute inset-0"
+                        imgClassName="transition-transform duration-500 group-hover:scale-105"
+                        fallback={
+                          <div className="w-full h-full bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 flex items-center justify-center">
+                            <Calendar size={32} className="text-brand-blue/40" />
+                          </div>
+                        }
+                      />
                       <span className="absolute top-2 right-2 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
                         <StatusDot status="live" size="sm" />
                         <span className="text-[10px] font-bold tracking-wide text-dark-blue">LIVE</span>
@@ -130,16 +135,20 @@ export default function AcademyPage() {
                 <Link key={video.id} to={`/dashboard/on-demand/${video.id}`}>
                   <HoverCard className="h-full">
                     <div className="h-36 rounded-xl mb-4 overflow-hidden relative">
-                      {video.thumbnail_url ? (
-                        <>
-                          <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                            <PlayCircle size={40} className="text-white/80" />
+                      <LazyImage
+                        src={video.thumbnail_url}
+                        alt={video.title}
+                        className="absolute inset-0"
+                        imgClassName="transition-transform duration-500 group-hover:scale-105"
+                        fallback={
+                          <div className="w-full h-full bg-gradient-to-br from-brand-pink/10 to-purple-100 flex items-center justify-center">
+                            <PlayCircle size={32} className="text-brand-pink/40" />
                           </div>
-                        </>
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-brand-pink/10 to-purple-100 flex items-center justify-center">
-                          <PlayCircle size={32} className="text-brand-pink/40" />
+                        }
+                      />
+                      {video.thumbnail_url && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/10 pointer-events-none">
+                          <PlayCircle size={40} className="text-white/80" />
                         </div>
                       )}
                     </div>
@@ -179,14 +188,18 @@ export default function AcademyPage() {
               {displayResources.map(resource => (
                 <Link key={resource.id} to={`/dashboard/resources/${resource.id}`}>
                   <HoverCard className="h-full">
-                    <div className="h-36 rounded-xl mb-4 overflow-hidden">
-                      {resource.thumbnail_url ? (
-                        <img src={resource.thumbnail_url} alt={resource.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
-                          <FileText size={32} className="text-brand-blue/40" />
-                        </div>
-                      )}
+                    <div className="h-36 rounded-xl mb-4 overflow-hidden relative">
+                      <LazyImage
+                        src={resource.thumbnail_url}
+                        alt={resource.title}
+                        className="absolute inset-0"
+                        imgClassName="transition-transform duration-500 group-hover:scale-105"
+                        fallback={
+                          <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+                            <FileText size={32} className="text-brand-blue/40" />
+                          </div>
+                        }
+                      />
                     </div>
                     <Badge variant="gray">{resource.category}</Badge>
                     <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{resource.title}</h3>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/ui/Toast'
 import Button from '../../components/ui/Button'
@@ -9,9 +9,10 @@ import Avatar from '../../components/ui/Avatar'
 import StarRating from '../../components/ui/StarRating'
 import ReviewCard from '../../components/ui/ReviewCard'
 import { Textarea } from '../../components/ui/Input'
-import { MapPin, Clock, DollarSign, Bookmark, BookmarkCheck, ArrowLeft, Building2, Send, CheckCircle, Users, Briefcase, Star, ThumbsUp } from 'lucide-react'
+import { MapPin, Clock, DollarSign, Bookmark, BookmarkCheck, Building2, Send, CheckCircle, Users, Briefcase, Star, ThumbsUp } from 'lucide-react'
 // eslint-disable-next-line no-unused-vars -- motion is referenced as <motion.button> in JSX
 import { motion } from 'motion/react'
+import DetailPageHeader from '../../components/ui/DetailPageHeader'
 import { fireConfetti } from '../../hooks/useConfetti'
 
 function renderDescription(text) {
@@ -75,7 +76,6 @@ const jobStatusColors = {
 export default function JobDetailPage() {
   const { id } = useParams()
   const { user, token } = useAuth()
-  const navigate = useNavigate()
   const toast = useToast()
   const [job, setJob] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -301,9 +301,7 @@ export default function JobDetailPage() {
 
   return (
     <div className="max-w-6xl">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-neutral-500 hover:text-dark-blue mb-4 cursor-pointer">
-        <ArrowLeft size={16} /> Back to Jobs
-      </button>
+      <DetailPageHeader backLabel="Back to Jobs" />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}

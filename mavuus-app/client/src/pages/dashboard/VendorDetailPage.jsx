@@ -8,9 +8,10 @@ import Modal from '../../components/ui/Modal'
 import StarRating from '../../components/ui/StarRating'
 import ReviewCard from '../../components/ui/ReviewCard'
 import RecommendationCard from '../../components/ui/RecommendationCard'
+import DetailPageHeader from '../../components/ui/DetailPageHeader'
+import ShareModal from '../../components/ui/ShareModal'
 import { Textarea } from '../../components/ui/Input'
 import {
-  ArrowLeft,
   Star,
   MapPin,
   Globe,
@@ -36,6 +37,7 @@ export default function VendorDetailPage() {
   const [reviewText, setReviewText] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
   const [contactingVendor, setContactingVendor] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
 
   const handleContactVendor = async () => {
     if (contactingVendor) return
@@ -158,13 +160,7 @@ export default function VendorDetailPage() {
 
   return (
     <div className="max-w-6xl">
-      {/* Back link */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-sm text-neutral-500 hover:text-dark-blue mb-4 cursor-pointer"
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+      <DetailPageHeader onShare={() => setShareOpen(true)} />
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Main content */}
@@ -327,6 +323,13 @@ export default function VendorDetailPage() {
           </div>
         </div>
       </div>
+
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={`Share ${vendor.company_name}`}
+        shareTitle={vendor.company_name}
+      />
 
       {/* Write Review Modal */}
       <Modal isOpen={showReviewModal} onClose={() => setShowReviewModal(false)} title={`Review ${vendor.company_name}`}>

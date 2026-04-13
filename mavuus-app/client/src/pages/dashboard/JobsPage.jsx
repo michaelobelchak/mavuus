@@ -31,7 +31,7 @@ export default function JobsPage() {
           const savedJobs = await res.json()
           setSaved(savedJobs.map(j => j.id))
         }
-      } catch {}
+      } catch { /* silent */ }
     }
     if (token) fetchSaved()
   }, [token])
@@ -58,7 +58,7 @@ export default function JobsPage() {
         setSaved(prev => [...prev, id])
         toast.success('Job saved!')
       }
-    } catch {}
+    } catch { /* silent */ }
   }
 
   const getShortDescription = (desc) => {
@@ -188,14 +188,19 @@ export default function JobsPage() {
           <p className="text-sm">Try adjusting your search or filters.</p>
         </div>
       ) : (
-        <div className="space-y-3 stagger-children">
-          {filtered.map(job => (
-            <Link key={job.id} to={`/dashboard/jobs/${job.id}`} className="block group">
-              <div className="bg-white rounded-2xl border border-neutral-100 p-5 hover:border-brand-pink/30 hover:shadow-sm transition-all">
+        <div className="space-y-3">
+          {filtered.map((job, i) => (
+            <Link
+              key={job.id}
+              to={`/dashboard/jobs/${job.id}`}
+              className="block group"
+              style={{ animation: `fadeIn 0.4s ease-out ${i * 40}ms both` }}
+            >
+              <div className="bg-white rounded-2xl border border-neutral-100 p-5 hover:border-brand-pink/40 hover:shadow-[0_8px_32px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4 flex-1 min-w-0">
-                    <div className="w-12 h-12 bg-brand-blue/10 rounded-xl flex items-center justify-center flex-shrink-0 text-brand-blue font-bold text-sm">
-                      {job.company ? job.company.slice(0, 2).toUpperCase() : '??'}
+                    <div className="w-12 h-12 bg-gradient-to-br from-brand-blue/15 to-brand-pink/10 rounded-xl flex items-center justify-center flex-shrink-0 text-brand-blue font-bold text-sm shadow-sm">
+                      {job.company ? job.company.slice(0, 2).toUpperCase() : 'MV'}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -212,7 +217,7 @@ export default function JobsPage() {
                           <span className="flex items-center gap-1"><Clock size={12} />{job.type}</span>
                         )}
                         {job.salary_range && (
-                          <span className="flex items-center gap-1"><DollarSign size={12} />{job.salary_range}</span>
+                          <span className="flex items-center gap-1 font-semibold text-brand-blue bg-brand-blue/5 px-2 py-0.5 rounded-md"><DollarSign size={12} />{job.salary_range}</span>
                         )}
                         {job.category && <Badge variant="blue">{job.category}</Badge>}
                       </div>
@@ -221,14 +226,15 @@ export default function JobsPage() {
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">
                     <button
                       onClick={(e) => toggleSave(e, job.id)}
-                      className="p-2 rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
+                      aria-label={saved.includes(job.id) ? 'Unsave job' : 'Save job'}
+                      className="p-2 rounded-lg hover:bg-brand-pink/10 hover:scale-110 active:scale-95 transition-all duration-150 cursor-pointer"
                     >
                       <Bookmark
                         size={18}
                         className={saved.includes(job.id) ? 'fill-brand-pink text-brand-pink' : 'text-neutral-300 group-hover:text-neutral-400'}
                       />
                     </button>
-                    <span className="text-xs text-neutral-400">{formatDate(job.created_at || job.posted_date)}</span>
+                    <span className="text-xs text-neutral-400 whitespace-nowrap">{formatDate(job.created_at || job.posted_date)}</span>
                   </div>
                 </div>
               </div>

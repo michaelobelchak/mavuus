@@ -7,6 +7,7 @@ import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import ReviewCard from '../../components/ui/ReviewCard'
 import RecommendationCard from '../../components/ui/RecommendationCard'
+import DetailPageHeader from '../../components/ui/DetailPageHeader'
 import {
   MapPin,
   Briefcase,
@@ -16,7 +17,6 @@ import {
   UserCheck,
   Users,
   Clock,
-  ArrowLeft,
   ExternalLink,
   Lock,
   FileText,
@@ -195,13 +195,7 @@ export default function MemberProfilePage() {
 
   return (
     <div>
-      {/* Back link */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-sm text-neutral-500 hover:text-dark-blue mb-4 cursor-pointer"
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+      <DetailPageHeader backLabel="Back to Members" />
 
       {/* Limited visibility notice */}
       {member.limited && (

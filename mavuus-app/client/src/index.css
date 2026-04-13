@@ -111,6 +111,11 @@
 }
 .animate-ping-soft { animation: pingSoft 1.6s cubic-bezier(0, 0, 0.2, 1) infinite; }
 
+@keyframes toastShrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
 /* Base styles */
 body {
   font-family: var(--font-body);

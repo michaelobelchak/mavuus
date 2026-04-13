@@ -7,15 +7,14 @@ import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import ShareModal from '../../components/ui/ShareModal'
 import StatusDot from '../../components/ui/StatusDot'
+import DetailPageHeader from '../../components/ui/DetailPageHeader'
 import { fireConfetti } from '../../hooks/useConfetti'
 import {
   Calendar,
   Clock,
-  ArrowLeft,
   CheckCircle,
   Users,
   Video,
-  Share2,
 } from 'lucide-react'
 
 function useCountdown(targetDate) {
@@ -152,21 +151,7 @@ export default function SessionDetailPage() {
 
   return (
     <div className="max-w-6xl">
-      {/* Back + share */}
-      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-sm text-neutral-500 hover:text-dark-blue cursor-pointer"
-        >
-          <ArrowLeft size={16} /> Back
-        </button>
-        <button
-          onClick={() => setShareOpen(true)}
-          className="flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-pink cursor-pointer"
-        >
-          <Share2 size={16} /> Share
-        </button>
-      </div>
+      <DetailPageHeader onShare={() => setShareOpen(true)} />
 
       {/* Hero image */}
       <div className="h-64 rounded-2xl overflow-hidden mb-6">
