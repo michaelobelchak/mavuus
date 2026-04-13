@@ -74,7 +74,7 @@ export default function OnDemandPage() {
             <HoverCard className="cursor-pointer group">
               <div className="h-40 rounded-xl mb-4 overflow-hidden relative">
                 {video.thumbnail_url ? (
-                  <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover" />
+                  <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-brand-pink/10 to-purple-100" />
                 )}

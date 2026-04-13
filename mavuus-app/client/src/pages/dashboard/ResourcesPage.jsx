@@ -73,7 +73,7 @@ export default function ResourcesPage() {
             <HoverCard className="cursor-pointer group">
               <div className="h-40 rounded-xl mb-4 overflow-hidden">
                 {resource.thumbnail_url ? (
-                  <img src={resource.thumbnail_url} alt={resource.title} className="w-full h-full object-cover" />
+                  <img src={resource.thumbnail_url} alt={resource.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
                     <FileText size={36} className="text-brand-blue/40" />

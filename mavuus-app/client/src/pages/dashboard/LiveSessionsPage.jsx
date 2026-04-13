@@ -75,7 +75,7 @@ export default function LiveSessionsPage() {
             <HoverCard>
               <div className="h-40 rounded-xl mb-4 overflow-hidden">
                 {session.thumbnail_url ? (
-                  <img src={session.thumbnail_url} alt={session.title} className="w-full h-full object-cover" />
+                  <img src={session.thumbnail_url} alt={session.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 flex items-center justify-center">
                     <Calendar size={36} className="text-brand-blue/40" />

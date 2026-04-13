@@ -77,7 +77,7 @@ export default function AcademyPage() {
                   <HoverCard className="h-full">
                     <div className="relative h-36 rounded-xl mb-4 overflow-hidden">
                       {session.thumbnail_url ? (
-                        <img src={session.thumbnail_url} alt={session.title} className="w-full h-full object-cover" />
+                        <img src={session.thumbnail_url} alt={session.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 flex items-center justify-center">
                           <Calendar size={32} className="text-brand-blue/40" />
@@ -132,7 +132,7 @@ export default function AcademyPage() {
                     <div className="h-36 rounded-xl mb-4 overflow-hidden relative">
                       {video.thumbnail_url ? (
                         <>
-                          <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover" />
+                          <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/10">
                             <PlayCircle size={40} className="text-white/80" />
                           </div>
@@ -181,7 +181,7 @@ export default function AcademyPage() {
                   <HoverCard className="h-full">
                     <div className="h-36 rounded-xl mb-4 overflow-hidden">
                       {resource.thumbnail_url ? (
-                        <img src={resource.thumbnail_url} alt={resource.title} className="w-full h-full object-cover" />
+                        <img src={resource.thumbnail_url} alt={resource.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
                           <FileText size={32} className="text-brand-blue/40" />
