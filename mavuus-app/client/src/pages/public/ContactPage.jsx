@@ -5,6 +5,7 @@ import TestimonialRow from '../../components/sections/TestimonialRow'
 import CTABannerQuote from '../../components/sections/CTABannerQuote'
 import FAQSection from '../../components/sections/FAQSection'
 import AnimatedSection from '../../components/ui/AnimatedSection'
+import GradientText from '../../components/ui/GradientText'
 import { useToast } from '../../components/ui/Toast'
 
 export default function ContactPage() {
@@ -50,14 +51,20 @@ export default function ContactPage() {
   return (
     <div>
       {/* Hero + Form Section */}
-      <section className="px-6 md:px-12 lg:px-24 pt-6 pb-10">
+      <section className="relative px-6 md:px-12 lg:px-24 pt-6 pb-10 overflow-hidden">
+        {/* Decorative mesh gradient */}
+        <div className="absolute inset-0 -z-10 pointer-events-none">
+          <div className="absolute top-[-150px] right-[-100px] w-[500px] h-[500px] bg-brand-pink/10 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-200px] left-[10%] w-[400px] h-[400px] bg-brand-blue/10 rounded-full blur-[100px]" />
+        </div>
+
         {/* Header Row */}
         <AnimatedSection animation="fade-up">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-36 items-start mb-9">
             {/* Left: Title */}
             <div className="shrink-0">
               <h1 className="text-[28px] md:text-[36px] lg:text-[42px] font-medium leading-[1.1]">
-                <span className="text-brand-pink">Get in Touch</span>
+                <GradientText className="font-semibold">Get in Touch</GradientText>
                 <br />
                 <span className="text-neutral-600">Support@Mavuus.com</span>
               </h1>

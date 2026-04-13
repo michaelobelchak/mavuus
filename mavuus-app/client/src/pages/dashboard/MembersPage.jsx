@@ -344,12 +344,14 @@ export default function MembersPage() {
               className="block no-underline"
             >
               <HoverCard className="text-center h-full">
-                <Avatar
-                  name={member.name}
-                  src={member.avatar_url}
-                  size="xl"
-                  className="mx-auto mb-4"
-                />
+                <div className="flex justify-center mb-4">
+                  <Avatar
+                    name={member.name}
+                    src={member.avatar_url}
+                    size="xl"
+                    pro={(member.tier || member.membership_tier) === 'pro'}
+                  />
+                </div>
                 <h3 className="text-base font-semibold text-dark-blue">
                   {member.name}
                 </h3>

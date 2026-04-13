@@ -218,6 +218,7 @@ export default function MemberProfilePage() {
             name={member.name}
             src={member.avatar_url}
             size="xl"
+            pro={member.membership_tier === 'pro'}
           />
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">

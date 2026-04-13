@@ -231,8 +231,10 @@ export default function AcademyPage() {
               }, [])
               .slice(0, 8)
               .map(s => (
-              <div key={s.speaker_name} className="flex-shrink-0 text-center">
-                <Avatar name={s.speaker_name} src={s.speaker_avatar} size="xl" className="mx-auto mb-2" />
+              <div key={s.speaker_name} className="flex-shrink-0 text-center group/speaker cursor-pointer">
+                <div className="mx-auto mb-2 inline-block transition-transform duration-300 group-hover/speaker:-translate-y-1">
+                  <Avatar name={s.speaker_name} src={s.speaker_avatar} size="xl" pro />
+                </div>
                 <p className="text-sm font-medium text-dark-blue">{s.speaker_name}</p>
                 <p className="text-xs text-neutral-500">{s.speaker_title?.split(',')[0]}</p>
                 <p className="text-xs text-brand-pink">{s.speaker_title?.split(',')[1]?.trim()}</p>

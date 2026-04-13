@@ -128,7 +128,12 @@ export default function DashboardSidebar({ mobileOpen, onClose }) {
             className="relative mx-3 mt-4 mb-2 flex items-center gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/15 transition-colors group"
           >
             <ProgressRing size={48} strokeWidth={3} progress={completion}>
-              <Avatar name={user.name} src={user.avatar_url} size="sm" />
+              <Avatar
+                name={user.name}
+                src={user.avatar_url}
+                size="sm"
+                pro={user.membership_tier === 'pro'}
+              />
             </ProgressRing>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white truncate">{user.name}</p>
