@@ -85,10 +85,11 @@ export default function MessagesPage() {
             }
           }
         }
-      } catch {}
+      } catch { /* silent */ }
       setLoading(false)
     }
     init()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
   // Poll conversations every 10s — paused when tab is hidden
@@ -168,7 +169,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-neutral-100 flex h-[calc(100vh-140px)] overflow-hidden">
+    <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm flex h-[calc(100vh-140px)] overflow-hidden">
       {/* Left Panel - Conversation List */}
       <div className={`w-full md:w-80 lg:w-96 border-r border-neutral-100 flex flex-col ${selectedConv ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-neutral-100">
@@ -206,10 +207,13 @@ export default function MessagesPage() {
               <button
                 key={conv.id}
                 onClick={() => selectConversation(conv)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50 transition-colors cursor-pointer ${
-                  selectedConv?.id === conv.id ? 'bg-brand-pink/5 border-r-2 border-brand-pink' : ''
+                className={`relative w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-brand-pink/[0.04] transition-colors cursor-pointer ${
+                  selectedConv?.id === conv.id ? 'bg-brand-pink/[0.06]' : ''
                 }`}
               >
+                {selectedConv?.id === conv.id && (
+                  <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-brand-pink" />
+                )}
                 <Avatar name={conv.other_user_name} src={conv.other_user_avatar} size="md" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
@@ -241,8 +245,8 @@ export default function MessagesPage() {
       <div className={`flex-1 flex flex-col ${!selectedConv ? 'hidden md:flex' : 'flex'}`}>
         {selectedConv ? (
           <>
-            {/* Chat Header */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-100">
+            {/* Chat Header — glass */}
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-100/80 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
               <button onClick={() => setSelectedConv(null)} className="md:hidden text-neutral-500 cursor-pointer">
                 <ArrowLeft size={20} />
               </button>
@@ -269,10 +273,10 @@ export default function MessagesPage() {
                       </div>
                     )}
                     <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl ${
+                      <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-sm ${
                         isMine
-                          ? 'bg-brand-pink text-white rounded-br-md'
-                          : 'bg-neutral-100 text-dark-blue rounded-bl-md'
+                          ? 'bg-brand-pink text-white rounded-br-md shadow-[0_4px_15px_rgba(242,109,146,0.25)]'
+                          : 'bg-white text-dark-blue rounded-bl-md border border-neutral-100'
                       }`}>
                         <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                         <p className={`text-[10px] mt-1 ${isMine ? 'text-white/70' : 'text-neutral-400'}`}>

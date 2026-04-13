@@ -195,16 +195,17 @@ export default function MembersPage() {
       )
     }
 
+    const isConnecting = connectingIds.has(member.id)
     return (
       <Button
         variant="outline"
         size="sm"
         className="w-full mt-4"
         onClick={(e) => handleConnect(e, member.id)}
-        disabled={connectingIds.has(member.id)}
+        loading={isConnecting}
       >
-        <UserPlus size={14} />{' '}
-        {connectingIds.has(member.id) ? 'Sending...' : 'Connect'}
+        {!isConnecting && <UserPlus size={14} />}
+        {isConnecting ? 'Sending…' : 'Connect'}
       </Button>
     )
   }

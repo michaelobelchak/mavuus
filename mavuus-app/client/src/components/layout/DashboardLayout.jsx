@@ -171,15 +171,15 @@ export default function DashboardLayout() {
             >
               <Menu size={22} />
             </button>
-            <div className="hidden sm:flex items-center gap-3 flex-1 max-w-md">
-              <Search size={18} className="text-neutral-300" />
+            <div className="hidden sm:flex items-center gap-3 flex-1 max-w-md h-10 px-4 rounded-full bg-white/70 border border-neutral-200/70 focus-within:border-brand-pink focus-within:ring-2 focus-within:ring-brand-pink/25 focus-within:bg-white transition-all duration-200">
+              <Search size={16} className="text-neutral-400 flex-shrink-0" />
               <input
                 ref={searchInputRef}
                 type="text"
                 placeholder="Search sessions, resources, members..."
-                className="flex-1 bg-transparent text-sm text-neutral-600 placeholder:text-neutral-300 focus:outline-none"
+                className="flex-1 min-w-0 bg-transparent text-sm text-neutral-600 placeholder:text-neutral-300 focus:outline-none"
               />
-              <kbd className="hidden md:inline-flex items-center justify-center h-5 min-w-[22px] px-1.5 text-[11px] font-semibold text-neutral-400 bg-white border border-neutral-200 rounded">
+              <kbd className="hidden md:inline-flex items-center justify-center h-5 min-w-[22px] px-1.5 text-[11px] font-semibold text-neutral-400 bg-white border border-neutral-200 rounded shadow-sm">
                 /
               </kbd>
             </div>
