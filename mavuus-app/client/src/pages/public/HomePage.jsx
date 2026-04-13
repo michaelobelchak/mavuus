@@ -6,6 +6,8 @@ import InfiniteLeaderScroll from '../../components/sections/InfiniteLeaderScroll
 import TestimonialRow from '../../components/sections/TestimonialRow'
 import CTABannerQuote from '../../components/sections/CTABannerQuote'
 import AnimatedSection from '../../components/ui/AnimatedSection'
+import GradientText from '../../components/ui/GradientText'
+import AnimatedCounter from '../../components/ui/AnimatedCounter'
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -44,9 +46,7 @@ export default function HomePage() {
             <h1 className="text-[28px] md:text-[36px] lg:text-[48px] font-bold leading-[1.1] mb-6">
               We are on a <span className="italic font-medium">mission</span> to help
               <br />
-              CMOs{' '}
-              <span className="text-brand-blue font-bold">elevate</span>{' '}
-              their influence at
+              CMOs <GradientText className="font-bold">elevate</GradientText> their influence at
               <br />
               the executive table.
             </h1>
@@ -118,6 +118,34 @@ export default function HomePage() {
             <p className="text-xs text-neutral-500">
               Our talent has worked at some of the biggest companies
             </p>
+          </div>
+
+          {/* Animated stats row */}
+          <div className="flex flex-wrap gap-x-12 gap-y-6 mt-12 max-w-[640px]">
+            <div>
+              <AnimatedCounter
+                end={500}
+                suffix="+"
+                className="text-[32px] md:text-[40px] font-bold text-dark-blue leading-none"
+              />
+              <p className="text-sm text-neutral-500 mt-1">Marketing leaders</p>
+            </div>
+            <div>
+              <AnimatedCounter
+                end={200}
+                suffix="+"
+                className="text-[32px] md:text-[40px] font-bold text-dark-blue leading-none"
+              />
+              <p className="text-sm text-neutral-500 mt-1">Live sessions hosted</p>
+            </div>
+            <div>
+              <AnimatedCounter
+                end={50}
+                suffix="+"
+                className="text-[32px] md:text-[40px] font-bold text-dark-blue leading-none"
+              />
+              <p className="text-sm text-neutral-500 mt-1">Vetted vendors</p>
+            </div>
           </div>
         </AnimatedSection>
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ArrowUp } from 'lucide-react'
+// eslint-disable-next-line no-unused-vars -- motion is referenced as <motion.button> in JSX
 import { motion, AnimatePresence } from 'motion/react'
 
 export default function BackToTop() {

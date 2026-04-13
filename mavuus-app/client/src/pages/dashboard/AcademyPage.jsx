@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import Card from '../../components/ui/Card'
+import HoverCard from '../../components/ui/HoverCard'
+import StatusDot from '../../components/ui/StatusDot'
 import Avatar from '../../components/ui/Avatar'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import { CardSkeleton } from '../../components/ui/Skeleton'
 import useApiData from '../../hooks/useApiData'
-import { liveSessions as fallbackLive, onDemandVideos as fallbackVideos, communityResources as fallbackResources, speakers } from '../../data/mockData'
+import { liveSessions as fallbackLive, onDemandVideos as fallbackVideos, communityResources as fallbackResources } from '../../data/mockData'
 import { Calendar, Clock, PlayCircle, FileText, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
@@ -73,8 +74,8 @@ export default function AcademyPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
               {displayLive.map(session => (
                 <Link key={session.id} to={`/dashboard/live-sessions/${session.id}`}>
-                  <Card hover className="h-full">
-                    <div className="h-36 rounded-xl mb-4 overflow-hidden">
+                  <HoverCard className="h-full">
+                    <div className="relative h-36 rounded-xl mb-4 overflow-hidden">
                       {session.thumbnail_url ? (
                         <img src={session.thumbnail_url} alt={session.title} className="w-full h-full object-cover" />
                       ) : (
@@ -82,6 +83,10 @@ export default function AcademyPage() {
                           <Calendar size={32} className="text-brand-blue/40" />
                         </div>
                       )}
+                      <span className="absolute top-2 right-2 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
+                        <StatusDot status="live" size="sm" />
+                        <span className="text-[10px] font-bold tracking-wide text-dark-blue">LIVE</span>
+                      </span>
                     </div>
                     <Badge variant="blue">{session.category}</Badge>
                     <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{session.title}</h3>
@@ -98,7 +103,7 @@ export default function AcademyPage() {
                         <p className="text-[11px] text-neutral-500">{session.speaker_title}</p>
                       </div>
                     </div>
-                  </Card>
+                  </HoverCard>
                 </Link>
               ))}
             </div>
@@ -123,7 +128,7 @@ export default function AcademyPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
               {displayVideos.map(video => (
                 <Link key={video.id} to={`/dashboard/on-demand/${video.id}`}>
-                  <Card hover className="h-full">
+                  <HoverCard className="h-full">
                     <div className="h-36 rounded-xl mb-4 overflow-hidden relative">
                       {video.thumbnail_url ? (
                         <>
@@ -148,7 +153,7 @@ export default function AcademyPage() {
                       <Avatar name={video.speaker_name} src={video.speaker_avatar} size="sm" />
                       <p className="text-xs font-medium text-dark-blue">{video.speaker_name}</p>
                     </div>
-                  </Card>
+                  </HoverCard>
                 </Link>
               ))}
             </div>
@@ -173,7 +178,7 @@ export default function AcademyPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
               {displayResources.map(resource => (
                 <Link key={resource.id} to={`/dashboard/resources/${resource.id}`}>
-                  <Card hover className="h-full">
+                  <HoverCard className="h-full">
                     <div className="h-36 rounded-xl mb-4 overflow-hidden">
                       {resource.thumbnail_url ? (
                         <img src={resource.thumbnail_url} alt={resource.title} className="w-full h-full object-cover" />
@@ -190,7 +195,7 @@ export default function AcademyPage() {
                       <span>{resource.author}</span>
                       <span>{resource.read_time}</span>
                     </div>
-                  </Card>
+                  </HoverCard>
                 </Link>
               ))}
             </div>

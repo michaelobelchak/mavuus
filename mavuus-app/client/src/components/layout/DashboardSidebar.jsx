@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import Avatar from '../ui/Avatar'
+import ProgressRing from '../ui/ProgressRing'
 import { useToast } from '../ui/Toast'
 import {
   Home,
@@ -37,11 +39,37 @@ const sidebarLinks = [
   { label: 'My Profile', path: '/dashboard/profile', icon: UserCircle },
 ]
 
+function computeCompletion(profile) {
+  if (!profile) return 0
+  const checks = [
+    !!profile.avatar_url,
+    !!(profile.bio && profile.bio.trim()),
+    (profile.skills?.length || 0) >= 3,
+    (profile.experience?.length || 0) >= 1,
+    !!profile.resume_filename,
+  ]
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100)
+}
+
 export default function DashboardSidebar({ mobileOpen, onClose }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { user, token, logout } = useAuth()
   const toast = useToast()
+  const [completion, setCompletion] = useState(0)
+
+  // Fetch profile once to compute completion ring
+  useEffect(() => {
+    if (!token) return
+    let active = true
+    fetch('/api/profile/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (active && data) setCompletion(computeCompletion(data))
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [token, location.pathname])
 
   const handleLogout = () => {
     logout()
@@ -87,17 +115,21 @@ export default function DashboardSidebar({ mobileOpen, onClose }) {
           </button>
         </div>
 
-        {/* User profile card */}
+        {/* User profile card with completion ring */}
         {user && (
           <Link
             to="/dashboard/profile"
             onClick={handleNavClick}
             className="mx-3 mt-4 mb-2 flex items-center gap-3 p-3 rounded-xl bg-bg-light hover:bg-brand-pink/5 transition-colors group"
           >
-            <Avatar name={user.name} src={user.avatar_url} size="md" />
+            <ProgressRing size={48} strokeWidth={3} progress={completion}>
+              <Avatar name={user.name} src={user.avatar_url} size="sm" />
+            </ProgressRing>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-dark-blue truncate">{user.name}</p>
-              <p className="text-xs text-neutral-500 truncate">View profile</p>
+              <p className="text-xs text-neutral-500 truncate">
+                {completion < 100 ? `Profile ${completion}% complete` : 'Profile complete'}
+              </p>
             </div>
           </Link>
         )}

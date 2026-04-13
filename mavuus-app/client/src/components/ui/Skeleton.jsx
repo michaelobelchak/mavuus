@@ -1,7 +1,7 @@
 export default function Skeleton({ className = '' }) {
-  return (
-    <div className={`animate-pulse bg-neutral-200 rounded-xl ${className}`} />
-  )
+  // Default rounded-xl unless caller overrides via className (e.g. rounded-full)
+  const hasRounded = /\brounded(-|$)/.test(className)
+  return <div className={`animate-shimmer ${hasRounded ? '' : 'rounded-xl'} ${className}`} />
 }
 
 export function CardSkeleton() {

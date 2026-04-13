@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import Card from '../../components/ui/Card'
+import HoverCard from '../../components/ui/HoverCard'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import { CardSkeleton } from '../../components/ui/Skeleton'
@@ -72,7 +72,7 @@ export default function VendorsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 stagger-children">
           {filtered.map(vendor => (
             <Link key={vendor.id} to={`/dashboard/vendors/${vendor.id}`} className="block no-underline">
-            <Card hover>
+            <HoverCard>
               <div className="flex items-start gap-3 mb-3">
                 <div className="w-10 h-10 bg-brand-blue/10 rounded-xl flex items-center justify-center flex-shrink-0 text-brand-blue font-bold text-sm">
                   {(vendor.company_name || 'Mv').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || 'MV'}
@@ -99,7 +99,7 @@ export default function VendorsPage() {
               <Button variant="outline" size="sm" className="w-full">
                 View Profile <ExternalLink size={14} />
               </Button>
-            </Card>
+            </HoverCard>
             </Link>
           ))}
         </div>

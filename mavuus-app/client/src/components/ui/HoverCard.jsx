@@ -1,6 +1,7 @@
+// eslint-disable-next-line no-unused-vars -- motion is referenced as <motion.div> in JSX
 import { motion } from 'motion/react'
 
-export default function HoverCard({ children, className = '', glow = false, ...props }) {
+export default function HoverCard({ children, className = '', glow = false, padding = true, ...props }) {
   return (
     <motion.div
       whileHover={{ y: -4 }}
@@ -8,6 +9,7 @@ export default function HoverCard({ children, className = '', glow = false, ...p
       className={`
         bg-white rounded-2xl border border-neutral-100 transition-shadow duration-300
         hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)]
+        ${padding ? 'p-6' : ''}
         ${glow ? 'hover:shadow-[0_0_24px_rgba(242,109,146,0.25)]' : ''}
         ${className}
       `}

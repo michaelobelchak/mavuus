@@ -6,6 +6,7 @@ import Avatar from '../../components/ui/Avatar'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import ShareModal from '../../components/ui/ShareModal'
+import StatusDot from '../../components/ui/StatusDot'
 import { fireConfetti } from '../../hooks/useConfetti'
 import {
   Calendar,
@@ -188,7 +189,12 @@ export default function SessionDetailPage() {
           <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-6">
             <div className="flex items-center gap-2 mb-3">
               <Badge variant={isLive ? 'blue' : 'pink'}>{session.category}</Badge>
-              {isLive && <Badge variant="green">Live</Badge>}
+              {isLive && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-200">
+                  <StatusDot status="live" size="sm" />
+                  <span className="text-[11px] font-bold tracking-wide text-green-700">LIVE</span>
+                </span>
+              )}
             </div>
 
             <h1 className="text-2xl font-bold text-dark-blue mb-3">

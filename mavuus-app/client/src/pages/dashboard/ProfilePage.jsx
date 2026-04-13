@@ -14,6 +14,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import Input, { Textarea } from '../../components/ui/Input'
 import ReviewCard from '../../components/ui/ReviewCard'
 import RecommendationCard from '../../components/ui/RecommendationCard'
+import ProgressRing from '../../components/ui/ProgressRing'
 import {
   Pencil, MapPin, Calendar, Briefcase, ExternalLink,
   Plus, Trash2, GraduationCap, FileText, Upload,
@@ -40,6 +41,25 @@ const VISIBILITY_OPTIONS = [
   { value: 'connections', label: 'Connections only' },
   { value: 'private', label: 'Private — hidden from directory' },
 ]
+
+// Profile completion checks — used for ProgressRing display
+function computeCompletion(profile) {
+  if (!profile) return { percent: 0, missing: [] }
+  const checks = [
+    { ok: !!profile.avatar_url, label: 'Add a profile photo' },
+    { ok: !!(profile.bio && profile.bio.trim()), label: 'Write a short bio' },
+    { ok: (profile.skills?.length || 0) >= 3, label: 'Add at least 3 skills' },
+    { ok: (profile.experience?.length || 0) >= 1, label: 'Add work experience' },
+    { ok: !!profile.resume_filename, label: 'Upload your resume' },
+  ]
+  const done = checks.filter((c) => c.ok).length
+  return {
+    percent: Math.round((done / checks.length) * 100),
+    done,
+    total: checks.length,
+    missing: checks.filter((c) => !c.ok).map((c) => c.label),
+  }
+}
 
 export default function ProfilePage() {
   const { user, token, updateUser } = useAuth()
@@ -395,6 +415,8 @@ export default function ProfilePage() {
 
   if (!profile) return null
 
+  const completion = computeCompletion(profile)
+
   // ─── Reusable inline-editable field ─────────────────────────
 
   const EditableField = ({ label, value, field, type = 'text', options }) => {
@@ -472,9 +494,12 @@ export default function ProfilePage() {
       <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-6">
         <div className="flex flex-col sm:flex-row items-start gap-6">
           <div className="relative group">
-            <Avatar name={profile.name} src={profile.avatar_url} size="xl" />
+            {/* ProgressRing wraps the avatar with a completion ring */}
+            <ProgressRing size={104} strokeWidth={4} progress={completion.percent}>
+              <Avatar name={profile.name} src={profile.avatar_url} size="xl" />
+            </ProgressRing>
             <label
-              className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+              className="absolute inset-2 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
               title="Upload new photo"
             >
               {uploadingAvatar ? (
@@ -490,6 +515,9 @@ export default function ProfilePage() {
                 disabled={uploadingAvatar}
               />
             </label>
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-brand-pink text-white text-[11px] font-bold shadow-md whitespace-nowrap">
+              {completion.percent}%
+            </span>
           </div>
 
           <div className="flex-1 min-w-0">
@@ -531,6 +559,23 @@ export default function ProfilePage() {
                 </Link>
               )}
             </div>
+
+            {/* Profile completion checklist */}
+            {completion.missing.length > 0 && (
+              <div className="mt-4 p-3 rounded-xl bg-gradient-to-br from-brand-pink/5 to-brand-blue/5 border border-brand-pink/10">
+                <p className="text-xs font-semibold text-dark-blue mb-2">
+                  Complete your profile ({completion.done}/{completion.total})
+                </p>
+                <ul className="flex flex-wrap gap-x-4 gap-y-1">
+                  {completion.missing.map((item) => (
+                    <li key={item} className="text-xs text-neutral-500 flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-brand-pink" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>

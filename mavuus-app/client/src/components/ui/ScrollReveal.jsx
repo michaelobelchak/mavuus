@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars -- motion is referenced as <motion.div> in JSX
 import { motion } from 'motion/react'
 
 const directionOffsets = {

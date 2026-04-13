@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import Card from '../../components/ui/Card'
+import HoverCard from '../../components/ui/HoverCard'
 import Avatar from '../../components/ui/Avatar'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -72,7 +72,7 @@ export default function LiveSessionsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 stagger-children">
           {filtered.map(session => (
             <Link key={session.id} to={`/dashboard/live-sessions/${session.id}`} className="block no-underline">
-            <Card hover>
+            <HoverCard>
               <div className="h-40 rounded-xl mb-4 overflow-hidden">
                 {session.thumbnail_url ? (
                   <img src={session.thumbnail_url} alt={session.title} className="w-full h-full object-cover" />
@@ -98,7 +98,7 @@ export default function LiveSessionsPage() {
                 </div>
               </div>
               <Button size="sm" className="w-full mt-4">View Details</Button>
-            </Card>
+            </HoverCard>
             </Link>
           ))}
         </div>

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/ui/Toast'
-import Card from '../../components/ui/Card'
+import HoverCard from '../../components/ui/HoverCard'
 import Avatar from '../../components/ui/Avatar'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -342,7 +342,7 @@ export default function MembersPage() {
               to={`/dashboard/members/${member.id}`}
               className="block no-underline"
             >
-              <Card hover className="text-center h-full">
+              <HoverCard className="text-center h-full">
                 <Avatar
                   name={member.name}
                   src={member.avatar_url}
@@ -359,7 +359,7 @@ export default function MembersPage() {
                   {renderConnectionIndicator(member.id)}
                 </div>
                 {renderConnectButton(member)}
-              </Card>
+              </HoverCard>
             </Link>
           ))}
         </div>
