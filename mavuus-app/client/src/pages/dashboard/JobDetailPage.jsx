@@ -10,6 +10,7 @@ import StarRating from '../../components/ui/StarRating'
 import ReviewCard from '../../components/ui/ReviewCard'
 import { Textarea } from '../../components/ui/Input'
 import { MapPin, Clock, DollarSign, Bookmark, BookmarkCheck, ArrowLeft, Building2, Send, CheckCircle, Users, Briefcase, Star, ThumbsUp } from 'lucide-react'
+import { fireConfetti } from '../../hooks/useConfetti'
 
 function renderDescription(text) {
   if (!text) return null
@@ -161,6 +162,7 @@ export default function JobDetailPage() {
         method: 'POST', headers, body: JSON.stringify({ cover_letter: coverLetter })
       })
       if (res.ok) {
+        fireConfetti()
         toast.success('Application submitted!')
         setShowApplyModal(false)
         setApplied({ status: 'applied', applied_at: new Date().toISOString() })

@@ -181,7 +181,10 @@ export default function RegisterPage() {
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 bg-red-50 text-red-600 text-sm p-3 rounded-xl">
+            <div
+              key={error}
+              className="flex items-center gap-2 bg-red-50 text-red-600 text-sm p-3 rounded-xl border border-red-200 animate-shake"
+            >
               <AlertCircle size={16} />
               {error}
             </div>

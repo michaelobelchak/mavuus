@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import DashboardSidebar from './DashboardSidebar'
+import PageTransition from '../ui/PageTransition'
 import { Bell, Search, Menu, User, Settings, LogOut, ChevronDown, X, UserPlus, MessageCircle, Briefcase, Radio, CheckCircle, Star } from 'lucide-react'
 import Avatar from '../ui/Avatar'
 import { useAuth } from '../../context/AuthContext'
@@ -40,7 +41,6 @@ function timeAgo(dateStr) {
 
 export default function DashboardLayout() {
   const { user, token, logout } = useAuth()
-  const location = useLocation()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -61,7 +61,7 @@ export default function DashboardLayout() {
           const data = await res.json()
           setUnreadCount(data.count)
         }
-      } catch {}
+      } catch { /* silent */ }
     }
     fetchUnread()
     const interval = setInterval(fetchUnread, 30000)
@@ -77,7 +77,7 @@ export default function DashboardLayout() {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (res.ok) setNotifications(await res.json())
-      } catch {}
+      } catch { /* silent */ }
     }
     fetchNotifs()
   }, [notifOpen, token])
@@ -115,7 +115,7 @@ export default function DashboardLayout() {
       })
       setUnreadCount(0)
       setNotifications(prev => prev.map(n => ({ ...n, is_read: 1 })))
-    } catch {}
+    } catch { /* silent */ }
   }
 
   const markOneRead = async (id) => {
@@ -127,7 +127,7 @@ export default function DashboardLayout() {
       })
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: 1 } : n))
       setUnreadCount(prev => Math.max(0, prev - 1))
-    } catch {}
+    } catch { /* silent */ }
   }
 
   return (
@@ -226,9 +226,7 @@ export default function DashboardLayout() {
 
         {/* Page Content */}
         <main className="flex-1 p-4 lg:p-8">
-          <div key={location.pathname} className="animate-fade-in">
-            <Outlet />
-          </div>
+          <PageTransition />
         </main>
       </div>
 

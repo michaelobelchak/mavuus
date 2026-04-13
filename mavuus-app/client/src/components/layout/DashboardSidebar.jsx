@@ -97,37 +97,42 @@ export default function DashboardSidebar({ mobileOpen, onClose }) {
       )}
 
       <aside className={`
-        fixed lg:sticky top-0 left-0 z-50 w-64 bg-white border-r border-neutral-100 h-screen flex flex-col
+        fixed lg:sticky top-0 left-0 z-50 w-64 h-screen flex flex-col
+        bg-gradient-to-b from-[#164A6A] via-[#1F648D] to-[#164A6A]
+        text-white/90 shadow-[inset_-1px_0_0_rgba(255,255,255,0.06)]
         transition-transform duration-300 ease-in-out
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
+        {/* Decorative radial accent */}
+        <div className="pointer-events-none absolute top-0 left-0 w-full h-60 bg-gradient-to-br from-brand-pink/15 via-transparent to-transparent" />
+
         {/* Logo */}
-        <div className="px-6 h-20 flex items-center justify-between border-b border-neutral-100">
+        <div className="relative px-6 h-20 flex items-center justify-between border-b border-white/10">
           <Link to="/dashboard" className="flex items-center gap-2.5">
             <img src="/assets/shared/mavuus-icon.svg" alt="" className="w-[29px] h-[31px]" />
-            <img src="/assets/shared/mavuus-wordmark.svg" alt="Mavuus" className="h-[20px]" />
+            <img src="/assets/shared/mavuus-wordmark.svg" alt="Mavuus" className="h-[20px] brightness-0 invert" />
           </Link>
           <button
             onClick={onClose}
-            className="lg:hidden text-neutral-500 hover:text-dark-blue cursor-pointer"
+            className="lg:hidden text-white/70 hover:text-white cursor-pointer"
           >
             <X size={20} />
           </button>
         </div>
 
-        {/* User profile card with completion ring */}
+        {/* User profile card with completion ring — glass */}
         {user && (
           <Link
             to="/dashboard/profile"
             onClick={handleNavClick}
-            className="mx-3 mt-4 mb-2 flex items-center gap-3 p-3 rounded-xl bg-bg-light hover:bg-brand-pink/5 transition-colors group"
+            className="relative mx-3 mt-4 mb-2 flex items-center gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/15 transition-colors group"
           >
             <ProgressRing size={48} strokeWidth={3} progress={completion}>
               <Avatar name={user.name} src={user.avatar_url} size="sm" />
             </ProgressRing>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-dark-blue truncate">{user.name}</p>
-              <p className="text-xs text-neutral-500 truncate">
+              <p className="text-sm font-semibold text-white truncate">{user.name}</p>
+              <p className="text-xs text-white/60 truncate">
                 {completion < 100 ? `Profile ${completion}% complete` : 'Profile complete'}
               </p>
             </div>
@@ -135,10 +140,10 @@ export default function DashboardSidebar({ mobileOpen, onClose }) {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+        <nav className="relative flex-1 px-3 py-2 space-y-1 overflow-y-auto">
           {sidebarLinks.map((link, index) => {
             if (link.type === 'separator') {
-              return <div key={`sep-${index}`} className="h-px bg-neutral-100 my-2" />
+              return <div key={`sep-${index}`} className="h-px bg-white/10 my-2" />
             }
 
             const Icon = link.icon
@@ -152,35 +157,38 @@ export default function DashboardSidebar({ mobileOpen, onClose }) {
                 to={link.path}
                 onClick={handleNavClick}
                 className={`
-                  flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors
+                  flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
                   ${isActive
-                    ? 'bg-brand-pink/10 text-brand-pink'
-                    : 'text-neutral-500 hover:bg-neutral-100 hover:text-dark-blue'
+                    ? 'bg-white/15 text-white shadow-[0_0_0_1px_rgba(255,255,255,0.08)_inset,0_0_24px_rgba(242,109,146,0.2)]'
+                    : 'text-white/75 hover:bg-white/10 hover:text-white'
                   }
                 `}
               >
-                <Icon size={18} />
+                <Icon
+                  size={18}
+                  className={isActive ? 'text-brand-pink drop-shadow-[0_0_6px_rgba(242,109,146,0.6)]' : ''}
+                />
                 <span className="flex-1">{link.label}</span>
               </Link>
             )
           })}
         </nav>
 
-        {/* Referral card */}
-        <div className="px-3 pt-2">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-pink/10 via-brand-pink/5 to-brand-blue/10 p-4 border border-brand-pink/10">
+        {/* Referral card — glass */}
+        <div className="relative px-3 pt-2">
+          <div className="relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm p-4 border border-white/15">
             <div className="flex items-center gap-2 mb-1.5">
-              <div className="w-7 h-7 rounded-lg bg-brand-pink/15 flex items-center justify-center text-brand-pink">
+              <div className="w-7 h-7 rounded-lg bg-brand-pink/30 flex items-center justify-center text-white">
                 <Gift size={14} />
               </div>
-              <p className="text-sm font-semibold text-dark-blue">Invite a friend</p>
+              <p className="text-sm font-semibold text-white">Invite a friend</p>
             </div>
-            <p className="text-xs text-neutral-500 leading-snug mb-3">
+            <p className="text-xs text-white/70 leading-snug mb-3">
               Share Mavuus with a marketing peer and get a free month of Pro.
             </p>
             <button
               onClick={handleCopyReferral}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/80 backdrop-blur-sm text-xs font-semibold text-dark-blue hover:bg-white transition-colors cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-brand-pink text-white text-xs font-semibold hover:bg-brand-pink-hover transition-colors cursor-pointer shadow-[0_4px_15px_rgba(242,109,146,0.35)]"
             >
               <Copy size={12} /> Copy referral link
             </button>
@@ -188,10 +196,10 @@ export default function DashboardSidebar({ mobileOpen, onClose }) {
         </div>
 
         {/* Logout */}
-        <div className="px-3 py-4 mt-2 border-t border-neutral-100">
+        <div className="relative px-3 py-4 mt-2 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-neutral-400 hover:bg-neutral-100 hover:text-dark-blue transition-colors cursor-pointer"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
           >
             <LogOut size={16} />
             Log out

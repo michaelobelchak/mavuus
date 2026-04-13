@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CircleCheck, ArrowRight, Play, Briefcase, GraduationCap } from 'lucide-react'
 import { scrollLeaders, pricingFeatures, brandLogos } from '../../data/mockData'
@@ -14,6 +14,23 @@ export default function HomePage() {
   const [heroTab, setHeroTab] = useState('marketers')
   const [heroEmail, setHeroEmail] = useState('')
   const [heroSubmitting, setHeroSubmitting] = useState(false)
+  // Community stats — fetched from /api/stats, seeded with marketing defaults
+  const [stats, setStats] = useState({ members: 500, liveSessions: 200, vendors: 50 })
+
+  useEffect(() => {
+    fetch('/api/stats')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) {
+          setStats((prev) => ({
+            members: Math.max(data.members || 0, prev.members),
+            liveSessions: Math.max((data.sessions || 0), prev.liveSessions),
+            vendors: Math.max(data.vendors || 0, prev.vendors),
+          }))
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const handleJoinWaitlist = async (e) => {
     e?.preventDefault?.()
@@ -124,7 +141,7 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-x-12 gap-y-6 mt-12 max-w-[640px]">
             <div>
               <AnimatedCounter
-                end={500}
+                end={stats.members}
                 suffix="+"
                 className="text-[32px] md:text-[40px] font-bold text-dark-blue leading-none"
               />
@@ -132,15 +149,15 @@ export default function HomePage() {
             </div>
             <div>
               <AnimatedCounter
-                end={200}
+                end={stats.liveSessions}
                 suffix="+"
                 className="text-[32px] md:text-[40px] font-bold text-dark-blue leading-none"
               />
-              <p className="text-sm text-neutral-500 mt-1">Live sessions hosted</p>
+              <p className="text-sm text-neutral-500 mt-1">Sessions hosted</p>
             </div>
             <div>
               <AnimatedCounter
-                end={50}
+                end={stats.vendors}
                 suffix="+"
                 className="text-[32px] md:text-[40px] font-bold text-dark-blue leading-none"
               />

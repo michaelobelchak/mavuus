@@ -20,6 +20,7 @@ import reviewsRoutes from './routes/reviews.js'
 import recommendationsRoutes from './routes/recommendations.js'
 import contactRoutes from './routes/contact.js'
 import waitlistRoutes from './routes/waitlist.js'
+import statsRoutes from './routes/stats.js'
 import { sanitizeBody } from './middleware/sanitize.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -93,6 +94,7 @@ app.use('/api/reviews', reviewsRoutes)
 app.use('/api/recommendations', recommendationsRoutes)
 app.use('/api/contact', contactRoutes)
 app.use('/api/waitlist', waitlistRoutes)
+app.use('/api/stats', statsRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
