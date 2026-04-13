@@ -10,9 +10,9 @@ const icons = {
 }
 
 const bgColors = {
-  success: 'bg-green-50 border-green-200',
-  error: 'bg-red-50 border-red-200',
-  info: 'bg-blue-50 border-blue-200',
+  success: 'bg-white/90 backdrop-blur-md border-l-4 border-green-500 border border-neutral-100',
+  error: 'bg-white/90 backdrop-blur-md border-l-4 border-red-500 border border-neutral-100',
+  info: 'bg-white/90 backdrop-blur-md border-l-4 border-brand-blue border border-neutral-100',
 }
 
 export function ToastProvider({ children }) {
@@ -41,11 +41,11 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      <div className="fixed bottom-4 right-4 z-[200] flex flex-col gap-2 max-w-sm">
+      <div className="fixed top-4 right-4 z-[200] flex flex-col gap-2 max-w-sm">
         {toasts.map(t => (
           <div
             key={t.id}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg animate-slide-in-right ${bgColors[t.type]}`}
+            className={`flex items-center gap-3 pl-4 pr-3 py-3 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.10)] animate-slide-in-right ${bgColors[t.type]}`}
           >
             {icons[t.type]}
             <span className="text-sm text-dark-blue flex-1">{t.message}</span>

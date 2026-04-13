@@ -6,6 +6,7 @@ import Avatar from '../../components/ui/Avatar'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import ShareModal from '../../components/ui/ShareModal'
+import { fireConfetti } from '../../hooks/useConfetti'
 import {
   Calendar,
   Clock,
@@ -108,10 +109,11 @@ export default function SessionDetailPage() {
         return
       }
       setRegistered(true)
+      if (!data.alreadyRegistered) fireConfetti()
       toast.success(data.alreadyRegistered
         ? 'You were already registered for this session.'
         : 'You\'re registered! Redirecting to confirmation…')
-      setTimeout(() => navigate(`/events/${id}/confirmation`), 800)
+      setTimeout(() => navigate(`/events/${id}/confirmation`), 1200)
     } catch {
       toast.error('Network error. Please try again.')
     } finally {

@@ -16,6 +16,7 @@ import ArticlesPage from './pages/public/ArticlesPage'
 import EventsPage from './pages/public/EventsPage'
 import BlogDetailPage from './pages/public/BlogDetailPage'
 import EventConfirmationPage from './pages/public/EventConfirmationPage'
+import BackToTop from './components/ui/BackToTop'
 
 // Auth Pages (eager — fast login)
 import LoginPage from './pages/auth/LoginPage'
@@ -50,6 +51,7 @@ function LazyFallback() {
 export default function App() {
   return (
     <Suspense fallback={<LazyFallback />}>
+      <BackToTop />
       <Routes>
         {/* Public Website */}
         <Route element={<PublicLayout />}>

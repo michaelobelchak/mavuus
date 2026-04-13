@@ -139,7 +139,7 @@ export default function DashboardLayout() {
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className="h-16 lg:h-20 bg-white border-b border-neutral-100 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30">
+        <header className="h-16 lg:h-20 glass-heavy border-b border-neutral-100/50 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3 flex-1">
             <button
               onClick={() => setSidebarOpen(true)}
