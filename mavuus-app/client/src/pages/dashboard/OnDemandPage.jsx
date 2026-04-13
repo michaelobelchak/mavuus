@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import HoverCard from '../../components/ui/HoverCard'
+import LazyImage from '../../components/ui/LazyImage'
 import Avatar from '../../components/ui/Avatar'
 import Badge from '../../components/ui/Badge'
 import { CardSkeleton } from '../../components/ui/Skeleton'
@@ -73,12 +74,16 @@ export default function OnDemandPage() {
             <Link key={video.id} to={`/dashboard/on-demand/${video.id}`} className="block no-underline">
             <HoverCard className="cursor-pointer group">
               <div className="h-40 rounded-xl mb-4 overflow-hidden relative">
-                {video.thumbnail_url ? (
-                  <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-brand-pink/10 to-purple-100" />
-                )}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors">
+                <LazyImage
+                  src={video.thumbnail_url}
+                  alt={video.title}
+                  className="absolute inset-0"
+                  imgClassName="transition-transform duration-500 group-hover:scale-105"
+                  fallback={
+                    <div className="w-full h-full bg-gradient-to-br from-brand-pink/10 to-purple-100" />
+                  }
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none">
                   <PlayCircle size={48} className="text-white/80 group-hover:text-white transition-colors drop-shadow-lg" />
                 </div>
               </div>

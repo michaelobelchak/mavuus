@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import HoverCard from '../../components/ui/HoverCard'
+import LazyImage from '../../components/ui/LazyImage'
 import Avatar from '../../components/ui/Avatar'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -73,14 +74,18 @@ export default function LiveSessionsPage() {
           {filtered.map(session => (
             <Link key={session.id} to={`/dashboard/live-sessions/${session.id}`} className="block no-underline">
             <HoverCard>
-              <div className="h-40 rounded-xl mb-4 overflow-hidden">
-                {session.thumbnail_url ? (
-                  <img src={session.thumbnail_url} alt={session.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 flex items-center justify-center">
-                    <Calendar size={36} className="text-brand-blue/40" />
-                  </div>
-                )}
+              <div className="relative h-40 rounded-xl mb-4 overflow-hidden">
+                <LazyImage
+                  src={session.thumbnail_url}
+                  alt={session.title}
+                  className="absolute inset-0"
+                  imgClassName="transition-transform duration-500 group-hover:scale-105"
+                  fallback={
+                    <div className="w-full h-full bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 flex items-center justify-center">
+                      <Calendar size={36} className="text-brand-blue/40" />
+                    </div>
+                  }
+                />
               </div>
               <Badge variant="blue">{session.category}</Badge>
               <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{session.title}</h3>

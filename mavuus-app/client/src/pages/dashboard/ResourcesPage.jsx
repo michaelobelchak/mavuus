@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import HoverCard from '../../components/ui/HoverCard'
+import LazyImage from '../../components/ui/LazyImage'
 import Badge from '../../components/ui/Badge'
 import { CardSkeleton } from '../../components/ui/Skeleton'
 import useApiData from '../../hooks/useApiData'
@@ -71,14 +72,18 @@ export default function ResourcesPage() {
           {filtered.map(resource => (
             <Link key={resource.id} to={`/dashboard/resources/${resource.id}`} className="block no-underline">
             <HoverCard className="cursor-pointer group">
-              <div className="h-40 rounded-xl mb-4 overflow-hidden">
-                {resource.thumbnail_url ? (
-                  <img src={resource.thumbnail_url} alt={resource.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
-                    <FileText size={36} className="text-brand-blue/40" />
-                  </div>
-                )}
+              <div className="relative h-40 rounded-xl mb-4 overflow-hidden">
+                <LazyImage
+                  src={resource.thumbnail_url}
+                  alt={resource.title}
+                  className="absolute inset-0"
+                  imgClassName="transition-transform duration-500 group-hover:scale-105"
+                  fallback={
+                    <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+                      <FileText size={36} className="text-brand-blue/40" />
+                    </div>
+                  }
+                />
               </div>
               <Badge variant="gray">{resource.category}</Badge>
               <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2 group-hover:text-brand-pink transition-colors flex items-center gap-2">
