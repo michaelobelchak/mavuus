@@ -46,18 +46,18 @@ const VISIBILITY_OPTIONS = [
 function computeCompletion(profile) {
   if (!profile) return { percent: 0, missing: [] }
   const checks = [
-    { ok: !!profile.avatar_url, label: 'Add a profile photo' },
-    { ok: !!(profile.bio && profile.bio.trim()), label: 'Write a short bio' },
-    { ok: (profile.skills?.length || 0) >= 3, label: 'Add at least 3 skills' },
-    { ok: (profile.experience?.length || 0) >= 1, label: 'Add work experience' },
-    { ok: !!profile.resume_filename, label: 'Upload your resume' },
+    { ok: !!profile.avatar_url, label: 'Add a profile photo', tab: 'about' },
+    { ok: !!(profile.bio && profile.bio.trim()), label: 'Write a short bio', tab: 'about' },
+    { ok: (profile.skills?.length || 0) >= 3, label: 'Add at least 3 skills', tab: 'about' },
+    { ok: (profile.experience?.length || 0) >= 1, label: 'Add work experience', tab: 'experience' },
+    { ok: !!profile.resume_filename, label: 'Upload your resume', tab: 'experience' },
   ]
   const done = checks.filter((c) => c.ok).length
   return {
     percent: Math.round((done / checks.length) * 100),
     done,
     total: checks.length,
-    missing: checks.filter((c) => !c.ok).map((c) => c.label),
+    missing: checks.filter((c) => !c.ok),
   }
 }
 
@@ -566,14 +566,19 @@ export default function ProfilePage() {
                 <p className="text-xs font-semibold text-dark-blue mb-2">
                   Complete your profile ({completion.done}/{completion.total})
                 </p>
-                <ul className="flex flex-wrap gap-x-4 gap-y-1">
+                <div className="flex flex-wrap gap-2">
                   {completion.missing.map((item) => (
-                    <li key={item} className="text-xs text-neutral-500 flex items-center gap-1.5">
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => setActiveTab(item.tab)}
+                      className="inline-flex items-center gap-1.5 text-xs text-neutral-600 hover:text-brand-pink bg-white/80 hover:bg-white px-2.5 py-1 rounded-full border border-neutral-200/60 hover:border-brand-pink/40 transition-all cursor-pointer"
+                    >
                       <span className="w-1 h-1 rounded-full bg-brand-pink" />
-                      {item}
-                    </li>
+                      {item.label}
+                    </button>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
           </div>

@@ -159,8 +159,11 @@ export default function ContactPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="bg-brand-pink text-white font-bold text-base px-8 py-4 rounded-[16px] shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:bg-brand-pink-hover transition-all duration-300 btn-press whitespace-nowrap flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center gap-2 bg-brand-pink text-white font-bold text-base px-8 py-4 rounded-[16px] shadow-[0_4px_15px_rgba(242,109,146,0.25)] hover:bg-brand-pink-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-150 whitespace-nowrap flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
                 >
+                  {submitting && (
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  )}
                   {submitting ? 'Sending…' : 'Send Request'}
                 </button>
               </div>

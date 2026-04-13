@@ -268,14 +268,16 @@ export default function DashboardLayout() {
       {/* Notification Drawer Overlay */}
       {notifOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-50 transition-opacity"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-opacity animate-fade-in"
           onClick={() => setNotifOpen(false)}
         />
       )}
 
       {/* Notification Drawer */}
       <div className={`
-        fixed top-0 right-0 z-50 h-full w-full max-w-md bg-white shadow-2xl
+        fixed top-0 right-0 z-50 h-full w-full max-w-md
+        bg-white/95 backdrop-blur-xl border-l border-white/20
+        shadow-[0_16px_48px_rgba(0,0,0,0.18)]
         transform transition-transform duration-300 ease-in-out
         ${notifOpen ? 'translate-x-0' : 'translate-x-full'}
       `}>
@@ -315,7 +317,7 @@ export default function DashboardLayout() {
             </div>
           ) : (
             <div>
-              {notifications.map(n => {
+              {notifications.map((n, i) => {
                 const Icon = notifIcons[n.type] || CheckCircle
                 const colorClass = notifColors[n.type] || notifColors.system
 
@@ -327,9 +329,12 @@ export default function DashboardLayout() {
                       if (!n.is_read) markOneRead(n.id)
                       setNotifOpen(false)
                     }}
+                    style={{
+                      animation: `fadeIn 0.3s ease-out ${i * 30}ms both`,
+                    }}
                     className={`
-                      flex items-start gap-4 px-6 py-4 border-b border-neutral-50 hover:bg-neutral-50 transition-colors
-                      ${!n.is_read ? 'bg-brand-pink/[0.03]' : ''}
+                      flex items-start gap-4 px-6 py-4 border-b border-neutral-100/50 hover:bg-brand-pink/[0.04] transition-colors
+                      ${!n.is_read ? 'bg-brand-pink/[0.04]' : ''}
                     `}
                   >
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${colorClass}`}>
