@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import DashboardSidebar from './DashboardSidebar'
 import PageTransition from '../ui/PageTransition'
 import Tooltip from '../ui/Tooltip'
+import MobileFAB from '../ui/MobileFAB'
 import { Bell, Search, Menu, User, Settings, LogOut, ChevronDown, X, UserPlus, MessageCircle, Briefcase, Radio, CheckCircle, Star } from 'lucide-react'
 import Avatar from '../ui/Avatar'
 import { useAuth } from '../../context/AuthContext'
@@ -260,6 +261,9 @@ export default function DashboardLayout() {
           <PageTransition />
         </main>
       </div>
+
+      {/* Mobile floating action menu */}
+      <MobileFAB />
 
       {/* Notification Drawer Overlay */}
       {notifOpen && (

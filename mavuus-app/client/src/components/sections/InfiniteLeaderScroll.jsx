@@ -69,9 +69,13 @@ export default function InfiniteLeaderScroll({ leaders, speed = 30 }) {
       </AnimatedSection>
 
       <div
-        className="overflow-hidden cursor-grab active:cursor-grabbing"
+        className="relative overflow-hidden cursor-grab active:cursor-grabbing"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
+        style={{
+          WebkitMaskImage: 'linear-gradient(to right, transparent, black 64px, black calc(100% - 64px), transparent)',
+          maskImage: 'linear-gradient(to right, transparent, black 64px, black calc(100% - 64px), transparent)',
+        }}
       >
         <div
           ref={scrollRef}

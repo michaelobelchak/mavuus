@@ -10,6 +10,8 @@ import StarRating from '../../components/ui/StarRating'
 import ReviewCard from '../../components/ui/ReviewCard'
 import { Textarea } from '../../components/ui/Input'
 import { MapPin, Clock, DollarSign, Bookmark, BookmarkCheck, ArrowLeft, Building2, Send, CheckCircle, Users, Briefcase, Star, ThumbsUp } from 'lucide-react'
+// eslint-disable-next-line no-unused-vars -- motion is referenced as <motion.button> in JSX
+import { motion } from 'motion/react'
 import { fireConfetti } from '../../hooks/useConfetti'
 
 function renderDescription(text) {
@@ -136,9 +138,10 @@ export default function JobDetailPage() {
           const myApp = apps.find(a => a.job_id === parseInt(id))
           if (myApp) setApplied(myApp)
         }
-      } catch {} finally { setLoading(false) }
+      } catch { /* silent */ } finally { setLoading(false) }
     }
     fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   const toggleSave = async () => {
@@ -152,7 +155,7 @@ export default function JobDetailPage() {
         setSaved(true)
         toast.success('Job saved!')
       }
-    } catch {}
+    } catch { /* silent */ }
   }
 
   const handleApply = async () => {
@@ -273,7 +276,7 @@ export default function JobDetailPage() {
     try {
       const res = await fetch('/api/vendors', { headers: { Authorization: `Bearer ${token}` } })
       if (res.ok) setVendors(await res.json())
-    } catch {}
+    } catch { /* silent */ }
     setShowRecommendModal(true)
   }
 
@@ -292,7 +295,6 @@ export default function JobDetailPage() {
 
   const isMyJob = job.posted_by === user?.id
   const isCompleted = job.status === 'completed'
-  const isInvolved = isMyJob || job.hired_user_id === user?.id
   const appStatusColors = {
     applied: 'blue', reviewing: 'pink', interview: 'green', offer: 'green', rejected: 'gray', hired: 'pink'
   }
@@ -319,9 +321,15 @@ export default function JobDetailPage() {
                   <Building2 size={18} /> {job.company}
                 </p>
               </div>
-              <button onClick={toggleSave} className="text-neutral-400 hover:text-brand-pink transition-colors cursor-pointer flex-shrink-0">
+              <motion.button
+                onClick={toggleSave}
+                whileTap={{ scale: 1.3 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                className="text-neutral-400 hover:text-brand-pink transition-colors cursor-pointer flex-shrink-0"
+                aria-label={saved ? 'Unsave job' : 'Save job'}
+              >
                 {saved ? <BookmarkCheck size={24} className="text-brand-pink fill-brand-pink" /> : <Bookmark size={24} />}
-              </button>
+              </motion.button>
             </div>
 
             <div className="flex flex-wrap gap-3 mb-6">
