@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import DashboardSidebar from './DashboardSidebar'
 import PageTransition from '../ui/PageTransition'
+import Tooltip from '../ui/Tooltip'
 import { Bell, Search, Menu, User, Settings, LogOut, ChevronDown, X, UserPlus, MessageCircle, Briefcase, Radio, CheckCircle, Star } from 'lucide-react'
 import Avatar from '../ui/Avatar'
 import { useAuth } from '../../context/AuthContext'
@@ -47,9 +48,12 @@ export default function DashboardLayout() {
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const [bellPulse, setBellPulse] = useState(false)
+  const prevUnreadRef = useRef(0)
   const userMenuRef = useRef(null)
+  const searchInputRef = useRef(null)
 
-  // Fetch unread count
+  // Fetch unread count — pulse bell when count increases
   useEffect(() => {
     if (!token) return
     const fetchUnread = async () => {
@@ -59,6 +63,11 @@ export default function DashboardLayout() {
         })
         if (res.ok) {
           const data = await res.json()
+          if (data.count > prevUnreadRef.current && prevUnreadRef.current > 0) {
+            setBellPulse(true)
+            setTimeout(() => setBellPulse(false), 700)
+          }
+          prevUnreadRef.current = data.count
           setUnreadCount(data.count)
         }
       } catch { /* silent */ }
@@ -67,6 +76,20 @@ export default function DashboardLayout() {
     const interval = setInterval(fetchUnread, 30000)
     return () => clearInterval(interval)
   }, [token])
+
+  // Global "/" shortcut focuses search — ignore when typing in an input
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key !== '/') return
+      const target = e.target
+      const tag = target?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return
+      e.preventDefault()
+      searchInputRef.current?.focus()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   // Fetch notifications when drawer opens
   useEffect(() => {
@@ -150,36 +173,44 @@ export default function DashboardLayout() {
             <div className="hidden sm:flex items-center gap-3 flex-1 max-w-md">
               <Search size={18} className="text-neutral-300" />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search sessions, resources, members..."
-                className="w-full bg-transparent text-sm text-neutral-600 placeholder:text-neutral-300 focus:outline-none"
+                className="flex-1 bg-transparent text-sm text-neutral-600 placeholder:text-neutral-300 focus:outline-none"
               />
+              <kbd className="hidden md:inline-flex items-center justify-center h-5 min-w-[22px] px-1.5 text-[11px] font-semibold text-neutral-400 bg-white border border-neutral-200 rounded">
+                /
+              </kbd>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
             {/* Messages shortcut */}
-            <Link
-              to="/dashboard/messages"
-              aria-label="Messages"
-              className="text-neutral-500 hover:text-dark-blue transition-colors cursor-pointer"
-            >
-              <MessageCircle size={20} />
-            </Link>
+            <Tooltip content="Messages">
+              <Link
+                to="/dashboard/messages"
+                aria-label="Messages"
+                className="text-neutral-500 hover:text-dark-blue transition-colors cursor-pointer"
+              >
+                <MessageCircle size={20} />
+              </Link>
+            </Tooltip>
 
             {/* Notifications Bell */}
-            <button
-              onClick={() => setNotifOpen(true)}
-              aria-label="Notifications"
-              className="relative text-neutral-500 hover:text-dark-blue transition-colors cursor-pointer"
-            >
-              <Bell size={20} />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-pink text-white text-[10px] rounded-full flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
+            <Tooltip content="Notifications">
+              <button
+                onClick={() => setNotifOpen(true)}
+                aria-label="Notifications"
+                className="relative text-neutral-500 hover:text-dark-blue transition-colors cursor-pointer"
+              >
+                <Bell size={20} className={bellPulse ? 'animate-shake text-brand-pink' : ''} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-pink text-white text-[10px] rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+            </Tooltip>
 
             {/* User menu */}
             <div className="relative" ref={userMenuRef}>

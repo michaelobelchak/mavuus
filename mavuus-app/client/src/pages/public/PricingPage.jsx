@@ -6,6 +6,9 @@ import TestimonialRow from '../../components/sections/TestimonialRow'
 import CTABannerQuote from '../../components/sections/CTABannerQuote'
 import { CircleCheck } from 'lucide-react'
 import AnimatedSection from '../../components/ui/AnimatedSection'
+import GlassCard from '../../components/ui/GlassCard'
+import AnimatedCounter from '../../components/ui/AnimatedCounter'
+import GradientText from '../../components/ui/GradientText'
 
 export default function PricingPage() {
   const [yearly, setYearly] = useState(true)
@@ -16,18 +19,18 @@ export default function PricingPage() {
       <section className="px-6 md:px-12 lg:px-[104px] pt-9 pb-14">
         <AnimatedSection animation="fade-up">
           <h1 className="text-[24px] md:text-[32px] lg:text-[40px] leading-[1.2] text-dark-blue text-center w-full">
-            <span className="font-semibold text-brand-blue">Collaborate</span> with peers.{' '}
-            <span className="font-semibold text-brand-blue">Learn</span> from the experts.
+            <GradientText className="font-semibold">Collaborate</GradientText> with peers.{' '}
+            <GradientText className="font-semibold">Learn</GradientText> from the experts.
             <br />
-            <span className="font-semibold text-brand-blue">Exchange</span> contractors.{' '}
-            <span className="font-semibold text-brand-blue">Land</span> clients.
+            <GradientText className="font-semibold">Exchange</GradientText> contractors.{' '}
+            <GradientText className="font-semibold">Land</GradientText> clients.
           </h1>
         </AnimatedSection>
 
         {/* Pricing Card */}
         <AnimatedSection animation="scale-up" delay={200}>
-          <div className="mt-9 border border-dashed border-neutral-300 rounded-[35px] px-3 py-2">
-            <div className="bg-bg-light rounded-[32px] p-6 md:p-10 lg:p-14 flex flex-col lg:flex-row items-start justify-between gap-10 lg:gap-0">
+          <GlassCard hover className="mt-9 p-6 md:p-10 lg:p-14 flex flex-col lg:flex-row items-start justify-between gap-10 lg:gap-0 relative overflow-hidden">
+            <div className="absolute -top-20 -right-20 w-[300px] h-[300px] bg-brand-pink/10 rounded-full blur-[100px] pointer-events-none" />
               {/* Left section */}
               <div className="w-full lg:w-[385px] flex flex-col gap-14">
                 {/* Heading */}
@@ -42,9 +45,12 @@ export default function PricingPage() {
 
                 {/* Price + toggle */}
                 <div className="flex flex-col gap-4">
-                  <div className="flex gap-4 items-start text-[24px] md:text-[32px] lg:text-[40px] leading-[1.3] text-neutral-600">
+                  <div className="flex gap-4 items-baseline text-[24px] md:text-[32px] lg:text-[40px] leading-[1.3] text-neutral-600">
                     <span className="line-through opacity-50">$15</span>
-                    <span className="font-semibold">$9.25</span>
+                    <span className="font-semibold">
+                      $
+                      <AnimatedCounter end={yearly ? 9.25 : 15} duration={800} />
+                    </span>
                   </div>
                   <div className="flex gap-2.5 items-center">
                     <span className={`text-[18px] leading-[1.6] transition-colors ${!yearly ? 'text-neutral-600' : 'text-neutral-500'}`}>
@@ -100,8 +106,7 @@ export default function PricingPage() {
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
+          </GlassCard>
         </AnimatedSection>
       </section>
 

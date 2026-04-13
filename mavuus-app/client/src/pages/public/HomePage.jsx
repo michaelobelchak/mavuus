@@ -58,6 +58,13 @@ export default function HomePage() {
     <div>
       {/* ===== HERO SECTION ===== */}
       <section className="px-6 md:px-12 lg:px-[104px] pt-6 pb-16 relative overflow-hidden">
+        {/* Decorative mesh gradient background */}
+        <div className="absolute inset-0 -z-10 pointer-events-none">
+          <div className="absolute top-[-200px] left-[-200px] w-[600px] h-[600px] bg-brand-pink/10 rounded-full blur-[140px]" />
+          <div className="absolute top-[100px] right-[-150px] w-[500px] h-[500px] bg-brand-blue/10 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-200px] left-[40%] w-[400px] h-[400px] bg-brand-pink/5 rounded-full blur-[100px]" />
+        </div>
+
         <AnimatedSection animation="fade-up">
           <div className="max-w-full lg:max-w-[700px]">
             <h1 className="text-[28px] md:text-[36px] lg:text-[48px] font-bold leading-[1.1] mb-6">

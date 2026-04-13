@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/ui/Toast'
@@ -47,6 +47,16 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [slide, setSlide] = useState(0)
+  const [paused, setPaused] = useState(false)
+
+  // Auto-advance testimonial carousel every 7s, pause on hover
+  useEffect(() => {
+    if (paused) return
+    const id = setInterval(() => {
+      setSlide((s) => (s + 1) % testimonialSlides.length)
+    }, 7000)
+    return () => clearInterval(id)
+  }, [paused])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -82,7 +92,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex bg-bg-light font-[Manrope]">
       {/* ─── Left Panel — Testimonial ──────────────────────────── */}
-      <aside className="hidden lg:flex lg:w-[55%] bg-[#79A2BB] text-white flex-col relative overflow-hidden">
+      <aside
+        className="hidden lg:flex lg:w-[55%] bg-[#79A2BB] text-white flex-col relative overflow-hidden"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
         {/* Review block — vertically centered on upper half */}
         <div className="flex-1 flex items-center justify-center px-16">
           <div className="w-full max-w-[588px] flex flex-col gap-8 items-center text-center">
