@@ -1,18 +1,51 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { contactFaqItems } from '../../data/mockData'
 import LogoBar from '../../components/sections/LogoBar'
 import TestimonialRow from '../../components/sections/TestimonialRow'
 import CTABannerQuote from '../../components/sections/CTABannerQuote'
 import FAQSection from '../../components/sections/FAQSection'
 import AnimatedSection from '../../components/ui/AnimatedSection'
+import GradientText from '../../components/ui/GradientText'
+import { useToast } from '../../components/ui/Toast'
 
 export default function ContactPage() {
+  const toast = useToast()
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' })
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [faqItems, setFaqItems] = useState(null)
 
-  const handleSubmit = (e) => {
+  // Pull CMS-managed FAQ items if the admin added any, fall back to static
+  useEffect(() => {
+    fetch('/api/faq?page=contact')
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => setFaqItems(data.map((f) => ({ title: f.question, content: f.answer }))))
+      .catch(() => {})
+  }, [])
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitted(true)
+    if (submitting) return
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || 'Could not send message. Please try again.')
+        return
+      }
+      setSubmitted(true)
+      toast.success('Message sent — we\'ll get back to you shortly.')
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleChange = (field) => (e) => {
@@ -21,15 +54,27 @@ export default function ContactPage() {
 
   return (
     <div>
+      <Helmet>
+        <title>Contact Mavuus</title>
+        <meta name="description" content="Get in touch with the Mavuus team. Whether you have a question, need support, or want to explore partnerships, we'd love to connect." />
+        <link rel="canonical" href="https://mavuus.com/contact" />
+      </Helmet>
+
       {/* Hero + Form Section */}
-      <section className="px-6 md:px-12 lg:px-24 pt-6 pb-10">
+      <section className="relative px-6 md:px-12 lg:px-24 pt-6 pb-10 overflow-hidden">
+        {/* Decorative mesh gradient */}
+        <div className="absolute inset-0 -z-10 pointer-events-none">
+          <div className="absolute top-[-150px] right-[-100px] w-[500px] h-[500px] bg-brand-pink/10 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-200px] left-[10%] w-[400px] h-[400px] bg-brand-blue/10 rounded-full blur-[100px]" />
+        </div>
+
         {/* Header Row */}
         <AnimatedSection animation="fade-up">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-36 items-start mb-9">
             {/* Left: Title */}
             <div className="shrink-0">
               <h1 className="text-[28px] md:text-[36px] lg:text-[42px] font-medium leading-[1.1]">
-                <span className="text-brand-pink">Get in Touch</span>
+                <GradientText className="font-semibold">Get in Touch</GradientText>
                 <br />
                 <span className="text-neutral-600">Support@Mavuus.com</span>
               </h1>
@@ -130,9 +175,13 @@ export default function ContactPage() {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="bg-brand-pink text-white font-bold text-base px-8 py-4 rounded-[16px] shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:bg-brand-pink-hover transition-all duration-300 btn-press whitespace-nowrap flex-shrink-0"
+                  disabled={submitting}
+                  className="inline-flex items-center justify-center gap-2 bg-brand-pink text-white font-bold text-base px-8 py-4 rounded-[16px] shadow-[0_4px_15px_rgba(242,109,146,0.25)] hover:bg-brand-pink-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-150 whitespace-nowrap flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
                 >
-                  Send Request
+                  {submitting && (
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  )}
+                  {submitting ? 'Sending…' : 'Send Request'}
                 </button>
               </div>
             </form>
@@ -147,7 +196,7 @@ export default function ContactPage() {
       <TestimonialRow />
 
       {/* FAQ Section */}
-      <FAQSection items={contactFaqItems} />
+      <FAQSection items={faqItems || contactFaqItems} />
 
       {/* CTA Banner */}
       <CTABannerQuote />

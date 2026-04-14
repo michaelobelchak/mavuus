@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/ui/Toast'
 import Avatar from '../../components/ui/Avatar'
@@ -55,32 +55,57 @@ export default function MessagesPage() {
 
   // Initial load
   useEffect(() => {
-    const init = async () => {
-      const convs = await fetchConversations()
+    const t = token || localStorage.getItem('mavuus_token')
+    if (!t) {
       setLoading(false)
-      // Auto-select from URL param
-      const convParam = searchParams.get('conversation')
-      if (convParam && convs.length > 0) {
-        const conv = convs.find(c => c.id === parseInt(convParam))
-        if (conv) {
-          setSelectedConv(conv)
-          fetchMessages(conv.id)
+      return
+    }
+    const init = async () => {
+      try {
+        const res = await fetch('/api/messages/conversations', { headers: { Authorization: `Bearer ${t}` } })
+        if (res.ok) {
+          const convs = await res.json()
+          setConversations(convs)
+          // Auto-select from URL param (by conversation id)
+          const convParam = searchParams.get('conversation')
+          if (convParam && convs.length > 0) {
+            const conv = convs.find(c => c.id === parseInt(convParam))
+            if (conv) {
+              setSelectedConv(conv)
+              fetchMessages(conv.id)
+            }
+          }
+          // Auto-select from URL param (by user id)
+          const userParam = searchParams.get('user')
+          if (userParam && convs.length > 0) {
+            const conv = convs.find(c => c.other_user_id === parseInt(userParam))
+            if (conv) {
+              setSelectedConv(conv)
+              fetchMessages(conv.id)
+            }
+          }
         }
-      }
+      } catch { /* silent */ }
+      setLoading(false)
     }
     init()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
 
-  // Poll conversations every 10s
+  // Poll conversations every 10s — paused when tab is hidden
   useEffect(() => {
-    const interval = setInterval(fetchConversations, 10000)
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchConversations()
+    }, 10000)
     return () => clearInterval(interval)
   }, [fetchConversations])
 
-  // Poll messages every 5s when conversation is active
+  // Poll messages every 5s when conversation is active — paused when tab is hidden
   useEffect(() => {
     if (!selectedConv) return
-    const interval = setInterval(() => fetchMessages(selectedConv.id), 5000)
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchMessages(selectedConv.id)
+    }, 5000)
     return () => clearInterval(interval)
   }, [selectedConv, fetchMessages])
 
@@ -144,7 +169,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-neutral-100 flex h-[calc(100vh-140px)] overflow-hidden">
+    <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm flex h-[calc(100vh-140px)] overflow-hidden">
       {/* Left Panel - Conversation List */}
       <div className={`w-full md:w-80 lg:w-96 border-r border-neutral-100 flex flex-col ${selectedConv ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-neutral-100">
@@ -165,19 +190,30 @@ export default function MessagesPage() {
 
         <div className="flex-1 overflow-y-auto">
           {filteredConvs.length === 0 ? (
-            <div className="px-4 py-8 text-center">
-              <MessageCircle size={24} className="text-neutral-300 mx-auto mb-2" />
-              <p className="text-sm text-neutral-500">No conversations yet</p>
+            <div className="px-6 py-12 text-center">
+              <div className="w-16 h-16 bg-brand-pink/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle size={28} className="text-brand-pink" />
+              </div>
+              <p className="text-sm font-semibold text-dark-blue mb-1">No conversations yet</p>
+              <p className="text-xs text-neutral-500 mb-4 leading-relaxed">
+                Start a conversation by visiting a member&apos;s profile and clicking the &ldquo;Message&rdquo; button.
+              </p>
+              <Link to="/dashboard/members" className="inline-flex items-center gap-1 text-xs font-medium text-brand-pink hover:underline">
+                Browse Members <ArrowLeft size={12} className="rotate-180" />
+              </Link>
             </div>
           ) : (
             filteredConvs.map(conv => (
               <button
                 key={conv.id}
                 onClick={() => selectConversation(conv)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50 transition-colors cursor-pointer ${
-                  selectedConv?.id === conv.id ? 'bg-brand-pink/5 border-r-2 border-brand-pink' : ''
+                className={`relative w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-brand-pink/[0.04] transition-colors cursor-pointer ${
+                  selectedConv?.id === conv.id ? 'bg-brand-pink/[0.06]' : ''
                 }`}
               >
+                {selectedConv?.id === conv.id && (
+                  <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-brand-pink" />
+                )}
                 <Avatar name={conv.other_user_name} src={conv.other_user_avatar} size="md" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
@@ -209,8 +245,8 @@ export default function MessagesPage() {
       <div className={`flex-1 flex flex-col ${!selectedConv ? 'hidden md:flex' : 'flex'}`}>
         {selectedConv ? (
           <>
-            {/* Chat Header */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-100">
+            {/* Chat Header — glass */}
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-100/80 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
               <button onClick={() => setSelectedConv(null)} className="md:hidden text-neutral-500 cursor-pointer">
                 <ArrowLeft size={20} />
               </button>
@@ -237,10 +273,10 @@ export default function MessagesPage() {
                       </div>
                     )}
                     <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl ${
+                      <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-sm ${
                         isMine
-                          ? 'bg-brand-pink text-white rounded-br-md'
-                          : 'bg-neutral-100 text-dark-blue rounded-bl-md'
+                          ? 'bg-brand-pink text-white rounded-br-md shadow-[0_4px_15px_rgba(242,109,146,0.25)]'
+                          : 'bg-white text-dark-blue rounded-bl-md border border-neutral-100'
                       }`}>
                         <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                         <p className={`text-[10px] mt-1 ${isMine ? 'text-white/70' : 'text-neutral-400'}`}>

@@ -7,7 +7,20 @@ export default defineConfig({
   server: {
     host: true,
     proxy: {
-      '/api': 'http://localhost:3001',
+      '/api': process.env.VITE_API_TARGET || 'http://localhost:3001',
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split large libs into named vendor chunks so the main bundle
+          // stays under Vite's 500 KB warning threshold.
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-motion': ['motion', 'canvas-confetti'],
+          'vendor-icons': ['lucide-react'],
+        },
+      },
     },
   },
 })

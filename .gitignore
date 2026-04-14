@@ -24,11 +24,5 @@ Thumbs.db
 # Build output
 dist/
 
-# Claude Code local config
+# Claude Code local config (user-specific)
 .claude/
-
-# Claude Code skills/tests (not part of Mavuus app)
-skills/
-tests/
-agents/
-commands/

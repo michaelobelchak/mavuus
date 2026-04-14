@@ -5,11 +5,10 @@ import Button from '../ui/Button'
 import { useAuth } from '../../context/AuthContext'
 
 const navLinks = [
-  { label: 'Home', path: '/' },
-  { label: 'About', path: '/about' },
-  { label: 'Resources', path: '/resources' },
+  { label: 'For Business', path: '/about' },
+  { label: 'For Marketers', path: '/home' },
+  { label: 'Community', path: '/resources' },
   { label: 'Pricing', path: '/pricing' },
-  { label: 'Contact', path: '/contact' },
 ]
 
 export default function PublicHeader() {
@@ -52,10 +51,10 @@ export default function PublicHeader() {
           ) : (
             <>
               <Link to="/login">
-                <Button variant="ghost" size="sm">Log in</Button>
+                <Button variant="ghost" size="sm">Sign In</Button>
               </Link>
               <Link to="/register">
-                <Button size="sm">Join Now</Button>
+                <Button size="sm">Create Account</Button>
               </Link>
             </>
           )}
@@ -94,10 +93,10 @@ export default function PublicHeader() {
               ) : (
                 <>
                   <Link to="/login" onClick={() => setMobileOpen(false)}>
-                    <Button variant="ghost" size="sm">Log in</Button>
+                    <Button variant="ghost" size="sm">Sign In</Button>
                   </Link>
                   <Link to="/register" onClick={() => setMobileOpen(false)}>
-                    <Button size="sm">Join Now</Button>
+                    <Button size="sm">Create Account</Button>
                   </Link>
                 </>
               )}

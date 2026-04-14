@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 import {
   featuredArticle,
   resourceEvents,
   resourceVideos,
-  articles,
+  articles as mockArticles,
   liveEvents,
 } from '../../data/mockData'
 import Breadcrumbs from '../../components/ui/Breadcrumbs'
@@ -11,8 +13,39 @@ import AnimatedSection from '../../components/ui/AnimatedSection'
 import { Clock, Tag, ArrowRight, Play } from 'lucide-react'
 
 export default function ResourcesHubPage() {
+  const [apiArticles, setApiArticles] = useState([])
+
+  useEffect(() => {
+    let active = true
+    fetch('/api/resources?limit=6')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        if (active && Array.isArray(data)) setApiArticles(data)
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
+
+  // Prefer live API articles; fall back to mock data if fetch empty
+  const articles = apiArticles.length > 0
+    ? apiArticles.map((a) => ({
+        id: a.id,
+        title: a.title,
+        image: a.thumbnail_url || '/assets/blog/blog-sidebar-1.jpg',
+        author: a.author || 'Mavuus Team',
+        readTime: a.read_time || '5 min read',
+        category: a.category || 'Guide',
+      }))
+    : mockArticles
+
   return (
     <div>
+      <Helmet>
+        <title>Mavuus Resources Hub</title>
+        <meta name="description" content="Explore Mavuus resources including articles, live events, and on-demand videos for marketing leaders." />
+        <link rel="canonical" href="https://mavuus.com/resources" />
+      </Helmet>
+
       {/* Header + Featured Article */}
       <section className="px-6 md:px-12 lg:px-[104px] pt-[74px] pb-14">
         <AnimatedSection animation="fade-up">
@@ -37,6 +70,7 @@ export default function ResourcesHubPage() {
               <img
                 src={featuredArticle.image}
                 alt={featuredArticle.title}
+                loading="lazy"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
               />
             </div>
@@ -124,6 +158,7 @@ export default function ResourcesHubPage() {
                   <img
                     src={event.image}
                     alt={event.title}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
@@ -157,10 +192,10 @@ export default function ResourcesHubPage() {
         <AnimatedSection animation="fade-up">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 mb-10">
             <h2 className="text-[24px] md:text-[28px] lg:text-[32px] leading-[1.3] font-semibold text-dark-blue">
-              On Demands Videos
+              On-Demand Videos
             </h2>
             <Link
-              to="/dashboard"
+              to="/dashboard/on-demand"
               className="flex items-center gap-2 text-[14px] text-[#5E697C] hover:text-dark-blue transition-colors"
             >
               View All{' '}
@@ -181,6 +216,7 @@ export default function ResourcesHubPage() {
                   <img
                     src={video.image}
                     alt={video.title}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -233,12 +269,13 @@ export default function ResourcesHubPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
           {articles.slice(0, 6).map((article, i) => (
             <AnimatedSection key={article.id} animation="fade-up" delay={i * 80}>
-              <div className="group cursor-pointer">
+              <Link to={`/articles/${article.id}`} className="group cursor-pointer block">
                 {/* Image */}
-                <div className="w-full h-[220px] rounded-[16px] overflow-hidden mb-5">
+                <div className="w-full h-[220px] rounded-[16px] overflow-hidden mb-5 bg-neutral-100">
                   <img
                     src={article.image}
                     alt={article.title}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
@@ -266,7 +303,7 @@ export default function ResourcesHubPage() {
                   By{' '}
                   <span className="text-dark-blue">{article.author}</span>
                 </p>
-              </div>
+              </Link>
             </AnimatedSection>
           ))}
         </div>

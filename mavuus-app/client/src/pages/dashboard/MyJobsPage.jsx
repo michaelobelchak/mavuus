@@ -37,9 +37,10 @@ export default function MyJobsPage() {
       if (appsRes.ok) setApplications(await appsRes.json())
       if (savedRes.ok) setSavedJobs(await savedRes.json())
       if (postingsRes.ok) setMyPostings(await postingsRes.json())
-    } catch {} finally { setLoading(false) }
+    } catch { /* silent */ } finally { setLoading(false) }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchAll() }, [])
 
   const unsaveJob = async (jobId) => {
@@ -47,7 +48,7 @@ export default function MyJobsPage() {
       await fetch(`/api/jobs/${jobId}/save`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
       setSavedJobs(prev => prev.filter(j => j.id !== jobId))
       toast.success('Job removed from saved')
-    } catch {}
+    } catch { /* silent */ }
   }
 
   const postJob = async () => {
@@ -107,7 +108,7 @@ export default function MyJobsPage() {
           ) : (
             <div className="space-y-3">
               {applications.map(app => (
-                <Link key={app.id} to={`/dashboard/jobs/${app.job_id}`} className="block bg-white rounded-xl border border-neutral-100 p-4 hover:border-brand-pink/30 transition-colors">
+                <Link key={app.id} to={`/dashboard/jobs/${app.job_id}`} className="block bg-white rounded-xl border border-neutral-100 p-4 hover:border-brand-pink/40 hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200">
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="font-semibold text-dark-blue">{app.job_title}</h3>
@@ -133,7 +134,7 @@ export default function MyJobsPage() {
           ) : (
             <div className="space-y-3">
               {savedJobs.map(job => (
-                <div key={job.id} className="bg-white rounded-xl border border-neutral-100 p-4 flex items-start justify-between">
+                <div key={job.id} className="bg-white rounded-xl border border-neutral-100 p-4 flex items-start justify-between hover:border-brand-pink/40 hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200">
                   <Link to={`/dashboard/jobs/${job.id}`} className="flex-1">
                     <h3 className="font-semibold text-dark-blue hover:text-brand-pink transition-colors">{job.title}</h3>
                     <p className="text-sm text-neutral-600">{job.company}</p>
@@ -159,7 +160,7 @@ export default function MyJobsPage() {
           ) : (
             <div className="space-y-3">
               {myPostings.map(job => (
-                <div key={job.id} className="bg-white rounded-xl border border-neutral-100 p-4">
+                <div key={job.id} className="bg-white rounded-xl border border-neutral-100 p-4 hover:border-brand-pink/40 hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200">
                   <div className="flex items-start justify-between">
                     <div>
                       <Link to={`/dashboard/jobs/${job.id}`} className="font-semibold text-dark-blue hover:text-brand-pink transition-colors">
@@ -200,8 +201,8 @@ export default function MyJobsPage() {
           <Textarea label="Description" value={jobForm.description} onChange={(e) => setJobForm(p => ({ ...p, description: e.target.value }))} rows={6} placeholder="Describe the role, responsibilities, and requirements..." />
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="ghost" onClick={() => setShowPostModal(false)}>Cancel</Button>
-            <Button onClick={postJob} disabled={posting || !jobForm.title || !jobForm.company}>
-              {posting ? 'Posting...' : 'Post Job'}
+            <Button onClick={postJob} disabled={!jobForm.title || !jobForm.company} loading={posting}>
+              {posting ? 'Posting…' : 'Post Job'}
             </Button>
           </div>
         </div>

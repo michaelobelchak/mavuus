@@ -12,10 +12,13 @@ import Select from '../../components/ui/Select'
 import TagInput from '../../components/ui/TagInput'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import Input, { Textarea } from '../../components/ui/Input'
+import ReviewCard from '../../components/ui/ReviewCard'
+import RecommendationCard from '../../components/ui/RecommendationCard'
+import ProgressRing from '../../components/ui/ProgressRing'
 import {
   Pencil, MapPin, Calendar, Briefcase, ExternalLink,
   Plus, Trash2, GraduationCap, FileText, Upload,
-  CreditCard, Shield,
+  CreditCard, Shield, Users, Star, ThumbsUp,
 } from 'lucide-react'
 
 const INDUSTRY_OPTIONS = [
@@ -39,8 +42,27 @@ const VISIBILITY_OPTIONS = [
   { value: 'private', label: 'Private — hidden from directory' },
 ]
 
+// Profile completion checks — used for ProgressRing display
+function computeCompletion(profile) {
+  if (!profile) return { percent: 0, missing: [] }
+  const checks = [
+    { ok: !!profile.avatar_url, label: 'Add a profile photo', tab: 'about' },
+    { ok: !!(profile.bio && profile.bio.trim()), label: 'Write a short bio', tab: 'about' },
+    { ok: (profile.skills?.length || 0) >= 3, label: 'Add at least 3 skills', tab: 'about' },
+    { ok: (profile.experience?.length || 0) >= 1, label: 'Add work experience', tab: 'experience' },
+    { ok: !!profile.resume_filename, label: 'Upload your resume', tab: 'experience' },
+  ]
+  const done = checks.filter((c) => c.ok).length
+  return {
+    percent: Math.round((done / checks.length) * 100),
+    done,
+    total: checks.length,
+    missing: checks.filter((c) => !c.ok),
+  }
+}
+
 export default function ProfilePage() {
-  const { user, token } = useAuth()
+  const { user, token, updateUser } = useAuth()
   const toast = useToast()
   const [searchParams] = useSearchParams()
 
@@ -69,6 +91,19 @@ export default function ProfilePage() {
   // Save in-progress flag
   const [saving, setSaving] = useState(false)
 
+  // Reviews and recommendations
+  const [reviews, setReviews] = useState([])
+  const [recommendations, setRecommendations] = useState([])
+
+  // Resume upload
+  const [uploadingResume, setUploadingResume] = useState(false)
+
+  // Avatar upload
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+
+  // Password change
+  const [changingPassword, setChangingPassword] = useState(false)
+
   const authHeaders = {
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
@@ -92,8 +127,23 @@ export default function ProfilePage() {
     }
   }
 
+  const fetchReviewsAndRecs = async () => {
+    if (!user) return
+    try {
+      const [reviewsRes, recsRes] = await Promise.all([
+        fetch(`/api/reviews/user/${user.id}`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`/api/recommendations/user/${user.id}`, { headers: { Authorization: `Bearer ${token}` } }),
+      ])
+      if (reviewsRes.ok) setReviews(await reviewsRes.json())
+      if (recsRes.ok) setRecommendations(await recsRes.json())
+    } catch {
+      // silently fail
+    }
+  }
+
   useEffect(() => {
     fetchProfile()
+    fetchReviewsAndRecs()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Profile field update ────────────────────────────────────
@@ -224,6 +274,135 @@ export default function ProfilePage() {
     await updateProfile({ [key]: value ? 1 : 0 })
   }
 
+  // ─── Resume upload ──────────────────────────────────────────
+
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.type !== 'application/pdf') {
+      toast.error('Only PDF files are allowed')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File must be under 5MB')
+      return
+    }
+    setUploadingResume(true)
+    try {
+      const formData = new FormData()
+      formData.append('resume', file)
+      const res = await fetch('/api/profile/me/resume', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setProfile(prev => ({ ...prev, resume_filename: data.filename, resume_url: data.url }))
+        toast.success('Resume uploaded!')
+      } else {
+        const data = await res.json()
+        toast.error(data.error || 'Upload failed')
+      }
+    } catch {
+      toast.error('Upload failed')
+    } finally {
+      setUploadingResume(false)
+    }
+  }
+
+  // ─── Avatar upload ──────────────────────────────────────────
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      toast.error('Please upload a JPEG, PNG, WebP, or GIF image')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image must be under 2MB')
+      return
+    }
+    setUploadingAvatar(true)
+    try {
+      const formData = new FormData()
+      formData.append('avatar', file)
+      const res = await fetch('/api/profile/me/avatar', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok) {
+        setProfile((prev) => ({ ...prev, avatar_url: data.avatar_url }))
+        updateUser({ avatar_url: data.avatar_url })
+        toast.success('Photo updated!')
+      } else {
+        toast.error(data.error || 'Upload failed')
+      }
+    } catch {
+      toast.error('Upload failed')
+    } finally {
+      setUploadingAvatar(false)
+      e.target.value = ''
+    }
+  }
+
+  // ─── Password change ────────────────────────────────────────
+
+  const handleChangePassword = async () => {
+    if (!passwordForm.current || !passwordForm.new || !passwordForm.confirm) {
+      toast.error('All password fields are required')
+      return
+    }
+    if (passwordForm.new.length < 8) {
+      toast.error('New password must be at least 8 characters')
+      return
+    }
+    if (passwordForm.new !== passwordForm.confirm) {
+      toast.error('New passwords don\'t match')
+      return
+    }
+    setChangingPassword(true)
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'PUT',
+        headers: authHeaders,
+        body: JSON.stringify({
+          currentPassword: passwordForm.current,
+          newPassword: passwordForm.new,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok) {
+        toast.success('Password updated')
+        setPasswordForm({ current: '', new: '', confirm: '' })
+      } else {
+        toast.error(data.error || 'Failed to update password')
+      }
+    } catch {
+      toast.error('Network error')
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
+  const handleDeleteResume = async () => {
+    try {
+      const res = await fetch('/api/profile/me/resume', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        setProfile(prev => ({ ...prev, resume_filename: null, resume_url: null }))
+        toast.success('Resume removed')
+      }
+    } catch {
+      toast.error('Failed to remove resume')
+    }
+  }
+
   // ─── Loading / empty states ─────────────────────────────────
 
   if (loading) {
@@ -235,6 +414,8 @@ export default function ProfilePage() {
   }
 
   if (!profile) return null
+
+  const completion = computeCompletion(profile)
 
   // ─── Reusable inline-editable field ─────────────────────────
 
@@ -308,11 +489,41 @@ export default function ProfilePage() {
   // ─── Render ─────────────────────────────────────────────────
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-6xl">
       {/* ── Profile Header ─────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-6">
         <div className="flex flex-col sm:flex-row items-start gap-6">
-          <Avatar name={profile.name} src={profile.avatar_url} size="xl" />
+          <div className="relative group">
+            {/* ProgressRing wraps the avatar with a completion ring */}
+            <ProgressRing size={104} strokeWidth={4} progress={completion.percent}>
+              <Avatar
+                name={profile.name}
+                src={profile.avatar_url}
+                size="xl"
+                pro={profile.membership_tier === 'pro'}
+              />
+            </ProgressRing>
+            <label
+              className="absolute inset-2 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+              title="Upload new photo"
+            >
+              {uploadingAvatar ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Upload size={20} className="text-white" />
+              )}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleAvatarUpload}
+                disabled={uploadingAvatar}
+              />
+            </label>
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-brand-pink text-white text-[11px] font-bold shadow-md whitespace-nowrap">
+              {completion.percent}%
+            </span>
+          </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-4">
@@ -347,7 +558,34 @@ export default function ProfilePage() {
                   year: 'numeric',
                 })}
               </span>
+              {profile.connections_count > 0 && (
+                <Link to="/dashboard/members" className="flex items-center gap-1 text-brand-pink hover:underline">
+                  <Users size={14} /> {profile.connections_count} connection{profile.connections_count !== 1 ? 's' : ''}
+                </Link>
+              )}
             </div>
+
+            {/* Profile completion checklist */}
+            {completion.missing.length > 0 && (
+              <div className="mt-4 p-3 rounded-xl bg-gradient-to-br from-brand-pink/5 to-brand-blue/5 border border-brand-pink/10">
+                <p className="text-xs font-semibold text-dark-blue mb-2">
+                  Complete your profile ({completion.done}/{completion.total})
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {completion.missing.map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => setActiveTab(item.tab)}
+                      className="inline-flex items-center gap-1.5 text-xs text-neutral-600 hover:text-brand-pink bg-white/80 hover:bg-white px-2.5 py-1 rounded-full border border-neutral-200/60 hover:border-brand-pink/40 transition-all cursor-pointer"
+                    >
+                      <span className="w-1 h-1 rounded-full bg-brand-pink" />
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -358,6 +596,19 @@ export default function ProfilePage() {
       <div className="mt-6">
         {/* ── ABOUT TAB ──────────────────────────────────────── */}
         {activeTab === 'about' && (
+          <div className="space-y-4">
+          {/* Personal Info */}
+          <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+            <h3 className="text-lg font-semibold text-dark-blue mb-4">Personal Information</h3>
+
+            <EditableField label="Full Name" value={profile.name} field="name" />
+            <EditableField label="Job Title" value={profile.title} field="title" />
+            <EditableField label="Company" value={profile.company} field="company" />
+            <EditableField label="Location" value={profile.location} field="location" />
+            <EditableField label="Timezone" value={profile.timezone} field="timezone" />
+          </div>
+
+          {/* About & Bio */}
           <div className="bg-white rounded-2xl border border-neutral-100 p-6">
             <h3 className="text-lg font-semibold text-dark-blue mb-4">About</h3>
 
@@ -384,6 +635,35 @@ export default function ProfilePage() {
                 suggestions={SKILL_SUGGESTIONS}
               />
             </div>
+          </div>
+
+          {/* Ratings & Reviews */}
+          {reviews.length > 0 && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+              <h3 className="text-lg font-semibold text-dark-blue mb-4 flex items-center gap-2">
+                <Star size={18} /> Ratings & Reviews
+              </h3>
+              <div className="space-y-3">
+                {reviews.map(review => (
+                  <ReviewCard key={review.id} {...review} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recommendations */}
+          {recommendations.length > 0 && (
+            <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+              <h3 className="text-lg font-semibold text-dark-blue mb-4 flex items-center gap-2">
+                <ThumbsUp size={18} /> Recommendations
+              </h3>
+              <div className="space-y-3">
+                {recommendations.map(rec => (
+                  <RecommendationCard key={rec.id} {...rec} />
+                ))}
+              </div>
+            </div>
+          )}
           </div>
         )}
 
@@ -436,7 +716,7 @@ export default function ProfilePage() {
               ))
             )}
 
-            {/* Resume placeholder */}
+            {/* Resume upload */}
             <div className="bg-white rounded-2xl border border-neutral-100 p-6">
               <h4 className="font-semibold text-dark-blue mb-3 flex items-center gap-2">
                 <FileText size={18} /> Resume / CV
@@ -447,13 +727,24 @@ export default function ProfilePage() {
                   <span className="text-sm font-medium text-dark-blue flex-1">
                     {profile.resume_filename}
                   </span>
-                  <Button size="sm" variant="ghost">Replace</Button>
+                  <label className="cursor-pointer">
+                    <Button size="sm" variant="ghost" as="span">Replace</Button>
+                    <input type="file" accept=".pdf" className="hidden" onChange={handleResumeUpload} disabled={uploadingResume} />
+                  </label>
+                  <Button size="sm" variant="ghost" onClick={handleDeleteResume} className="text-red-500">
+                    <Trash2 size={14} />
+                  </Button>
                 </div>
               ) : (
                 <div className="border-2 border-dashed border-neutral-200 rounded-xl p-8 text-center">
                   <Upload size={24} className="text-neutral-400 mx-auto mb-2" />
                   <p className="text-sm text-neutral-500 mb-3">Upload your resume (PDF, max 5MB)</p>
-                  <Button size="sm" variant="outline">Upload Resume</Button>
+                  <label className="cursor-pointer inline-block">
+                    <Button size="sm" variant="outline" as="span">
+                      {uploadingResume ? 'Uploading...' : 'Upload Resume'}
+                    </Button>
+                    <input type="file" accept=".pdf" className="hidden" onChange={handleResumeUpload} disabled={uploadingResume} />
+                  </label>
                 </div>
               )}
             </div>
@@ -536,8 +827,8 @@ export default function ProfilePage() {
                   value={passwordForm.confirm}
                   onChange={(e) => setPasswordForm((p) => ({ ...p, confirm: e.target.value }))}
                 />
-                <Button size="sm" onClick={() => toast.info('Password change coming soon')}>
-                  Update Password
+                <Button size="sm" onClick={handleChangePassword} disabled={changingPassword}>
+                  {changingPassword ? 'Updating…' : 'Update Password'}
                 </Button>
               </div>
             </div>

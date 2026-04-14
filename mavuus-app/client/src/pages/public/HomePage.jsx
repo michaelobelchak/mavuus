@@ -1,27 +1,83 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Helmet } from 'react-helmet-async'
+import { Link, useNavigate } from 'react-router-dom'
 import { CircleCheck, ArrowRight, Play, Briefcase, GraduationCap } from 'lucide-react'
 import { scrollLeaders, pricingFeatures, brandLogos } from '../../data/mockData'
 import InfiniteLeaderScroll from '../../components/sections/InfiniteLeaderScroll'
 import TestimonialRow from '../../components/sections/TestimonialRow'
 import CTABannerQuote from '../../components/sections/CTABannerQuote'
 import AnimatedSection from '../../components/ui/AnimatedSection'
+import GradientText from '../../components/ui/GradientText'
+import AnimatedCounter from '../../components/ui/AnimatedCounter'
 
 export default function HomePage() {
+  const navigate = useNavigate()
   const [heroTab, setHeroTab] = useState('marketers')
+  const [heroEmail, setHeroEmail] = useState('')
+  const [heroSubmitting, setHeroSubmitting] = useState(false)
+  // Community stats — fetched from /api/stats, seeded with marketing defaults
+  const [stats, setStats] = useState({ members: 500, liveSessions: 200, vendors: 50 })
+
+  useEffect(() => {
+    fetch('/api/stats')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) {
+          setStats((prev) => ({
+            members: Math.max(data.members || 0, prev.members),
+            liveSessions: Math.max((data.sessions || 0), prev.liveSessions),
+            vendors: Math.max(data.vendors || 0, prev.vendors),
+          }))
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleJoinWaitlist = async (e) => {
+    e?.preventDefault?.()
+    const email = heroEmail.trim()
+    if (!email) {
+      navigate('/register')
+      return
+    }
+    setHeroSubmitting(true)
+    try {
+      await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+    } catch {
+      // non-blocking — still proceed to register
+    } finally {
+      setHeroSubmitting(false)
+      navigate(`/register?email=${encodeURIComponent(email)}`)
+    }
+  }
 
   return (
     <div>
+      <Helmet>
+        <title>Mavuus — The Marketing Community & Marketplace</title>
+        <meta name="description" content="The premier community for marketing leaders to connect, learn, and grow together." />
+        <link rel="canonical" href="https://mavuus.com/" />
+      </Helmet>
+
       {/* ===== HERO SECTION ===== */}
       <section className="px-6 md:px-12 lg:px-[104px] pt-6 pb-16 relative overflow-hidden">
+        {/* Decorative mesh gradient background */}
+        <div className="absolute inset-0 -z-10 pointer-events-none">
+          <div className="absolute top-[-200px] left-[-200px] w-[600px] h-[600px] bg-brand-pink/10 rounded-full blur-[140px]" />
+          <div className="absolute top-[100px] right-[-150px] w-[500px] h-[500px] bg-brand-blue/10 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-200px] left-[40%] w-[400px] h-[400px] bg-brand-pink/5 rounded-full blur-[100px]" />
+        </div>
+
         <AnimatedSection animation="fade-up">
           <div className="max-w-full lg:max-w-[700px]">
             <h1 className="text-[28px] md:text-[36px] lg:text-[48px] font-bold leading-[1.1] mb-6">
               We are on a <span className="italic font-medium">mission</span> to help
               <br />
-              CMOs{' '}
-              <span className="text-brand-blue font-bold">elevate</span>{' '}
-              their influence at
+              CMOs <GradientText className="font-bold">elevate</GradientText> their influence at
               <br />
               the executive table.
             </h1>
@@ -58,21 +114,24 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-[520px]">
+          <form onSubmit={handleJoinWaitlist} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-[520px]">
             <div className="flex-1 relative">
               <input
                 type="email"
+                value={heroEmail}
+                onChange={(e) => setHeroEmail(e.target.value)}
                 placeholder="Enter your Email"
                 className="w-full bg-white border border-neutral-300 rounded-full pl-5 pr-4 py-3.5 text-sm outline-none focus:border-brand-pink transition-colors"
               />
             </div>
-            <Link
-              to="/register"
-              className="bg-brand-pink text-white font-bold text-sm px-6 py-3.5 rounded-full hover:bg-brand-pink-hover transition-all duration-300 btn-press shadow-lg shadow-brand-pink/25 whitespace-nowrap text-center"
+            <button
+              type="submit"
+              disabled={heroSubmitting}
+              className="bg-brand-pink text-white font-bold text-sm px-6 py-3.5 rounded-full hover:bg-brand-pink-hover transition-all duration-300 btn-press shadow-lg shadow-brand-pink/25 whitespace-nowrap text-center disabled:opacity-60 cursor-pointer"
             >
-              Join the Waitlist
-            </Link>
-          </div>
+              {heroSubmitting ? 'Joining…' : 'Join the Waitlist'}
+            </button>
+          </form>
 
           {/* Avatar stack */}
           <div className="flex items-center gap-3 mt-5">
@@ -90,6 +149,34 @@ export default function HomePage() {
             <p className="text-xs text-neutral-500">
               Our talent has worked at some of the biggest companies
             </p>
+          </div>
+
+          {/* Animated stats row */}
+          <div className="flex flex-wrap gap-x-12 gap-y-6 mt-12 max-w-[640px]">
+            <div>
+              <AnimatedCounter
+                end={stats.members}
+                suffix="+"
+                className="text-[32px] md:text-[40px] font-bold text-dark-blue leading-none"
+              />
+              <p className="text-sm text-neutral-500 mt-1">Marketing leaders</p>
+            </div>
+            <div>
+              <AnimatedCounter
+                end={stats.liveSessions}
+                suffix="+"
+                className="text-[32px] md:text-[40px] font-bold text-dark-blue leading-none"
+              />
+              <p className="text-sm text-neutral-500 mt-1">Sessions hosted</p>
+            </div>
+            <div>
+              <AnimatedCounter
+                end={stats.vendors}
+                suffix="+"
+                className="text-[32px] md:text-[40px] font-bold text-dark-blue leading-none"
+              />
+              <p className="text-sm text-neutral-500 mt-1">Vetted vendors</p>
+            </div>
           </div>
         </AnimatedSection>
 
@@ -144,6 +231,7 @@ export default function HomePage() {
               <img
                 src="/assets/home/stat-image.jpg"
                 alt="Marketing leaders collaboration"
+                loading="lazy"
                 className="w-full h-[300px] md:h-[400px] object-cover rounded-[24px] shadow-lg"
               />
             </div>
@@ -197,6 +285,7 @@ export default function HomePage() {
             <img
               src="/assets/home/section-image-1.jpg"
               alt="Marketing collaboration"
+              loading="lazy"
               className="w-full h-[350px] md:h-[450px] lg:h-[520px] object-cover rounded-[24px] shadow-lg"
             />
           </AnimatedSection>
@@ -234,6 +323,7 @@ export default function HomePage() {
             <img
               src="/assets/home/fractional-image.jpg"
               alt="Fractional work"
+              loading="lazy"
               className="w-full h-[300px] md:h-[400px] lg:h-[450px] object-cover rounded-[24px] shadow-lg"
             />
           </AnimatedSection>
@@ -250,6 +340,7 @@ export default function HomePage() {
                 <img
                   src="/assets/home/academy-image.jpg"
                   alt="Mavuus Academy"
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-dark-blue/30 group-hover:bg-dark-blue/20 transition-colors duration-300 flex items-center justify-center">
@@ -262,6 +353,7 @@ export default function HomePage() {
                 <img
                   src="/assets/home/section-image-2.jpg"
                   alt="Academy session"
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-dark-blue/30 group-hover:bg-dark-blue/20 transition-colors duration-300 flex items-center justify-center">
@@ -274,6 +366,7 @@ export default function HomePage() {
                 <img
                   src="/assets/home/hero-rect.jpg"
                   alt="Academy session"
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-dark-blue/30 group-hover:bg-dark-blue/20 transition-colors duration-300 flex items-center justify-center">

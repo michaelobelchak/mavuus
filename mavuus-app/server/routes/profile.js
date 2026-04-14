@@ -1,5 +1,55 @@
 import { Router } from 'express'
+import multer from 'multer'
+import { fileURLToPath } from 'url'
+import { dirname, join, extname } from 'path'
+import { unlinkSync, existsSync } from 'fs'
 import { authenticateToken } from '../middleware/auth.js'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const uploadsDir = join(__dirname, '..', 'uploads', 'resumes')
+const avatarsDir = join(__dirname, '..', 'uploads', 'avatars')
+
+const resumeStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => {
+    const ext = extname(file.originalname)
+    cb(null, `resume-${req.user.id}-${Date.now()}${ext}`)
+  },
+})
+
+const resumeUpload = multer({
+  storage: resumeStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true)
+    } else {
+      cb(new Error('Only PDF files are allowed'))
+    }
+  },
+})
+
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, avatarsDir),
+  filename: (req, file, cb) => {
+    const ext = extname(file.originalname)
+    cb(null, `avatar-${req.user.id}-${Date.now()}${ext}`)
+  },
+})
+
+const AVATAR_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: (req, file, cb) => {
+    if (AVATAR_MIMES.has(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only JPEG, PNG, WebP, or GIF images are allowed'))
+    }
+  },
+})
 
 const router = Router()
 
@@ -23,19 +73,20 @@ router.get('/me', (req, res) => {
 
   const skills = db.prepare('SELECT skill FROM user_skills WHERE user_id = ?').all(req.user.id).map(s => s.skill)
   const experience = db.prepare('SELECT * FROM user_experience WHERE user_id = ? ORDER BY is_current DESC, start_date DESC').all(req.user.id)
+  const connections_count = db.prepare("SELECT COUNT(*) as count FROM connections WHERE (requester_id = ? OR receiver_id = ?) AND status = 'accepted'").get(req.user.id, req.user.id)?.count || 0
 
-  res.json({ ...user, skills, experience })
+  res.json({ ...user, skills, experience, connections_count })
 })
 
 // PUT /api/profile/me - Update profile
 router.put('/me', (req, res) => {
   const db = req.app.locals.db
-  const { name, title, company, bio, industry, years_experience, linkedin_url, website_url, location, timezone, profile_visibility, notification_email, notification_messages, notification_connections, notification_jobs } = req.body
+  const { name, title, company, avatar_url, bio, industry, years_experience, linkedin_url, website_url, location, timezone, profile_visibility, notification_email, notification_messages, notification_connections, notification_jobs } = req.body
 
   // Update users table fields
-  if (name || title !== undefined || company !== undefined) {
-    db.prepare('UPDATE users SET name = COALESCE(?, name), title = COALESCE(?, title), company = COALESCE(?, company) WHERE id = ?')
-      .run(name || null, title !== undefined ? title : null, company !== undefined ? company : null, req.user.id)
+  if (name || title !== undefined || company !== undefined || avatar_url !== undefined) {
+    db.prepare('UPDATE users SET name = COALESCE(?, name), title = COALESCE(?, title), company = COALESCE(?, company), avatar_url = COALESCE(?, avatar_url) WHERE id = ?')
+      .run(name || null, title !== undefined ? title : null, company !== undefined ? company : null, avatar_url !== undefined ? avatar_url : null, req.user.id)
   }
 
   // Upsert user_profiles
@@ -115,6 +166,86 @@ router.put('/me/experience/:id', (req, res) => {
 router.delete('/me/experience/:id', (req, res) => {
   const db = req.app.locals.db
   db.prepare('DELETE FROM user_experience WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id)
+  res.json({ success: true })
+})
+
+// Resume upload
+router.post('/me/resume', (req, res) => {
+  resumeUpload.single('resume')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message || 'Upload failed' })
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' })
+    }
+
+    const db = req.app.locals.db
+    const resumeUrl = `/uploads/resumes/${req.file.filename}`
+
+    // Remove old resume file if exists
+    const existing = db.prepare('SELECT resume_url FROM user_profiles WHERE user_id = ?').get(req.user.id)
+    if (existing?.resume_url) {
+      const oldPath = join(__dirname, '..', existing.resume_url)
+      if (existsSync(oldPath)) {
+        try { unlinkSync(oldPath) } catch { /* ignore */ }
+      }
+    }
+
+    db.prepare(`
+      INSERT INTO user_profiles (user_id, resume_filename, resume_url, updated_at)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(user_id) DO UPDATE SET
+        resume_filename = excluded.resume_filename,
+        resume_url = excluded.resume_url,
+        updated_at = CURRENT_TIMESTAMP
+    `).run(req.user.id, req.file.originalname, resumeUrl)
+
+    res.json({ success: true, filename: req.file.originalname, url: resumeUrl })
+  })
+})
+
+// Avatar upload
+router.post('/me/avatar', (req, res) => {
+  avatarUpload.single('avatar')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message || 'Upload failed' })
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' })
+    }
+
+    const db = req.app.locals.db
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`
+
+    const existing = db.prepare('SELECT avatar_url FROM users WHERE id = ?').get(req.user.id)
+    if (existing?.avatar_url && existing.avatar_url.startsWith('/uploads/avatars/')) {
+      const oldPath = join(__dirname, '..', existing.avatar_url)
+      if (existsSync(oldPath)) {
+        try { unlinkSync(oldPath) } catch { /* ignore */ }
+      }
+    }
+
+    db.prepare('UPDATE users SET avatar_url = ? WHERE id = ?').run(avatarUrl, req.user.id)
+
+    res.json({ success: true, avatar_url: avatarUrl })
+  })
+})
+
+// Resume delete
+router.delete('/me/resume', (req, res) => {
+  const db = req.app.locals.db
+  const existing = db.prepare('SELECT resume_url FROM user_profiles WHERE user_id = ?').get(req.user.id)
+
+  if (existing?.resume_url) {
+    const filePath = join(__dirname, '..', existing.resume_url)
+    if (existsSync(filePath)) {
+      try { unlinkSync(filePath) } catch { /* ignore */ }
+    }
+  }
+
+  db.prepare('UPDATE user_profiles SET resume_filename = NULL, resume_url = NULL, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?')
+    .run(req.user.id)
+
   res.json({ success: true })
 })
 

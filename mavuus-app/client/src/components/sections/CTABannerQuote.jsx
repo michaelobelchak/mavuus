@@ -31,6 +31,7 @@ export default function CTABannerQuote() {
           <img
             src={ctaQuote.image}
             alt={ctaQuote.name}
+            loading="lazy"
             className="w-full h-full object-cover"
           />
         </div>

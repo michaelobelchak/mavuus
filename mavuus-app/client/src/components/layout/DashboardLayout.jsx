@@ -1,65 +1,164 @@
-import { useState, useEffect, useRef } from 'react'
-import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import DashboardSidebar from './DashboardSidebar'
-import { Bell, Search, Menu, User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import PageTransition from '../ui/PageTransition'
+import Tooltip from '../ui/Tooltip'
+import MobileFAB from '../ui/MobileFAB'
+import { Bell, Search, Menu, User, Settings, LogOut, ChevronDown, X, UserPlus, MessageCircle, Briefcase, Radio, CheckCircle, Star } from 'lucide-react'
 import Avatar from '../ui/Avatar'
+import SearchResultsDropdown from '../ui/SearchResultsDropdown'
 import { useAuth } from '../../context/AuthContext'
 
+const notifIcons = {
+  connection: UserPlus,
+  message: MessageCircle,
+  job: Briefcase,
+  session: Radio,
+  system: CheckCircle,
+  review: Star,
+}
+
+const notifColors = {
+  connection: 'bg-blue-50 text-blue-500',
+  message: 'bg-purple-50 text-purple-500',
+  job: 'bg-green-50 text-green-500',
+  session: 'bg-brand-pink/10 text-brand-pink',
+  system: 'bg-neutral-100 text-neutral-500',
+  review: 'bg-amber-50 text-amber-500',
+}
+
+function timeAgo(dateStr) {
+  const now = new Date()
+  const date = new Date(dateStr)
+  const diffMs = now - date
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMins / 60)
+  const diffDays = Math.floor(diffHours / 24)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 export default function DashboardLayout() {
-  const { user, logout } = useAuth()
-  const location = useLocation()
+  const { user, token, logout } = useAuth()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const [notifFilter, setNotifFilter] = useState('all')
+  const [bellPulse, setBellPulse] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState(null)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const prevUnreadRef = useRef(0)
   const userMenuRef = useRef(null)
-  const notifRef = useRef(null)
+  const searchInputRef = useRef(null)
+  const searchRef = useRef(null)
+  const searchTimerRef = useRef(null)
 
-  // Fetch unread count
+  // Fetch unread count — pulse bell when count increases
   useEffect(() => {
+    if (!token) return
     const fetchUnread = async () => {
       try {
-        const token = localStorage.getItem('mavuus_token')
         const res = await fetch('/api/notifications/unread-count', {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (res.ok) {
           const data = await res.json()
+          if (data.count > prevUnreadRef.current && prevUnreadRef.current > 0) {
+            setBellPulse(true)
+            setTimeout(() => setBellPulse(false), 700)
+          }
+          prevUnreadRef.current = data.count
           setUnreadCount(data.count)
         }
-      } catch {}
+      } catch { /* silent */ }
     }
     fetchUnread()
     const interval = setInterval(fetchUnread, 30000)
     return () => clearInterval(interval)
+  }, [token])
+
+  // Global "/" shortcut focuses search — ignore when typing in an input
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key !== '/') return
+      const target = e.target
+      const tag = target?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return
+      e.preventDefault()
+      searchInputRef.current?.focus()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  // Fetch notifications when dropdown opens
+  // Fetch notifications when drawer opens
   useEffect(() => {
-    if (!notifOpen) return
+    if (!notifOpen || !token) return
     const fetchNotifs = async () => {
       try {
-        const token = localStorage.getItem('mavuus_token')
         const res = await fetch('/api/notifications', {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (res.ok) setNotifications(await res.json())
-      } catch {}
+      } catch { /* silent */ }
     }
     fetchNotifs()
-  }, [notifOpen])
+  }, [notifOpen, token])
 
-  // Close dropdowns on outside click
+  // Debounced global search
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    if (!searchQuery || searchQuery.trim().length < 2) {
+      setSearchResults(null)
+      setSearchOpen(false)
+      return
+    }
+    searchTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`)
+        if (res.ok) {
+          const data = await res.json()
+          setSearchResults(data)
+          setSearchOpen(true)
+        }
+      } catch {}
+    }, 300)
+    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current) }
+  }, [searchQuery])
+
+  // Close search on route change
+  useEffect(() => {
+    setSearchOpen(false)
+    setSearchQuery('')
+  }, [location.pathname])
+
+  // Close user menu and search on outside click
   useEffect(() => {
     const handleClick = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenuOpen(false)
-      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false)
+      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
+
+  // Prevent body scroll when drawer is open
+  useEffect(() => {
+    if (notifOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [notifOpen])
 
   const handleLogout = () => {
     logout()
@@ -75,7 +174,19 @@ export default function DashboardLayout() {
       })
       setUnreadCount(0)
       setNotifications(prev => prev.map(n => ({ ...n, is_read: 1 })))
-    } catch {}
+    } catch { /* silent */ }
+  }
+
+  const markOneRead = async (id) => {
+    try {
+      const token = localStorage.getItem('mavuus_token')
+      await fetch(`/api/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: 1 } : n))
+      setUnreadCount(prev => Math.max(0, prev - 1))
+    } catch { /* silent */ }
   }
 
   return (
@@ -87,7 +198,7 @@ export default function DashboardLayout() {
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className="h-16 lg:h-20 bg-white border-b border-neutral-100 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30">
+        <header className="h-16 lg:h-20 glass-heavy border-b border-neutral-100/50 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3 flex-1">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -95,100 +206,93 @@ export default function DashboardLayout() {
             >
               <Menu size={22} />
             </button>
-            <div className="hidden sm:flex items-center gap-3 flex-1 max-w-md">
-              <Search size={18} className="text-neutral-300" />
+            <div
+              ref={searchRef}
+              className="hidden sm:flex items-center gap-3 flex-1 max-w-md h-10 px-4 rounded-full bg-white/70 border border-neutral-200/70 focus-within:border-brand-pink focus-within:ring-2 focus-within:ring-brand-pink/25 focus-within:bg-white transition-all duration-200 relative"
+            >
+              <Search size={16} className="text-neutral-400 flex-shrink-0" />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search sessions, resources, members..."
-                className="w-full bg-transparent text-sm text-neutral-600 placeholder:text-neutral-300 focus:outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => { if (searchResults) setSearchOpen(true) }}
+                className="flex-1 min-w-0 bg-transparent text-sm text-neutral-600 placeholder:text-neutral-300 focus:outline-none"
               />
+              <kbd className="hidden md:inline-flex items-center justify-center h-5 min-w-[22px] px-1.5 text-[11px] font-semibold text-neutral-400 bg-white border border-neutral-200 rounded shadow-sm">
+                /
+              </kbd>
+              {searchOpen && searchResults && (
+                <SearchResultsDropdown results={searchResults} onClose={() => { setSearchOpen(false); setSearchQuery('') }} />
+              )}
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Notifications */}
-            <div className="relative" ref={notifRef}>
+            {/* Messages shortcut */}
+            <Tooltip content="Messages">
+              <Link
+                to="/dashboard/messages"
+                aria-label="Messages"
+                className="text-neutral-500 hover:text-dark-blue transition-colors cursor-pointer"
+              >
+                <MessageCircle size={20} />
+              </Link>
+            </Tooltip>
+
+            {/* Notifications Bell */}
+            <Tooltip content="Notifications">
               <button
-                onClick={() => setNotifOpen(!notifOpen)}
+                onClick={() => setNotifOpen(true)}
+                aria-label="Notifications"
                 className="relative text-neutral-500 hover:text-dark-blue transition-colors cursor-pointer"
               >
-                <Bell size={20} />
+                <Bell size={20} className={bellPulse ? 'animate-shake text-brand-pink' : ''} />
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-pink text-white text-[10px] rounded-full flex items-center justify-center">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
               </button>
+            </Tooltip>
 
-              {notifOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-neutral-100 overflow-hidden z-50">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
-                    <span className="text-sm font-semibold text-dark-blue">Notifications</span>
-                    {unreadCount > 0 && (
-                      <button onClick={markAllRead} className="text-xs text-brand-pink hover:underline cursor-pointer">Mark all read</button>
-                    )}
-                  </div>
-                  <div className="max-h-80 overflow-y-auto">
-                    {notifications.length === 0 ? (
-                      <p className="px-4 py-6 text-sm text-neutral-500 text-center">No notifications</p>
-                    ) : (
-                      notifications.slice(0, 10).map(n => (
-                        <Link
-                          key={n.id}
-                          to={n.link || '#'}
-                          onClick={() => setNotifOpen(false)}
-                          className={`block px-4 py-3 hover:bg-neutral-50 border-b border-neutral-50 ${!n.is_read ? 'bg-brand-pink/5' : ''}`}
-                        >
-                          <p className="text-sm font-medium text-dark-blue">{n.title}</p>
-                          <p className="text-xs text-neutral-500 mt-0.5">{n.message}</p>
-                          <p className="text-xs text-neutral-400 mt-1">{new Date(n.created_at).toLocaleDateString()}</p>
-                        </Link>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* User Menu */}
+            {/* User menu */}
             <div className="relative" ref={userMenuRef}>
               <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-3 cursor-pointer"
+                onClick={() => setUserMenuOpen((v) => !v)}
+                aria-label="Account menu"
+                className="flex items-center gap-2 pl-2 cursor-pointer"
               >
-                <Avatar name={user?.name || 'User'} size="sm" />
-                <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium text-dark-blue">{user?.name || 'User'}</p>
-                  <p className="text-xs text-neutral-500">Pro Member</p>
-                </div>
-                <ChevronDown size={14} className="hidden sm:block text-neutral-400" />
+                <Avatar name={user?.name} src={user?.avatar_url} size="sm" />
+                <ChevronDown size={14} className="text-neutral-400 hidden sm:block" />
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-neutral-100 overflow-hidden z-50">
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-neutral-100 shadow-lg py-1 z-40">
+                  <div className="px-4 py-3 border-b border-neutral-100">
+                    <p className="text-sm font-semibold text-dark-blue truncate">{user?.name}</p>
+                    <p className="text-xs text-neutral-500 truncate">{user?.email}</p>
+                  </div>
                   <Link
                     to="/dashboard/profile"
                     onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50"
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 transition-colors"
                   >
-                    <User size={16} />
-                    My Profile
+                    <User size={16} /> Profile
                   </Link>
                   <Link
                     to="/dashboard/profile?tab=account"
                     onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50"
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 transition-colors"
                   >
-                    <Settings size={16} />
-                    Settings
+                    <Settings size={16} /> Settings
                   </Link>
-                  <div className="h-px bg-neutral-100" />
                   <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 cursor-pointer"
+                    onClick={() => { setUserMenuOpen(false); handleLogout() }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 transition-colors cursor-pointer"
                   >
-                    <LogOut size={16} />
-                    Log out
+                    <LogOut size={16} /> Log out
                   </button>
                 </div>
               )}
@@ -196,12 +300,171 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 p-4 lg:p-8">
-          <div key={location.pathname} className="animate-fade-in">
-            <Outlet />
+        {/* Email Verification Banner */}
+        {user && user.email_verified === 0 && (
+          <div className="bg-yellow-50 border-b border-yellow-200 px-4 lg:px-8 py-3 flex items-center justify-between">
+            <p className="text-sm text-yellow-800">
+              Please verify your email. Check your console/email for the verification link.
+            </p>
+            <button
+              onClick={async () => {
+                try {
+                  await fetch('/api/auth/resend-verification', {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` },
+                  })
+                } catch {}
+              }}
+              className="text-sm font-medium text-yellow-900 hover:underline cursor-pointer ml-4 whitespace-nowrap"
+            >
+              Resend
+            </button>
           </div>
+        )}
+
+        {/* Page Content */}
+        <main id="main-content" className="flex-1 p-4 lg:p-8">
+          <PageTransition />
         </main>
+      </div>
+
+      {/* Mobile floating action menu */}
+      <MobileFAB />
+
+      {/* Notification Drawer Overlay */}
+      {notifOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-opacity animate-fade-in"
+          onClick={() => setNotifOpen(false)}
+        />
+      )}
+
+      {/* Notification Drawer */}
+      <div className={`
+        fixed top-0 right-0 z-50 h-full w-full max-w-md
+        bg-white/95 backdrop-blur-xl border-l border-white/20
+        shadow-[0_16px_48px_rgba(0,0,0,0.18)]
+        transform transition-transform duration-300 ease-in-out
+        ${notifOpen ? 'translate-x-0' : 'translate-x-full'}
+      `}>
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between px-6 h-20 border-b border-neutral-100">
+          <div>
+            <h2 className="text-lg font-semibold text-dark-blue">Notifications</h2>
+            {unreadCount > 0 && (
+              <p className="text-xs text-neutral-500">{unreadCount} unread</p>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllRead}
+                className="text-xs text-brand-pink hover:underline cursor-pointer font-medium"
+              >
+                Mark all read
+              </button>
+            )}
+            <button
+              onClick={() => setNotifOpen(false)}
+              className="text-neutral-400 hover:text-dark-blue transition-colors cursor-pointer p-1"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Filter tabs */}
+        <div className="flex gap-1 px-4 pt-3 pb-2 border-b border-neutral-100/80">
+          {['all', 'unread'].map((f) => {
+            const active = notifFilter === f
+            const count = f === 'unread' ? unreadCount : notifications.length
+            return (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setNotifFilter(f)}
+                className={`
+                  flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer
+                  ${active
+                    ? 'bg-brand-pink/10 text-brand-pink'
+                    : 'text-neutral-500 hover:bg-neutral-100 hover:text-dark-blue'
+                  }
+                `}
+              >
+                <span className="capitalize">{f}</span>
+                <span className={`text-[10px] ${active ? 'text-brand-pink' : 'text-neutral-400'}`}>
+                  {count}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Drawer Content */}
+        <div className="overflow-y-auto h-[calc(100%-148px)]">
+          {(() => {
+            const visible = notifFilter === 'unread'
+              ? notifications.filter((n) => !n.is_read)
+              : notifications
+            if (visible.length === 0) {
+              return (
+                <div className="flex flex-col items-center justify-center h-64 text-neutral-400">
+                  <Bell size={40} className="mb-3 opacity-30" />
+                  <p className="text-sm font-medium">
+                    {notifFilter === 'unread' ? 'All caught up!' : 'No notifications yet'}
+                  </p>
+                  <p className="text-xs mt-1">
+                    {notifFilter === 'unread'
+                      ? 'No unread notifications.'
+                      : "We'll notify you when something happens"}
+                  </p>
+                </div>
+              )
+            }
+            return (
+              <div>
+                {visible.map((n, i) => {
+                const Icon = notifIcons[n.type] || CheckCircle
+                const colorClass = notifColors[n.type] || notifColors.system
+
+                return (
+                  <Link
+                    key={n.id}
+                    to={n.link || '#'}
+                    onClick={() => {
+                      if (!n.is_read) markOneRead(n.id)
+                      setNotifOpen(false)
+                    }}
+                    style={{
+                      animation: `fadeIn 0.3s ease-out ${i * 30}ms both`,
+                    }}
+                    className={`
+                      flex items-start gap-4 px-6 py-4 border-b border-neutral-100/50 hover:bg-brand-pink/[0.04] transition-colors
+                      ${!n.is_read ? 'bg-brand-pink/[0.04]' : ''}
+                    `}
+                  >
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${colorClass}`}>
+                      <Icon size={16} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className={`text-sm ${!n.is_read ? 'font-semibold text-dark-blue' : 'font-medium text-neutral-600'}`}>
+                          {n.title}
+                        </p>
+                        {!n.is_read && (
+                          <span className="w-2 h-2 rounded-full bg-brand-pink flex-shrink-0 mt-1.5" />
+                        )}
+                      </div>
+                      <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">{n.message}</p>
+                      <p className="text-xs text-neutral-400 mt-1.5">{timeAgo(n.created_at)}</p>
+                    </div>
+                  </Link>
+                )
+              })}
+              </div>
+            )
+          })()}
+        </div>
       </div>
     </div>
   )

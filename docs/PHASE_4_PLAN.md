@@ -1,19 +1,21 @@
 # Mavuus — Remaining Work Plan
 
 > **Last updated:** 2026-03-15
-> **Status:** Phases 1–3 complete (foundation, public site, dashboard + auth + interactive features)
+> **Status:** Phases 1–3 complete, Phase 4 in progress
 > **What's running:** Frontend on :5173, Backend on :3001, SQLite DB seeded
 
 ---
 
-## What's Done (Phases 1–3)
+## Completed Plans
 
-- React 19 + Vite + Tailwind v4 frontend — 22 pages, 19 UI components
-- Express + SQLite backend — 17 tables, 10 route files, JWT auth
-- Public site: Home, About, Pricing, Contact, Resources, Articles, Events, Blog detail
-- Dashboard: Academy, Live Sessions, On-Demand, Resources, Members, Member Profile, Vendors, Jobs, Job Detail, My Jobs, Messages, Profile
-- Full API: auth, profile CRUD, connections, messaging (polling), jobs (apply/save/post), notifications
-- Seed data: 7 users, 6 sessions, 3 resources, 3 vendors, 8 jobs
+| Phase | Document | Status |
+|-------|----------|--------|
+| Phase 1: Foundation | [`docs/MAVUUS_PROJECT_PLAN.md`](MAVUUS_PROJECT_PLAN.md) | Done (2026-03-06) |
+| Phase 2: Public Website | [`docs/MAVUUS_PROJECT_PLAN.md`](MAVUUS_PROJECT_PLAN.md) | Done (2026-03-06) |
+| Phase 3: Interactive Platform | [`docs/PHASE_3_PLAN.md`](PHASE_3_PLAN.md) | Done (2026-03-07) |
+| Phase 4: Fixes & Polish | This document | In Progress |
+
+Full change history: [`CHANGELOG.md`](../CHANGELOG.md)
 
 ---
 

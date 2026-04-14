@@ -1,14 +1,28 @@
+import { Helmet } from 'react-helmet-async'
 import { aboutLeaders } from '../../data/mockData'
 import LogoBar from '../../components/sections/LogoBar'
 import TestimonialRow from '../../components/sections/TestimonialRow'
 import CTABannerQuote from '../../components/sections/CTABannerQuote'
 import AnimatedSection from '../../components/ui/AnimatedSection'
+import GradientText from '../../components/ui/GradientText'
 
 export default function AboutPage() {
   return (
     <div>
+      <Helmet>
+        <title>About Mavuus — Founded by Dilya & Elmira Abushayeva</title>
+        <meta name="description" content="Learn about Mavuus, the marketing community founded by sisters Dilya and Elmira Abushayeva to empower marketing leaders." />
+        <link rel="canonical" href="https://mavuus.com/about" />
+      </Helmet>
+
       {/* Hero Section */}
-      <section className="px-6 md:px-12 lg:px-[104px] py-8">
+      <section className="relative px-6 md:px-12 lg:px-[104px] py-8 overflow-hidden">
+        {/* Decorative mesh gradient */}
+        <div className="absolute inset-0 -z-10 pointer-events-none">
+          <div className="absolute top-[-150px] left-[-100px] w-[500px] h-[500px] bg-brand-pink/10 rounded-full blur-[120px]" />
+          <div className="absolute top-[100px] right-[-100px] w-[400px] h-[400px] bg-brand-blue/10 rounded-full blur-[100px]" />
+        </div>
+
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-0">
           {/* Left headline */}
           <AnimatedSection animation="fade-right" className="w-full lg:w-[600px] flex flex-col gap-6 lg:gap-0 lg:justify-between lg:h-[362px]">
@@ -20,11 +34,11 @@ export default function AboutPage() {
             </div>
 
             <h1 className="text-[28px] md:text-[36px] lg:text-[42px] font-medium leading-[1.1] max-w-full lg:w-[514px]">
-              <span className="text-brand-blue">Empowering Marketing Leaders</span>{' '}
+              <GradientText className="font-semibold">Empowering Marketing Leaders</GradientText>{' '}
               <span className="font-light text-neutral-600">
                 to Network, Learn and Advance Their
               </span>{' '}
-              <span className="text-brand-blue">Careers Together</span>
+              <GradientText className="font-semibold">Careers Together</GradientText>
             </h1>
 
             <p className="text-[18px] md:text-[20px] font-medium leading-[28px] text-neutral-500 max-w-full lg:w-[435px]">
@@ -38,6 +52,7 @@ export default function AboutPage() {
               <img
                 src="/assets/about/hero-sisters.jpg"
                 alt="Mavuus founders"
+                loading="lazy"
                 className="w-full h-[150%] object-cover"
               />
             </div>
@@ -81,6 +96,7 @@ export default function AboutPage() {
                 <img
                   src={leader.avatar}
                   alt={leader.name}
+                  loading="lazy"
                   className="w-[196px] h-[196px] rounded-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -105,6 +121,7 @@ export default function AboutPage() {
           <img
             src="/assets/about/wide-photo.jpg"
             alt="Mavuus community"
+            loading="lazy"
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white" />
