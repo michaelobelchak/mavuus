@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { contactFaqItems } from '../../data/mockData'
 import LogoBar from '../../components/sections/LogoBar'
 import TestimonialRow from '../../components/sections/TestimonialRow'
@@ -13,6 +14,15 @@ export default function ContactPage() {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' })
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [faqItems, setFaqItems] = useState(null)
+
+  // Pull CMS-managed FAQ items if the admin added any, fall back to static
+  useEffect(() => {
+    fetch('/api/faq?page=contact')
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => setFaqItems(data.map((f) => ({ title: f.question, content: f.answer }))))
+      .catch(() => {})
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -22,13 +32,7 @@ export default function ContactPage() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          message: formData.phone
-            ? `${formData.message}\n\nPhone: ${formData.phone}`
-            : formData.message,
-        }),
+        body: JSON.stringify(formData),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -50,6 +54,12 @@ export default function ContactPage() {
 
   return (
     <div>
+      <Helmet>
+        <title>Contact Mavuus</title>
+        <meta name="description" content="Get in touch with the Mavuus team. Whether you have a question, need support, or want to explore partnerships, we'd love to connect." />
+        <link rel="canonical" href="https://mavuus.com/contact" />
+      </Helmet>
+
       {/* Hero + Form Section */}
       <section className="relative px-6 md:px-12 lg:px-24 pt-6 pb-10 overflow-hidden">
         {/* Decorative mesh gradient */}
@@ -186,7 +196,7 @@ export default function ContactPage() {
       <TestimonialRow />
 
       {/* FAQ Section */}
-      <FAQSection items={contactFaqItems} />
+      <FAQSection items={faqItems || contactFaqItems} />
 
       {/* CTA Banner */}
       <CTABannerQuote />

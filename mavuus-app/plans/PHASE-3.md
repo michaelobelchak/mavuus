@@ -86,8 +86,8 @@ Add these REMAINING missing features:
 ```
 
 ## Acceptance Criteria
-- [ ] Comments: add, reply, delete on sessions/resources/vendors
-- [ ] Password reset: full flow from forgot to reset to login
-- [ ] Referral system: generate code, share link, track referrals
-- [ ] Speakers page: grid with search, speaker detail with past sessions
-- [ ] All new tables created and seeded
+- [x] Comments: add, reply, delete on sessions/resources/vendors
+- [x] Password reset: full flow from forgot to reset to login
+- [x] Referral system: generate code, share link, track referrals
+- [x] Speakers page: grid with search, speaker detail with past sessions
+- [x] All new tables created and seeded

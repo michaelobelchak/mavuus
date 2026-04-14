@@ -16,10 +16,13 @@ import {
   MessageCircle,
   UserCircle,
   UserCheck,
+  Mic,
+  UserPlus,
   LogOut,
   X,
   Gift,
   Copy,
+  Shield,
 } from 'lucide-react'
 
 const sidebarLinks = [
@@ -27,6 +30,7 @@ const sidebarLinks = [
   { label: 'Live Sessions', path: '/dashboard/live-sessions', icon: Radio },
   { label: 'On-Demand Videos', path: '/dashboard/on-demand', icon: PlayCircle },
   { label: 'Community Resources', path: '/dashboard/resources', icon: FolderOpen },
+  { label: 'Speakers', path: '/dashboard/speakers', icon: Mic },
   { type: 'separator' },
   { label: 'Meet The Members', path: '/dashboard/members', icon: Users },
   { label: 'Search for Vendors', path: '/dashboard/vendors', icon: Store },
@@ -37,6 +41,8 @@ const sidebarLinks = [
   { label: 'Messages', path: '/dashboard/messages', icon: MessageCircle, badge: true },
   { label: 'My Connections', path: '/dashboard/members?filter=connections', icon: UserCheck },
   { label: 'My Profile', path: '/dashboard/profile', icon: UserCircle },
+  { type: 'separator' },
+  { label: 'Invite a Friend', path: '/dashboard/invite', icon: UserPlus },
 ]
 
 function computeCompletion(profile) {
@@ -50,6 +56,8 @@ function computeCompletion(profile) {
   ]
   return Math.round((checks.filter(Boolean).length / checks.length) * 100)
 }
+
+const adminLink = { label: 'Admin Panel', path: '/admin', icon: Shield }
 
 export default function DashboardSidebar({ mobileOpen, onClose }) {
   const location = useLocation()
@@ -177,6 +185,25 @@ export default function DashboardSidebar({ mobileOpen, onClose }) {
               </Link>
             )
           })}
+          {user?.role === 'admin' && (
+            <>
+              <div className="h-px bg-neutral-100 my-2" />
+              <Link
+                to={adminLink.path}
+                onClick={handleNavClick}
+                className={`
+                  flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors
+                  ${location.pathname.startsWith('/admin')
+                    ? 'bg-purple-50 text-purple-600'
+                    : 'text-purple-500 hover:bg-purple-50 hover:text-purple-700'
+                  }
+                `}
+              >
+                <Shield size={18} />
+                <span className="flex-1">Admin Panel</span>
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* Referral card — glass */}

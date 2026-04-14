@@ -254,13 +254,12 @@ export default function LoginPage() {
                       Remember me
                     </span>
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => toast.info('Password reset is coming soon.')}
-                    className="text-[14px] font-semibold leading-5 text-brand-pink hover:underline cursor-pointer"
+                  <Link
+                    to="/forgot-password"
+                    className="text-[14px] font-semibold leading-5 text-brand-pink hover:underline"
                   >
                     Forgot Password
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -280,7 +279,7 @@ export default function LoginPage() {
 
               <button
                 type="button"
-                onClick={() => toast.info('Google sign-in is coming soon.')}
+                onClick={() => { window.location.href = '/api/auth/google' }}
                 className="w-full flex items-center justify-center gap-4 px-8 py-4 rounded-2xl bg-white border border-neutral-300 text-[16px] font-semibold leading-6 text-neutral-600 hover:bg-neutral-50 transition-colors cursor-pointer"
               >
                 Sign In With Google

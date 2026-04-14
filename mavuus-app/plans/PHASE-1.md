@@ -79,10 +79,10 @@ Fix the following technical issues:
 ```
 
 ## Acceptance Criteria
-- [ ] .env file exists and all env vars are used
-- [ ] All list endpoints support ?page and ?limit
-- [ ] All list endpoints support ?search
-- [ ] Global search bar shows grouped results
-- [ ] Error boundaries catch and display errors gracefully
-- [ ] Invalid inputs return clear 400 errors
-- [ ] App runs without console errors
+- [x] .env file exists and all env vars are used
+- [x] All list endpoints support ?page and ?limit
+- [x] All list endpoints support ?search
+- [x] Global search bar shows grouped results
+- [x] Error boundaries catch and display errors gracefully
+- [x] Invalid inputs return clear 400 errors
+- [x] App runs without console errors

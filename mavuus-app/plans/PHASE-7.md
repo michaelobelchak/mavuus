@@ -137,14 +137,14 @@ Read the project at this directory. This is a React + Vite + Tailwind frontend w
 ```
 
 ## Acceptance Criteria
-- [ ] All pages responsive at mobile/tablet/desktop
-- [ ] Sidebar collapses on mobile with hamburger toggle
-- [ ] All pages have loading skeletons
-- [ ] Optimistic UI on connection requests, saves, RSVPs
-- [ ] Meta tags on all public pages
-- [ ] robots.txt and sitemap.xml exist
-- [ ] Dashboard pages are lazy-loaded (code split)
-- [ ] Dockerfile works: docker build, docker run
-- [ ] Client builds with no errors
-- [ ] 15+ server tests pass
-- [ ] DEPLOYMENT.md has clear instructions
+- [x] All pages responsive at mobile/tablet/desktop
+- [x] Sidebar collapses on mobile with hamburger toggle
+- [x] All pages have loading skeletons
+- [x] Optimistic UI on connection requests, saves, RSVPs
+- [x] Meta tags on all public pages
+- [x] robots.txt and sitemap.xml exist
+- [x] Dashboard pages are lazy-loaded (code split)
+- [x] Dockerfile works: docker build, docker run
+- [x] Client builds with no errors
+- [x] 15+ server tests pass
+- [x] DEPLOYMENT.md has clear instructions

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/ui/Toast'
+import PasswordStrength from '../../components/ui/PasswordStrength'
 import { AlertCircle, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const testimonialSlides = [
@@ -258,6 +259,7 @@ export default function RegisterPage() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                <PasswordStrength password={form.password} />
               </div>
 
               {/* Confirm */}

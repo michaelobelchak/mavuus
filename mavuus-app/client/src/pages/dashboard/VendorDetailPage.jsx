@@ -11,6 +11,7 @@ import RecommendationCard from '../../components/ui/RecommendationCard'
 import DetailPageHeader from '../../components/ui/DetailPageHeader'
 import ShareModal from '../../components/ui/ShareModal'
 import { Textarea } from '../../components/ui/Input'
+import CommentSection from '../../components/ui/CommentSection'
 import {
   Star,
   MapPin,
@@ -85,7 +86,8 @@ export default function VendorDetailPage() {
           const v = await vendorRes.json()
           setVendor(v)
           if (jobsRes.ok) {
-            const allJobs = await jobsRes.json()
+            const allJobsData = await jobsRes.json()
+            const allJobs = allJobsData.data || allJobsData
             setJobs(allJobs.filter(j =>
               v.user_id && j.posted_by === v.user_id
             ))
@@ -160,7 +162,7 @@ export default function VendorDetailPage() {
 
   return (
     <div className="max-w-6xl">
-      <DetailPageHeader onShare={() => setShareOpen(true)} />
+      <DetailPageHeader onShare={() => setShareOpen(true)} backLabel="Back to Vendors" />
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Main content */}
@@ -258,6 +260,11 @@ export default function VendorDetailPage() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Comments */}
+          <div className="mt-4">
+            <CommentSection entityType="vendor" entityId={parseInt(id)} />
           </div>
 
           {/* Recommendations */}

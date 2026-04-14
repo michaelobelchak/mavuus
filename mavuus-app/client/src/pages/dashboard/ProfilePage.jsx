@@ -496,7 +496,12 @@ export default function ProfilePage() {
           <div className="relative group">
             {/* ProgressRing wraps the avatar with a completion ring */}
             <ProgressRing size={104} strokeWidth={4} progress={completion.percent}>
-              <Avatar name={profile.name} src={profile.avatar_url} size="xl" />
+              <Avatar
+                name={profile.name}
+                src={profile.avatar_url}
+                size="xl"
+                pro={profile.membership_tier === 'pro'}
+              />
             </ProgressRing>
             <label
               className="absolute inset-2 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"

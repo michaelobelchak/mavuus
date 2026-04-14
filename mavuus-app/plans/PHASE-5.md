@@ -92,10 +92,10 @@ Read the project at this directory. This is a React + Vite + Tailwind frontend w
 - If you don't want to set up Google OAuth credentials yet, the "Sign in with Google" button can show a tooltip: "Google Sign-In will be available soon" and the backend route can return a 501.
 
 ## Acceptance Criteria
-- [ ] Google OAuth login works end-to-end (or is gracefully stubbed)
-- [ ] Email verification: register shows console link, clicking it verifies the account
-- [ ] Unverified users see yellow banner in dashboard
-- [ ] JWT is set as httpOnly cookie
-- [ ] Auth works with cookie (page refresh stays logged in)
-- [ ] Password strength indicator shows on register and reset pages
-- [ ] Rate limiting returns 429 on abuse
+- [x] Google OAuth login works end-to-end (or is gracefully stubbed)
+- [x] Email verification: register shows console link, clicking it verifies the account
+- [x] Unverified users see yellow banner in dashboard
+- [x] JWT is set as httpOnly cookie
+- [x] Auth works with cookie (page refresh stays logged in)
+- [x] Password strength indicator shows on register and reset pages
+- [x] Rate limiting returns 429 on abuse

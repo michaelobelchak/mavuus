@@ -18,12 +18,16 @@ export default function AcademyPage() {
   const [activeTab, setActiveTab] = useState('All')
   const { user } = useAuth()
 
-  const { data: sessions, loading: loadingSessions } = useApiData('/api/sessions', [])
-  const { data: resources, loading: loadingResources } = useApiData('/api/resources', [])
+  const { data: sessionsRaw, loading: loadingSessions } = useApiData('/api/sessions', [])
+  const { data: resourcesRaw, loading: loadingResources } = useApiData('/api/resources', [])
 
-  const liveSessions = (sessions || []).filter(s => s.type === 'live').slice(0, 4)
-  const onDemandVideos = (sessions || []).filter(s => s.type === 'on-demand').slice(0, 4)
-  const communityResources = (resources || []).slice(0, 4)
+  // Handle both paginated { data: [...] } and plain array responses
+  const sessions = Array.isArray(sessionsRaw) ? sessionsRaw : (sessionsRaw?.data || [])
+  const resources = Array.isArray(resourcesRaw) ? resourcesRaw : (resourcesRaw?.data || [])
+
+  const liveSessions = sessions.filter(s => s.type === 'live').slice(0, 4)
+  const onDemandVideos = sessions.filter(s => s.type === 'on-demand').slice(0, 4)
+  const communityResources = resources.slice(0, 4)
 
   // Use fallbacks if API returns empty
   const displayLive = liveSessions.length > 0 ? liveSessions : fallbackLive
@@ -217,11 +221,11 @@ export default function AcademyPage() {
       )}
 
       {/* Past Speakers — derived from session speakers */}
-      {activeTab === 'All' && (sessions || []).length > 0 && (
+      {activeTab === 'All' && sessions.length > 0 && (
         <section>
           <h2 className="text-lg font-semibold text-dark-blue mb-5">Past Speakers</h2>
           <div className="flex gap-6 overflow-x-auto pb-2">
-            {(sessions || [])
+            {sessions
               .filter(s => s.speaker_name)
               .reduce((unique, s) => {
                 if (!unique.find(u => u.speaker_name === s.speaker_name)) {

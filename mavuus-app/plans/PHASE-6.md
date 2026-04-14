@@ -564,23 +564,23 @@ Continue building the admin panel frontend. The backend from Part A should alrea
 | Platform stats + growth | Dashboard | ✅ |
 
 ## Acceptance Criteria
-- [ ] All 7 new database tables created and seeded
-- [ ] Admin middleware blocks non-admins, audit log records all actions
-- [ ] User list: search, filter, sort, pagination, bulk actions
-- [ ] User detail: all 6 tabs with real data, all account actions work
-- [ ] Session/Resource/Speaker full CRUD from admin
-- [ ] Vendor management with status and admin notes
-- [ ] Job moderation + application oversight
-- [ ] Comment/Review/Recommendation moderation
-- [ ] Contact submissions management
-- [ ] Dynamic categories used by all frontend filter dropdowns
-- [ ] Site content editable from admin, reflected on public pages
-- [ ] Testimonials/Logos/FAQ CRUD reflected on public pages
-- [ ] Broadcast notifications reach target users
-- [ ] Referral stats visible
-- [ ] Platform settings editable
-- [ ] CSV exports download correctly
-- [ ] Audit log shows all admin actions with details
-- [ ] Public pages fetch dynamic content with hardcoded fallbacks
-- [ ] Admin panel visually distinct (dark indigo sidebar)
-- [ ] Non-admins cannot access /admin
+- [x] All 7 new database tables created and seeded
+- [x] Admin middleware blocks non-admins, audit log records all actions
+- [x] User list: search, filter, sort, pagination, bulk actions
+- [x] User detail: all 6 tabs with real data, all account actions work
+- [x] Session/Resource/Speaker full CRUD from admin
+- [x] Vendor management with status and admin notes
+- [x] Job moderation + application oversight
+- [x] Comment/Review/Recommendation moderation
+- [x] Contact submissions management
+- [x] Dynamic categories used by all frontend filter dropdowns
+- [x] Site content editable from admin, reflected on public pages
+- [x] Testimonials/Logos/FAQ CRUD reflected on public pages
+- [x] Broadcast notifications reach target users
+- [x] Referral stats visible
+- [x] Platform settings editable
+- [x] CSV exports download correctly
+- [x] Audit log shows all admin actions with details
+- [x] Public pages fetch dynamic content with hardcoded fallbacks
+- [x] Admin panel visually distinct (dark indigo sidebar)
+- [x] Non-admins cannot access /admin

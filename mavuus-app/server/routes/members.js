@@ -27,29 +27,47 @@ function isConnected(db, userId1, userId2) {
 }
 
 router.get('/', optionalAuth, (req, res) => {
+  const { search, page = 1, limit = 20 } = req.query
   const db = req.app.locals.db
 
-  // If user is authenticated, filter out private profiles
+  const conditions = []
+  const params = []
+
+  // Privacy filter
   if (req.user) {
-    const members = db.prepare(`
-      SELECT u.id, u.name, u.email, u.title, u.company, u.avatar_url, u.membership_tier, u.created_at
-      FROM users u
-      LEFT JOIN user_profiles p ON u.id = p.user_id
-      WHERE COALESCE(p.profile_visibility, 'public') != 'private' OR u.id = ?
-      ORDER BY u.name
-    `).all(req.user.id)
-    return res.json(members)
+    conditions.push("(COALESCE(p.profile_visibility, 'public') != 'private' OR u.id = ?)")
+    params.push(req.user.id)
+  } else {
+    conditions.push("COALESCE(p.profile_visibility, 'public') = 'public'")
   }
 
-  // Unauthenticated: show only public profiles
-  const members = db.prepare(`
-    SELECT u.id, u.name, u.email, u.title, u.company, u.avatar_url, u.membership_tier, u.created_at
-    FROM users u
-    LEFT JOIN user_profiles p ON u.id = p.user_id
-    WHERE COALESCE(p.profile_visibility, 'public') = 'public'
-    ORDER BY u.name
-  `).all()
-  res.json(members)
+  if (search) {
+    conditions.push('(u.name LIKE ? OR u.title LIKE ? OR u.company LIKE ?)')
+    const term = `%${search}%`
+    params.push(term, term, term)
+  }
+
+  const whereClause = conditions.length ? ' WHERE ' + conditions.join(' AND ') : ''
+
+  const total = db.prepare(
+    `SELECT COUNT(*) as count FROM users u LEFT JOIN user_profiles p ON u.id = p.user_id${whereClause}`
+  ).get(...params).count
+
+  const pageNum = Math.max(1, parseInt(page))
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
+  const totalPages = Math.ceil(total / limitNum)
+  const offset = (pageNum - 1) * limitNum
+
+  const data = db.prepare(
+    `SELECT u.id, u.name, u.email, u.title, u.company, u.avatar_url, u.membership_tier, u.created_at
+     FROM users u
+     LEFT JOIN user_profiles p ON u.id = p.user_id
+     ${whereClause}
+     ORDER BY u.name
+     LIMIT ? OFFSET ?`
+  ).all(...params, limitNum, offset)
+
+  res.json({ data, total, page: pageNum, totalPages, limit: limitNum })
 })
 
 // GET /api/members/:id/profile - Get full public profile (privacy-aware)

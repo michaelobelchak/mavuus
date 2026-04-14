@@ -1,31 +1,29 @@
 import { Router } from 'express'
+import { validateEmail, validateLength, MAX_LENGTHS } from '../middleware/validate.js'
 
 const router = Router()
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 router.post('/', (req, res) => {
-  const { name, email, message } = req.body || {}
-
-  if (!name || typeof name !== 'string' || !name.trim()) {
-    return res.status(400).json({ error: 'Name is required' })
-  }
-  if (!email || typeof email !== 'string' || !EMAIL_RE.test(email)) {
-    return res.status(400).json({ error: 'Valid email is required' })
-  }
-  if (!message || typeof message !== 'string' || !message.trim()) {
-    return res.status(400).json({ error: 'Message is required' })
-  }
-  if (name.length > 200 || email.length > 200 || message.length > 5000) {
-    return res.status(400).json({ error: 'Input too long' })
-  }
-
+  const { name, email, phone, message } = req.body || {}
   const db = req.app.locals.db
-  const result = db.prepare(
-    'INSERT INTO contact_submissions (name, email, message) VALUES (?, ?, ?)'
-  ).run(name.trim(), email.trim().toLowerCase(), message.trim())
 
-  res.status(201).json({ success: true, id: result.lastInsertRowid })
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: 'Name, email, and message are required' })
+  }
+
+  if (!validateEmail(email)) {
+    return res.status(400).json({ error: 'Invalid email format' })
+  }
+
+  if (!validateLength(message, MAX_LENGTHS.message)) {
+    return res.status(400).json({ error: `Message must be ${MAX_LENGTHS.message} characters or less` })
+  }
+
+  db.prepare(
+    'INSERT INTO contact_submissions (name, email, phone, message) VALUES (?, ?, ?, ?)'
+  ).run(name, email, phone || null, message)
+
+  res.status(201).json({ success: true, message: 'Thank you! We\'ll get back to you shortly.' })
 })
 
 export default router

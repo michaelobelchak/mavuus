@@ -91,6 +91,7 @@ export default function InfiniteLeaderScroll({ leaders, speed = 30 }) {
                 <img
                   src={leader.avatar}
                   alt={leader.name}
+                  loading="lazy"
                   className="w-full h-full object-cover"
                 />
               </div>

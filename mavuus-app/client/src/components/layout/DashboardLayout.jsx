@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import DashboardSidebar from './DashboardSidebar'
 import PageTransition from '../ui/PageTransition'
@@ -6,6 +6,7 @@ import Tooltip from '../ui/Tooltip'
 import MobileFAB from '../ui/MobileFAB'
 import { Bell, Search, Menu, User, Settings, LogOut, ChevronDown, X, UserPlus, MessageCircle, Briefcase, Radio, CheckCircle, Star } from 'lucide-react'
 import Avatar from '../ui/Avatar'
+import SearchResultsDropdown from '../ui/SearchResultsDropdown'
 import { useAuth } from '../../context/AuthContext'
 
 const notifIcons = {
@@ -51,9 +52,14 @@ export default function DashboardLayout() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifFilter, setNotifFilter] = useState('all')
   const [bellPulse, setBellPulse] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState(null)
+  const [searchOpen, setSearchOpen] = useState(false)
   const prevUnreadRef = useRef(0)
   const userMenuRef = useRef(null)
   const searchInputRef = useRef(null)
+  const searchRef = useRef(null)
+  const searchTimerRef = useRef(null)
 
   // Fetch unread count — pulse bell when count increases
   useEffect(() => {
@@ -107,10 +113,38 @@ export default function DashboardLayout() {
     fetchNotifs()
   }, [notifOpen, token])
 
-  // Close user menu on outside click
+  // Debounced global search
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    if (!searchQuery || searchQuery.trim().length < 2) {
+      setSearchResults(null)
+      setSearchOpen(false)
+      return
+    }
+    searchTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`)
+        if (res.ok) {
+          const data = await res.json()
+          setSearchResults(data)
+          setSearchOpen(true)
+        }
+      } catch {}
+    }, 300)
+    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current) }
+  }, [searchQuery])
+
+  // Close search on route change
+  useEffect(() => {
+    setSearchOpen(false)
+    setSearchQuery('')
+  }, [location.pathname])
+
+  // Close user menu and search on outside click
   useEffect(() => {
     const handleClick = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenuOpen(false)
+      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -172,17 +206,26 @@ export default function DashboardLayout() {
             >
               <Menu size={22} />
             </button>
-            <div className="hidden sm:flex items-center gap-3 flex-1 max-w-md h-10 px-4 rounded-full bg-white/70 border border-neutral-200/70 focus-within:border-brand-pink focus-within:ring-2 focus-within:ring-brand-pink/25 focus-within:bg-white transition-all duration-200">
+            <div
+              ref={searchRef}
+              className="hidden sm:flex items-center gap-3 flex-1 max-w-md h-10 px-4 rounded-full bg-white/70 border border-neutral-200/70 focus-within:border-brand-pink focus-within:ring-2 focus-within:ring-brand-pink/25 focus-within:bg-white transition-all duration-200 relative"
+            >
               <Search size={16} className="text-neutral-400 flex-shrink-0" />
               <input
                 ref={searchInputRef}
                 type="text"
                 placeholder="Search sessions, resources, members..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => { if (searchResults) setSearchOpen(true) }}
                 className="flex-1 min-w-0 bg-transparent text-sm text-neutral-600 placeholder:text-neutral-300 focus:outline-none"
               />
               <kbd className="hidden md:inline-flex items-center justify-center h-5 min-w-[22px] px-1.5 text-[11px] font-semibold text-neutral-400 bg-white border border-neutral-200 rounded shadow-sm">
                 /
               </kbd>
+              {searchOpen && searchResults && (
+                <SearchResultsDropdown results={searchResults} onClose={() => { setSearchOpen(false); setSearchQuery('') }} />
+              )}
             </div>
           </div>
 
@@ -256,6 +299,28 @@ export default function DashboardLayout() {
             </div>
           </div>
         </header>
+
+        {/* Email Verification Banner */}
+        {user && user.email_verified === 0 && (
+          <div className="bg-yellow-50 border-b border-yellow-200 px-4 lg:px-8 py-3 flex items-center justify-between">
+            <p className="text-sm text-yellow-800">
+              Please verify your email. Check your console/email for the verification link.
+            </p>
+            <button
+              onClick={async () => {
+                try {
+                  await fetch('/api/auth/resend-verification', {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` },
+                  })
+                } catch {}
+              }}
+              className="text-sm font-medium text-yellow-900 hover:underline cursor-pointer ml-4 whitespace-nowrap"
+            >
+              Resend
+            </button>
+          </div>
+        )}
 
         {/* Page Content */}
         <main id="main-content" className="flex-1 p-4 lg:p-8">

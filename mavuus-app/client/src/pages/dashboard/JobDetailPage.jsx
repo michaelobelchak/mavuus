@@ -9,7 +9,7 @@ import Avatar from '../../components/ui/Avatar'
 import StarRating from '../../components/ui/StarRating'
 import ReviewCard from '../../components/ui/ReviewCard'
 import { Textarea } from '../../components/ui/Input'
-import { MapPin, Clock, DollarSign, Bookmark, BookmarkCheck, Building2, Send, CheckCircle, Users, Briefcase, Star, ThumbsUp } from 'lucide-react'
+import { MapPin, Clock, DollarSign, Bookmark, BookmarkCheck, Building2, Send, CheckCircle, Users, Briefcase, Star, ThumbsUp, FileText, Upload } from 'lucide-react'
 // eslint-disable-next-line no-unused-vars -- motion is referenced as <motion.button> in JSX
 import { motion } from 'motion/react'
 import DetailPageHeader from '../../components/ui/DetailPageHeader'
@@ -84,6 +84,9 @@ export default function JobDetailPage() {
   const [showApplyModal, setShowApplyModal] = useState(false)
   const [coverLetter, setCoverLetter] = useState('')
   const [applying, setApplying] = useState(false)
+  const [useProfileResume, setUseProfileResume] = useState(true)
+  const [resumeFile, setResumeFile] = useState(null)
+  const [profileResume, setProfileResume] = useState(null)
   const [applicants, setApplicants] = useState([])
 
   // Review modal state
@@ -138,6 +141,12 @@ export default function JobDetailPage() {
           const myApp = apps.find(a => a.job_id === parseInt(id))
           if (myApp) setApplied(myApp)
         }
+        // Check if user has profile resume
+        const profileRes = await fetch('/api/profile/me', { headers: { Authorization: `Bearer ${token}` } })
+        if (profileRes.ok) {
+          const profileData = await profileRes.json()
+          if (profileData.resume_url) setProfileResume(profileData.resume_url)
+        }
       } catch { /* silent */ } finally { setLoading(false) }
     }
     fetchData()
@@ -161,8 +170,25 @@ export default function JobDetailPage() {
   const handleApply = async () => {
     setApplying(true)
     try {
+      const body = { cover_letter: coverLetter }
+      if (useProfileResume && profileResume) {
+        body.resume_url = profileResume
+      } else if (resumeFile) {
+        // Upload resume first
+        const formData = new FormData()
+        formData.append('resume', resumeFile)
+        const uploadRes = await fetch('/api/profile/me/resume', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        })
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json()
+          body.resume_url = uploadData.resume_url
+        }
+      }
       const res = await fetch(`/api/jobs/${id}/apply`, {
-        method: 'POST', headers, body: JSON.stringify({ cover_letter: coverLetter })
+        method: 'POST', headers, body: JSON.stringify(body)
       })
       if (res.ok) {
         fireConfetti()
@@ -402,6 +428,12 @@ export default function JobDetailPage() {
                       </div>
                     </Link>
                     <div className="flex items-center gap-2">
+                      {(app.resume_url || app.profile_resume_url) && (
+                        <a href={app.resume_url || app.profile_resume_url} target="_blank" rel="noopener noreferrer"
+                          className="text-xs text-brand-blue hover:underline flex items-center gap-1">
+                          <FileText size={12} /> Resume
+                        </a>
+                      )}
                       <Badge variant={appStatusColors[app.status] || 'gray'}>{app.status}</Badge>
                       {app.status !== 'hired' && job.status === 'open' && (
                         <Button size="sm" onClick={() => handleHire(app.id, app.user_id)}>
@@ -559,6 +591,32 @@ export default function JobDetailPage() {
             rows={6}
             placeholder="Tell the employer why you're a great fit for this role..."
           />
+          {/* Resume Options */}
+          <div>
+            <label className="text-sm font-medium text-dark-blue mb-2 block">Resume</label>
+            {profileResume ? (
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm text-neutral-600 cursor-pointer">
+                  <input type="radio" checked={useProfileResume} onChange={() => { setUseProfileResume(true); setResumeFile(null) }} />
+                  <FileText size={14} /> Use profile resume
+                </label>
+                <label className="flex items-center gap-2 text-sm text-neutral-600 cursor-pointer">
+                  <input type="radio" checked={!useProfileResume} onChange={() => setUseProfileResume(false)} />
+                  <Upload size={14} /> Upload a different resume
+                </label>
+                {!useProfileResume && (
+                  <input type="file" accept=".pdf" onChange={e => setResumeFile(e.target.files?.[0] || null)}
+                    className="text-sm text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-brand-pink/10 file:text-brand-pink file:font-medium file:text-sm file:cursor-pointer" />
+                )}
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-neutral-500 mb-2">Upload a resume (PDF, max 5MB)</p>
+                <input type="file" accept=".pdf" onChange={e => setResumeFile(e.target.files?.[0] || null)}
+                  className="text-sm text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-brand-pink/10 file:text-brand-pink file:font-medium file:text-sm file:cursor-pointer" />
+              </div>
+            )}
+          </div>
           <p className="text-xs text-neutral-500">Your profile information will be shared with the employer.</p>
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="ghost" onClick={() => setShowApplyModal(false)}>Cancel</Button>

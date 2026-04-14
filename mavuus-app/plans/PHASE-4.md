@@ -77,9 +77,9 @@ Add the remaining file upload features:
 ```
 
 ## Acceptance Criteria
-- [ ] Image upload infrastructure works
-- [ ] Avatar upload: select, upload, see updated everywhere
-- [ ] Job application resume: use profile resume or upload new
-- [ ] Session/Resource CRUD endpoints exist
-- [ ] Video player renders YouTube, Vimeo, HTML5, and placeholder
-- [ ] View tracking works
+- [x] Image upload infrastructure works
+- [x] Avatar upload: select, upload, see updated everywhere
+- [x] Job application resume: use profile resume or upload new
+- [x] Session/Resource CRUD endpoints exist
+- [x] Video player renders YouTube, Vimeo, HTML5, and placeholder
+- [x] View tracking works

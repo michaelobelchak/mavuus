@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 const footerLinks = {
@@ -21,6 +22,15 @@ const footerLinks = {
 }
 
 export default function Footer() {
+  const [settings, setSettings] = useState({})
+
+  useEffect(() => {
+    fetch('/api/settings/public')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(setSettings)
+      .catch(() => {})
+  }, [])
+
   return (
     <footer className="relative bg-dark-blue text-white overflow-hidden">
       {/* Decorative glow */}
@@ -64,13 +74,19 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} Mavuus. All rights reserved.
           </p>
           <div className="flex gap-6">
-            {['Twitter', 'LinkedIn', 'Instagram'].map((platform) => (
+            {[
+              { name: 'Twitter', url: settings.social_twitter },
+              { name: 'LinkedIn', url: settings.social_linkedin },
+              { name: 'Instagram', url: settings.social_instagram },
+            ].map((platform) => (
               <a
-                key={platform}
-                href="#"
+                key={platform.name}
+                href={platform.url || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="relative text-neutral-300 hover:text-white text-sm transition-colors after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-brand-pink after:transition-all hover:after:w-full"
               >
-                {platform}
+                {platform.name}
               </a>
             ))}
           </div>

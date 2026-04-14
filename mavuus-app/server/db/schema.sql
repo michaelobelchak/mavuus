@@ -9,6 +9,15 @@ CREATE TABLE IF NOT EXISTS users (
   avatar_url TEXT,
   role TEXT DEFAULT 'member' CHECK(role IN ('member', 'admin')),
   membership_tier TEXT DEFAULT 'pro',
+  email_verified INTEGER DEFAULT 0,
+  verification_token TEXT,
+  google_id TEXT,
+  is_banned INTEGER DEFAULT 0,
+  ban_reason TEXT,
+  banned_at DATETIME,
+  is_deleted INTEGER DEFAULT 0,
+  deleted_at DATETIME,
+  last_login_at DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -27,6 +36,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   duration TEXT,
   video_url TEXT,
   views INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'published' CHECK(status IN ('draft', 'published', 'archived')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -42,6 +52,7 @@ CREATE TABLE IF NOT EXISTS resources (
   type TEXT CHECK(type IN ('article', 'guide', 'template')),
   read_time TEXT,
   url TEXT,
+  status TEXT DEFAULT 'published' CHECK(status IN ('draft', 'published', 'archived')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -56,6 +67,8 @@ CREATE TABLE IF NOT EXISTS vendors (
   reviews_count INTEGER DEFAULT 0,
   location TEXT,
   website TEXT,
+  moderation_status TEXT DEFAULT 'approved' CHECK(moderation_status IN ('approved', 'pending', 'suspended')),
+  admin_notes TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -73,6 +86,8 @@ CREATE TABLE IF NOT EXISTS jobs (
   status TEXT DEFAULT 'open' CHECK(status IN ('open', 'in-progress', 'completed', 'closed')),
   hired_user_id INTEGER REFERENCES users(id),
   posted_by INTEGER REFERENCES users(id),
+  moderation_status TEXT DEFAULT 'approved' CHECK(moderation_status IN ('approved', 'hidden', 'removed')),
+  admin_notes TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -106,6 +121,7 @@ CREATE TABLE IF NOT EXISTS reviews (
   job_id INTEGER REFERENCES jobs(id),
   rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
   text TEXT,
+  moderation_status TEXT DEFAULT 'approved' CHECK(moderation_status IN ('approved', 'flagged', 'hidden')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(reviewer_id, reviewee_id, job_id)
 );
@@ -208,6 +224,63 @@ CREATE TABLE IF NOT EXISTS saved_jobs (
   PRIMARY KEY (user_id, job_id)
 );
 
+-- Bookmarks (resource bookmarks)
+CREATE TABLE IF NOT EXISTS bookmarks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  resource_id INTEGER REFERENCES resources(id) ON DELETE CASCADE,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, resource_id)
+);
+
+-- Contact Form Submissions
+CREATE TABLE IF NOT EXISTS contact_submissions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT,
+  message TEXT NOT NULL,
+  status TEXT DEFAULT 'new',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comments
+CREATE TABLE IF NOT EXISTS comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type TEXT NOT NULL,
+  entity_id INTEGER NOT NULL,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  parent_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Password Reset Tokens
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  token TEXT UNIQUE NOT NULL,
+  expires_at TEXT NOT NULL,
+  used INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Referral Codes
+CREATE TABLE IF NOT EXISTS referral_codes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  code TEXT UNIQUE NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Referral Tracking
+CREATE TABLE IF NOT EXISTS referral_tracking (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  referrer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  referred_user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Notifications
 CREATE TABLE IF NOT EXISTS notifications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -220,16 +293,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Contact form submissions
-CREATE TABLE IF NOT EXISTS contact_submissions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  message TEXT NOT NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- Session registrations
+-- Session registrations (from Phase A — live session RSVP)
 CREATE TABLE IF NOT EXISTS session_registrations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   session_id INTEGER NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
@@ -238,9 +302,92 @@ CREATE TABLE IF NOT EXISTS session_registrations (
   UNIQUE(session_id, user_id)
 );
 
--- Waitlist (marketing signups)
+-- Waitlist (marketing signups from HomePage hero)
 CREATE TABLE IF NOT EXISTS waitlist (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL UNIQUE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Categories (dynamic, manageable from admin)
+CREATE TABLE IF NOT EXISTS categories (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  type TEXT NOT NULL CHECK(type IN ('session', 'resource', 'job', 'vendor', 'article')),
+  sort_order INTEGER DEFAULT 0,
+  is_active INTEGER DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Site content (CMS-lite for website pages)
+CREATE TABLE IF NOT EXISTS site_content (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  page TEXT NOT NULL,
+  section TEXT NOT NULL,
+  key TEXT NOT NULL,
+  value TEXT,
+  type TEXT DEFAULT 'text' CHECK(type IN ('text', 'html', 'image', 'number', 'json')),
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_by INTEGER REFERENCES users(id),
+  UNIQUE(page, section, key)
+);
+
+-- Testimonials (manageable from admin)
+CREATE TABLE IF NOT EXISTS testimonials (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  title TEXT,
+  company TEXT,
+  avatar_url TEXT,
+  quote TEXT NOT NULL,
+  rating INTEGER DEFAULT 5,
+  is_featured INTEGER DEFAULT 0,
+  is_active INTEGER DEFAULT 1,
+  sort_order INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Brand logos (manageable from admin)
+CREATE TABLE IF NOT EXISTS brand_logos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  logo_url TEXT NOT NULL,
+  website_url TEXT,
+  is_active INTEGER DEFAULT 1,
+  sort_order INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- FAQ items (manageable from admin)
+CREATE TABLE IF NOT EXISTS faq_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  question TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  page TEXT DEFAULT 'general' CHECK(page IN ('general', 'contact', 'pricing', 'about')),
+  sort_order INTEGER DEFAULT 0,
+  is_active INTEGER DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Platform settings (key-value config)
+CREATE TABLE IF NOT EXISTS platform_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT,
+  description TEXT,
+  type TEXT DEFAULT 'text' CHECK(type IN ('text', 'number', 'boolean', 'json', 'email', 'url')),
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_by INTEGER REFERENCES users(id)
+);
+
+-- Audit log (track all admin actions)
+CREATE TABLE IF NOT EXISTS audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  admin_id INTEGER REFERENCES users(id),
+  action TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id INTEGER,
+  details TEXT,
+  ip_address TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

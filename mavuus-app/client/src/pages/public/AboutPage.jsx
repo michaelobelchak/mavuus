@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async'
 import { aboutLeaders } from '../../data/mockData'
 import LogoBar from '../../components/sections/LogoBar'
 import TestimonialRow from '../../components/sections/TestimonialRow'
@@ -8,6 +9,12 @@ import GradientText from '../../components/ui/GradientText'
 export default function AboutPage() {
   return (
     <div>
+      <Helmet>
+        <title>About Mavuus — Founded by Dilya & Elmira Abushayeva</title>
+        <meta name="description" content="Learn about Mavuus, the marketing community founded by sisters Dilya and Elmira Abushayeva to empower marketing leaders." />
+        <link rel="canonical" href="https://mavuus.com/about" />
+      </Helmet>
+
       {/* Hero Section */}
       <section className="relative px-6 md:px-12 lg:px-[104px] py-8 overflow-hidden">
         {/* Decorative mesh gradient */}
@@ -45,6 +52,7 @@ export default function AboutPage() {
               <img
                 src="/assets/about/hero-sisters.jpg"
                 alt="Mavuus founders"
+                loading="lazy"
                 className="w-full h-[150%] object-cover"
               />
             </div>
@@ -88,6 +96,7 @@ export default function AboutPage() {
                 <img
                   src={leader.avatar}
                   alt={leader.name}
+                  loading="lazy"
                   className="w-[196px] h-[196px] rounded-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -112,6 +121,7 @@ export default function AboutPage() {
           <img
             src="/assets/about/wide-photo.jpg"
             alt="Mavuus community"
+            loading="lazy"
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white" />

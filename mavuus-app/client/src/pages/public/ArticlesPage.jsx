@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async'
 import { articles } from '../../data/mockData'
 import Breadcrumbs from '../../components/ui/Breadcrumbs'
 import AnimatedSection from '../../components/ui/AnimatedSection'
@@ -40,6 +41,12 @@ export default function ArticlesPage() {
 
   return (
     <div>
+      <Helmet>
+        <title>Mavuus Articles & Insights</title>
+        <meta name="description" content="Read articles and insights from top marketing leaders on strategy, leadership, and career growth." />
+        <link rel="canonical" href="https://mavuus.com/articles" />
+      </Helmet>
+
       {/* Header */}
       <section className="px-6 md:px-12 lg:px-[104px] pt-[74px] pb-6">
         <AnimatedSection animation="fade-up">
@@ -127,6 +134,7 @@ export default function ArticlesPage() {
                             <img
                               src={article.image}
                               alt={article.title}
+                              loading="lazy"
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                           </div>
