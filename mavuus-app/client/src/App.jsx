@@ -18,6 +18,8 @@ import BlogDetailPage from './pages/public/BlogDetailPage'
 import EventConfirmationPage from './pages/public/EventConfirmationPage'
 import BackToTop from './components/ui/BackToTop'
 import ShortcutsHelp from './components/ui/ShortcutsHelp'
+import CommandPalette from './components/ui/CommandPalette'
+import ConnectionStatus from './components/ui/ConnectionStatus'
 import RouteTitles from './components/RouteTitles'
 
 // Auth Pages (eager — fast login)
@@ -59,6 +61,8 @@ export default function App() {
       <RouteTitles />
       <BackToTop />
       <ShortcutsHelp />
+      <CommandPalette />
+      <ConnectionStatus />
       <Routes>
         {/* Public Website */}
         <Route element={<PublicLayout />}>

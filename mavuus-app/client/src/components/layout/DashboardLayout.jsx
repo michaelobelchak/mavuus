@@ -49,6 +49,7 @@ export default function DashboardLayout() {
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const [notifFilter, setNotifFilter] = useState('all')
   const [bellPulse, setBellPulse] = useState(false)
   const prevUnreadRef = useRef(0)
   const userMenuRef = useRef(null)
@@ -307,17 +308,57 @@ export default function DashboardLayout() {
           </div>
         </div>
 
+        {/* Filter tabs */}
+        <div className="flex gap-1 px-4 pt-3 pb-2 border-b border-neutral-100/80">
+          {['all', 'unread'].map((f) => {
+            const active = notifFilter === f
+            const count = f === 'unread' ? unreadCount : notifications.length
+            return (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setNotifFilter(f)}
+                className={`
+                  flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer
+                  ${active
+                    ? 'bg-brand-pink/10 text-brand-pink'
+                    : 'text-neutral-500 hover:bg-neutral-100 hover:text-dark-blue'
+                  }
+                `}
+              >
+                <span className="capitalize">{f}</span>
+                <span className={`text-[10px] ${active ? 'text-brand-pink' : 'text-neutral-400'}`}>
+                  {count}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
         {/* Drawer Content */}
-        <div className="overflow-y-auto h-[calc(100%-80px)]">
-          {notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-neutral-400">
-              <Bell size={40} className="mb-3 opacity-30" />
-              <p className="text-sm font-medium">No notifications yet</p>
-              <p className="text-xs mt-1">We&apos;ll notify you when something happens</p>
-            </div>
-          ) : (
-            <div>
-              {notifications.map((n, i) => {
+        <div className="overflow-y-auto h-[calc(100%-148px)]">
+          {(() => {
+            const visible = notifFilter === 'unread'
+              ? notifications.filter((n) => !n.is_read)
+              : notifications
+            if (visible.length === 0) {
+              return (
+                <div className="flex flex-col items-center justify-center h-64 text-neutral-400">
+                  <Bell size={40} className="mb-3 opacity-30" />
+                  <p className="text-sm font-medium">
+                    {notifFilter === 'unread' ? 'All caught up!' : 'No notifications yet'}
+                  </p>
+                  <p className="text-xs mt-1">
+                    {notifFilter === 'unread'
+                      ? 'No unread notifications.'
+                      : "We'll notify you when something happens"}
+                  </p>
+                </div>
+              )
+            }
+            return (
+              <div>
+                {visible.map((n, i) => {
                 const Icon = notifIcons[n.type] || CheckCircle
                 const colorClass = notifColors[n.type] || notifColors.system
 
@@ -355,8 +396,9 @@ export default function DashboardLayout() {
                   </Link>
                 )
               })}
-            </div>
-          )}
+              </div>
+            )
+          })()}
         </div>
       </div>
     </div>
