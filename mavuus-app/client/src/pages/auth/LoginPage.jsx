@@ -74,6 +74,11 @@ export default function LoginPage() {
 
   const handleDemoLogin = async () => {
     setError('')
+    // Visibly populate the form so the user can see the credentials
+    setEmail('demo@mavuus.com')
+    setPassword('demo123')
+    // Small pause so the fill is legible, then log in
+    await new Promise((r) => setTimeout(r, 400))
     setLoading(true)
     try {
       await demoLogin()
@@ -296,13 +301,14 @@ export default function LoginPage() {
             </div>
           </form>
 
-          {/* Demo escape hatch — keeps existing quick-login */}
+          {/* Demo escape hatch — fills the form visibly then submits */}
           <button
             type="button"
             onClick={handleDemoLogin}
-            className="text-center text-sm text-neutral-500 hover:text-brand-pink transition-colors cursor-pointer"
+            disabled={loading}
+            className="text-center text-sm text-neutral-500 hover:text-brand-pink transition-colors cursor-pointer disabled:opacity-50"
           >
-            Or try the demo account
+            {loading ? 'Signing in as demo…' : 'Or try the demo account'}
           </button>
         </div>
       </section>
