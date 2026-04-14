@@ -4,6 +4,26 @@ const AuthContext = createContext(null)
 
 const API_BASE = '/api'
 
+/**
+ * Decode a JWT payload (base64url) without verification.
+ * atob() only accepts standard base64, so we first translate base64url →
+ * base64 (replace -/_ with +//) and add padding. Any character that slips
+ * through (or malformed JSON) throws, which the caller must handle.
+ */
+function decodeJwtPayload(token) {
+  const segment = token.split('.')[1]
+  if (!segment) throw new Error('Malformed token')
+  const normalized = segment.replace(/-/g, '+').replace(/_/g, '/')
+  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4)
+  const json = decodeURIComponent(
+    atob(padded)
+      .split('')
+      .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+      .join('')
+  )
+  return JSON.parse(json)
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(() => localStorage.getItem('mavuus_token'))
@@ -14,7 +34,7 @@ export function AuthProvider({ children }) {
     if (token) {
       // Decode JWT payload (no verification — that's server-side)
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]))
+        const payload = decodeJwtPayload(token)
         setUser({
           id: payload.id,
           email: payload.email,
@@ -22,9 +42,11 @@ export function AuthProvider({ children }) {
           avatar_url: payload.avatar_url,
           membership_tier: payload.membership_tier,
         })
-      } catch {
+      } catch (err) {
+        console.warn('[auth] failed to decode JWT, logging out:', err)
         localStorage.removeItem('mavuus_token')
         setToken(null)
+        setUser(null)
       }
     }
     setLoading(false)
