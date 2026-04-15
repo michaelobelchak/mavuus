@@ -62,8 +62,8 @@ const demoId = demo.id
 
 // ─── 2. Profile ──────────────────────────────────────────────
 db.prepare(`
-  INSERT INTO user_profiles (user_id, bio, industry, years_experience, linkedin_url, location, timezone, profile_visibility, notification_email, notification_messages, notification_connections, notification_jobs)
-  VALUES (?, ?, ?, ?, ?, ?, ?, 'public', 1, 1, 1, 1)
+  INSERT INTO user_profiles (user_id, bio, industry, years_experience, linkedin_url, location, timezone, resume_filename, resume_url, profile_visibility, notification_email, notification_messages, notification_connections, notification_jobs)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'public', 1, 1, 1, 1)
   ON CONFLICT(user_id) DO UPDATE SET
     bio = COALESCE(NULLIF(user_profiles.bio, ''), excluded.bio),
     industry = COALESCE(user_profiles.industry, excluded.industry),
@@ -71,6 +71,8 @@ db.prepare(`
     linkedin_url = COALESCE(user_profiles.linkedin_url, excluded.linkedin_url),
     location = COALESCE(user_profiles.location, excluded.location),
     timezone = COALESCE(user_profiles.timezone, excluded.timezone),
+    resume_filename = COALESCE(user_profiles.resume_filename, excluded.resume_filename),
+    resume_url = COALESCE(user_profiles.resume_url, excluded.resume_url),
     updated_at = CURRENT_TIMESTAMP
 `).run(
   demoId,
@@ -79,7 +81,9 @@ db.prepare(`
   10,
   'https://linkedin.com/in/demouser',
   'New York, NY',
-  'America/New_York'
+  'America/New_York',
+  'demo-user-resume.pdf',
+  '/uploads/resumes/demo-user-resume.pdf'
 )
 console.log('  ✓ Profile upserted')
 

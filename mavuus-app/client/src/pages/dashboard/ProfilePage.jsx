@@ -851,7 +851,7 @@ export default function ProfilePage() {
                   </h4>
                   <p className="text-sm text-neutral-500 mt-1">
                     {profile.membership_tier === 'pro'
-                      ? 'Full access to all sessions, resources, and community features'
+                      ? '$15 / month · Billed annually'
                       : 'Basic access with limited features'}
                   </p>
                 </div>
@@ -859,21 +859,23 @@ export default function ProfilePage() {
                   variant={profile.membership_tier === 'pro' ? 'pink' : 'gray'}
                   className="text-base px-4 py-2"
                 >
-                  {profile.membership_tier === 'pro' ? 'PRO' : 'FREE'}
+                  {profile.membership_tier === 'pro' ? 'ACTIVE' : 'FREE'}
                 </Badge>
               </div>
+
+              {profile.membership_tier === 'pro' && (
+                <ul className="mt-4 space-y-2 text-sm text-neutral-600">
+                  <li>• Unlimited live sessions &amp; full on-demand library</li>
+                  <li>• Full community access, messaging &amp; connections</li>
+                  <li>• Marketplace listings &amp; job board</li>
+                </ul>
+              )}
 
               {profile.membership_tier !== 'pro' && (
                 <Link to="/pricing">
                   <Button className="mt-4">Upgrade to Pro</Button>
                 </Link>
               )}
-            </div>
-
-            {/* Billing history placeholder */}
-            <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-              <h4 className="font-semibold text-dark-blue mb-3">Billing History</h4>
-              <p className="text-sm text-neutral-500">No billing history available.</p>
             </div>
           </div>
         )}
