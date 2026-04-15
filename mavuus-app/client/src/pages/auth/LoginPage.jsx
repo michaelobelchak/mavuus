@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { useToast } from '../../components/ui/Toast'
 import { AlertCircle, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react'
 
 // Testimonial carousel data — matches Figma design
@@ -38,7 +37,6 @@ const logoBrands = [
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const toast = useToast()
   const { login, demoLogin } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
