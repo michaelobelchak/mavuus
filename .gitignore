@@ -25,4 +25,5 @@ Thumbs.db
 dist/
 
 # Claude Code local config (user-specific)
-.claude/
+.claude/settings.local.json
+.claude/worktrees/
