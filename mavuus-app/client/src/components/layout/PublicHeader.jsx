@@ -1,109 +1,75 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
-import Button from '../ui/Button'
-import { useAuth } from '../../context/AuthContext'
 
-const navLinks = [
-  { label: 'For Business', path: '/about' },
-  { label: 'For Marketers', path: '/home' },
-  { label: 'Community', path: '/resources' },
-  { label: 'Pricing', path: '/pricing' },
+export const LIVE_LOGO = 'https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6689763240456e66e970e5aa_logo.svg'
+
+const NAV_LINKS = [
+  { label: 'Membership', to: '/membership' },
+  { label: 'Services', to: '/marketing-services' },
+  { label: 'Resources', to: '/resources' },
+  { label: 'About', to: '/about' },
+  { label: 'Contact Us', to: '/contact' },
 ]
 
+const linkClass = 'block p-4 text-base font-medium leading-6 text-live-ink transition-colors hover:text-brand-pink'
+
 export default function PublicHeader() {
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const location = useLocation()
-  const { isAuthenticated } = useAuth()
+  const { pathname } = useLocation()
+  const [openFor, setOpenFor] = useState(null)
+  const menuOpen = openFor === pathname
 
   return (
-    <header className="bg-white/95 backdrop-blur-sm border-b border-neutral-100 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5">
-          <img src="/assets/shared/mavuus-icon.svg" alt="" className="w-[29px] h-[31px]" />
-          <img src="/assets/shared/mavuus-wordmark.svg" alt="Mavuus" className="h-[20px]" />
-        </Link>
-
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map(link => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`text-sm font-medium transition-colors ${
-                location.pathname === link.path
-                  ? 'text-brand-pink'
-                  : 'text-neutral-600 hover:text-dark-blue'
-              }`}
-            >
-              {link.label}
+    <header className="sticky top-0 z-50 bg-[#fafbfc]">
+      <div className="flex min-h-28 items-center justify-center bg-white/[0.02] py-4">
+        <div className="w-full px-10 max-md:px-5">
+          <div className="relative mx-auto flex max-w-[1280px] items-center justify-between">
+            <Link to="/" aria-label="Mavuus home" className="shrink-0">
+              <img src={LIVE_LOGO} alt="Mavuus" className="h-12 w-[186px]" />
             </Link>
-          ))}
-        </nav>
 
-        {/* Auth Buttons */}
-        <div className="hidden md:flex items-center gap-3">
-          {isAuthenticated ? (
-            <Link to="/dashboard">
-              <Button size="sm">Dashboard</Button>
-            </Link>
-          ) : (
-            <>
-              <Link to="/login">
-                <Button variant="ghost" size="sm">Sign In</Button>
-              </Link>
-              <Link to="/register">
-                <Button size="sm">Create Account</Button>
-              </Link>
-            </>
-          )}
-        </div>
+            <nav className="flex gap-4 max-lg:hidden" aria-label="Main">
+              {NAV_LINKS.map((l) => (
+                <NavLink key={l.to} to={l.to} className={linkClass}>{l.label}</NavLink>
+              ))}
+            </nav>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          className="md:hidden text-dark-blue cursor-pointer"
-          onClick={() => setMobileOpen(!mobileOpen)}
-        >
-          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileOpen && (
-        <div className="md:hidden border-t border-neutral-100 bg-white px-6 py-4">
-          <nav className="flex flex-col gap-4">
-            {navLinks.map(link => (
+            <div className="flex items-center max-lg:hidden">
+              <Link to="/login" className={linkClass}>Login</Link>
               <Link
-                key={link.path}
-                to={link.path}
-                onClick={() => setMobileOpen(false)}
-                className={`text-sm font-medium ${
-                  location.pathname === link.path ? 'text-brand-pink' : 'text-neutral-600'
-                }`}
+                to="/register"
+                className="inline-flex items-center justify-center rounded-2xl bg-brand-blue px-8 py-4 text-base font-bold leading-6 text-white shadow-[0_25px_20px_-20px_#1f648d] transition-colors hover:bg-brand-blue-hover"
               >
-                {link.label}
+                Sign Up
               </Link>
-            ))}
-            <div className="flex gap-3 pt-2">
-              {isAuthenticated ? (
-                <Link to="/dashboard" onClick={() => setMobileOpen(false)}>
-                  <Button size="sm">Dashboard</Button>
-                </Link>
-              ) : (
-                <>
-                  <Link to="/login" onClick={() => setMobileOpen(false)}>
-                    <Button variant="ghost" size="sm">Sign In</Button>
-                  </Link>
-                  <Link to="/register" onClick={() => setMobileOpen(false)}>
-                    <Button size="sm">Create Account</Button>
-                  </Link>
-                </>
-              )}
             </div>
-          </nav>
+
+            <button
+              type="button"
+              className="hidden p-2 text-black max-lg:block"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+              onClick={() => setOpenFor(menuOpen ? null : pathname)}
+            >
+              {menuOpen ? <X size={32} /> : <Menu size={32} strokeWidth={2.5} />}
+            </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 top-[4.6rem] z-[9999] w-80 rounded-[10px] bg-white/95 py-2 shadow-[0_2px_5px_rgba(0,0,0,0.2)] backdrop-blur-[20px] max-[479px]:w-full lg:hidden">
+                {NAV_LINKS.map((l) => (
+                  <NavLink key={l.to} to={l.to} className={`${linkClass} pl-[1.5625rem]`}>{l.label}</NavLink>
+                ))}
+                <Link to="/login" className={`${linkClass} pl-[1.5625rem]`}>Login</Link>
+                <div className="px-[1.5625rem] py-3">
+                  <Link to="/register" className="flex w-full items-center justify-center rounded-2xl bg-brand-blue px-8 py-4 text-base font-bold text-white">
+                    Sign Up
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </header>
   )
 }

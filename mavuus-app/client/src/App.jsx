@@ -12,7 +12,12 @@ import ErrorBoundary from './components/ui/ErrorBoundary'
 // Public Pages (eager — landing page performance)
 import HomePage from './pages/public/HomePage'
 import AboutPage from './pages/public/AboutPage'
-import PricingPage from './pages/public/PricingPage'
+import MembershipPage from './pages/public/MembershipPage'
+import MarketingServicesPage from './pages/public/MarketingServicesPage'
+import FaqPage from './pages/public/FaqPage'
+import LegalPage from './pages/public/LegalPage'
+import PostPage from './pages/public/PostPage'
+import VideoPage from './pages/public/VideoPage'
 import ContactPage from './pages/public/ContactPage'
 import ResourcesHubPage from './pages/public/ResourcesHubPage'
 import ArticlesPage from './pages/public/ArticlesPage'
@@ -101,12 +106,22 @@ export default function App() {
       <Routes>
         {/* Public Website */}
         <Route element={<PublicLayout />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/pricing" element={<PricingPage />} />
-          <Route path="/contact" element={<ContactPage />} />
+          {/* Mirrors the live mavuus.com URL structure */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/membership" element={<MembershipPage />} />
+          <Route path="/marketing-services" element={<MarketingServicesPage />} />
           <Route path="/resources" element={<ResourcesHubPage />} />
+          <Route path="/post/:slug" element={<PostPage />} />
+          <Route path="/demands-videos/:slug" element={<VideoPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/terms-conditions/:section" element={<LegalPage kind="terms" />} />
+          <Route path="/privacy-policy/:section" element={<LegalPage kind="privacy" />} />
+          <Route path="/terms-conditions" element={<Navigate to="/terms-conditions/introduction" replace />} />
+          <Route path="/privacy-policy" element={<Navigate to="/privacy-policy/introduction" replace />} />
+          <Route path="/home" element={<Navigate to="/" replace />} />
+          <Route path="/pricing" element={<Navigate to="/membership" replace />} />
           <Route path="/articles" element={<ArticlesPage />} />
           <Route path="/articles/:id" element={<BlogDetailPage />} />
           <Route path="/events" element={<EventsPage />} />

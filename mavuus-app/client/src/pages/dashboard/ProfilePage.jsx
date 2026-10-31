@@ -872,7 +872,7 @@ export default function ProfilePage() {
               )}
 
               {profile.membership_tier !== 'pro' && (
-                <Link to="/pricing">
+                <Link to="/membership">
                   <Button className="mt-4">Upgrade to Pro</Button>
                 </Link>
               )}

@@ -1,94 +1,62 @@
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { LIVE_LOGO } from './PublicHeader'
 
-const footerLinks = {
-  Platform: [
-    { label: 'Academy', path: '/dashboard' },
-    { label: 'Live Sessions', path: '/dashboard/live-sessions' },
-    { label: 'On-Demand Videos', path: '/dashboard/on-demand' },
-    { label: 'Community', path: '/dashboard/resources' },
-  ],
-  Company: [
-    { label: 'About', path: '/about' },
-    { label: 'Pricing', path: '/pricing' },
-    { label: 'Contact', path: '/contact' },
-  ],
-  Resources: [
-    { label: 'Blog', path: '#' },
-    { label: 'Help Center', path: '#' },
-    { label: 'Terms of Service', path: '#' },
-    { label: 'Privacy Policy', path: '#' },
-  ],
-}
+const COLUMNS = [
+  {
+    title: 'Links',
+    links: [
+      { label: 'Home', to: '/' },
+      { label: 'Membership', to: '/membership' },
+      { label: 'About', to: '/about' },
+      { label: 'Contact Us', to: '/contact' },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { label: 'FAQ', to: '/faq' },
+      { label: 'Sign Up', to: '/register' },
+      { label: 'Terms & Conditions', to: '/terms-conditions/introduction' },
+      { label: 'Privacy Policy', to: '/privacy-policy/introduction' },
+    ],
+  },
+]
 
 export default function Footer() {
-  const [settings, setSettings] = useState({})
-
-  useEffect(() => {
-    fetch('/api/settings/public')
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(setSettings)
-      .catch(() => {})
-  }, [])
-
   return (
-    <footer className="relative bg-dark-blue text-white overflow-hidden">
-      {/* Decorative glow */}
-      <div className="pointer-events-none absolute -top-32 left-1/4 w-[600px] h-[400px] bg-brand-pink/10 rounded-full blur-[120px]" />
-
-      <div className="relative max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-          {/* Brand */}
-          <div>
-            <Link to="/" className="flex items-center gap-2.5 mb-4 group">
-              <img src="/assets/shared/mavuus-icon.svg" alt="" className="w-[29px] h-[31px] transition-transform group-hover:scale-110" />
-              <img src="/assets/shared/mavuus-wordmark.svg" alt="Mavuus" className="h-[20px] brightness-0 invert" />
-            </Link>
-            <p className="text-neutral-300 text-sm leading-relaxed">
-              The premier community for marketing leaders to connect, learn, and grow together.
-            </p>
-          </div>
-
-          {/* Link Columns */}
-          {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
-              <h4 className="text-sm font-semibold mb-4 text-white tracking-wide">{title}</h4>
-              <ul className="space-y-3">
-                {links.map(link => (
-                  <li key={link.label}>
-                    <Link
-                      to={link.path}
-                      className="relative text-sm text-neutral-300 hover:text-white transition-colors inline-block after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-brand-pink after:transition-all hover:after:w-full"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+    <footer className="text-dark-blue">
+      <div className="px-10 max-md:px-5">
+        <div className="mx-auto max-w-[1280px] py-24">
+          <div className="pb-12 pt-20">
+            <div className="pb-20">
+              <div className="grid grid-cols-[512px_768px] gap-y-4 max-lg:grid-cols-1 max-lg:gap-y-16 max-md:gap-y-12">
+                <div>
+                  <Link to="/" aria-label="Mavuus home" className="mb-8 inline-block">
+                    <img src={LIVE_LOGO} alt="Mavuus" loading="lazy" className="h-[34px] w-[175px]" />
+                  </Link>
+                </div>
+                <div className="grid grid-cols-3 gap-y-4 max-md:gap-x-6 max-[479px]:grid-cols-1 max-[479px]:gap-y-10">
+                  {COLUMNS.map((col) => (
+                    <div key={col.title} className="flex flex-col items-start">
+                      <h4 className="mb-4 text-2xl leading-[33.6px]">{col.title}</h4>
+                      {col.links.map((l) => (
+                        <Link key={l.label} to={l.to} className="py-[6.4px] text-base font-medium text-live-grey hover:text-dark-blue">
+                          {l.label}
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+                  <div className="flex flex-col items-start">
+                    <h4 className="mb-4 text-2xl leading-[33.6px]">Get in Touch</h4>
+                    <div>
+                      Question or feedback? We would love to{' '}
+                      <Link to="/contact" className="text-live-grey underline">hear from you</Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
-
-        <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-neutral-400">
-            &copy; {new Date().getFullYear()} Mavuus. All rights reserved.
-          </p>
-          <div className="flex gap-6">
-            {[
-              { name: 'Twitter', url: settings.social_twitter },
-              { name: 'LinkedIn', url: settings.social_linkedin },
-              { name: 'Instagram', url: settings.social_instagram },
-            ].map((platform) => (
-              <a
-                key={platform.name}
-                href={platform.url || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative text-neutral-300 hover:text-white text-sm transition-colors after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-brand-pink after:transition-all hover:after:w-full"
-              >
-                {platform.name}
-              </a>
-            ))}
+            <div className="h-px bg-live-line" />
           </div>
         </div>
       </div>

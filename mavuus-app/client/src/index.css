@@ -1,6 +1,43 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+/* Fixel Text, the font used on the live mavuus.com site (served from its Webflow CDN) */
+@font-face {
+  font-family: Fixeltext;
+  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a8542d420b9568cbbc_FixelText-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Fixeltext;
+  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a89906e5efe6bc7f35_FixelText-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Fixeltext;
+  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a80f53689e46a53cbe_FixelText-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Fixeltext;
+  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a81353e3635b91fc47_FixelText-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Fixeltext;
+  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a8e1f09926e879d24a_FixelText-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   /* Brand Colors */
   --color-brand-pink: #F26D92;
@@ -31,6 +68,14 @@
   --color-neutral-100: #E8EBF0;
   --color-bg-light: #F5F8FE;
   --color-bg-white: #FFFFFF;
+
+  /* Live site (mavuus.com) tokens */
+  --font-live: Fixeltext, sans-serif;
+  --color-live-bg: #fcfbfa;
+  --color-live-ink: #14213d;
+  --color-live-grey: #5e697c;
+  --color-live-blue-light: #eeeff4;
+  --color-live-line: #919aa8;
 
   /* Font Family */
   --font-heading: 'Manrope', sans-serif;
@@ -147,19 +192,49 @@
   border-radius: 6px;
 }
 
-/* Base styles */
-body {
-  font-family: var(--font-body);
-  color: var(--color-neutral-600);
-  background-color: var(--color-bg-white);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* Base styles live in @layer base so utility classes on elements can override them */
+@layer base {
+  body {
+    font-family: var(--font-body);
+    color: var(--color-neutral-600);
+    background-color: var(--color-bg-white);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  color: var(--color-dark-blue);
-  font-weight: 600;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    color: var(--color-dark-blue);
+    font-weight: 600;
+  }
+
+  /* Public website: typography copied from the live mavuus.com Webflow styles */
+  .live-site {
+    font-family: var(--font-live);
+    color: var(--color-dark-blue);
+    background-color: var(--color-live-bg);
+    font-size: 1rem;
+    line-height: 1.5;
+    text-rendering: optimizeLegibility;
+  }
+  .live-site :is(h1, h2, h3, h4, h5, h6) { font-family: var(--font-live); font-weight: 500; color: inherit; }
+  .live-site h1 { font-size: 2.875rem; line-height: 50.6px; }
+  .live-site h2 { font-size: clamp(25px, 3vw, 48px); line-height: 1.2; }
+  .live-site h3 { font-size: 1.625rem; line-height: 33px; }
+  .live-site h4 { font-size: 1.5rem; line-height: 1.4; }
+  .live-site h5 { font-size: 1.25rem; line-height: 1.5; }
+  .live-site h6 { font-size: 1.125rem; font-weight: 700; line-height: 1.5; }
+  .live-site p { color: var(--color-live-grey); font-size: 1.125rem; line-height: 28.8px; }
+  @media (max-width: 767px) {
+    .live-site h2 { font-size: 2rem; }
+    .live-site h3 { font-size: 1.5rem; }
+    .live-site h4 { font-size: 1.25rem; }
+    .live-site h5 { font-size: 1rem; }
+    .live-site h6 { font-size: 0.875rem; }
+  }
+  @media (max-width: 479px) {
+    .live-site h1 { font-size: 2rem; line-height: 32px; }
+  }
 }
 
 /* ========== ANIMATIONS ========== */

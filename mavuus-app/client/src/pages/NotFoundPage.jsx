@@ -29,7 +29,7 @@ export default function NotFoundPage() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link to="/home">
+          <Link to="/">
             <Button variant="outline">
               <ArrowLeft size={16} /> Back to Home
             </Button>
