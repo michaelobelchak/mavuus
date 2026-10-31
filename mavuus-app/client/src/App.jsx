@@ -11,15 +11,15 @@ import ErrorBoundary from './components/ui/ErrorBoundary'
 
 // Public Pages (eager — landing page performance)
 import HomePage from './pages/public/HomePage'
-import AboutPage from './pages/public/AboutPage'
-import MembershipPage from './pages/public/MembershipPage'
-import MarketingServicesPage from './pages/public/MarketingServicesPage'
-import FaqPage from './pages/public/FaqPage'
-import LegalPage from './pages/public/LegalPage'
-import PostPage from './pages/public/PostPage'
-import VideoPage from './pages/public/VideoPage'
-import ContactPage from './pages/public/ContactPage'
-import ResourcesHubPage from './pages/public/ResourcesHubPage'
+const AboutPage = lazy(() => import('./pages/public/AboutPage'))
+const MembershipPage = lazy(() => import('./pages/public/MembershipPage'))
+const MarketingServicesPage = lazy(() => import('./pages/public/MarketingServicesPage'))
+const FaqPage = lazy(() => import('./pages/public/FaqPage'))
+const LegalPage = lazy(() => import('./pages/public/LegalPage'))
+const PostPage = lazy(() => import('./pages/public/PostPage'))
+const VideoPage = lazy(() => import('./pages/public/VideoPage'))
+const ContactPage = lazy(() => import('./pages/public/ContactPage'))
+const ResourcesHubPage = lazy(() => import('./pages/public/ResourcesHubPage'))
 import ArticlesPage from './pages/public/ArticlesPage'
 import EventsPage from './pages/public/EventsPage'
 import BlogDetailPage from './pages/public/BlogDetailPage'

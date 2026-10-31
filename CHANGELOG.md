@@ -158,3 +158,12 @@ All notable changes to the Mavuus project are documented here, organized by phas
 - `.env.example` with all environment variables documented
 - `DEPLOYMENT.md` with setup and deployment instructions
 - Server tests (auth, jobs) with Jest + Supertest
+
+## Claude Setup, Lint, CI, and Live Site Rebuild - 2026-10-31
+**Status:** Complete (PRs #1, #2, #3)
+
+- Claude Code setup: skills, agents, and commands moved into `.claude/`; root `CLAUDE.md`; protection hooks with tests; `/context`, `/verify`, `/ship`
+- Client lint cleared (139 problems to 0); failed user actions now show error toasts
+- Fixed: login token lacked `role`, so every admin API call returned 403
+- CI: client lint + build and server tests on every PR
+- Public website rebuilt 1:1 with live mavuus.com: Fixel Text font, header, footer, homepage, Marketing Services, Membership, Resources, all 35 articles, video pages, About, Contact, FAQ (8 categories), Terms and Privacy. URLs match live; `/home` and `/pricing` redirect
