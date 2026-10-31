@@ -24,7 +24,7 @@ function validatePasswordComplexity(password) {
 
 function generateToken(user) {
   return jwt.sign(
-    { id: user.id, email: user.email, name: user.name, avatar_url: user.avatar_url, membership_tier: user.membership_tier, email_verified: user.email_verified },
+    { id: user.id, email: user.email, name: user.name, role: user.role, avatar_url: user.avatar_url, membership_tier: user.membership_tier, email_verified: user.email_verified },
     JWT_SECRET,
     { expiresIn: '7d' }
   )

@@ -67,6 +67,33 @@ describe('POST /api/auth/login', () => {
   })
 })
 
+describe('admin access', () => {
+  it('should allow an admin who logged in to call admin routes', async () => {
+    db.prepare("UPDATE users SET role = 'admin' WHERE email = 'alice@test.com'").run()
+    const login = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'alice@test.com', password: 'Password1' })
+
+    const res = await request(app)
+      .get('/api/admin/users')
+      .set('Authorization', `Bearer ${login.body.token}`)
+
+    expect(res.status).toBe(200)
+  })
+
+  it('should return 403 when a regular member calls admin routes', async () => {
+    const login = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'bob@test.com', password: 'Password2' })
+
+    const res = await request(app)
+      .get('/api/admin/users')
+      .set('Authorization', `Bearer ${login.body.token}`)
+
+    expect(res.status).toBe(403)
+  })
+})
+
 describe('GET /api/profile/me', () => {
   it('should return 401 without a token', async () => {
     const res = await request(app).get('/api/profile/me')
