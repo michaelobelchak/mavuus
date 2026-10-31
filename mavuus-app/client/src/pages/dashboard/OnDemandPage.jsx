@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import HoverCard from '../../components/ui/HoverCard'
 import LazyImage from '../../components/ui/LazyImage'
@@ -11,32 +11,41 @@ const categories = ['All', 'Growth', 'Brand', 'Content', 'Analytics', 'SEO', 'Pa
 
 export default function OnDemandPage() {
   const [videos, setVideos] = useState([])
-  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [category, setCategory] = useState('All')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  const fetchVideos = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({ type: 'on-demand', page, limit: 20 })
-      if (search) params.set('search', search)
-      if (category !== 'All') params.set('category', category)
-      const res = await fetch(`/api/sessions?${params}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('mavuus_token')}` }
-      })
-      if (res.ok) {
-        const json = await res.json()
-        setVideos(json.data || json)
-        setTotalPages(json.totalPages || 1)
-      }
-    } catch {}
-    setLoading(false)
-  }, [search, category, page])
+  const queryKey = JSON.stringify([search, category, page])
+  const [loadedKey, setLoadedKey] = useState(null)
+  const loading = loadedKey !== queryKey
 
-  useEffect(() => { fetchVideos() }, [fetchVideos])
+  useEffect(() => {
+    let ignore = false
+    const fetchVideos = async () => {
+      try {
+        const params = new URLSearchParams({ type: 'on-demand', page, limit: 20 })
+        if (search) params.set('search', search)
+        if (category !== 'All') params.set('category', category)
+        const res = await fetch(`/api/sessions?${params}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('mavuus_token')}` }
+        })
+        if (res.ok) {
+          const json = await res.json()
+          if (ignore) return
+          setVideos(json.data || json)
+          setTotalPages(json.totalPages || 1)
+        }
+      } catch (err) {
+        console.error('Failed to load on-demand videos', err)
+      } finally {
+        if (!ignore) setLoadedKey(queryKey)
+      }
+    }
+    fetchVideos()
+    return () => { ignore = true }
+  }, [search, category, page, queryKey])
 
   useEffect(() => {
     const timer = setTimeout(() => { setSearch(searchInput); setPage(1) }, 300)

@@ -25,7 +25,9 @@ export default function InvitePage() {
           setCode(data.code)
         }
         if (statsRes.ok) setStats(await statsRes.json())
-      } catch {} finally { setLoading(false) }
+      } catch (err) {
+        console.error('Failed to load referral info', err)
+      } finally { setLoading(false) }
     }
     fetchData()
   }, [token])

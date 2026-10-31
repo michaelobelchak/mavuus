@@ -44,19 +44,17 @@ export default function EventConfirmationPage() {
   const { id } = useParams()
   const toast = useToast()
   const [session, setSession] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [fetching, setFetching] = useState(true)
+  const loading = Boolean(id) && fetching
   const [invite, setInvite] = useState('')
 
   useEffect(() => {
-    if (!id) {
-      setLoading(false)
-      return
-    }
+    if (!id) return
     fetch(`/api/sessions/${id}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => setSession(data))
       .catch(() => {})
-      .finally(() => setLoading(false))
+      .finally(() => setFetching(false))
   }, [id])
 
   const countdown = useCountdown(session?.scheduled_date)

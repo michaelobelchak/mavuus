@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { Search, Plus, Edit2, Trash2, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const emptyForm = {
@@ -13,10 +14,12 @@ const emptyForm = {
 
 export default function AdminSpeakersPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [speakers, setSpeakers] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
   const limit = 20
 
   const [showModal, setShowModal] = useState(false)
@@ -24,25 +27,32 @@ export default function AdminSpeakersPage() {
   const [formData, setFormData] = useState({ ...emptyForm })
   const [deleteId, setDeleteId] = useState(null)
 
-  const fetchSpeakers = async () => {
-    const params = new URLSearchParams({ page, limit })
-    if (search) params.set('search', search)
-    try {
-      const res = await fetch(`/api/admin/speakers?${params}`, { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
-        setSpeakers(data.data || [])
-        setTotal(data.total || 0)
-      }
-    } catch {}
-  }
+  const [reloadKey, setReloadKey] = useState(0)
+  const reloadSpeakers = () => setReloadKey(k => k + 1)
 
-  useEffect(() => { fetchSpeakers() }, [page, token])
+  useEffect(() => {
+    const fetchSpeakers = async () => {
+      const params = new URLSearchParams({ page, limit })
+      if (appliedSearch) params.set('search', appliedSearch)
+      try {
+        const res = await fetch(`/api/admin/speakers?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          setSpeakers(data.data || [])
+          setTotal(data.total || 0)
+        }
+      } catch (err) {
+        console.error('Failed to load speakers', err)
+      }
+    }
+    fetchSpeakers()
+  }, [page, appliedSearch, token, reloadKey])
 
   const handleSearch = (e) => {
     e.preventDefault()
     setPage(1)
-    fetchSpeakers()
+    setAppliedSearch(search)
+    reloadSpeakers()
   }
 
   const openCreate = () => {
@@ -86,9 +96,11 @@ export default function AdminSpeakersPage() {
       })
       if (res.ok) {
         closeModal()
-        fetchSpeakers()
+        reloadSpeakers()
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't save the speaker. Try again.")
+    }
   }
 
   const handleDelete = async () => {
@@ -100,9 +112,11 @@ export default function AdminSpeakersPage() {
       })
       if (res.ok) {
         setDeleteId(null)
-        fetchSpeakers()
+        reloadSpeakers()
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't delete the speaker. Try again.")
+    }
   }
 
   const totalPages = Math.ceil(total / limit)

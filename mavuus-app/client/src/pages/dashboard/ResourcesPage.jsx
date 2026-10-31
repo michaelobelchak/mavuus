@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import HoverCard from '../../components/ui/HoverCard'
 import LazyImage from '../../components/ui/LazyImage'
@@ -10,32 +10,41 @@ const types = ['All', 'Guide', 'Template', 'Report', 'Playbook']
 
 export default function ResourcesPage() {
   const [resources, setResources] = useState([])
-  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [type, setType] = useState('All')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  const fetchResources = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({ page, limit: 20 })
-      if (search) params.set('search', search)
-      if (type !== 'All') params.set('category', type)
-      const res = await fetch(`/api/resources?${params}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('mavuus_token')}` }
-      })
-      if (res.ok) {
-        const json = await res.json()
-        setResources(json.data || json)
-        setTotalPages(json.totalPages || 1)
-      }
-    } catch {}
-    setLoading(false)
-  }, [search, type, page])
+  const queryKey = JSON.stringify([search, type, page])
+  const [loadedKey, setLoadedKey] = useState(null)
+  const loading = loadedKey !== queryKey
 
-  useEffect(() => { fetchResources() }, [fetchResources])
+  useEffect(() => {
+    let ignore = false
+    const fetchResources = async () => {
+      try {
+        const params = new URLSearchParams({ page, limit: 20 })
+        if (search) params.set('search', search)
+        if (type !== 'All') params.set('category', type)
+        const res = await fetch(`/api/resources?${params}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('mavuus_token')}` }
+        })
+        if (res.ok) {
+          const json = await res.json()
+          if (ignore) return
+          setResources(json.data || json)
+          setTotalPages(json.totalPages || 1)
+        }
+      } catch (err) {
+        console.error('Failed to load resources', err)
+      } finally {
+        if (!ignore) setLoadedKey(queryKey)
+      }
+    }
+    fetchResources()
+    return () => { ignore = true }
+  }, [search, type, page, queryKey])
 
   useEffect(() => {
     const timer = setTimeout(() => { setSearch(searchInput); setPage(1) }, 300)

@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { ChevronLeft, ChevronRight, Eye, Trash2, X } from 'lucide-react'
 
 export default function AdminRecommendationsPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [recommendations, setRecommendations] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -12,19 +14,19 @@ export default function AdminRecommendationsPage() {
   const [viewModal, setViewModal] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = useCallback(() => {
     const params = new URLSearchParams({ page, limit })
-    try {
-      const res = await fetch(`/api/admin/recommendations?${params}`, { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
+    return fetch(`/api/admin/recommendations?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!data) return
         setRecommendations(data.data || [])
         setTotal(data.total || 0)
-      }
-    } catch {}
-  }
+      })
+      .catch(err => console.error('Failed to load recommendations', err))
+  }, [page, token])
 
-  useEffect(() => { fetchRecommendations() }, [page, token])
+  useEffect(() => { fetchRecommendations() }, [fetchRecommendations])
 
   const handleDelete = async (id) => {
     try {
@@ -34,7 +36,9 @@ export default function AdminRecommendationsPage() {
       })
       setDeleteConfirm(null)
       fetchRecommendations()
-    } catch {}
+    } catch {
+      toast.error("Couldn't delete the recommendation. Try again.")
+    }
   }
 
   const totalPages = Math.ceil(total / limit)

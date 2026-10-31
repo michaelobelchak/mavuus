@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { Search, Plus, Edit2, Trash2, X, Check } from 'lucide-react'
 
 const CATEGORY_TYPES = ['session', 'resource', 'job', 'vendor', 'article']
@@ -12,6 +13,7 @@ const emptyForm = {
 
 export default function AdminCategoriesPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('session')
@@ -23,23 +25,21 @@ export default function AdminCategoriesPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [deleteError, setDeleteError] = useState(null)
 
-  const fetchCategories = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/admin/categories', {
-        headers: { Authorization: `Bearer ${token}` },
+  const fetchCategories = useCallback(() => {
+    return fetch('/api/admin/categories', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data) setCategories(data.data || data || [])
       })
-      if (res.ok) {
-        const data = await res.json()
-        setCategories(data.data || data || [])
-      }
-    } catch {}
-    setLoading(false)
-  }
+      .catch(err => console.error('Failed to load categories', err))
+      .finally(() => setLoading(false))
+  }, [token])
 
   useEffect(() => {
     fetchCategories()
-  }, [token])
+  }, [fetchCategories])
 
   const slugify = (text) =>
     text
@@ -92,9 +92,12 @@ export default function AdminCategoriesPage() {
       })
       if (res.ok) {
         closeModal()
+        setLoading(true)
         fetchCategories()
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't save the category. Try again.")
+    }
     setSaving(false)
   }
 
@@ -111,7 +114,9 @@ export default function AdminCategoriesPage() {
       setCategories((prev) =>
         prev.map((c) => (c.id === item.id ? { ...c, is_active: !c.is_active } : c))
       )
-    } catch {}
+    } catch {
+      toast.error("Couldn't update the category. Try again.")
+    }
   }
 
   const handleDelete = async (id) => {
@@ -123,6 +128,7 @@ export default function AdminCategoriesPage() {
       })
       if (res.ok) {
         setDeleteConfirm(null)
+        setLoading(true)
         fetchCategories()
       } else {
         const data = await res.json().catch(() => ({}))

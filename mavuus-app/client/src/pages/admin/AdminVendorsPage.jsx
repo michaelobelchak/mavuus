@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { Search, Edit2, Trash2, X, ChevronLeft, ChevronRight, Star } from 'lucide-react'
 
 const emptyForm = {
@@ -14,11 +15,13 @@ const emptyForm = {
 
 export default function AdminVendorsPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [vendors, setVendors] = useState([])
   const [categories, setCategories] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const limit = 20
@@ -28,38 +31,49 @@ export default function AdminVendorsPage() {
   const [formData, setFormData] = useState({ ...emptyForm })
   const [deleteId, setDeleteId] = useState(null)
 
-  const fetchVendors = async () => {
-    const params = new URLSearchParams({ page, limit })
-    if (search) params.set('search', search)
-    if (categoryFilter) params.set('category', categoryFilter)
-    if (statusFilter) params.set('status', statusFilter)
-    try {
-      const res = await fetch(`/api/admin/vendors?${params}`, { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
-        setVendors(data.data || [])
-        setTotal(data.total || 0)
-      }
-    } catch {}
-  }
+  const [reloadKey, setReloadKey] = useState(0)
+  const reloadVendors = () => setReloadKey(k => k + 1)
 
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch('/api/categories?type=vendor', { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
-        setCategories(data.data || data || [])
+  useEffect(() => {
+    const fetchVendors = async () => {
+      const params = new URLSearchParams({ page, limit })
+      if (appliedSearch) params.set('search', appliedSearch)
+      if (categoryFilter) params.set('category', categoryFilter)
+      if (statusFilter) params.set('status', statusFilter)
+      try {
+        const res = await fetch(`/api/admin/vendors?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          setVendors(data.data || [])
+          setTotal(data.total || 0)
+        }
+      } catch (err) {
+        console.error('Failed to load vendors', err)
       }
-    } catch {}
-  }
+    }
+    fetchVendors()
+  }, [page, appliedSearch, categoryFilter, statusFilter, token, reloadKey])
 
-  useEffect(() => { fetchCategories() }, [token])
-  useEffect(() => { fetchVendors() }, [page, categoryFilter, statusFilter, token])
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/categories?type=vendor', { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          setCategories(data.data || data || [])
+        }
+      } catch (err) {
+        console.error('Failed to load vendor categories', err)
+      }
+    }
+    fetchCategories()
+  }, [token])
 
   const handleSearch = (e) => {
     e.preventDefault()
     setPage(1)
-    fetchVendors()
+    setAppliedSearch(search)
+    reloadVendors()
   }
 
   const openEdit = (vendor) => {
@@ -97,9 +111,11 @@ export default function AdminVendorsPage() {
       })
       if (res.ok) {
         closeModal()
-        fetchVendors()
+        reloadVendors()
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't save the vendor. Try again.")
+    }
   }
 
   const handleDelete = async () => {
@@ -111,9 +127,11 @@ export default function AdminVendorsPage() {
       })
       if (res.ok) {
         setDeleteId(null)
-        fetchVendors()
+        reloadVendors()
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't delete the vendor. Try again.")
+    }
   }
 
   const totalPages = Math.ceil(total / limit)

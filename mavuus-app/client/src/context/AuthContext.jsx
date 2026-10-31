@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- AuthProvider + useAuth colocated by design, same as Toast */
 import { createContext, useContext, useState, useEffect } from 'react'
 
 const AuthContext = createContext(null)
@@ -112,7 +113,9 @@ export function AuthProvider({ children }) {
   async function logout() {
     try {
       await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' })
-    } catch {}
+    } catch (err) {
+      console.warn('Server logout failed; clearing the local session anyway', err)
+    }
     localStorage.removeItem('mavuus_token')
     setToken(null)
     setUser(null)

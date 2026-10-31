@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import DashboardSidebar from './DashboardSidebar'
 import PageTransition from '../ui/PageTransition'
 import Tooltip from '../ui/Tooltip'
@@ -8,6 +8,7 @@ import { Bell, Search, Menu, User, Settings, LogOut, ChevronDown, X, UserPlus, M
 import Avatar from '../ui/Avatar'
 import SearchResultsDropdown from '../ui/SearchResultsDropdown'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../ui/Toast'
 
 const notifIcons = {
   connection: UserPlus,
@@ -45,6 +46,8 @@ function timeAgo(dateStr) {
 export default function DashboardLayout() {
   const { user, token, logout } = useAuth()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const toast = useToast()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -55,6 +58,13 @@ export default function DashboardLayout() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState(null)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [searchPath, setSearchPath] = useState(pathname)
+  if (searchPath !== pathname) {
+    setSearchPath(pathname)
+    setSearchOpen(false)
+    setSearchQuery('')
+    setSearchResults(null)
+  }
   const prevUnreadRef = useRef(0)
   const userMenuRef = useRef(null)
   const searchInputRef = useRef(null)
@@ -116,11 +126,7 @@ export default function DashboardLayout() {
   // Debounced global search
   useEffect(() => {
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
-    if (!searchQuery || searchQuery.trim().length < 2) {
-      setSearchResults(null)
-      setSearchOpen(false)
-      return
-    }
+    if (searchQuery.trim().length < 2) return
     searchTimerRef.current = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`)
@@ -129,16 +135,12 @@ export default function DashboardLayout() {
           setSearchResults(data)
           setSearchOpen(true)
         }
-      } catch {}
+      } catch (err) {
+        console.error('Search failed', err)
+      }
     }, 300)
     return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current) }
   }, [searchQuery])
-
-  // Close search on route change
-  useEffect(() => {
-    setSearchOpen(false)
-    setSearchQuery('')
-  }, [location.pathname])
 
   // Close user menu and search on outside click
   useEffect(() => {
@@ -216,7 +218,13 @@ export default function DashboardLayout() {
                 type="text"
                 placeholder="Search sessions, resources, members..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  if (e.target.value.trim().length < 2) {
+                    setSearchResults(null)
+                    setSearchOpen(false)
+                  }
+                }}
                 onFocus={() => { if (searchResults) setSearchOpen(true) }}
                 className="flex-1 min-w-0 bg-transparent text-sm text-neutral-600 placeholder:text-neutral-300 focus:outline-none"
               />
@@ -313,7 +321,9 @@ export default function DashboardLayout() {
                     method: 'POST',
                     headers: { Authorization: `Bearer ${token}` },
                   })
-                } catch {}
+                } catch {
+                  toast.error("Couldn't resend the verification email. Try again.")
+                }
               }}
               className="text-sm font-medium text-yellow-900 hover:underline cursor-pointer ml-4 whitespace-nowrap"
             >

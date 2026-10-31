@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { ChevronLeft, ChevronRight, Trash2, X } from 'lucide-react'
 
 export default function AdminConnectionsPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [connections, setConnections] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -11,20 +13,20 @@ export default function AdminConnectionsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const limit = 20
 
-  const fetchConnections = async () => {
+  const fetchConnections = useCallback(() => {
     const params = new URLSearchParams({ page, limit })
     if (statusFilter) params.set('status', statusFilter)
-    try {
-      const res = await fetch(`/api/admin/connections?${params}`, { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
+    return fetch(`/api/admin/connections?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!data) return
         setConnections(data.data || [])
         setTotal(data.total || 0)
-      }
-    } catch {}
-  }
+      })
+      .catch(err => console.error('Failed to load connections', err))
+  }, [page, statusFilter, token])
 
-  useEffect(() => { fetchConnections() }, [page, statusFilter, token])
+  useEffect(() => { fetchConnections() }, [fetchConnections])
 
   const updateStatus = async (id, status) => {
     try {
@@ -34,7 +36,9 @@ export default function AdminConnectionsPage() {
         body: JSON.stringify({ status }),
       })
       fetchConnections()
-    } catch {}
+    } catch {
+      toast.error("Couldn't update the connection status. Try again.")
+    }
   }
 
   const handleDelete = async (id) => {
@@ -45,7 +49,9 @@ export default function AdminConnectionsPage() {
       })
       setDeleteConfirm(null)
       fetchConnections()
-    } catch {}
+    } catch {
+      toast.error("Couldn't delete the connection. Try again.")
+    }
   }
 
   const totalPages = Math.ceil(total / limit)

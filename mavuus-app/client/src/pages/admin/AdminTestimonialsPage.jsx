@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { Search, Plus, Edit2, Trash2, X, Star, Check } from 'lucide-react'
 
 const emptyForm = {
@@ -14,6 +15,7 @@ const emptyForm = {
 
 export default function AdminTestimonialsPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [testimonials, setTestimonials] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -23,23 +25,29 @@ export default function AdminTestimonialsPage() {
   const [saving, setSaving] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
-  const fetchTestimonials = async () => {
+  const [reloadKey, setReloadKey] = useState(0)
+  const reloadTestimonials = () => {
     setLoading(true)
-    try {
-      const res = await fetch('/api/admin/testimonials', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setTestimonials(data.data || data || [])
-      }
-    } catch {}
-    setLoading(false)
+    setReloadKey(k => k + 1)
   }
 
   useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const res = await fetch('/api/admin/testimonials', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setTestimonials(data.data || data || [])
+        }
+      } catch (err) {
+        console.error('Failed to load testimonials', err)
+      }
+      setLoading(false)
+    }
     fetchTestimonials()
-  }, [token])
+  }, [token, reloadKey])
 
   const openCreate = () => {
     setEditingItem(null)
@@ -85,9 +93,11 @@ export default function AdminTestimonialsPage() {
       })
       if (res.ok) {
         closeModal()
-        fetchTestimonials()
+        reloadTestimonials()
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't save the testimonial. Try again.")
+    }
     setSaving(false)
   }
 
@@ -104,7 +114,9 @@ export default function AdminTestimonialsPage() {
       setTestimonials((prev) =>
         prev.map((t) => (t.id === item.id ? { ...t, is_active: !t.is_active } : t))
       )
-    } catch {}
+    } catch {
+      toast.error("Couldn't update the testimonial. Try again.")
+    }
   }
 
   const handleDelete = async (id) => {
@@ -114,8 +126,10 @@ export default function AdminTestimonialsPage() {
         headers: { Authorization: `Bearer ${token}` },
       })
       setDeleteConfirm(null)
-      fetchTestimonials()
-    } catch {}
+      reloadTestimonials()
+    } catch {
+      toast.error("Couldn't delete the testimonial. Try again.")
+    }
   }
 
   const filtered = testimonials.filter(

@@ -1,43 +1,53 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import Avatar from '../../components/ui/Avatar'
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function AdminUsersPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [users, setUsers] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
   const [tierFilter, setTierFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [sort, setSort] = useState('newest')
   const limit = 20
 
-  const fetchUsers = async () => {
-    const params = new URLSearchParams({ page, limit, sort })
-    if (search) params.set('search', search)
-    if (roleFilter) params.set('role', roleFilter)
-    if (tierFilter) params.set('tier', tierFilter)
-    if (statusFilter) params.set('status', statusFilter)
-    try {
-      const res = await fetch(`/api/admin/users?${params}`, { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
-        setUsers(data.data || [])
-        setTotal(data.total || 0)
-      }
-    } catch {}
-  }
+  const [reloadKey, setReloadKey] = useState(0)
+  const reloadUsers = () => setReloadKey(k => k + 1)
 
-  useEffect(() => { fetchUsers() }, [page, sort, roleFilter, tierFilter, statusFilter, token])
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const params = new URLSearchParams({ page, limit, sort })
+      if (appliedSearch) params.set('search', appliedSearch)
+      if (roleFilter) params.set('role', roleFilter)
+      if (tierFilter) params.set('tier', tierFilter)
+      if (statusFilter) params.set('status', statusFilter)
+      try {
+        const res = await fetch(`/api/admin/users?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          setUsers(data.data || [])
+          setTotal(data.total || 0)
+        }
+      } catch (err) {
+        console.error('Failed to load users', err)
+      }
+    }
+    fetchUsers()
+  }, [page, sort, appliedSearch, roleFilter, tierFilter, statusFilter, token, reloadKey])
 
   const handleSearch = (e) => {
     e.preventDefault()
     setPage(1)
-    fetchUsers()
+    setAppliedSearch(search)
+    reloadUsers()
   }
 
   const handleBan = async (id, isBanned) => {
@@ -49,8 +59,10 @@ export default function AdminUsersPage() {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
-      fetchUsers()
-    } catch {}
+      reloadUsers()
+    } catch {
+      toast.error("Couldn't update the user's ban status. Try again.")
+    }
   }
 
   const totalPages = Math.ceil(total / limit)

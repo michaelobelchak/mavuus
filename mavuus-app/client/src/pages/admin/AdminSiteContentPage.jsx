@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { Edit2, X, Check } from 'lucide-react'
 
 const PAGES = ['homepage', 'about', 'pricing']
 
 export default function AdminSiteContentPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [activeTab, setActiveTab] = useState('homepage')
   const [contentItems, setContentItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -13,21 +15,21 @@ export default function AdminSiteContentPage() {
   const [editValue, setEditValue] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const fetchContent = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/admin/site-content', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setContentItems(data.data || data || [])
-      }
-    } catch {}
-    setLoading(false)
-  }
-
   useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const res = await fetch('/api/admin/site-content', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setContentItems(data.data || data || [])
+        }
+      } catch (err) {
+        console.error('Failed to load site content', err)
+      }
+      setLoading(false)
+    }
     fetchContent()
   }, [token])
 
@@ -70,7 +72,9 @@ export default function AdminSiteContentPage() {
         setEditingId(null)
         setEditValue('')
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't save the content. Try again.")
+    }
     setSaving(false)
   }
 
