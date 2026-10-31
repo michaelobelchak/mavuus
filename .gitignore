@@ -27,3 +27,4 @@ dist/
 # Claude Code local config (user-specific)
 .claude/settings.local.json
 .claude/worktrees/
+mavuus-app/client/.claude/
