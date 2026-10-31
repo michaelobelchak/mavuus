@@ -6,7 +6,13 @@ Open any phase file and paste the prompt to Claude Code in the `mavuus-app/` dir
 
 Execute phases in order. Each phase builds on the previous one.
 
-## START HERE - Pre-Launch Fix + Figma Rebuild
+## NEXT UP - Match the live site
+
+| File | Focus | Est. Sessions |
+|------|-------|---------------|
+| `WEBSITE-1TO1-REBUILD.md` | Rebuild the public pages 1:1 to live mavuus.com (audited 2026-10-31). The prompt is at the bottom of the file | 3 to 4 |
+
+## Pre-Launch Fix + Figma Rebuild (done earlier)
 
 Before continuing with the phase plan, run these two plans to make the app demo-ready:
 
