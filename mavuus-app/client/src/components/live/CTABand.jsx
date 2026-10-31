@@ -13,14 +13,14 @@ export default function CTABand({
   return (
     <section>
       <LiveContainer innerClassName="py-24">
-        <div className="py-20 max-md:py-12">
+        <div className="py-20 max-[991px]:py-16 max-[767px]:py-12">
           <div
-            className="flex flex-col items-center rounded-[30px] bg-cover bg-center p-[60px] text-center shadow-[0_0_25px_-5px_rgba(0,0,0,0.153)] max-md:px-6 max-md:py-12"
+            className="flex flex-col items-center rounded-[30px] bg-cover bg-left-top p-[60px] text-center shadow-[0_0_25px_-5px_rgba(0,0,0,0.153)] max-[479px]:px-8 max-[479px]:py-10"
             style={{ backgroundImage: `url("${CTA_BG}")` }}
           >
             <div className="max-w-[480px]">
-              <h2 className="mb-4 text-[21.6px] leading-[30.24px]">{title}</h2>
-              <p className="mb-8">{text}</p>
+              <h2 className="mb-4 text-[21.6px] leading-[1.4] max-[767px]:text-[22.4px]">{title}</h2>
+              <p className="mb-8 max-[991px]:mb-6 max-[767px]:mb-5">{text}</p>
               <LiveButton to={buttonTo}>{buttonLabel}</LiveButton>
             </div>
           </div>

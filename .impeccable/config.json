@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "mavuus-app/client/src/components/live/services/WaysToWork.jsx"
+        ],
+        "createdAt": "2026-10-31T18:48:51.940Z",
+        "reason": "Claude: 1:1 copy of live mavuus.com, which uses this pink left accent (live screenshots of tabs, stat cards, Recent example box)"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "mavuus-app/client/src/components/live/services/WhyMavuus.jsx"
+        ],
+        "createdAt": "2026-10-31T18:48:52.455Z",
+        "reason": "Claude: 1:1 copy of live mavuus.com, which uses this pink left accent (live screenshots of tabs, stat cards, Recent example box)"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "mavuus-app/client/src/components/live/home/shared.jsx"
+        ],
+        "createdAt": "2026-10-31T18:48:52.600Z",
+        "reason": "Claude: 1:1 copy of live mavuus.com, which uses this pink left accent (live screenshots of tabs, stat cards, Recent example box)"
+      }
+    ]
+  }
+}

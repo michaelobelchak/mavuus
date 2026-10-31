@@ -1,199 +1,133 @@
 import { Helmet } from 'react-helmet-async'
-import { aboutLeaders } from '../../data/mockData'
-import LogoBar from '../../components/sections/LogoBar'
-import TestimonialRow from '../../components/sections/TestimonialRow'
-import CTABannerQuote from '../../components/sections/CTABannerQuote'
-import AnimatedSection from '../../components/ui/AnimatedSection'
-import GradientText from '../../components/ui/GradientText'
+import LiveContainer from '../../components/live/LiveContainer'
+import CTABand from '../../components/live/CTABand'
+import SecondaryHero from '../../components/live/info/SecondaryHero'
+import { ABOUT_HERO, WHO_WE_ARE, ORIGIN } from '../../data/live/about'
+
+const EYEBROW = 'inline text-[clamp(16px,2vw,20px)] leading-[26px] font-medium tracking-[1px] text-brand-pink uppercase'
+const H2 = 'mb-8 w-full text-[28px] leading-[1.2] font-normal text-balance text-dark-blue max-[991px]:text-[clamp(25px,5vw,48px)] max-md:text-[32px]'
+const BODY = 'text-base leading-[28.8px] text-live-grey'
+
+function ExternalLink({ href, children }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand-blue underline">
+      {children}
+    </a>
+  )
+}
+
+function WhoWeAre() {
+  const { links, image } = WHO_WE_ARE
+  return (
+    <section className="text-dark-blue">
+      <LiveContainer innerClassName="py-24">
+        <div className="py-16 max-[991px]:py-24">
+          <div className="grid grid-cols-[1.75fr_1fr] items-start gap-x-16 gap-y-1 max-[991px]:flex max-[991px]:flex-col-reverse max-[991px]:flex-wrap max-[991px]:gap-16 max-md:gap-12">
+            <div>
+              <div className="mb-4">
+                <p className={EYEBROW}>{WHO_WE_ARE.eyebrow}</p>
+                <h2 className={H2}>{WHO_WE_ARE.heading}</h2>
+              </div>
+              <div className="mb-8 max-[991px]:mb-6 max-md:mb-5">
+                <p className={BODY}>
+                  <ExternalLink href={links.mavuus}>Mavuus</ExternalLink> was born from a spark of inspiration by two
+                  sisters, <ExternalLink href={links.dilya}>Dilya Abushayeva</ExternalLink> and{' '}
+                  <ExternalLink href={links.elmira}>Elmira Abushayeva</ExternalLink>
+                  {WHO_WE_ARE.firstParagraphRest}
+                  {WHO_WE_ARE.paragraphs.map((text) => (
+                    <span key={text}>
+                      <br />
+                      <br />
+                      {text}
+                    </span>
+                  ))}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center max-[991px]:w-[49vw] max-[991px]:self-start max-[479px]:w-[48vw]">
+              <img
+                src={image.src}
+                srcSet={image.srcSet}
+                sizes={image.sizes}
+                alt={image.alt}
+                loading="lazy"
+                className="h-full w-full"
+              />
+            </div>
+          </div>
+        </div>
+      </LiveContainer>
+    </section>
+  )
+}
+
+function Origin() {
+  return (
+    <section className="text-dark-blue">
+      <img
+        src={ORIGIN.image.src}
+        srcSet={ORIGIN.image.srcSet}
+        sizes="(max-width: 1920px) 100vw, 1920px"
+        alt={ORIGIN.image.alt}
+        loading="lazy"
+        className="inline-block w-full max-[479px]:aspect-video max-[479px]:object-cover"
+      />
+      <LiveContainer className="relative -mt-[100px] max-md:mt-0">
+        <div className="mx-auto flex max-w-[1024px] flex-col items-center bg-white p-[100px] text-center max-[991px]:p-12 max-[479px]:px-0">
+          <div className="mb-4">
+            <p className={EYEBROW}>{ORIGIN.eyebrow}</p>
+            <h2 className={H2}>{ORIGIN.heading}</h2>
+          </div>
+          <div className="mb-8 max-[991px]:mb-6 max-md:mb-5">
+            <p className={`${BODY} columns-2 text-left max-md:columns-1`}>
+              Coming up with a new name for your own company is a dream job for any marketer. So of course we took our
+              sweet time and embarked on an extensive branding exercise. <br />
+              <br />
+              Do we want it to be descriptive of what we do? <br />
+              Do we want it to be catchy and recognizable? <br />
+              Do we want it to have explicit meaning? <br />
+              We filled our notebooks with brainstorming ideas.
+              <br />
+              <br />
+              Keywords like ‘network,’ ‘leadership,’ ‘collaboration,’ and ‘exclusivity’ rose to the top, but none truly
+              resonated with the deeper value of our platform.
+              <br />
+              <br />
+              What defines Mavuus is its ability to connect marketing <strong>‘MAVENS’</strong> from our trusted circles,
+              offering <strong>‘US’</strong> the chance to network, learn, and grow together as leaders.
+              <br />
+              <br />
+              MAVE-US &gt; <strong>MAVUUS</strong>
+              <br />
+              <br />
+              Let’s harness the true power of our collective knowledge and experience through the marketing ‘MAVENS’
+              among ‘US.’
+            </p>
+          </div>
+        </div>
+      </LiveContainer>
+    </section>
+  )
+}
 
 export default function AboutPage() {
   return (
-    <div>
+    <>
       <Helmet>
-        <title>About Mavuus — Founded by Dilya & Elmira Abushayeva</title>
-        <meta name="description" content="Learn about Mavuus, the marketing community founded by sisters Dilya and Elmira Abushayeva to empower marketing leaders." />
-        <link rel="canonical" href="https://mavuus.com/about" />
+        <title>About Us - Mavuus</title>
+        <meta
+          name="description"
+          content="Mavuus helps CMOs elevate their executive influence through building a community, connecting the right people and sparking the right conversations."
+        />
       </Helmet>
-
-      {/* Hero Section */}
-      <section className="relative px-6 md:px-12 lg:px-[104px] py-8 overflow-hidden">
-        {/* Decorative mesh gradient */}
-        <div className="absolute inset-0 -z-10 pointer-events-none">
-          <div className="absolute top-[-150px] left-[-100px] w-[500px] h-[500px] bg-brand-pink/10 rounded-full blur-[120px]" />
-          <div className="absolute top-[100px] right-[-100px] w-[400px] h-[400px] bg-brand-blue/10 rounded-full blur-[100px]" />
-        </div>
-
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-0">
-          {/* Left headline */}
-          <AnimatedSection animation="fade-right" className="w-full lg:w-[600px] flex flex-col gap-6 lg:gap-0 lg:justify-between lg:h-[362px]">
-            <div className="bg-[#EEEFF4] inline-flex items-center gap-2.5 px-4 py-1 self-start">
-              <div className="w-0 h-6 border-l border-[#194A6D]" />
-              <span className="text-[#194A6D] text-base leading-[1.6]">
-                For businesses
-              </span>
-            </div>
-
-            <h1 className="text-[28px] md:text-[36px] lg:text-[42px] font-medium leading-[1.1] max-w-full lg:w-[514px]">
-              <GradientText className="font-semibold">Empowering Marketing Leaders</GradientText>{' '}
-              <span className="font-light text-neutral-600">
-                to Network, Learn and Advance Their
-              </span>{' '}
-              <GradientText className="font-semibold">Careers Together</GradientText>
-            </h1>
-
-            <p className="text-[18px] md:text-[20px] font-medium leading-[28px] text-neutral-500 max-w-full lg:w-[435px]">
-              &laquo;Created from a spark of inspiration &mdash; and by two sisters who live and breathe the world of marketing every day&raquo;
-            </p>
-          </AnimatedSection>
-
-          {/* Right circular image */}
-          <AnimatedSection animation="scale-up" delay={200}>
-            <div className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] lg:w-[498px] lg:h-[498px] rounded-full border-8 border-white/50 overflow-hidden flex-shrink-0 magnetic-hover">
-              <img
-                src="/assets/about/hero-sisters.jpg"
-                alt="Mavuus founders"
-                loading="lazy"
-                className="w-full h-[150%] object-cover"
-              />
-            </div>
-          </AnimatedSection>
-        </div>
-      </section>
-
-      {/* Logo Bar */}
-      <LogoBar />
-
-      {/* Testimonial Row */}
-      <TestimonialRow />
-
-      {/* Marketing Leaders Grid */}
-      <section className="py-24 px-6 md:px-12 lg:px-[104px]">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0">
-          {/* Title card */}
-          <AnimatedSection animation="fade-up" className="md:col-span-2 min-h-[300px] lg:h-[390px] p-6 flex flex-col gap-8 justify-center">
-            <h2 className="text-[24px] md:text-[28px] lg:text-[32px] font-semibold leading-[1.3] text-neutral-600">
-              The{' '}
-              <span className="text-brand-pink">Ultimate </span>
-              Collective
-              <br />
-              of Marketing{' '}
-              <span className="text-brand-pink">Leaders</span>
-            </h2>
-            <p className="font-light text-base leading-[1.6] text-[#470B1B] max-w-full lg:w-[506px]">
-              Our mission is simple &mdash; To foster an environment where senior marketing professionals can leverage the power of collaboration, share experiences, and grow together.
-            </p>
-          </AnimatedSection>
-
-          {/* Leader cards */}
-          {aboutLeaders.map((leader, i) => (
-            <AnimatedSection
-              key={leader.id}
-              animation="fade-up"
-              delay={100 + i * 80}
-              className="h-[390px] bg-white border border-[#D2E0E8] flex flex-col items-center pb-6 px-6 hover-lift group"
-            >
-              <div className="flex-1 flex items-center justify-center">
-                <img
-                  src={leader.avatar}
-                  alt={leader.name}
-                  loading="lazy"
-                  className="w-[196px] h-[196px] rounded-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="w-[214px] text-center flex flex-col gap-2">
-                <p className="text-[30px] leading-[30px] text-dark-blue">
-                  {leader.name.split(' ')[0]}
-                  <br />
-                  {leader.name.split(' ').slice(1).join(' ')}
-                </p>
-                <p className="text-[14px] leading-[18px] text-[#81848C]">
-                  {leader.title}
-                </p>
-              </div>
-            </AnimatedSection>
-          ))}
-        </div>
-      </section>
-
-      {/* Full-width image with gradient */}
-      <AnimatedSection as="section" animation="fade" className="relative h-[300px] md:h-[450px] lg:h-[560px] py-[36px] md:py-[72px]">
-        <div className="h-[400px] md:h-[550px] lg:h-[660px] w-full relative">
-          <img
-            src="/assets/about/wide-photo.jpg"
-            alt="Mavuus community"
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white" />
-        </div>
-      </AnimatedSection>
-
-      {/* Founder Story */}
-      <section className="px-6 md:px-12 lg:px-[240px] py-12">
-        <AnimatedSection animation="fade-up" className="flex flex-col gap-8 lg:gap-14">
-          <p className="text-[20px] md:text-[22px] lg:text-[24px] font-semibold leading-[1.3] text-neutral-600">
-            <a href="https://www.linkedin.com/company/mavuus/" className="text-brand-pink underline link-underline" target="_blank" rel="noopener noreferrer">
-              Mavuus
-            </a>{' '}
-            was born from a spark of inspiration by two sisters,{' '}
-            <a href="https://www.linkedin.com/in/dilyaabushayeva/" className="text-brand-pink underline link-underline" target="_blank" rel="noopener noreferrer">
-              Dilya Abushayeva
-            </a>{' '}
-            and{' '}
-            <a href="https://www.linkedin.com/in/elmira-abushayeva-b560671a/" className="text-brand-pink underline link-underline" target="_blank" rel="noopener noreferrer">
-              Elmira Abushayeva
-            </a>
-            , who live and breathe the world of marketing every day. After over 15 years in the industry, we&apos;ve come to understand one thing clearly: success in marketing is driven not only by individual expertise but by the strength of the network you build along the way.
-          </p>
-
-          <div className="flex flex-col md:flex-row gap-8 md:gap-12 text-base font-medium leading-6 text-neutral-500">
-            <p className="flex-1">
-              Throughout our careers, we&apos;ve navigated the complexities of leading marketing teams, developing strategies, and driving growth. But perhaps the most valuable lessons came from connecting with fellow marketing leaders who shared our challenges, insights, and solutions.
-              <br /><br />
-              We realized that true career growth doesn&apos;t happen in isolation. It happens when you can engage in meaningful discussions, share ideas, and tap into the collective wisdom of peers who understand the journey. That&apos;s why we created Mavuus.
-            </p>
-            <p className="flex-1">
-              Mavuus is a community built exclusively for senior marketing leaders who are looking to network, learn, and collaborate with like-minded professionals. We bring together seasoned leaders who are passionate about continuous learning, career advancement, and shaping the future of marketing. Whether you&apos;re seeking career advice, leadership insights, or simply the opportunity to connect with peers, Mavuus is here to empower your journey.
-            </p>
-          </div>
-        </AnimatedSection>
-      </section>
-
-      {/* Stats Cards */}
-      <section className="px-6 md:px-12 lg:px-24 py-[72px]">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 items-end justify-center text-[#FFF5F5]">
-          {/* Card 1 - Blue */}
-          <AnimatedSection animation="fade-up" delay={0} className="h-[200px] md:h-[223px] bg-brand-blue rounded-[32px] p-6 pb-2 flex flex-col justify-between hover-lift">
-            <p className="font-light text-[20px] md:text-[24px] leading-[1.6] max-w-[280px]">
-              marketing mentorship{' '}
-              <span className="font-bold">programs</span>
-            </p>
-            <p className="text-[56px] md:text-[76px] font-bold leading-none">08</p>
-          </AnimatedSection>
-
-          {/* Card 2 - Pink */}
-          <AnimatedSection animation="fade-up" delay={150} className="h-[250px] md:h-[315px] bg-brand-pink rounded-[32px] p-6 pb-2 flex flex-col justify-between hover-lift">
-            <p className="font-light text-[20px] md:text-[24px] leading-[1.6]">
-              educational on-demand
-              <br />
-              <span className="font-bold">videos</span>
-            </p>
-            <p className="text-[56px] md:text-[76px] font-bold leading-none">1,423</p>
-          </AnimatedSection>
-
-          {/* Card 3 - Medium Blue */}
-          <AnimatedSection animation="fade-up" delay={300} className="h-[300px] md:h-[442px] bg-[#4C83A4] rounded-[32px] p-6 pb-2 flex flex-col justify-between hover-lift">
-            <p className="font-light text-[20px] md:text-[24px] leading-[1.6]">
-              get your marketing{' '}
-              <span className="font-bold">efficiency boost</span>
-            </p>
-            <p className="text-[56px] md:text-[76px] font-bold leading-none">+100%</p>
-          </AnimatedSection>
-        </div>
-      </section>
-
-      {/* CTA Banner */}
-      <CTABannerQuote />
-    </div>
+      <SecondaryHero title={ABOUT_HERO.title}>
+        {ABOUT_HERO.text}
+        <br />
+        <br />
+      </SecondaryHero>
+      <WhoWeAre />
+      <Origin />
+      <CTABand />
+    </>
   )
 }

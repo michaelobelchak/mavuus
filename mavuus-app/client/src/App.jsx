@@ -116,6 +116,7 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/faq" element={<FaqPage />} />
+          <Route path="/faq/:category" element={<FaqPage />} />
           <Route path="/terms-conditions/:section" element={<LegalPage kind="terms" />} />
           <Route path="/privacy-policy/:section" element={<LegalPage kind="privacy" />} />
           <Route path="/terms-conditions" element={<Navigate to="/terms-conditions/introduction" replace />} />

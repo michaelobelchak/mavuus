@@ -13,6 +13,7 @@ const routes = [
   { pattern: '/about', title: 'About Us - Mavuus', full: true },
   { pattern: '/contact', title: 'Contact Us - Mavuus', full: true },
   { pattern: '/faq', title: 'FAQs - Mavuus', full: true },
+  { pattern: '/faq/:category', title: 'FAQs - Mavuus', full: true },
   { pattern: '/terms-conditions/:section', title: 'Terms & Conditions - Mavuus', full: true },
   { pattern: '/privacy-policy/:section', title: 'Privacy Policy - Mavuus', full: true },
   // These pages set their own title from their content
