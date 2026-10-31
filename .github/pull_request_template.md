@@ -10,7 +10,7 @@ Plan file: <mavuus-app/plans/... or N/A>
 
 - [ ] `cd mavuus-app/client && npx vite build` passes
 - [ ] `cd mavuus-app/server && npm test` passes
-- [ ] No new lint problems in changed client files
+- [ ] `cd mavuus-app/client && npx eslint . --max-warnings 0` passes
 - [ ] UI checked in the browser (desktop and mobile width), if UI changed
 
 ## Checklist
