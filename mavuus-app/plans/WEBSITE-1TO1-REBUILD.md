@@ -1,6 +1,6 @@
 # Public Website 1:1 Rebuild (match live mavuus.com)
 
-**Status:** TODO
+**Status:** IN PROGRESS (branch `feat/live-site-rebuild`)
 **Audited:** 2026-10-31 against https://www.mavuus.com (Webflow, last published 2026-10-28)
 **Scope:** public marketing pages only. The members dashboard and admin panel stay as they are.
 

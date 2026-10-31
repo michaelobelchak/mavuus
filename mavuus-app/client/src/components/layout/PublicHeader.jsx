@@ -13,6 +13,7 @@ const NAV_LINKS = [
 ]
 
 const linkClass = 'block p-4 text-base font-medium leading-6 text-live-ink transition-colors hover:text-brand-pink'
+const navLinkClass = ({ isActive }) => `block p-4 text-base font-medium leading-6 transition-colors hover:text-brand-pink ${isActive ? 'text-brand-pink' : 'text-live-ink'}`
 
 export default function PublicHeader() {
   const { pathname } = useLocation()
@@ -30,7 +31,7 @@ export default function PublicHeader() {
 
             <nav className="flex gap-4 max-lg:hidden" aria-label="Main">
               {NAV_LINKS.map((l) => (
-                <NavLink key={l.to} to={l.to} className={linkClass}>{l.label}</NavLink>
+                <NavLink key={l.to} to={l.to} className={navLinkClass}>{l.label}</NavLink>
               ))}
             </nav>
 
@@ -57,7 +58,7 @@ export default function PublicHeader() {
             {menuOpen && (
               <div className="absolute right-0 top-[4.6rem] z-[9999] w-80 rounded-[10px] bg-white/95 py-2 shadow-[0_2px_5px_rgba(0,0,0,0.2)] backdrop-blur-[20px] max-[479px]:w-full lg:hidden">
                 {NAV_LINKS.map((l) => (
-                  <NavLink key={l.to} to={l.to} className={`${linkClass} pl-[1.5625rem]`}>{l.label}</NavLink>
+                  <NavLink key={l.to} to={l.to} className={(state) => `${navLinkClass(state)} pl-[1.5625rem]`}>{l.label}</NavLink>
                 ))}
                 <Link to="/login" className={`${linkClass} pl-[1.5625rem]`}>Login</Link>
                 <div className="px-[1.5625rem] py-3">

@@ -82,7 +82,8 @@ The process skills live in `.claude/skills/`.
 
 ## Conventions
 
-- Brand: pink `#F26D92`, blue `#1F648D`, dark blue `#1C2232`, font Manrope. Use the `@theme` tokens in `client/src/index.css` (`bg-brand-pink`, `text-dark-blue`, ...), not raw hex values.
+- Brand: pink `#F26D92`, blue `#1F648D`, dark blue `#1C2232`. Use the `@theme` tokens in `client/src/index.css` (`bg-brand-pink`, `text-dark-blue`, `text-live-grey`, ...), not raw hex values.
+- Public website (`pages/public/`, inside `PublicLayout`) is a 1:1 copy of live mavuus.com: Fixel Text font, the `.live-site` base typography in `index.css`, shared pieces in `components/live/`, static content in `data/live/`, images from the live Webflow CDN. Change it only to match the live site. The dashboard and admin still use Manrope.
 - Buttons: 16px radius for CTAs, `rounded-full` for filter pills.
 - Reuse components in `components/ui` before building new ones.
 - Server: validate input with `middleware/validate.js`, use parameterized SQL only, and guard member routes with `middleware/auth.js` and admin routes with `middleware/admin.js`.
