@@ -28,6 +28,9 @@ t "multi-line commit msg mentions rm -rf" $'git commit -m "fix: hook\n\nblocked 
 t "rm -rf after multi-line msg" $'git commit -m "a\nb" && rm -rf build' 2
 t "attributed commit msg mentions .env" $'git commit -m "fix: .env check\n\nCo-Authored-By: Claude <noreply@anthropic.com>"' 0
 t "cp into quoted .env" 'cp x.txt "server/.env"' 2
+t "push then unrelated -f flag" 'git push -q && npx eslint . -f json' 0
+t "rm then unrelated -fr flag" 'rm -f a.txt && foo -fr' 0
+t "force-with-lease" 'git push --force-with-lease origin x' 2
 t "read env example" 'cat .env.example' 0
 
 echo "$FAILS failed"

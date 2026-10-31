@@ -20,7 +20,7 @@ Custom React rebuild of mavuus.com, a B2B community platform for marketing leade
 | Reset the DB | `cd mavuus-app/server && rm -f db/mavuus.db && node db/seed.js` |
 | Top up demo data only | `cd mavuus-app/server && node db/seed-demo.js` |
 
-Both dev servers are also in `.claude/launch.json` (`mavuus-client`, `mavuus-server`) for the preview browser.
+Both dev servers are also in `.claude/launch.json` for the preview browser: `mavuus-server` on 3001 and `mavuus-client` pinned to 5180, because other local projects use 5173.
 
 Demo login: `demo@mavuus.com` / `demo123` (seeded, admin role, pro plan).
 

@@ -16,11 +16,11 @@ block() {
   exit 2
 }
 
-if echo "$BARE" | grep -qiE '(^|[;&|[:space:]])rm[[:space:]]+.*-(r[^[:space:]]*f|f[^[:space:]]*r)'; then
+if echo "$BARE" | grep -qiE '(^|[;&|[:space:]])rm[[:space:]]+[^;&|]*-(r[^[:space:]]*f|f[^[:space:]]*r)'; then
   block "rm recursive force is not allowed"
 fi
 
-if echo "$BARE" | grep -qiE '(^|[;&|[:space:]])git[[:space:]]+push[[:space:]].*(--force|-f)([[:space:]]|$)'; then
+if echo "$BARE" | grep -qiE '(^|[;&|[:space:]])git[[:space:]]+push[^;&|]*[[:space:]](--force(-with-lease)?|-f)([[:space:]]|$)'; then
   block "git force push is not allowed"
 fi
 
