@@ -1,11 +1,9 @@
 import { Helmet } from 'react-helmet-async'
 import HomeHero from '../../components/live/home/HomeHero'
 import ForBusinesses from '../../components/live/home/ForBusinesses'
-import ServiceTabs from '../../components/live/home/ServiceTabs'
 import SeniorExperience from '../../components/live/home/SeniorExperience'
 import InsightsSlider from '../../components/live/home/InsightsSlider'
 import NetworkSection from '../../components/live/home/NetworkSection'
-import CompanyLogos from '../../components/live/home/CompanyLogos'
 import LeadersMarquee from '../../components/live/home/LeadersMarquee'
 import ForMarketers from '../../components/live/home/ForMarketers'
 import ReadyCTA from '../../components/live/home/ReadyCTA'
@@ -23,11 +21,9 @@ export default function HomePage() {
       </Helmet>
       <HomeHero />
       <ForBusinesses />
-      <ServiceTabs />
       <SeniorExperience />
       <InsightsSlider />
       <NetworkSection />
-      <CompanyLogos />
       <LeadersMarquee />
       <ForMarketers />
       <ReadyCTA />
