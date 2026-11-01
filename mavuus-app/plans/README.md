@@ -12,6 +12,8 @@ Execute phases in order. Each phase builds on the previous one.
 |------|-------|---------------|
 | `WEBSITE-1TO1-REBUILD.md` | DONE 2026-10-31: public pages rebuilt 1:1 to live mavuus.com | - |
 
+| `PUBLIC-DESIGN-SYSTEM.md` | IN PROGRESS: one card, button, type, spacing and motion system across the public site (from `audits/2026-10-31-public-site-audit.md`) | 2 to 3 |
+
 ## Pre-Launch Fix + Figma Rebuild (done earlier)
 
 Before continuing with the phase plan, run these two plans to make the app demo-ready:
