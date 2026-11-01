@@ -1,10 +1,11 @@
 // eslint-disable-next-line no-unused-vars -- motion is referenced as <motion.div> in JSX
-import { motion, AnimatePresence } from 'motion/react'
+import { motion, AnimatePresence, MotionConfig } from 'motion/react'
 import { useLocation, Outlet } from 'react-router-dom'
 
 export default function PageTransition() {
   const location = useLocation()
   return (
+    <MotionConfig reducedMotion="user">
     <AnimatePresence mode="wait">
       <motion.div
         key={location.pathname}
@@ -16,5 +17,6 @@ export default function PageTransition() {
         <Outlet />
       </motion.div>
     </AnimatePresence>
+    </MotionConfig>
   )
 }
