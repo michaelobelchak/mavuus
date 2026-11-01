@@ -1,63 +1,96 @@
-import { useState } from 'react'
+import { useId, useState, useSyncExternalStore } from 'react'
 import { Link } from 'react-router-dom'
-import LiveContainer from '../LiveContainer'
+import Section from '../ui/Section'
+import Reveal from '../ui/Reveal'
+import { cardClass } from '../ui/cardStyles'
+import { H_CARD, H_SECTION } from '../ui/Typography'
 import ChevronIcon from './ChevronIcon'
 
-const CURRENT_MARKER = 'https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/66b585daa5cd02f72e6dda19_dropdown.png'
+const COLLAPSIBLE = '(max-width: 991px)'
 
-// Webflow .faq-col-grid: "Categories" card on the left (collapsible under 992px) and content on the right.
-export default function CategoryLayout({ items, current, children }) {
+function subscribe(cb) {
+  const mq = window.matchMedia(COLLAPSIBLE)
+  mq.addEventListener('change', cb)
+  return () => mq.removeEventListener('change', cb)
+}
+const getCollapsible = () => window.matchMedia(COLLAPSIBLE).matches
+
+function CategoryLinks({ items, current, onPick }) {
+  return (
+    <ul className="m-0 flex list-none flex-col gap-1 p-0">
+      {items.map((item) => {
+        const isCurrent = item.slug === current
+        return (
+          <li key={item.slug}>
+            <Link
+              to={item.to}
+              onClick={onPick}
+              aria-current={isCurrent ? 'page' : undefined}
+              className={`relative -mx-3 flex min-h-11 items-center rounded-xl px-3 py-2.5 text-base leading-6 no-underline transition-colors duration-200 ${
+                isCurrent
+                  ? 'bg-live-pink-50 font-semibold text-dark-blue before:absolute before:inset-y-2.5 before:left-0 before:w-[3px] before:rounded-full before:bg-brand-pink'
+                  : 'font-medium text-live-grey hover:bg-live-blue-light hover:text-dark-blue'
+              }`}
+            >
+              {item.label}
+            </Link>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+/**
+ * FAQ category and legal page layout: a "Categories" card beside the content.
+ * Under 992px the card collapses behind a toggle, and the hidden list is inert.
+ */
+export default function CategoryLayout({ items, current, heading, children }) {
   const [open, setOpen] = useState(false)
+  const collapsible = useSyncExternalStore(subscribe, getCollapsible, () => false)
+  const id = useId()
+  const hidden = collapsible && !open
 
   return (
-    <section>
-      <LiveContainer innerClassName="py-24">
-        <div className="py-16 max-[991px]:py-24">
-          <div className="grid grid-cols-[1fr_2fr] gap-10 max-[991px]:flex max-[991px]:flex-col max-[479px]:gap-8">
-            <div className="flex flex-col gap-8 bg-white p-8 max-[991px]:rounded-2xl max-[991px]:border max-[991px]:border-black max-[991px]:pb-0">
-              <h3 className="text-[26px] leading-[33px] font-medium max-md:text-2xl">
-                <button
-                  type="button"
-                  onClick={() => setOpen((v) => !v)}
-                  aria-expanded={open}
-                  className="flex w-full cursor-default items-center justify-between text-left max-[991px]:cursor-pointer"
-                >
-                  Categories
-                  <ChevronIcon
-                    className={`hidden h-8 w-8 transition-transform duration-300 max-[991px]:block ${open ? 'rotate-180' : ''}`}
-                  />
-                </button>
-              </h3>
-              <div
-                className={`grid transition-[grid-template-rows] duration-300 min-[992px]:grid-rows-[1fr] ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+    <Section>
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-start gap-12 max-[991px]:grid-cols-1 max-[991px]:gap-8">
+        <nav aria-labelledby={`${id}-title`} className={cardClass({ variant: 'surface', className: 'p-6' })}>
+          <h2 id={`${id}-title`} className={`m-0 ${H_CARD}`}>
+            {collapsible ? (
+              <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+                aria-controls={`${id}-list`}
+                className="-my-2 flex min-h-11 w-full cursor-pointer items-center justify-between gap-4 text-left"
               >
-                <div className="overflow-hidden">
-                  <ul className="flex flex-col gap-[25.6px]">
-                    {items.map((item) => {
-                      const isCurrent = item.slug === current
-                      return (
-                        <li key={item.slug}>
-                          <Link
-                            to={item.to}
-                            onClick={() => setOpen(false)}
-                            aria-current={isCurrent ? 'page' : undefined}
-                            className={`inline-block max-w-full text-base leading-6 font-medium text-black no-underline transition-all duration-300 hover:pl-[11.2px] ${isCurrent ? 'bg-left bg-no-repeat pl-[11.2px]' : ''}`}
-                            style={isCurrent ? { backgroundImage: `url("${CURRENT_MARKER}")` } : undefined}
-                          >
-                            {item.label}
-                          </Link>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                  <div className="h-8" />
-                </div>
+                Categories
+                <ChevronIcon
+                  className={`size-8 shrink-0 transition-transform duration-300 ease-[var(--ease-live)] motion-reduce:transition-none ${open ? 'rotate-180' : ''}`}
+                />
+              </button>
+            ) : (
+              'Categories'
+            )}
+          </h2>
+          <div
+            id={`${id}-list`}
+            inert={hidden}
+            className={collapsible ? `grid transition-[grid-template-rows] duration-300 ease-[var(--ease-live)] motion-reduce:transition-none ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}` : ''}
+          >
+            <div className={collapsible ? '-mx-3 overflow-hidden px-3' : ''}>
+              <div className="pt-5">
+                <CategoryLinks items={items} current={current} onPick={() => setOpen(false)} />
               </div>
             </div>
-            <div className="min-w-0">{children}</div>
           </div>
+        </nav>
+
+        <div className="flex min-w-0 flex-col gap-6">
+          <Reveal key={current} as="h2" className={`m-0 ${H_SECTION}`}>{heading}</Reveal>
+          {children}
         </div>
-      </LiveContainer>
-    </section>
+      </div>
+    </Section>
   )
 }

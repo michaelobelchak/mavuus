@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 import { Navigate, useParams } from 'react-router-dom'
 import CTABand from '../../components/live/CTABand'
-import TertiaryHero from '../../components/live/info/TertiaryHero'
+import PageHero from '../../components/live/info/PageHero'
 import CategoryLayout from '../../components/live/info/CategoryLayout'
 import RichText from '../../components/live/info/RichText'
 import { LEGAL } from '../../data/live/legal'
@@ -22,12 +22,9 @@ export default function LegalPage({ kind = 'terms' }) {
       <Helmet>
         <title>{`${doc.title} - Mavuus`}</title>
       </Helmet>
-      <TertiaryHero title={doc.title} subtitle={doc.subtitle} />
-      <CategoryLayout key={kind} items={items} current={section.slug}>
-        <div className="flex flex-col gap-8 pt-8">
-          <h3 className="text-[26px] leading-[33px] font-medium max-md:text-2xl">{section.heading}</h3>
-          <RichText html={section.html} />
-        </div>
+      <PageHero title={doc.title} lead={doc.subtitle} />
+      <CategoryLayout key={kind} items={items} current={section.slug} heading={section.heading}>
+        <RichText html={section.html} />
       </CategoryLayout>
       <CTABand />
     </>

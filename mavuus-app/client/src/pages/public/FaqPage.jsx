@@ -1,10 +1,13 @@
 import { Helmet } from 'react-helmet-async'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import LiveContainer from '../../components/live/LiveContainer'
 import CTABand from '../../components/live/CTABand'
-import TertiaryHero from '../../components/live/info/TertiaryHero'
+import PageHero from '../../components/live/info/PageHero'
 import CategoryLayout from '../../components/live/info/CategoryLayout'
 import FaqAccordion from '../../components/live/info/FaqAccordion'
+import Section from '../../components/live/ui/Section'
+import Reveal from '../../components/live/ui/Reveal'
+import { cardClass } from '../../components/live/ui/cardStyles'
+import { BODY, H_CARD } from '../../components/live/ui/Typography'
 import { FAQ_ICON, FAQ_CARD_ORDER, FAQ_SIDEBAR_ORDER, FAQ_CATEGORIES } from '../../data/live/faq'
 
 const SIDEBAR_ITEMS = FAQ_SIDEBAR_ORDER.map((slug) => ({
@@ -15,46 +18,44 @@ const SIDEBAR_ITEMS = FAQ_SIDEBAR_ORDER.map((slug) => ({
 
 function CategoryGrid() {
   return (
-    <section className="text-dark-blue">
-      <LiveContainer innerClassName="py-24">
-        <div className="py-16 max-[991px]:py-24">
-          <div className="grid grid-cols-4 gap-10 max-[991px]:grid-cols-2 max-[479px]:grid-cols-1 max-[479px]:gap-8">
-            {FAQ_CARD_ORDER.map((slug) => {
-              const category = FAQ_CATEGORIES[slug]
-              return (
-                <Link
-                  key={slug}
-                  to={`/faq/${slug}`}
-                  className="group flex max-w-full flex-col items-center justify-center gap-4 rounded-2xl bg-white px-4 pt-8 pb-16 text-center text-black no-underline transition-all duration-200 hover:shadow-[0_2px_18px_5px_#0000000f]"
-                >
-                  <img
-                    src={FAQ_ICON}
-                    alt=""
-                    loading="lazy"
-                    className="h-16 w-16 rounded-full border border-white p-4 transition-transform duration-300 group-hover:scale-110"
-                  />
-                  <h4 className="text-2xl leading-[33.6px] font-medium text-black max-md:text-xl max-md:leading-7">{category.title}</h4>
-                  <div className="text-base leading-6">{category.description}</div>
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      </LiveContainer>
-    </section>
+    <Section>
+      <ul className="m-0 grid list-none grid-cols-4 gap-6 p-0 max-[1199px]:grid-cols-2 max-[479px]:grid-cols-1">
+        {FAQ_CARD_ORDER.map((slug, i) => {
+          const category = FAQ_CATEGORIES[slug]
+          return (
+            <Reveal as="li" key={slug} index={i} className="flex">
+              <Link
+                to={`/faq/${slug}`}
+                className={cardClass({
+                  variant: 'surface',
+                  interactive: true,
+                  className: 'group flex w-full flex-col items-center gap-4 p-8 text-center no-underline max-[767px]:p-6',
+                })}
+              >
+                <img
+                  src={FAQ_ICON}
+                  alt=""
+                  loading="lazy"
+                  className="size-16 p-4 transition-transform duration-300 ease-[var(--ease-live)] group-hover:scale-110 motion-reduce:group-hover:scale-100"
+                />
+                <h2 className={`m-0 ${H_CARD}`}>{category.title}</h2>
+                <p className={`m-0 ${BODY}`}>{category.description}</p>
+              </Link>
+            </Reveal>
+          )
+        })}
+      </ul>
+    </Section>
   )
 }
 
 function CategoryDetail({ category }) {
   return (
-    <CategoryLayout items={SIDEBAR_ITEMS} current={category.slug}>
-      <div className="flex flex-col gap-8">
-        <h3 className="text-[26px] leading-[33px] font-medium max-md:text-2xl">{category.heading}</h3>
-        <div>
-          {category.items.map((item) => (
-            <FaqAccordion key={item.q} question={item.q} answer={item.a} />
-          ))}
-        </div>
+    <CategoryLayout items={SIDEBAR_ITEMS} current={category.slug} heading={category.heading}>
+      <div className="border-t border-live-hairline">
+        {category.items.map((item) => (
+          <FaqAccordion key={item.q} question={item.q} answer={item.a} />
+        ))}
       </div>
     </CategoryLayout>
   )
@@ -74,7 +75,7 @@ export default function FaqPage() {
           content="Answers to questions on how Mavuus helps CMOs elevate their executive influence by sharing, learning and leading together."
         />
       </Helmet>
-      <TertiaryHero title="How We Can Help You?" subtitle="Frequently Asked Questions" />
+      <PageHero title="How We Can Help You?" lead="Frequently Asked Questions" />
       {category ? <CategoryDetail key={category.slug} category={category} /> : <CategoryGrid />}
       <CTABand />
     </>

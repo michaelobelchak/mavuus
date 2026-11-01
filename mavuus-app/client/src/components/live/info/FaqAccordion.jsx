@@ -1,27 +1,39 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import ChevronIcon from './ChevronIcon'
 import RichText from './RichText'
+import { H_SMALL } from '../ui/Typography'
 
-// Webflow .faq2_accordion: closed by default, the chevron flips when open.
+// One question in a FAQ list. Closed by default; the answer is out of the tab order until it opens.
 export default function FaqAccordion({ question, answer }) {
   const [open, setOpen] = useState(false)
+  const id = useId()
 
   return (
-    <div className="flex flex-col">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex cursor-pointer items-center justify-between gap-6 py-5 text-left max-md:py-4"
+    <div className="border-b border-live-hairline">
+      <h3 className="m-0">
+        <button
+          type="button"
+          id={`${id}-q`}
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls={`${id}-a`}
+          className="group flex min-h-11 w-full cursor-pointer items-start justify-between gap-6 py-5 text-left max-md:py-4"
+        >
+          <span className={`${H_SMALL} transition-colors duration-200 group-hover:text-brand-blue`}>{question}</span>
+          <ChevronIcon
+            className={`size-7 shrink-0 text-dark-blue transition-transform duration-300 ease-[var(--ease-live)] motion-reduce:transition-none ${open ? 'rotate-180' : ''}`}
+          />
+        </button>
+      </h3>
+      <div
+        id={`${id}-a`}
+        role="region"
+        aria-labelledby={`${id}-q`}
+        inert={!open}
+        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[var(--ease-live)] motion-reduce:transition-none ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
       >
-        <span className="text-xl leading-[30px] font-semibold text-dark-blue">{question}</span>
-        <span className="flex w-8 shrink-0 self-start max-md:w-7">
-          <ChevronIcon className={`h-8 w-8 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
-        </span>
-      </button>
-      <div className={`grid transition-[grid-template-rows] duration-300 ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
         <div className="overflow-hidden">
-          <RichText html={answer} className="mb-4 max-w-[768px]" />
+          <RichText html={answer} className="pb-6" />
         </div>
       </div>
     </div>

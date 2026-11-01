@@ -92,7 +92,7 @@ export const LEGAL = {
   },
   "privacy": {
     "title": "Privacy Policy",
-    "subtitle": "Mavuus Terms of Service is comprised of the following agreements:",
+    "subtitle": "The Mavuus Privacy Policy covers the following topics:",
     "sections": [
       {
         "slug": "introduction",
