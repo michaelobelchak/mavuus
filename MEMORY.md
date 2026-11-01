@@ -48,3 +48,14 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - Member counts: kept the hero's two metrics (1700+ members, 1100+ marketing leaders); the avatar badge now says "+1.7K" instead of "+1000"; Membership says "1,100+ other marketing leaders" instead of "hundreds".
 - Membership: added "Start with a free 30-day trial", which the page title already promised.
 - Resources: articles and videos share titles because each article is the written recap of a session. Cards now say which is which (article with read time, video with a play badge), and each section has a one-line intro.
+
+**Outcome (same day):** design re-score 20 to 24/32, technical 10 to 16/20, detector clean, no standalone undersized tap targets, /resources images 7.1 MB to 0.8 MB. Details at the end of the audit file.
+
+**Other decisions made while building it:**
+- Header collapses to the menu below 1200px (not 1024), because the five links plus Login and Sign Up wrapped on small laptops.
+- Logo row keeps 6 wordmarks (Scotiabank, Ceridian, Microsoft, PointClickCare, Salesforce, Terminus). Dropped the Arizona Cardinals bird, the Constellation lockup and a roundel labeled "Pizza Pizza" that is actually the Pizza Hut logo; all three were unreadable as small grey marks. The source PNGs carry baked-in 50% transparency, so an SVG filter restores full opacity before the grey treatment.
+- Services "From Strategy to Execution" cards lost the "↗" icon instead of becoming five links to the same Contact page.
+- Kept the pink eyebrow labels and the pink left-rule card even though the Impeccable craft rules discourage both: they are the live brand's signatures and the owner chose to keep the brand. They now exist once each (`Eyebrow`, `Card rule`).
+- Resources sign-up links now show totals (2 events, 50 videos) instead of the number on screen.
+- Privacy page subtitle said "Terms of Service" (copy error on live); now "The Mavuus Privacy Policy covers the following topics:".
+- Below 992px the Resources card grids become a swipeable row so no card is left alone on a row.

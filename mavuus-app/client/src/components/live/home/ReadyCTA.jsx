@@ -7,7 +7,7 @@ import { READY_IMAGE } from '../../../data/live/home'
 export default function ReadyCTA() {
   return (
     <Section>
-      <div className="grid grid-cols-2 items-center gap-16 max-[991px]:grid-cols-1 max-[991px]:gap-12">
+      <div className="grid grid-cols-[7fr_5fr] items-center gap-16 max-[1199px]:grid-cols-2 max-[991px]:grid-cols-1 max-[991px]:gap-12">
         <Reveal className="flex flex-col items-start gap-6">
           <h2 className={`${H_SECTION} m-0`}>Ready to Turn Your Marketing into Revenue?</h2>
           <p className={`${H_CARD} m-0`}>
@@ -24,7 +24,7 @@ export default function ReadyCTA() {
             </LiveButton>
           </div>
         </Reveal>
-        <Reveal variant="clip" className="mx-auto w-full max-w-[608px]">
+        <Reveal variant="clip" className="mx-auto w-full max-w-[560px]">
           <img
             src={READY_IMAGE.src}
             srcSet={READY_IMAGE.srcSet}

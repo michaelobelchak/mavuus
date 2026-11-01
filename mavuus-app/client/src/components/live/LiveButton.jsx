@@ -5,8 +5,6 @@ const VARIANTS = {
   blue: 'bg-brand-blue text-white shadow-[0_18px_20px_-18px_#1f648d] hover:bg-brand-blue-hover',
   outline: 'border border-dark-blue bg-transparent text-dark-blue hover:border-brand-pink hover:text-brand-pink',
 }
-VARIANTS.secondary = VARIANTS.outline
-
 
 const SIZES = {
   md: 'px-8 py-4 text-base leading-6',

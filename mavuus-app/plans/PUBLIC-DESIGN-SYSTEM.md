@@ -1,6 +1,6 @@
 # Public site design system and polish
 
-**Status:** IN PROGRESS (branch `feat/public-design-system`, stacked on PR #3)
+**Status:** DONE 2026-10-31 (branch `feat/public-design-system`, PR #4). Results at the end of the audit file.
 **Source:** [audits/2026-10-31-public-site-audit.md](audits/2026-10-31-public-site-audit.md)
 **Owner decisions (2026-10-31):** improve on live rather than copy it; keep brand pink #F26D92 exactly as is; do the whole plan in one round; fix content conflicts with best guesses and log them in MEMORY.md.
 

@@ -63,3 +63,22 @@ Strengths: the home stat card (white, 16px radius, pink left rule, soft lift) is
 - Member counts: hero "1700+ Members, 1100+ Marketing Leaders", avatar badge "+1000", Network "1,100+", Membership "hundreds of other marketing leaders".
 - Membership page title promises a free 30-day trial; the page never says so.
 - Resources shows the same 9 titles as both Articles and On Demand Videos with nothing to tell them apart.
+
+## After the design-system pass (PR #4), same day
+
+Re-scored by the lead after fixes; confirm with a fresh `/impeccable critique` run.
+
+| | Before | After | Evidence |
+|---|---|---|---|
+| Design (Nielsen, /32) | 20 | 24 | One card, button, type, spacing and motion system on every page; tabs pause and no longer switch on hover; Services cards readable |
+| Technical (/20) | 10 | 16 | a11y 3 (brand pink kept by owner, so pink contrast is the one known gap), performance 3, theming 3, responsive 4, integrity 3 |
+| Detector findings | 1 (+ overlay warnings) | 0 | Brand card rule and article blockquote recorded as intentional exceptions |
+| Horizontal overflow at 1440/1024/768/390 | none | none | capture of all 11 public routes |
+| Standalone tap targets under 32px | ~60 | 0 | 7 remaining are links inside running text (exempt under WCAG 2.5.8) |
+| /resources image bytes at 1440 | 7.1 MB | 0.8 MB | Webflow size variants via srcset |
+| Article bodies chunk | 530 KB, all posts | per post | `import.meta.glob` |
+| Reveal blocks that stay hidden | n/a | 0 of 161 | checked with and without reduced motion |
+| Tabs under reduced motion | kept rotating | stay put | Playwright with `reducedMotion: reduce` |
+| Mobile menu | no Escape, no outside click | both, focus managed | Playwright |
+
+Still open: brand pink contrast (owner decision), images and fonts served from the live Webflow CDN, the Contact photos are cropped from one live PNG, and the "Where we come in" photo has a non-interactive arrow baked into the image.

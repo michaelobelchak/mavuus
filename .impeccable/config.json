@@ -7,28 +7,19 @@
         "rule": "side-tab",
         "value": "*",
         "files": [
-          "mavuus-app/client/src/components/live/services/WaysToWork.jsx"
+          "mavuus-app/client/src/components/live/ui/cardStyles.js"
         ],
-        "createdAt": "2026-10-31T18:48:51.940Z",
-        "reason": "Claude: 1:1 copy of live mavuus.com, which uses this pink left accent (live screenshots of tabs, stat cards, Recent example box)"
+        "createdAt": "2026-10-31T23:00:00.000Z",
+        "reason": "Claude: the pink left rule is the Mavuus brand card from live mavuus.com, kept by owner decision (improve on live, keep brand) and now defined once as Card rule; see MEMORY.md 2026-10-31"
       },
       {
         "rule": "side-tab",
         "value": "*",
         "files": [
-          "mavuus-app/client/src/components/live/services/WhyMavuus.jsx"
+          "mavuus-app/client/src/pages/public/PostPage.jsx"
         ],
-        "createdAt": "2026-10-31T18:48:52.455Z",
-        "reason": "Claude: 1:1 copy of live mavuus.com, which uses this pink left accent (live screenshots of tabs, stat cards, Recent example box)"
-      },
-      {
-        "rule": "side-tab",
-        "value": "*",
-        "files": [
-          "mavuus-app/client/src/components/live/home/shared.jsx"
-        ],
-        "createdAt": "2026-10-31T18:48:52.600Z",
-        "reason": "Claude: 1:1 copy of live mavuus.com, which uses this pink left accent (live screenshots of tabs, stat cards, Recent example box)"
+        "createdAt": "2026-10-31T23:00:00.000Z",
+        "reason": "Claude: false positive, the border-l-4 is the article blockquote style inside rich text, not a card accent"
       }
     ]
   }

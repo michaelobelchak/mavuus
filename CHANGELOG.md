@@ -167,3 +167,13 @@ All notable changes to the Mavuus project are documented here, organized by phas
 - Fixed: login token lacked `role`, so every admin API call returned 403
 - CI: client lint + build and server tests on every PR
 - Public website rebuilt 1:1 with live mavuus.com: Fixel Text font, header, footer, homepage, Marketing Services, Membership, Resources, all 35 articles, video pages, About, Contact, FAQ (8 categories), Terms and Privacy. URLs match live; `/home` and `/pricing` redirect
+
+## Public Site Design System - 2026-10-31
+**Status:** Complete (PR #4)
+
+- Audit filed in `mavuus-app/plans/audits/2026-10-31-public-site-audit.md`; decisions in `MEMORY.md`
+- Shared system in `components/live/ui/`: 4 card types, one button, type scale, section spacing, scroll reveals, count-up stats, checklists, numbered tabs with pause, media frames
+- Every public page moved onto it; logo row rebuilt; Services cards readable; tablet layouts fixed at 1024 and 768
+- Accessibility: navy focus ring, reduced motion respected everywhere, mobile menu keyboard support, hidden content no longer focusable, heading order, 44px targets, Contact form errors
+- Performance: /resources images 7.1 MB to 0.8 MB, article bodies split per post, Manrope no longer blocks first paint
+- Content best guesses (for the founders to confirm): +1.7K avatar badge, 1,100+ on Membership, free 30-day trial line, article vs video labels on Resources, Privacy subtitle fix
