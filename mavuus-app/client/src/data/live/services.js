@@ -49,6 +49,7 @@ export const SERVICE_CARDS = [
   {
     num: '03',
     size: 'third',
+    wideOnTablet: true,
     title: 'Demand Generation & Pipeline Strategy',
     text: "More activity doesn't automatically create more pipeline. We help organizations build demand programs around the audiences, channels and opportunities most likely to drive business impact.",
     label: 'Our work can include',
@@ -161,5 +162,3 @@ export const WHY = {
     'And that community makes our consulting practice stronger. It keeps us close to the real challenges marketing leaders are facing, allows us to continuously learn from one another, and helps us evolve our approach through the collective knowledge and experience of senior marketers.',
   ],
 }
-
-export const CTA_BG = `${CDN}/6699cbb6206dc486ff34f56f_bg.svg`
