@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import LiveContainer from '../../components/live/LiveContainer'
+import { ArrowRight } from 'lucide-react'
+import Section from '../../components/live/ui/Section'
+import Reveal from '../../components/live/ui/Reveal'
+import MediaFrame from '../../components/live/ui/MediaFrame'
+import { H_PAGE, H_SECTION } from '../../components/live/ui/Typography'
 import {
   ArticleCard,
+  ArticleMeta,
   Breadcrumb,
+  CardGrid,
   EventCard,
-  LIST_CLASSES,
+  GridItem,
   LoadMoreButton,
-  MetaItem,
-  MetaRow,
-  ReadTime,
   SectionHeader,
   VideoCard,
 } from '../../components/live/resources/cards'
-import { TagIcon } from '../../components/live/resources/icons'
-import { LIVE_EVENTS, POSTS } from '../../data/live/posts'
+import { LIVE_EVENTS, POSTS, srcSetFor } from '../../data/live/posts'
 import { VIDEOS } from '../../data/live/videos'
 
 const PAGE_SIZE = 9
@@ -22,42 +24,66 @@ const PAGE_SIZE = 9
 function FeaturedPost({ post }) {
   const to = `/post/${post.slug}`
   return (
-    <div className="grid grid-cols-[1.25fr_1fr] items-start gap-12 max-md:grid-cols-1 max-md:gap-6">
-      <Link to={to} className="block w-full">
-        <img
-          src={post.thumbnail}
-          alt={post.title}
-          className="aspect-video h-full w-full rounded-2xl object-cover"
-        />
-      </Link>
-      <div className="flex h-full flex-col items-start justify-center gap-[19.2px]">
-        <div className="flex flex-col gap-4">
-          <MetaRow>
-            <ReadTime minutes={post.readTime} />
-            <MetaItem icon={TagIcon}>{post.category ? <span>{post.category}</span> : null}</MetaItem>
-          </MetaRow>
-          <Link to={to} className="mb-4 block text-dark-blue no-underline">
-            <h2 className="text-[40px] leading-[48px] font-medium text-dark-blue transition-colors hover:text-brand-pink">
-              {post.title}
-            </h2>
-          </Link>
-          <Link to={to} className="text-base leading-6 font-semibold text-brand-pink no-underline">
-            Learn More
-          </Link>
-        </div>
-        <div className="mt-6 flex items-center">
+    <div className="grid grid-cols-[1.25fr_1fr] items-center gap-12 max-[991px]:grid-cols-1 max-[991px]:gap-8">
+      <Reveal variant="clip">
+        <Link to={to} tabIndex={-1} aria-hidden="true" className="group block rounded-2xl">
+          <MediaFrame
+            src={post.thumbnail}
+            srcSet={srcSetFor(post.thumbnail)}
+            sizes="(max-width: 991px) 92vw, 700px"
+            ratio="aspect-video"
+            eager
+          />
+        </Link>
+      </Reveal>
+      <Reveal index={1} className="flex flex-col items-start gap-5">
+        <ArticleMeta post={post} />
+        <Link to={to} className="text-dark-blue no-underline">
+          <h2 className={`${H_SECTION} transition-colors duration-300 hover:text-brand-pink`}>{post.title}</h2>
+        </Link>
+        <Link
+          to={to}
+          className="group inline-flex min-h-11 items-center gap-2 text-base leading-6 font-semibold text-brand-pink no-underline"
+        >
+          Learn More
+          <ArrowRight size={18} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
+        </Link>
+        <div className="mt-2 flex items-center gap-4">
           <img
             src={post.author.image}
-            alt={post.author.name}
-            className="mr-4 size-12 min-w-12 rounded-full object-cover"
+            alt=""
+            width="48"
+            height="48"
+            className="size-12 shrink-0 rounded-full object-cover"
           />
           <div>
-            <div className="text-xl leading-[30px] font-semibold text-dark-blue">{post.author.name}</div>
-            <div className="flex h-6 items-center text-[13.6px] leading-5 text-live-grey">{post.author.role}</div>
+            <div className="text-lg leading-7 font-semibold text-dark-blue">{post.author.name}</div>
+            <div className="text-sm leading-5 text-live-grey">{post.author.role}</div>
           </div>
         </div>
-      </div>
+      </Reveal>
     </div>
+  )
+}
+
+function LiveEvents({ events, total }) {
+  return (
+    <Section spacing="compact">
+      <SectionHeader title="Live Events" count={total} noun="Events" />
+      {events.length === 1 ? (
+        <Reveal>
+          <EventCard event={events[0]} layout="wide" sizes="(max-width: 767px) 90vw, 680px" />
+        </Reveal>
+      ) : (
+        <CardGrid>
+          {events.map((event, i) => (
+            <GridItem key={event.url} index={i}>
+              <EventCard event={event} />
+            </GridItem>
+          ))}
+        </CardGrid>
+      )}
+    </Section>
   )
 }
 
@@ -74,56 +100,48 @@ export default function ResourcesHubPage() {
   const events = LIVE_EVENTS.slice(0, 1)
 
   return (
-    <header>
-      <LiveContainer innerClassName="py-24">
-        <div className="py-16 max-md:pt-8">
-          <div className="mb-12 max-w-[768px] max-lg:mb-10 max-md:mb-6">
-            <div className="mb-6">
-              <Breadcrumb items={[{ label: 'Home', to: '/' }, { label: 'Resources', current: true }]} />
-            </div>
-            <h1 className="text-dark-blue">Helpful Resources</h1>
-          </div>
+    <>
+      <Section spacing="compact">
+        <Reveal className="mb-12 flex max-w-[768px] flex-col gap-4 max-[767px]:mb-8">
+          <Breadcrumb items={[{ label: 'Home', to: '/' }, { label: 'Resources' }]} />
+          <h1 className={H_PAGE}>Helpful Resources</h1>
+        </Reveal>
+        <FeaturedPost post={POSTS[0]} />
+      </Section>
 
-          <FeaturedPost post={POSTS[0]} />
+      <LiveEvents events={events} total={LIVE_EVENTS.length} />
 
-          <div className="mt-24 flex flex-col gap-8">
-            <SectionHeader title="Live Events" ctaText="Events" count={events.length} />
-            <div className={LIST_CLASSES}>
-              {events.map((event) => (
-                <EventCard key={event.url} event={event} />
-              ))}
-            </div>
-          </div>
+      <Section spacing="compact">
+        <SectionHeader
+          title="Articles"
+          intro="Written recaps of our CMO conversations, with the frameworks and examples shared."
+        />
+        <CardGrid>
+          {articles.map((post, i) => (
+            <GridItem key={post.slug} index={i}>
+              <ArticleCard post={post} />
+            </GridItem>
+          ))}
+        </CardGrid>
+        {articleCount < POSTS.length && <LoadMoreButton onClick={() => setArticleCount((n) => n + PAGE_SIZE)} />}
+      </Section>
 
-          <div className="mt-24 flex flex-col gap-8">
-            <SectionHeader title="Articles" />
-            <div>
-              <div className={LIST_CLASSES}>
-                {articles.map((post) => (
-                  <ArticleCard key={post.slug} post={post} />
-                ))}
-              </div>
-              {articleCount < POSTS.length && (
-                <LoadMoreButton onClick={() => setArticleCount((n) => n + PAGE_SIZE)} />
-              )}
-            </div>
-          </div>
-
-          <div className="mt-24 flex flex-col gap-8">
-            <SectionHeader title="On Demand Videos" ctaText="Demand Videos" count={videos.length} />
-            <div>
-              <div className={LIST_CLASSES}>
-                {videos.map((video) => (
-                  <VideoCard key={video.slug} video={video} />
-                ))}
-              </div>
-              {videoCount < VIDEOS.length && (
-                <LoadMoreButton onClick={() => setVideoCount((n) => n + PAGE_SIZE)} />
-              )}
-            </div>
-          </div>
-        </div>
-      </LiveContainer>
-    </header>
+      <Section spacing="compact">
+        <SectionHeader
+          title="On Demand Videos"
+          intro="Watch the full sessions with the CMOs and marketing leaders behind them."
+          count={VIDEOS.length}
+          noun="Demand Videos"
+        />
+        <CardGrid>
+          {videos.map((video, i) => (
+            <GridItem key={video.slug} index={i}>
+              <VideoCard video={video} />
+            </GridItem>
+          ))}
+        </CardGrid>
+        {videoCount < VIDEOS.length && <LoadMoreButton onClick={() => setVideoCount((n) => n + PAGE_SIZE)} />}
+      </Section>
+    </>
   )
 }

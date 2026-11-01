@@ -1,174 +1,226 @@
 import { Link } from 'react-router-dom'
-import { ArrowBoxIcon, CalendarIcon, ChevronIcon, ClockIcon, PinIcon, PlayIcon, TagIcon } from './icons'
+import { ArrowUpRight, Calendar, ChevronRight, Clock, FileText, MapPin, Play, Tag } from 'lucide-react'
+import LiveButton from '../LiveButton'
+import MediaFrame from '../ui/MediaFrame'
+import Reveal from '../ui/Reveal'
+import { H_CARD, H_SECTION, LEAD } from '../ui/Typography'
+import { srcSetFor } from '../../../data/live/posts'
 
 const EXTERNAL = { target: '_blank', rel: 'noopener noreferrer' }
 
-export function MetaItem({ icon: Icon, children }) {
+export const CARD_SIZES = '(max-width: 479px) 80vw, (max-width: 991px) 45vw, 405px'
+
+const TITLE_HOVER = 'transition-colors duration-300 group-hover:text-brand-pink group-focus-visible:text-brand-pink'
+
+export function MetaItem({ icon: Icon, accent = false, children }) {
   return (
-    <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold leading-[21px] text-live-grey">
-      <Icon className="size-4 shrink-0" />
-      {children ? <span className="flex items-center gap-[4.8px]">{children}</span> : null}
+    <span
+      className={`inline-flex items-center gap-1.5 text-[13px] leading-5 font-semibold tracking-[0.08em] uppercase ${
+        accent ? 'text-brand-blue' : 'text-live-muted'
+      }`}
+    >
+      <Icon size={15} strokeWidth={2} aria-hidden="true" className="shrink-0" />
+      {children}
     </span>
   )
 }
 
-export function ReadTime({ minutes }) {
-  return (
-    <MetaItem icon={ClockIcon}>
-      <span>{minutes}</span>
-      <span>min</span>
-      <span>reading</span>
-    </MetaItem>
-  )
+export function MetaRow({ children, className = '' }) {
+  return <div className={`flex flex-wrap items-center gap-x-5 gap-y-2 ${className}`}>{children}</div>
 }
 
-export function MetaRow({ children }) {
-  return <div className="flex flex-wrap items-center gap-x-[22.4px]">{children}</div>
+export function ArticleMeta({ post, label = true }) {
+  return (
+    <MetaRow>
+      {label && <MetaItem icon={FileText} accent>Article</MetaItem>}
+      <MetaItem icon={Clock}>{post.readTime} min read</MetaItem>
+      {post.category && <MetaItem icon={Tag}>{post.category}</MetaItem>}
+    </MetaRow>
+  )
 }
 
 export function Breadcrumb({ items }) {
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center text-base leading-6 text-dark-blue">
-      {items.map((item, i) => (
-        <span key={item.label} className="flex items-center">
-          {i > 0 && <ChevronIcon className="mx-2 size-4 shrink-0" />}
-          {item.to ? (
-            <Link to={item.to} className="text-dark-blue no-underline">
-              {item.label}
-            </Link>
-          ) : (
-            <span className={item.current ? 'font-semibold' : ''}>{item.label}</span>
-          )}
-        </span>
-      ))}
+    <nav aria-label="Breadcrumb" className="w-full min-w-0">
+      <ol className="m-0 flex list-none items-center p-0 text-base leading-6 text-dark-blue">
+        {items.map((item, i) => (
+          <li key={item.label} className={`flex min-h-11 items-center ${item.to ? 'shrink-0' : 'min-w-0'}`}>
+            {i > 0 && <ChevronRight size={16} aria-hidden="true" className="mx-2 shrink-0 text-live-muted" />}
+            {item.to ? (
+              <Link to={item.to} className="flex min-h-11 items-center text-dark-blue no-underline transition-colors hover:text-brand-pink">
+                {item.label}
+              </Link>
+            ) : (
+              <span aria-current="page" className="truncate font-semibold">{item.label}</span>
+            )}
+          </li>
+        ))}
+      </ol>
     </nav>
   )
 }
 
-export function SectionHeader({ title, ctaText, count }) {
+export function SignUpLink({ count, noun }) {
   return (
-    <div className="flex items-center justify-between max-[479px]:flex-col max-[479px]:items-start max-[479px]:gap-4">
-      <h2 className="text-[32px] leading-[38.4px] font-medium text-dark-blue">{title}</h2>
-      {ctaText && (
-        <Link
-          to="/register"
-          className="flex items-center gap-2 text-base leading-6 text-dark-blue no-underline transition-colors duration-300 hover:text-live-grey"
-        >
-          <span>
-            Sign Up to get access to all <span className="text-brand-pink">{count}</span> {ctaText}
-          </span>
-          <ArrowBoxIcon className="size-6 shrink-0" />
-        </Link>
-      )}
-    </div>
+    <Link
+      to="/register"
+      className="group inline-flex min-h-11 shrink-0 items-center gap-2 text-base leading-6 font-medium whitespace-nowrap text-dark-blue no-underline transition-colors duration-300 hover:text-brand-pink"
+    >
+      <span>
+        Sign Up to get access to all <span className="text-brand-pink">{count}</span> {noun}
+      </span>
+      <ArrowUpRight size={20} aria-hidden="true" className="shrink-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+    </Link>
   )
 }
 
-export const LIST_CLASSES =
-  'grid grid-cols-3 gap-x-8 gap-y-16 border-b border-[#dbe0e7] pb-16 max-lg:grid-cols-2 max-md:-mx-5 max-md:flex max-md:gap-x-8 max-md:overflow-x-auto max-md:px-5'
-
-const ITEM_CLASSES = 'flex flex-col items-start gap-[12.8px] max-md:w-[30rem] max-md:flex-none max-[479px]:w-[80vw]!'
-
-export const OUTLINE_BUTTON =
-  'flex items-center justify-center rounded-2xl border border-black px-8 py-4 text-center font-semibold text-black no-underline transition-all duration-300 hover:border-brand-pink hover:text-brand-pink'
-
-function CardImage({ src, alt, eager = false, children }) {
+export function SectionHeader({ title, intro, count, noun }) {
   return (
-    <div className="relative flex w-full items-center justify-center overflow-hidden rounded-2xl">
-      <img
-        src={src}
-        alt={alt}
-        loading={eager ? 'eager' : 'lazy'}
-        className="aspect-[3/2] h-full w-full rounded-2xl object-cover transition-transform duration-500 group-hover/card:scale-105"
-      />
-      {children}
-    </div>
-  )
-}
-
-function CardTitle({ children, className = 'text-dark-blue' }) {
-  return <h3 className={`text-[22px] leading-[26.4px] font-medium ${className}`}>{children}</h3>
-}
-
-export function ArticleCard({ post, eager = false }) {
-  const to = `/post/${post.slug}`
-  return (
-    <div className={`group/card ${ITEM_CLASSES}`}>
-      <Link to={to} className="mb-6 block w-full" aria-label={post.title}>
-        <CardImage src={post.thumbnail} alt={post.title} eager={eager} />
-      </Link>
-      <MetaRow>
-        <ReadTime minutes={post.readTime} />
-        <MetaItem icon={TagIcon}>{post.category ? <span>{post.category}</span> : null}</MetaItem>
-      </MetaRow>
-      <Link to={to} className="mb-2 block w-full no-underline">
-        <CardTitle>{post.title}</CardTitle>
-      </Link>
-      <div className="flex gap-[3.2px] text-base leading-6 text-live-grey">
-        <span>By</span>
-        <span>{post.author.name}</span>
+    <Reveal className="mb-10 flex items-end justify-between gap-x-8 gap-y-4 max-[767px]:mb-8 max-[991px]:flex-col max-[991px]:items-start">
+      <div className="flex max-w-[736px] flex-col gap-3">
+        <h2 className={H_SECTION}>{title}</h2>
+        {intro && <p className={`${LEAD} m-0 [text-wrap:pretty]`}>{intro}</p>}
       </div>
-    </div>
+      {noun && <SignUpLink count={count} noun={noun} />}
+    </Reveal>
+  )
+}
+
+// 3 columns on desktop; a swipeable row below 992px so no card is ever left alone on a row.
+export const LIST_CLASSES =
+  'grid grid-cols-3 gap-x-8 gap-y-14 max-[991px]:-mx-10 max-[991px]:flex max-[991px]:snap-x max-[991px]:snap-mandatory max-[991px]:gap-6 max-[991px]:overflow-x-auto max-[991px]:scroll-px-10 max-[991px]:px-10 max-[991px]:pb-4 max-[767px]:-mx-5 max-[767px]:scroll-px-5 max-[767px]:px-5'
+
+export const ITEM_CLASSES = 'max-[991px]:w-[42%] max-[991px]:flex-none max-[991px]:snap-start max-[767px]:w-[80%]'
+
+export function CardGrid({ children }) {
+  return <div className={LIST_CLASSES}>{children}</div>
+}
+
+export function GridItem({ index, children }) {
+  return (
+    <Reveal index={index % 3} className={ITEM_CLASSES}>
+      {children}
+    </Reveal>
+  )
+}
+
+export function ArticleCard({ post }) {
+  return (
+    <Link to={`/post/${post.slug}`} className="group flex h-full flex-col gap-4 rounded-2xl no-underline">
+      <MediaFrame src={post.thumbnail} srcSet={srcSetFor(post.thumbnail)} sizes={CARD_SIZES} className="mb-2" />
+      <ArticleMeta post={post} />
+      <h3 className={`${H_CARD} ${TITLE_HOVER}`}>{post.title}</h3>
+      <p className="m-0 text-base leading-6 text-live-grey">By {post.author.name}</p>
+    </Link>
+  )
+}
+
+export function PlayBadge({ large = false }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-dark-blue/45 text-white transition-opacity duration-300 group-hover:opacity-0 group-focus-visible:opacity-0 ${
+        large ? 'size-20 max-[767px]:size-14' : 'size-14'
+      }`}
+    >
+      <Play size={large ? 30 : 22} fill="currentColor" strokeWidth={0} className="translate-x-0.5" />
+    </span>
+  )
+}
+
+export function SignUpOverlay() {
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute inset-0 flex items-center justify-center p-6 opacity-0 transition-opacity duration-300 ease-[var(--ease-live)] group-hover:opacity-100 group-focus-visible:opacity-100"
+    >
+      <span className="max-w-[240px] rounded-2xl bg-brand-pink/95 p-4 text-center text-base leading-6 font-medium text-white">
+        Sign Up for Mavuus to get access to all videos
+      </span>
+    </span>
   )
 }
 
 export function VideoCard({ video }) {
-  const to = `/demands-videos/${video.slug}`
   return (
-    <div className={`group/card pb-[12.8px] ${ITEM_CLASSES}`}>
-      <Link to={to} className="mb-6 block w-full" aria-label={video.title}>
-        <CardImage src={video.thumbnail} alt={video.title}>
-          <span className="absolute z-[2] flex translate-y-[300%] items-center justify-center rounded-2xl bg-[#f26d92eb] p-4 text-center text-base leading-6 font-medium text-white transition-transform duration-500 group-hover/card:translate-y-0">
-            Sign Up for Mavuus to get
-            <br />
-            access to all videos
-          </span>
-          <span className="absolute flex size-12 items-center justify-center rounded-full border border-white bg-white/20 text-white backdrop-blur-[15px] transition-opacity duration-300 group-hover/card:opacity-0">
-            <PlayIcon className="relative left-0.5 size-[21px]" />
-          </span>
-        </CardImage>
-      </Link>
-      <Link to={to} className="mb-2 block w-full no-underline">
-        <CardTitle>{video.title}</CardTitle>
-      </Link>
-    </div>
+    <Link to={`/demands-videos/${video.slug}`} className="group flex h-full flex-col gap-4 rounded-2xl no-underline">
+      <MediaFrame src={video.thumbnail} srcSet={srcSetFor(video.thumbnail)} sizes={CARD_SIZES} className="mb-2">
+        <span aria-hidden="true" className="absolute inset-0 bg-dark-blue/15" />
+        <PlayBadge />
+        <SignUpOverlay />
+      </MediaFrame>
+      <MetaRow>
+        <MetaItem icon={Play} accent>Video</MetaItem>
+      </MetaRow>
+      <h3 className={`${H_CARD} ${TITLE_HOVER}`}>{video.title}</h3>
+    </Link>
   )
 }
 
-export function EventCard({ event, imageHref = event.url, className = ITEM_CLASSES }) {
-  const imageIsExternal = imageHref.startsWith('http')
-  const imageProps = imageIsExternal ? { href: imageHref, ...EXTERNAL } : null
-  const ImageLink = imageIsExternal ? 'a' : Link
+function EventMeta({ event }) {
   return (
-    <div className={`group/card min-h-[36rem] justify-between ${className}`}>
-      <div className="w-full">
-        <ImageLink {...(imageProps ?? { to: imageHref })} className="mb-6 block w-full" aria-label={event.title}>
-          <CardImage src={event.image} alt={event.title} />
-        </ImageLink>
-        <MetaRow>
-          <MetaItem icon={CalendarIcon}>{event.date ? <span>{event.date}</span> : null}</MetaItem>
-          <MetaItem icon={PinIcon}>
-            <span>{event.type}</span>
-          </MetaItem>
-        </MetaRow>
-        <ImageLink {...(imageProps ?? { to: imageHref })} className="mb-2 block no-underline">
-          <CardTitle className="text-black">{event.title}</CardTitle>
-        </ImageLink>
-        <p className="text-base leading-6 text-live-grey">{event.description}</p>
-      </div>
-      <a href={event.url} {...EXTERNAL} className={`${OUTLINE_BUTTON} w-full text-base leading-6`}>
-        RSVP Now
+    <MetaRow>
+      {event.date && <MetaItem icon={Calendar}>{event.date}</MetaItem>}
+      {event.type && <MetaItem icon={MapPin}>{event.type}</MetaItem>}
+    </MetaRow>
+  )
+}
+
+function SmartLink({ href, className, children, ...props }) {
+  if (href.startsWith('http')) {
+    return (
+      <a href={href} {...EXTERNAL} className={className} {...props}>
+        {children}
       </a>
+    )
+  }
+  return (
+    <Link to={href} className={className} {...props}>
+      {children}
+    </Link>
+  )
+}
+
+/**
+ * layout="stack" for grids and sliders, "wide" when an event is shown on its own.
+ * href is where the image and title go; RSVP always opens the event page.
+ */
+export function EventCard({ event, href = event.url, layout = 'stack', sizes = CARD_SIZES }) {
+  const wide = layout === 'wide'
+  return (
+    <div
+      className={`group h-full ${
+        wide ? 'grid grid-cols-[1.15fr_1fr] items-center gap-12 max-[991px]:gap-8 max-[767px]:flex max-[767px]:flex-col max-[767px]:items-stretch max-[767px]:gap-6' : 'flex flex-col gap-4'
+      }`}
+    >
+      <SmartLink href={href} tabIndex={-1} aria-hidden="true" className={`block rounded-2xl ${wide ? '' : 'mb-2'}`}>
+        <MediaFrame src={event.image} srcSet={srcSetFor(event.image)} sizes={sizes} />
+      </SmartLink>
+      <div className={`flex grow flex-col ${wide ? 'gap-5' : 'gap-4'}`}>
+        <EventMeta event={event} />
+        <SmartLink href={href} className="rounded-sm text-dark-blue no-underline">
+          <h3 className={`${H_CARD} ${TITLE_HOVER}`}>{event.title}</h3>
+        </SmartLink>
+        <p className="m-0 text-base leading-[1.7] text-live-grey">{event.description}</p>
+        <LiveButton
+          href={event.url}
+          {...EXTERNAL}
+          variant="outline"
+          className={`whitespace-nowrap ${wide ? 'mt-2 self-start' : 'mt-auto w-full'}`}
+        >
+          RSVP Now
+        </LiveButton>
+      </div>
     </div>
   )
 }
 
 export function LoadMoreButton({ onClick }) {
   return (
-    <div className="flex justify-center">
-      <button type="button" onClick={onClick} className={`${OUTLINE_BUTTON} mt-12 text-sm leading-[21px] max-lg:mt-10 max-md:mt-6 max-md:w-full`}>
+    <div className="mt-12 flex justify-center max-[991px]:mt-8">
+      <LiveButton variant="outline" onClick={onClick}>
         Load More
-      </button>
+      </LiveButton>
     </div>
   )
 }
