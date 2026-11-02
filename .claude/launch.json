@@ -1,0 +1,20 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mavuus-client",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5180", "--strictPort"],
+      "port": 5180,
+      "autoPort": false,
+      "cwd": "mavuus-app/client"
+    },
+    {
+      "name": "mavuus-server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3001,
+      "cwd": "mavuus-app/server"
+    }
+  ]
+}
