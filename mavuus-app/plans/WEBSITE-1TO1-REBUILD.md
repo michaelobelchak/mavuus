@@ -1,6 +1,6 @@
 # Public Website 1:1 Rebuild (match live mavuus.com)
 
-**Status:** TODO
+**Status:** DONE 2026-10-31 (branch `feat/live-site-rebuild`). Images still load from the live Webflow CDN; see open questions.
 **Audited:** 2026-10-31 against https://www.mavuus.com (Webflow, last published 2026-10-28)
 **Scope:** public marketing pages only. The members dashboard and admin panel stay as they are.
 

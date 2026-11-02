@@ -11,10 +11,15 @@ import ErrorBoundary from './components/ui/ErrorBoundary'
 
 // Public Pages (eager — landing page performance)
 import HomePage from './pages/public/HomePage'
-import AboutPage from './pages/public/AboutPage'
-import PricingPage from './pages/public/PricingPage'
-import ContactPage from './pages/public/ContactPage'
-import ResourcesHubPage from './pages/public/ResourcesHubPage'
+const AboutPage = lazy(() => import('./pages/public/AboutPage'))
+const MembershipPage = lazy(() => import('./pages/public/MembershipPage'))
+const MarketingServicesPage = lazy(() => import('./pages/public/MarketingServicesPage'))
+const FaqPage = lazy(() => import('./pages/public/FaqPage'))
+const LegalPage = lazy(() => import('./pages/public/LegalPage'))
+const PostPage = lazy(() => import('./pages/public/PostPage'))
+const VideoPage = lazy(() => import('./pages/public/VideoPage'))
+const ContactPage = lazy(() => import('./pages/public/ContactPage'))
+const ResourcesHubPage = lazy(() => import('./pages/public/ResourcesHubPage'))
 import ArticlesPage from './pages/public/ArticlesPage'
 import EventsPage from './pages/public/EventsPage'
 import BlogDetailPage from './pages/public/BlogDetailPage'
@@ -101,12 +106,23 @@ export default function App() {
       <Routes>
         {/* Public Website */}
         <Route element={<PublicLayout />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/pricing" element={<PricingPage />} />
-          <Route path="/contact" element={<ContactPage />} />
+          {/* Mirrors the live mavuus.com URL structure */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/membership" element={<MembershipPage />} />
+          <Route path="/marketing-services" element={<MarketingServicesPage />} />
           <Route path="/resources" element={<ResourcesHubPage />} />
+          <Route path="/post/:slug" element={<PostPage />} />
+          <Route path="/demands-videos/:slug" element={<VideoPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/faq/:category" element={<FaqPage />} />
+          <Route path="/terms-conditions/:section" element={<LegalPage kind="terms" />} />
+          <Route path="/privacy-policy/:section" element={<LegalPage kind="privacy" />} />
+          <Route path="/terms-conditions" element={<Navigate to="/terms-conditions/introduction" replace />} />
+          <Route path="/privacy-policy" element={<Navigate to="/privacy-policy/introduction" replace />} />
+          <Route path="/home" element={<Navigate to="/" replace />} />
+          <Route path="/pricing" element={<Navigate to="/membership" replace />} />
           <Route path="/articles" element={<ArticlesPage />} />
           <Route path="/articles/:id" element={<BlogDetailPage />} />
           <Route path="/events" element={<EventsPage />} />

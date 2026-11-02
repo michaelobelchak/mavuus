@@ -181,7 +181,7 @@ export default function RegisterPage() {
       {/* ─── Right Panel — Form ────────────────────────────────── */}
       <section className="flex-1 flex items-center justify-center px-6 py-10 lg:px-16">
         <div className="w-full max-w-[414px] flex flex-col gap-10">
-          <Link to="/home" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <img src="/assets/shared/mavuus-icon.svg" alt="" className="w-8 h-8" />
             <img src="/assets/shared/mavuus-wordmark.svg" alt="Mavuus" className="h-5" />
           </Link>

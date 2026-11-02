@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "mavuus-app/client/src/components/live/ui/cardStyles.js"
+        ],
+        "createdAt": "2026-10-31T23:00:00.000Z",
+        "reason": "Claude: the pink left rule is the Mavuus brand card from live mavuus.com, kept by owner decision (improve on live, keep brand) and now defined once as Card rule; see MEMORY.md 2026-10-31"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "mavuus-app/client/src/pages/public/PostPage.jsx"
+        ],
+        "createdAt": "2026-10-31T23:00:00.000Z",
+        "reason": "Claude: false positive, the border-l-4 is the article blockquote style inside rich text, not a card accent"
+      }
+    ]
+  }
+}

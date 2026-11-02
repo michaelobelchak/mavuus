@@ -1,94 +1,67 @@
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { LIVE_LOGO } from './PublicHeader'
 
-const footerLinks = {
-  Platform: [
-    { label: 'Academy', path: '/dashboard' },
-    { label: 'Live Sessions', path: '/dashboard/live-sessions' },
-    { label: 'On-Demand Videos', path: '/dashboard/on-demand' },
-    { label: 'Community', path: '/dashboard/resources' },
-  ],
-  Company: [
-    { label: 'About', path: '/about' },
-    { label: 'Pricing', path: '/pricing' },
-    { label: 'Contact', path: '/contact' },
-  ],
-  Resources: [
-    { label: 'Blog', path: '#' },
-    { label: 'Help Center', path: '#' },
-    { label: 'Terms of Service', path: '#' },
-    { label: 'Privacy Policy', path: '#' },
-  ],
-}
+const COLUMNS = [
+  {
+    title: 'Links',
+    links: [
+      { label: 'Home', to: '/' },
+      { label: 'Membership', to: '/membership' },
+      { label: 'About', to: '/about' },
+      { label: 'Contact Us', to: '/contact' },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { label: 'FAQ', to: '/faq' },
+      { label: 'Sign Up', to: '/register' },
+      { label: 'Terms & Conditions', to: '/terms-conditions/introduction' },
+      { label: 'Privacy Policy', to: '/privacy-policy/introduction' },
+    ],
+  },
+]
 
 export default function Footer() {
-  const [settings, setSettings] = useState({})
-
-  useEffect(() => {
-    fetch('/api/settings/public')
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(setSettings)
-      .catch(() => {})
-  }, [])
-
   return (
-    <footer className="relative bg-dark-blue text-white overflow-hidden">
-      {/* Decorative glow */}
-      <div className="pointer-events-none absolute -top-32 left-1/4 w-[600px] h-[400px] bg-brand-pink/10 rounded-full blur-[120px]" />
-
-      <div className="relative max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-          {/* Brand */}
-          <div>
-            <Link to="/" className="flex items-center gap-2.5 mb-4 group">
-              <img src="/assets/shared/mavuus-icon.svg" alt="" className="w-[29px] h-[31px] transition-transform group-hover:scale-110" />
-              <img src="/assets/shared/mavuus-wordmark.svg" alt="Mavuus" className="h-[20px] brightness-0 invert" />
-            </Link>
-            <p className="text-neutral-300 text-sm leading-relaxed">
-              The premier community for marketing leaders to connect, learn, and grow together.
-            </p>
-          </div>
-
-          {/* Link Columns */}
-          {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
-              <h4 className="text-sm font-semibold mb-4 text-white tracking-wide">{title}</h4>
-              <ul className="space-y-3">
-                {links.map(link => (
-                  <li key={link.label}>
-                    <Link
-                      to={link.path}
-                      className="relative text-sm text-neutral-300 hover:text-white transition-colors inline-block after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-brand-pink after:transition-all hover:after:w-full"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+    <footer className="border-t border-black/[0.06] text-dark-blue">
+      <div className="px-10 max-md:px-5">
+        <div className="mx-auto max-w-[1280px] pt-24 pb-10 max-[991px]:pt-[72px] max-[767px]:pt-14">
+          <div className="grid grid-cols-[1fr_768px] gap-y-4 pb-16 max-[1199px]:grid-cols-[1fr_640px] max-[991px]:grid-cols-1 max-[991px]:gap-y-12 max-[767px]:pb-12">
+            <div className="flex flex-col items-start gap-4">
+              <Link to="/" aria-label="Mavuus home" className="block w-fit">
+                <img src={LIVE_LOGO} alt="Mavuus" width="175" height="34" loading="lazy" className="block h-[34px] w-[175px]" />
+              </Link>
+              <p className="m-0 max-w-[300px] text-base leading-7 text-live-grey">
+                Marketing strategy, execution and leadership for B2B growth.
+              </p>
             </div>
-          ))}
-        </div>
-
-        <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-neutral-400">
-            &copy; {new Date().getFullYear()} Mavuus. All rights reserved.
-          </p>
-          <div className="flex gap-6">
-            {[
-              { name: 'Twitter', url: settings.social_twitter },
-              { name: 'LinkedIn', url: settings.social_linkedin },
-              { name: 'Instagram', url: settings.social_instagram },
-            ].map((platform) => (
-              <a
-                key={platform.name}
-                href={platform.url || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative text-neutral-300 hover:text-white text-sm transition-colors after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-brand-pink after:transition-all hover:after:w-full"
-              >
-                {platform.name}
-              </a>
-            ))}
+            <div className="grid grid-cols-3 gap-y-4 max-[767px]:gap-x-6 max-[479px]:grid-cols-1 max-[479px]:gap-y-10">
+              {COLUMNS.map((col) => (
+                <div key={col.title} className="flex flex-col items-start">
+                  <h2 className="mb-3 text-xl leading-[1.4] font-medium">{col.title}</h2>
+                  {col.links.map((l) => (
+                    <Link key={l.label} to={l.to} className="py-2.5 text-base leading-6 font-medium text-live-grey transition-colors hover:text-brand-pink">
+                      {l.label}
+                    </Link>
+                  ))}
+                </div>
+              ))}
+              <div className="flex flex-col items-start">
+                <h2 className="mb-3 text-xl leading-[1.4] font-medium">Get in Touch</h2>
+                <p className="m-0 py-2.5 text-base leading-7 text-dark-blue">
+                  Question or feedback? We would love to{' '}
+                  <Link to="/contact" className="text-live-grey underline transition-colors hover:text-brand-pink">hear from you</Link>.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-live-line/60 pt-8 text-sm leading-6 text-live-grey">
+            <span>&copy; {new Date().getFullYear()} Mavuus. All rights reserved.</span>
+            <span className="flex gap-6">
+              <Link to="/terms-conditions/introduction" className="py-2.5 hover:text-brand-pink">Terms</Link>
+              <Link to="/privacy-policy/introduction" className="py-2.5 hover:text-brand-pink">Privacy</Link>
+            </span>
           </div>
         </div>
       </div>

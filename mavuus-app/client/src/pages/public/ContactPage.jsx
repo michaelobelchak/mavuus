@@ -1,205 +1,214 @@
-import { useState, useEffect } from 'react'
+import { useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { contactFaqItems } from '../../data/mockData'
-import LogoBar from '../../components/sections/LogoBar'
-import TestimonialRow from '../../components/sections/TestimonialRow'
-import CTABannerQuote from '../../components/sections/CTABannerQuote'
-import FAQSection from '../../components/sections/FAQSection'
-import AnimatedSection from '../../components/ui/AnimatedSection'
-import GradientText from '../../components/ui/GradientText'
-import { useToast } from '../../components/ui/Toast'
+import LiveButton from '../../components/live/LiveButton'
+import CTABand from '../../components/live/CTABand'
+import PageHero from '../../components/live/info/PageHero'
+import Section from '../../components/live/ui/Section'
+import Reveal from '../../components/live/ui/Reveal'
+import { cardClass } from '../../components/live/ui/cardStyles'
+import { Eyebrow, H_CARD } from '../../components/live/ui/Typography'
 
-export default function ContactPage() {
-  const toast = useToast()
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' })
-  const [submitted, setSubmitted] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [faqItems, setFaqItems] = useState(null)
+const PHOTOS = 'https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/669f0e0e2a657f4c5e1c90d0_img-contacts.png'
 
-  // Pull CMS-managed FAQ items if the admin added any, fall back to static
-  useEffect(() => {
-    fetch('/api/faq?page=contact')
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((data) => setFaqItems(data.map((f) => ({ title: f.question, content: f.answer }))))
-      .catch(() => {})
-  }, [])
+// The live image is one PNG holding two photos side by side. Each frame crops one of them.
+const FRAMES = [
+  { alt: 'A smiling marketer working on a laptop outdoors', crop: 'left-[-1.25%] top-[-0.73%]', offset: '' },
+  { alt: 'Two marketers working together on a laptop', crop: 'left-[-114.94%] top-[-11.62%]', offset: 'mt-12 max-[767px]:mt-8' },
+]
 
-  const handleSubmit = async (e) => {
+const EMPTY = { firstName: '', lastName: '', email: '', phone: '', message: '' }
+const FIELDS = [
+  { name: 'firstName', id: 'First-Name', label: 'First Name', type: 'text', required: true, autoComplete: 'given-name' },
+  { name: 'lastName', id: 'Last-Name', label: 'Last Name', type: 'text', autoComplete: 'family-name' },
+  { name: 'email', id: 'Email-Address', label: 'Email Address', type: 'email', required: true, autoComplete: 'email' },
+  { name: 'phone', id: 'Phone-Number', label: 'Phone Number', type: 'tel', autoComplete: 'tel' },
+]
+const MESSAGE = { name: 'message', id: 'Message', label: 'Write a message', required: true }
+const ORDER = ['firstName', 'email', 'message']
+
+const FIELD = 'w-full rounded-xl border bg-white px-4 text-base leading-6 text-dark-blue transition-colors placeholder:text-live-muted focus:border-brand-blue'
+const LABEL = 'mb-2 block text-sm leading-5 font-semibold text-dark-blue'
+
+function validate(values) {
+  const errors = {}
+  if (!values.firstName.trim()) errors.firstName = 'Enter your first name.'
+  const email = values.email.trim()
+  if (!email) errors.email = 'Enter your email address.'
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Enter a valid email address, like name@company.com.'
+  if (!values.message.trim()) errors.message = 'Write a short message so we know how to help.'
+  return errors
+}
+
+function Label({ field }) {
+  return (
+    <label htmlFor={field.id} className={LABEL}>
+      {field.label}
+      {field.required && (
+        <>
+          <span aria-hidden="true" className="ml-0.5 text-brand-pink">*</span>
+          <span className="sr-only"> (required)</span>
+        </>
+      )}
+    </label>
+  )
+}
+
+function fieldProps(field, errors) {
+  const error = errors[field.name]
+  return {
+    id: field.id,
+    name: field.name,
+    'aria-required': field.required || undefined,
+    'aria-invalid': error ? true : undefined,
+    'aria-describedby': error ? `${field.id}-error` : undefined,
+  }
+}
+
+const borderFor = (field, errors) => (errors[field.name] ? 'border-red-700' : 'border-live-line')
+
+function FieldError({ field, errors }) {
+  if (!errors[field.name]) return null
+  return (
+    <p id={`${field.id}-error`} className="m-0 mt-2 text-sm leading-5 font-medium text-red-700">
+      {errors[field.name]}
+    </p>
+  )
+}
+
+function ContactForm() {
+  const [values, setValues] = useState(EMPTY)
+  const [errors, setErrors] = useState({})
+  const [status, setStatus] = useState('idle')
+  const formRef = useRef(null)
+
+  const update = (e) => {
+    const { name, value } = e.target
+    setValues((prev) => ({ ...prev, [name]: value }))
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }))
+  }
+
+  const submit = async (e) => {
     e.preventDefault()
-    if (submitting) return
-    setSubmitting(true)
+    if (status === 'sending') return
+    const found = validate(values)
+    setErrors(found)
+    const first = ORDER.find((name) => found[name])
+    if (first) {
+      formRef.current?.elements.namedItem(first)?.focus()
+      return
+    }
+    setStatus('sending')
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: `${values.firstName} ${values.lastName}`.trim(),
+          email: values.email.trim(),
+          phone: values.phone.trim(),
+          message: values.message.trim(),
+        }),
       })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        toast.error(data.error || 'Could not send message. Please try again.')
-        return
-      }
-      setSubmitted(true)
-      toast.success('Message sent — we\'ll get back to you shortly.')
+      setStatus(res.ok ? 'done' : 'error')
+      if (res.ok) setValues(EMPTY)
     } catch {
-      toast.error('Network error. Please try again.')
-    } finally {
-      setSubmitting(false)
+      setStatus('error')
     }
   }
 
-  const handleChange = (field) => (e) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }))
+  if (status === 'done') {
+    return (
+      <div className="rounded-xl bg-live-blue-light p-6 text-center text-base leading-6 font-medium text-dark-blue" role="status">
+        Thank you! Your submission has been received!
+      </div>
+    )
   }
 
   return (
-    <div>
-      <Helmet>
-        <title>Contact Mavuus</title>
-        <meta name="description" content="Get in touch with the Mavuus team. Whether you have a question, need support, or want to explore partnerships, we'd love to connect." />
-        <link rel="canonical" href="https://mavuus.com/contact" />
-      </Helmet>
-
-      {/* Hero + Form Section */}
-      <section className="relative px-6 md:px-12 lg:px-24 pt-6 pb-10 overflow-hidden">
-        {/* Decorative mesh gradient */}
-        <div className="absolute inset-0 -z-10 pointer-events-none">
-          <div className="absolute top-[-150px] right-[-100px] w-[500px] h-[500px] bg-brand-pink/10 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-200px] left-[10%] w-[400px] h-[400px] bg-brand-blue/10 rounded-full blur-[100px]" />
+    <form ref={formRef} onSubmit={submit} noValidate className="grid grid-cols-2 gap-x-4 gap-y-5 max-[479px]:grid-cols-1">
+      {FIELDS.map((field) => (
+        <div key={field.name}>
+          <Label field={field} />
+          <input
+            {...fieldProps(field, errors)}
+            type={field.type}
+            maxLength={256}
+            autoComplete={field.autoComplete}
+            value={values[field.name]}
+            onChange={update}
+            className={`${FIELD} ${borderFor(field, errors)} h-12`}
+          />
+          <FieldError field={field} errors={errors} />
         </div>
+      ))}
+      <div className="col-span-full">
+        <Label field={MESSAGE} />
+        <textarea
+          {...fieldProps(MESSAGE, errors)}
+          maxLength={5000}
+          placeholder="How can we help?"
+          value={values.message}
+          onChange={update}
+          className={`${FIELD} ${borderFor(MESSAGE, errors)} block min-h-40 py-3`}
+        />
+        <FieldError field={MESSAGE} errors={errors} />
+      </div>
+      <div className="col-span-full flex flex-col items-start gap-4">
+        <LiveButton type="submit" variant="blue" disabled={status === 'sending'} className="mt-1 min-w-56">
+          {status === 'sending' ? 'Please wait...' : 'Send Request'}
+        </LiveButton>
+        {status === 'error' && (
+          <p className="m-0 w-full rounded-xl bg-red-50 p-4 text-base leading-6 text-red-800" role="alert">
+            Oops! Something went wrong while submitting the form.
+          </p>
+        )}
+      </div>
+    </form>
+  )
+}
 
-        {/* Header Row */}
-        <AnimatedSection animation="fade-up">
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-36 items-start mb-9">
-            {/* Left: Title */}
-            <div className="shrink-0">
-              <h1 className="text-[28px] md:text-[36px] lg:text-[42px] font-medium leading-[1.1]">
-                <GradientText className="font-semibold">Get in Touch</GradientText>
-                <br />
-                <span className="text-neutral-600">Support@Mavuus.com</span>
-              </h1>
-            </div>
-
-            {/* Right: Description */}
-            <div className="flex-1 font-light text-base leading-[1.6] text-neutral-500">
-              <p className="mb-4">
-                Whether you have a question, need support, or want to explore partnership opportunities, we&apos;d love to connect.
-              </p>
-              <p>
-                Learn how Mavuus helps marketing leaders to advance their careers and achieve their goals by learning from experts, networking with peers, and building meaningful connections.
-              </p>
-            </div>
+export default function ContactPage() {
+  return (
+    <>
+      <Helmet>
+        <title>Contact Us - Mavuus</title>
+        <meta
+          name="description"
+          content="Contact us if you want to learn how Mavuus helps CMOs elevate their executive influence by sharing, learning and leading together."
+        />
+      </Helmet>
+      <PageHero
+        display
+        title="Get in Touch"
+        lead="Whether you have a question, need support, or want to explore partnership opportunities, we’d love to connect. Learn how Mavuus helps marketing leaders to advance their careers and achieve their goals by learning from experts, networking with peers, and building meaningful connections."
+      />
+      <Section>
+        <div className="grid grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)] items-center gap-16 max-[1199px]:grid-cols-[minmax(0,0.6fr)_minmax(0,1fr)] max-[1199px]:gap-12 max-[991px]:grid-cols-1 max-[991px]:gap-12">
+          <div className="grid grid-cols-2 items-start gap-6 max-[991px]:mx-auto max-[991px]:w-full max-[991px]:max-w-[560px] max-[767px]:gap-4">
+            {FRAMES.map((frame, i) => (
+              <Reveal key={frame.alt} variant="clip" index={i} className={`relative aspect-[241/413] overflow-hidden rounded-2xl ${frame.offset}`}>
+                <img
+                  src={PHOTOS}
+                  alt={frame.alt}
+                  loading="lazy"
+                  decoding="async"
+                  className={`absolute w-[216.2%] max-w-none ${frame.crop}`}
+                />
+              </Reveal>
+            ))}
           </div>
-        </AnimatedSection>
-
-        {/* Form Card */}
-        <AnimatedSection animation="fade-up" delay={150}>
-          {submitted ? (
-            <div className="bg-white/90 border border-neutral-200 rounded-[28px] p-8 text-center py-20">
-              <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-dark-blue mb-2">Message Sent!</h3>
-              <p className="text-neutral-500 mb-6">We&apos;ll get back to you shortly.</p>
-              <button
-                onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', phone: '', message: '' }) }}
-                className="text-brand-pink font-semibold hover:underline cursor-pointer"
-              >
-                Send Another Message
-              </button>
+          <Reveal className={cardClass({ variant: 'surface', className: 'flex flex-col gap-8 p-10 max-[767px]:p-6' })}>
+            <div className="flex flex-col gap-3">
+              <Eyebrow>Send us a message</Eyebrow>
+              <h2 className={`m-0 ${H_CARD}`}>
+                Please provide brief information about yourself and we’ll get back to you shortly.
+              </h2>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="bg-white/90 border border-neutral-200 rounded-[28px] p-2">
-              {/* Textarea */}
-              <div className="bg-bg-light rounded-t-[20px] h-[240px] flex flex-col relative">
-                <div className="flex-1 px-9 py-6">
-                  <textarea
-                    value={formData.message}
-                    onChange={handleChange('message')}
-                    placeholder={'Ask your question and provide brief information about yourself\nand we\'ll get back to you shortly...'}
-                    className="w-full h-full bg-transparent font-light text-[18px] md:text-[24px] leading-[1.6] text-dark-blue placeholder:text-neutral-300 resize-none outline-none"
-                  />
-                </div>
-                <div className="h-px bg-neutral-200 mx-0" />
-              </div>
-
-              {/* Bottom Row: Inputs + Button */}
-              <div className="flex flex-col md:flex-row gap-4 md:gap-2 items-stretch md:items-end p-4">
-                {/* Name */}
-                <div className="flex-1 flex flex-col gap-2.5">
-                  <label className="px-1 text-sm font-semibold text-neutral-300">
-                    Your Name<span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={handleChange('name')}
-                    placeholder="Enter Your Full Name"
-                    className="w-full bg-white border border-neutral-300 rounded-xl p-4 text-sm font-medium text-dark-blue placeholder:text-neutral-300 outline-none focus:border-brand-pink transition-colors"
-                  />
-                </div>
-
-                {/* Email */}
-                <div className="flex-1 flex flex-col gap-2.5">
-                  <label className="px-1 text-sm font-semibold text-neutral-300">
-                    Email Address<span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange('email')}
-                    placeholder="your@Email.com"
-                    className="w-full bg-white border border-neutral-300 rounded-xl p-4 text-sm font-medium text-dark-blue placeholder:text-neutral-300 outline-none focus:border-brand-pink transition-colors"
-                  />
-                </div>
-
-                {/* Phone */}
-                <div className="flex-1 flex flex-col gap-2.5">
-                  <label className="px-1 text-sm font-semibold text-neutral-300">
-                    Phone Number<span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={handleChange('phone')}
-                    placeholder="+1 ( _ _ _ ) _ _ _ - _ _ - _ _"
-                    className="w-full bg-white border border-neutral-300 rounded-xl p-4 text-sm font-medium text-dark-blue placeholder:text-neutral-300 outline-none focus:border-brand-pink transition-colors"
-                  />
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="inline-flex items-center justify-center gap-2 bg-brand-pink text-white font-bold text-base px-8 py-4 rounded-[16px] shadow-[0_4px_15px_rgba(242,109,146,0.25)] hover:bg-brand-pink-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-150 whitespace-nowrap flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
-                >
-                  {submitting && (
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  )}
-                  {submitting ? 'Sending…' : 'Send Request'}
-                </button>
-              </div>
-            </form>
-          )}
-        </AnimatedSection>
-      </section>
-
-      {/* Logo Bar */}
-      <LogoBar />
-
-      {/* Testimonial Row */}
-      <TestimonialRow />
-
-      {/* FAQ Section */}
-      <FAQSection items={faqItems || contactFaqItems} />
-
-      {/* CTA Banner */}
-      <CTABannerQuote />
-    </div>
+            <ContactForm />
+          </Reveal>
+        </div>
+      </Section>
+      <CTABand text="Connect with like-minded leaders across North America, share insights, and discover resources to elevate your career." />
+    </>
   )
 }

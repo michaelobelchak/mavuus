@@ -54,7 +54,7 @@ mavuus-app/
 2. Non-trivial work starts with a plan. Use `/brainstorm` for open design questions, then `/write-plan`. Plans live in `mavuus-app/plans/` and get listed in `plans/README.md`.
 3. Run a plan with `/execute-plan`.
 4. Before claiming done, run `/verify` and show the output.
-5. Add a dated entry to `CHANGELOG.md` (newest at the bottom, under the matching phase heading) and mark the plan's status.
+5. Add a dated entry to `CHANGELOG.md` (what shipped) and to `MEMORY.md` (why: the decision, rejected alternatives, anything non-obvious), newest at the bottom, and mark the plan's status. Audits go in `mavuus-app/plans/audits/`.
 6. Ship with `/ship`. It asks before each step, opens a PR to `main`, and never merges.
 
 ## Skill routing
@@ -78,11 +78,13 @@ The process skills live in `.claude/skills/`.
 - [ ] `npx eslint . --max-warnings 0` passes in client (CI runs lint, build, and server tests on every PR)
 - [ ] UI changes checked in the browser, including mobile width
 - [ ] Schema changes reflected in `seed.js` and `seed-demo.js`, and the DB reset still works
-- [ ] `CHANGELOG.md` entry added, plan status updated
+- [ ] `CHANGELOG.md` and `MEMORY.md` entries added, plan status updated
 
 ## Conventions
 
-- Brand: pink `#F26D92`, blue `#1F648D`, dark blue `#1C2232`, font Manrope. Use the `@theme` tokens in `client/src/index.css` (`bg-brand-pink`, `text-dark-blue`, ...), not raw hex values.
+- Brand: pink `#F26D92`, blue `#1F648D`, dark blue `#1C2232`. Use the `@theme` tokens in `client/src/index.css` (`bg-brand-pink`, `text-dark-blue`, `text-live-grey`, ...), not raw hex values.
+- Public website (`pages/public/`, inside `PublicLayout`) keeps live mavuus.com's content, brand and structure but follows one design system: Fixel Text, `.live-site` typography in `index.css`, and the shared cards, buttons, labels, headings, sections and motion in `components/live/` (see `mavuus-app/plans/PUBLIC-DESIGN-SYSTEM.md`). Reuse those parts instead of styling one-offs. Static content lives in `data/live/`; images still load from the live Webflow CDN. The dashboard and admin use Manrope.
+- Brand pink `#F26D92` stays as is (owner decision, see MEMORY.md), so never put essential small text in pink on its own; focus rings are navy.
 - Buttons: 16px radius for CTAs, `rounded-full` for filter pills.
 - Reuse components in `components/ui` before building new ones.
 - Server: validate input with `middleware/validate.js`, use parameterized SQL only, and guard member routes with `middleware/auth.js` and admin routes with `middleware/admin.js`.

@@ -1,5 +1,41 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
+
+/* Fixel Text, the font used on the live mavuus.com site (served from its Webflow CDN) */
+@font-face {
+  font-family: Fixeltext;
+  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a8542d420b9568cbbc_FixelText-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Fixeltext;
+  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a89906e5efe6bc7f35_FixelText-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Fixeltext;
+  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a80f53689e46a53cbe_FixelText-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Fixeltext;
+  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a81353e3635b91fc47_FixelText-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Fixeltext;
+  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a8e1f09926e879d24a_FixelText-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 @theme {
   /* Brand Colors */
@@ -31,6 +67,25 @@
   --color-neutral-100: #E8EBF0;
   --color-bg-light: #F5F8FE;
   --color-bg-white: #FFFFFF;
+
+  /* Live site (mavuus.com) tokens */
+  --font-live: Fixeltext, sans-serif;
+  --color-live-bg: #fcfbfa;
+  --color-live-ink: #14213d;
+  --color-live-grey: #5e697c;
+  --color-live-blue-light: #eeeff4;
+  --color-live-line: #919aa8;
+  --color-live-muted: #6b7280;
+  --color-live-faint: #9ca3af;
+  --color-live-track: #e5e7eb;
+  --color-live-hairline: #dbe0e7;
+  --color-live-pink-50: #fdf0f4;
+  --color-live-pink-200: #f6b9cd;
+  --color-live-sky: #9cc3dd;
+  --shadow-live-card: 0 12px 32px rgba(17, 24, 39, 0.06);
+  --shadow-live-card-hover: 0 22px 46px rgba(242, 109, 146, 0.16);
+  --shadow-live-float: 0 18px 40px rgba(17, 24, 39, 0.14);
+  --ease-live: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* Font Family */
   --font-heading: 'Manrope', sans-serif;
@@ -89,16 +144,6 @@
 }
 
 /* ========== KEYFRAME ANIMATIONS ========== */
-@keyframes shimmer {
-  0% { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
-}
-.animate-shimmer {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-  background-size: 1000px 100%;
-  animation: shimmer 1.6s infinite linear;
-}
-
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20%, 60% { transform: translateX(-4px); }
@@ -140,26 +185,61 @@
   outline-offset: 2px;
 }
 
-/* Global focus-visible ring — brand pink at 30% opacity, 2px */
-:where(button, a, [role='button'], [tabindex]):focus-visible {
-  outline: 2px solid var(--color-brand-pink);
-  outline-offset: 2px;
-  border-radius: 6px;
+/* Global focus-visible ring: navy so it stays visible on light and pink surfaces (WCAG 1.4.11); outlines follow each element's own radius */
+:where(button, a, [role='button'], [tabindex], summary):focus-visible {
+  outline: 2px solid var(--color-dark-blue);
+  outline-offset: 3px;
 }
 
-/* Base styles */
-body {
-  font-family: var(--font-body);
-  color: var(--color-neutral-600);
-  background-color: var(--color-bg-white);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* Base styles live in @layer base so utility classes on elements can override them */
+@layer base {
+  body {
+    font-family: var(--font-body);
+    color: var(--color-neutral-600);
+    background-color: var(--color-bg-white);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  color: var(--color-dark-blue);
-  font-weight: 600;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    color: var(--color-dark-blue);
+    font-weight: 600;
+  }
+
+  /* Public website: typography copied from the live mavuus.com Webflow styles */
+  .live-site {
+    font-family: var(--font-live);
+    color: var(--color-dark-blue);
+    background-color: var(--color-live-bg);
+    font-size: 1rem;
+    line-height: 1.5;
+    text-rendering: optimizeLegibility;
+  }
+  .live-site :is(h1, h2, h3, h4, h5, h6) { font-family: var(--font-live); font-weight: 500; color: inherit; }
+  .live-site h1 { font-size: 2.875rem; line-height: 50.6px; }
+  .live-site h2 { font-size: 2.25rem; line-height: 1.2; text-wrap: balance; }
+  .live-site h3 { font-size: 1.625rem; line-height: 33px; }
+  .live-site h4 { font-size: 1.5rem; line-height: 1.4; }
+  .live-site h5 { font-size: 1.25rem; line-height: 1.5; }
+  .live-site h6 { font-size: 1.125rem; font-weight: 700; line-height: 1.5; }
+  .live-site p { color: var(--color-live-grey); font-size: 1.125rem; line-height: 28.8px; }
+  .live-site ::selection { background-color: var(--color-live-pink-200); color: var(--color-dark-blue); }
+  .live-site { caret-color: var(--color-brand-pink); }
+  .live-site a { text-underline-offset: 3px; }
+  @media (max-width: 991px) {
+    .live-site h2 { font-size: 1.875rem; }
+  }
+  @media (max-width: 767px) {
+    .live-site h2 { font-size: 1.75rem; }
+    .live-site h3 { font-size: 1.5rem; }
+    .live-site h4 { font-size: 1.25rem; }
+    .live-site h5 { font-size: 1rem; }
+    .live-site h6 { font-size: 0.875rem; }
+  }
+  @media (max-width: 479px) {
+    .live-site h1 { font-size: 2rem; line-height: 32px; }
+  }
 }
 
 /* ========== ANIMATIONS ========== */
@@ -341,7 +421,34 @@ h1, h2, h3, h4, h5, h6 {
   animation: slideInFromRight 0.3s ease-out;
 }
 
-/* Smooth scroll for the whole page */
-html {
-  scroll-behavior: smooth;
+/* Smooth scroll only for people who haven't asked for reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ========== PUBLIC SITE MOTION (components/live/ui/Reveal.jsx) ==========
+   Content starts hidden only once Reveal has mounted, and shows when it scrolls into view. */
+.live-site [data-reveal] {
+  transition-property: opacity, transform, clip-path, filter;
+  transition-duration: 700ms;
+  transition-timing-function: var(--ease-live);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.live-site [data-reveal='rise'][data-armed]:not([data-in]) { opacity: 0; transform: translateY(18px); }
+.live-site [data-reveal='fade'][data-armed]:not([data-in]) { opacity: 0; }
+.live-site [data-reveal='clip'] { transition-duration: 1000ms; }
+.live-site [data-reveal='clip'][data-armed]:not([data-in]) { clip-path: inset(10% 10% 10% 10% round 24px); opacity: 0.4; filter: saturate(0.6); }
+@media (prefers-reduced-motion: reduce) {
+  .live-site [data-reveal] { transition-property: opacity; transition-duration: 250ms; transform: none !important; clip-path: none !important; filter: none !important; }
+}
+
+@keyframes live-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.live-float { animation: live-float 6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .live-float { animation: none; }
 }
