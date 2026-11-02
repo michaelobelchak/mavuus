@@ -16,7 +16,7 @@ Custom React rebuild of mavuus.com, a B2B community platform for marketing leade
 | Client dev (port 5173) | `cd mavuus-app/client && npm run dev` |
 | Client build | `cd mavuus-app/client && npx vite build` |
 | Server tests | `cd mavuus-app/server && npm test` |
-| Client lint | `cd mavuus-app/client && npx eslint <files>` |
+| Client lint | `cd mavuus-app/client && npx eslint . --max-warnings 0` |
 | Reset the DB | `cd mavuus-app/server && rm -f db/mavuus.db && node db/seed.js` |
 | Top up demo data only | `cd mavuus-app/server && node db/seed-demo.js` |
 
@@ -38,7 +38,7 @@ mavuus-app/
     pages/{public,auth,dashboard,admin}/
     components/{ui,layout,sections}/   - shared UI, exported through components/index.js
     context/AuthContext.jsx
-    hooks/                  - useApiData, useFetch, useDocumentTitle, ...
+    hooks/                  - useApiData, useDocumentTitle, ...
     data/mockData.js
   server/
     index.js
@@ -75,7 +75,7 @@ The process skills live in `.claude/skills/`.
 ## Definition of done
 
 - [ ] `npx vite build` passes in client and `npm test` passes in server
-- [ ] No new lint problems in client files you changed (the repo has older lint debt; don't add to it)
+- [ ] `npx eslint . --max-warnings 0` passes in client (CI runs lint, build, and server tests on every PR)
 - [ ] UI changes checked in the browser, including mobile width
 - [ ] Schema changes reflected in `seed.js` and `seed-demo.js`, and the DB reset still works
 - [ ] `CHANGELOG.md` entry added, plan status updated

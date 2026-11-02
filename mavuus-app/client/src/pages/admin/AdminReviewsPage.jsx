@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { Search, ChevronLeft, ChevronRight, Trash2, Star, X, Shield, ShieldAlert, EyeOff, CheckCircle } from 'lucide-react'
 
 export default function AdminReviewsPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [reviews, setReviews] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -14,22 +16,28 @@ export default function AdminReviewsPage() {
 
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
-  const fetchReviews = async () => {
-    const params = new URLSearchParams({ page, limit })
-    if (ratingFilter) params.set('rating', ratingFilter)
-    if (typeFilter) params.set('type', typeFilter)
-    if (moderationFilter) params.set('moderation_status', moderationFilter)
-    try {
-      const res = await fetch(`/api/admin/reviews?${params}`, { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
-        setReviews(data.data || [])
-        setTotal(data.total || 0)
-      }
-    } catch {}
-  }
+  const [reloadKey, setReloadKey] = useState(0)
+  const reloadReviews = () => setReloadKey(k => k + 1)
 
-  useEffect(() => { fetchReviews() }, [page, ratingFilter, typeFilter, moderationFilter, token])
+  useEffect(() => {
+    const fetchReviews = async () => {
+      const params = new URLSearchParams({ page, limit })
+      if (ratingFilter) params.set('rating', ratingFilter)
+      if (typeFilter) params.set('type', typeFilter)
+      if (moderationFilter) params.set('moderation_status', moderationFilter)
+      try {
+        const res = await fetch(`/api/admin/reviews?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          setReviews(data.data || [])
+          setTotal(data.total || 0)
+        }
+      } catch (err) {
+        console.error('Failed to load reviews', err)
+      }
+    }
+    fetchReviews()
+  }, [page, ratingFilter, typeFilter, moderationFilter, token, reloadKey])
 
   const handleDelete = async (id) => {
     try {
@@ -38,8 +46,10 @@ export default function AdminReviewsPage() {
         headers: { Authorization: `Bearer ${token}` },
       })
       setDeleteConfirm(null)
-      fetchReviews()
-    } catch {}
+      reloadReviews()
+    } catch {
+      toast.error("Couldn't delete the review. Try again.")
+    }
   }
 
   const updateModeration = async (id, moderation_status) => {
@@ -52,8 +62,10 @@ export default function AdminReviewsPage() {
         },
         body: JSON.stringify({ moderation_status }),
       })
-      fetchReviews()
-    } catch {}
+      reloadReviews()
+    } catch {
+      toast.error("Couldn't update the review status. Try again.")
+    }
   }
 
   const totalPages = Math.ceil(total / limit)

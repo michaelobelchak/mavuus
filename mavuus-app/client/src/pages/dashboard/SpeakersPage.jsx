@@ -25,7 +25,9 @@ export default function SpeakersPage() {
       const params = debouncedSearch ? `?search=${encodeURIComponent(debouncedSearch)}` : ''
       const res = await fetch(`/api/speakers${params}`)
       if (res.ok) setSpeakers(await res.json())
-    } catch {} finally { setLoading(false) }
+    } catch (err) {
+      console.error('Failed to load speakers', err)
+    } finally { setLoading(false) }
   }, [debouncedSearch])
 
   useEffect(() => { fetchSpeakers() }, [fetchSpeakers])
@@ -36,7 +38,9 @@ export default function SpeakersPage() {
     try {
       const res = await fetch(`/api/speakers/${speaker.id}`)
       if (res.ok) setSpeakerDetail(await res.json())
-    } catch {} finally { setDetailLoading(false) }
+    } catch (err) {
+      console.error('Failed to load speaker details', err)
+    } finally { setDetailLoading(false) }
   }
 
   return (

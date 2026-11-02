@@ -16,7 +16,6 @@ export default function MembersPage() {
   const toast = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const [members, setMembers] = useState([])
-  const [loading, setLoading] = useState(true)
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [tier, setTier] = useState('All')
@@ -30,24 +29,34 @@ export default function MembersPage() {
   const filter = searchParams.get('filter') || 'all'
 
   // Fetch members with server-side search
-  const fetchMembers = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({ page, limit: 20 })
-      if (search) params.set('search', search)
-      const res = await fetch(`/api/members?${params}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      })
-      if (res.ok) {
-        const json = await res.json()
-        setMembers(json.data || json)
-        setTotalPages(json.totalPages || 1)
-      }
-    } catch {}
-    setLoading(false)
-  }, [search, page, token])
+  const queryKey = JSON.stringify([search, page, token])
+  const [loadedKey, setLoadedKey] = useState(null)
+  const loading = loadedKey !== queryKey
 
-  useEffect(() => { fetchMembers() }, [fetchMembers])
+  useEffect(() => {
+    let ignore = false
+    const fetchMembers = async () => {
+      try {
+        const params = new URLSearchParams({ page, limit: 20 })
+        if (search) params.set('search', search)
+        const res = await fetch(`/api/members?${params}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        if (res.ok) {
+          const json = await res.json()
+          if (ignore) return
+          setMembers(json.data || json)
+          setTotalPages(json.totalPages || 1)
+        }
+      } catch (err) {
+        console.error('Failed to load members', err)
+      } finally {
+        if (!ignore) setLoadedKey(queryKey)
+      }
+    }
+    fetchMembers()
+    return () => { ignore = true }
+  }, [search, page, token, queryKey])
 
   // Debounce search
   useEffect(() => {
@@ -95,7 +104,9 @@ export default function MembersPage() {
             })
           }
         }
-      } catch {}
+      } catch (err) {
+        console.error('Failed to load connections', err)
+      }
     }
 
     fetchConnections()

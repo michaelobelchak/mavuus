@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { Search, ChevronLeft, ChevronRight, Eye, EyeOff, Trash2, RotateCcw, FileText, X, Download, StickyNote } from 'lucide-react'
 
 export default function AdminJobsPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [jobs, setJobs] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [moderationFilter, setModerationFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -19,28 +22,28 @@ export default function AdminJobsPage() {
   const [notesModal, setNotesModal] = useState(null)
   const [adminNotes, setAdminNotes] = useState('')
 
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(() => {
     const params = new URLSearchParams({ page, limit })
-    if (search) params.set('search', search)
+    if (appliedSearch) params.set('search', appliedSearch)
     if (typeFilter) params.set('type', typeFilter)
     if (moderationFilter) params.set('moderation_status', moderationFilter)
     if (statusFilter) params.set('status', statusFilter)
-    try {
-      const res = await fetch(`/api/admin/jobs?${params}`, { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
+    return fetch(`/api/admin/jobs?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!data) return
         setJobs(data.data || [])
         setTotal(data.total || 0)
-      }
-    } catch {}
-  }
+      })
+      .catch(err => console.error('Failed to load jobs', err))
+  }, [page, appliedSearch, typeFilter, moderationFilter, statusFilter, token])
 
-  useEffect(() => { fetchJobs() }, [page, typeFilter, moderationFilter, statusFilter, token])
+  useEffect(() => { fetchJobs() }, [fetchJobs])
 
   const handleSearch = (e) => {
     e.preventDefault()
     setPage(1)
-    fetchJobs()
+    setAppliedSearch(search)
   }
 
   const fetchApplicants = async (jobId) => {
@@ -50,7 +53,9 @@ export default function AdminJobsPage() {
         const data = await res.json()
         setApplicants(data.data || [])
       }
-    } catch {}
+    } catch (err) {
+      console.error('Failed to load applicants', err)
+    }
   }
 
   const openApplicantsModal = (job) => {
@@ -66,7 +71,9 @@ export default function AdminJobsPage() {
         body: JSON.stringify({ status }),
       })
       if (applicantsModal) fetchApplicants(applicantsModal.id)
-    } catch {}
+    } catch {
+      toast.error("Couldn't update the application status. Try again.")
+    }
   }
 
   const updateModeration = async (jobId, moderation_status) => {
@@ -77,7 +84,9 @@ export default function AdminJobsPage() {
         body: JSON.stringify({ moderation_status }),
       })
       fetchJobs()
-    } catch {}
+    } catch {
+      toast.error("Couldn't update the job moderation status. Try again.")
+    }
   }
 
   const updateJobStatus = async (jobId, status) => {
@@ -88,7 +97,9 @@ export default function AdminJobsPage() {
         body: JSON.stringify({ status }),
       })
       fetchJobs()
-    } catch {}
+    } catch {
+      toast.error("Couldn't update the job status. Try again.")
+    }
   }
 
   const saveAdminNotes = async () => {
@@ -101,7 +112,9 @@ export default function AdminJobsPage() {
       })
       setNotesModal(null)
       fetchJobs()
-    } catch {}
+    } catch {
+      toast.error("Couldn't save the admin notes. Try again.")
+    }
   }
 
   const totalPages = Math.ceil(total / limit)

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { Bell, Send, Eye, Users, Crown, UserCheck, ChevronLeft, ChevronRight } from 'lucide-react'
 
@@ -19,21 +19,21 @@ export default function AdminNotificationsPage() {
 
   const targetLabels = { all: 'All Users', pro: 'Pro Members', free: 'Free Members' }
 
-  const fetchBroadcasts = async () => {
-    try {
-      const params = new URLSearchParams({ page, limit })
-      const res = await fetch(`/api/admin/notifications/broadcasts?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (res.ok) {
-        const data = await res.json()
+  const fetchBroadcasts = useCallback(() => {
+    const params = new URLSearchParams({ page, limit })
+    return fetch(`/api/admin/notifications/broadcasts?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!data) return
         setBroadcasts(data.data || [])
         setBroadcastsTotal(data.total || 0)
-      }
-    } catch {}
-  }
+      })
+      .catch(err => console.error('Failed to load broadcasts', err))
+  }, [token, page])
 
-  useEffect(() => { fetchBroadcasts() }, [token, page])
+  useEffect(() => { fetchBroadcasts() }, [fetchBroadcasts])
 
   const estimatedUsers = target === 'all' ? 'all' : target === 'pro' ? 'Pro' : 'Free'
 

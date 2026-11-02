@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { Shield, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Filter, Calendar } from 'lucide-react'
 
@@ -15,25 +15,30 @@ const ENTITY_BADGE_COLORS = {
   testimonial: 'bg-indigo-50 text-indigo-600',
 }
 
+const EMPTY_FILTERS = { entityType: '', dateFrom: '', dateTo: '' }
+
 export default function AdminAuditLogPage() {
   const { token } = useAuth()
   const [logs, setLogs] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
-  const [loading, setLoading] = useState(true)
   const [expandedRow, setExpandedRow] = useState(null)
   const [entityType, setEntityType] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS)
+  const queryKey = JSON.stringify([page, appliedFilters])
+  const [loadedKey, setLoadedKey] = useState(null)
+  const loading = loadedKey !== queryKey
   const limit = 20
 
-  const fetchLogs = () => {
+  const fetchLogs = useCallback(() => {
     if (!token) return
-    setLoading(true)
+    const key = JSON.stringify([page, appliedFilters])
     const params = new URLSearchParams({ page, limit })
-    if (entityType) params.set('entity_type', entityType)
-    if (dateFrom) params.set('date_from', dateFrom)
-    if (dateTo) params.set('date_to', dateTo)
+    if (appliedFilters.entityType) params.set('entity_type', appliedFilters.entityType)
+    if (appliedFilters.dateFrom) params.set('date_from', appliedFilters.dateFrom)
+    if (appliedFilters.dateTo) params.set('date_to', appliedFilters.dateTo)
 
     fetch(`/api/admin/audit-logs?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -43,17 +48,17 @@ export default function AdminAuditLogPage() {
         setLogs(data.data || [])
         setTotal(data.total || 0)
       })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }
+      .catch(err => console.error('Failed to load audit logs', err))
+      .finally(() => setLoadedKey(key))
+  }, [token, page, appliedFilters])
 
   useEffect(() => {
     fetchLogs()
-  }, [token, page])
+  }, [fetchLogs])
 
   const handleFilter = () => {
     setPage(1)
-    fetchLogs()
+    setAppliedFilters({ entityType, dateFrom, dateTo })
   }
 
   const handleClearFilters = () => {
@@ -61,7 +66,7 @@ export default function AdminAuditLogPage() {
     setDateFrom('')
     setDateTo('')
     setPage(1)
-    setTimeout(fetchLogs, 0)
+    setAppliedFilters(EMPTY_FILTERS)
   }
 
   const totalPages = Math.ceil(total / limit)

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/ui/Toast'
@@ -14,7 +14,6 @@ export default function JobsPage() {
   const { token } = useAuth()
   const toast = useToast()
   const [jobs, setJobs] = useState([])
-  const [loading, setLoading] = useState(true)
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [type, setType] = useState('All')
@@ -24,27 +23,34 @@ export default function JobsPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal] = useState(0)
+  const queryKey = JSON.stringify([search, type, category, page])
+  const [loadedKey, setLoadedKey] = useState(null)
+  const loading = loadedKey !== queryKey
 
-  const fetchJobs = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({ page, limit: 20 })
-      if (search) params.set('search', search)
-      if (type !== 'All') params.set('type', type.toLowerCase())
-      if (category !== 'All') params.set('category', category)
-      const res = await fetch(`/api/jobs?${params}`)
-      if (res.ok) {
-        const json = await res.json()
-        setJobs(json.data || json)
-        setTotalPages(json.totalPages || 1)
-        setTotal(json.total || 0)
+  useEffect(() => {
+    let ignore = false
+    const fetchJobs = async () => {
+      try {
+        const params = new URLSearchParams({ page, limit: 20 })
+        if (search) params.set('search', search)
+        if (type !== 'All') params.set('type', type.toLowerCase())
+        if (category !== 'All') params.set('category', category)
+        const res = await fetch(`/api/jobs?${params}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (ignore) return
+          setJobs(json.data || json)
+          setTotalPages(json.totalPages || 1)
+        }
+      } catch (err) {
+        console.error('Failed to load jobs', err)
+      } finally {
+        if (!ignore) setLoadedKey(queryKey)
       }
-    } catch {}
-    setLoading(false)
-  }, [search, type, category, page])
-
-  useEffect(() => { fetchJobs() }, [fetchJobs])
+    }
+    fetchJobs()
+    return () => { ignore = true }
+  }, [search, type, category, page, queryKey])
 
   // Debounce search
   useEffect(() => {

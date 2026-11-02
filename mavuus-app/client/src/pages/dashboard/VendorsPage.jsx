@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import HoverCard from '../../components/ui/HoverCard'
 import Badge from '../../components/ui/Badge'
@@ -10,30 +10,39 @@ const vendorCategories = ['All', 'Content Marketing', 'Demand Gen', 'Branding', 
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState([])
-  const [loading, setLoading] = useState(true)
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  const fetchVendors = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({ page, limit: 20 })
-      if (search) params.set('search', search)
-      if (category !== 'All') params.set('category', category)
-      const res = await fetch(`/api/vendors?${params}`)
-      if (res.ok) {
-        const json = await res.json()
-        setVendors(json.data || json)
-        setTotalPages(json.totalPages || 1)
-      }
-    } catch {}
-    setLoading(false)
-  }, [search, category, page])
+  const queryKey = JSON.stringify([search, category, page])
+  const [loadedKey, setLoadedKey] = useState(null)
+  const loading = loadedKey !== queryKey
 
-  useEffect(() => { fetchVendors() }, [fetchVendors])
+  useEffect(() => {
+    let ignore = false
+    const fetchVendors = async () => {
+      try {
+        const params = new URLSearchParams({ page, limit: 20 })
+        if (search) params.set('search', search)
+        if (category !== 'All') params.set('category', category)
+        const res = await fetch(`/api/vendors?${params}`)
+        if (res.ok) {
+          const json = await res.json()
+          if (ignore) return
+          setVendors(json.data || json)
+          setTotalPages(json.totalPages || 1)
+        }
+      } catch (err) {
+        console.error('Failed to load vendors', err)
+      } finally {
+        if (!ignore) setLoadedKey(queryKey)
+      }
+    }
+    fetchVendors()
+    return () => { ignore = true }
+  }, [search, category, page, queryKey])
 
   useEffect(() => {
     const timer = setTimeout(() => { setSearch(searchInput); setPage(1) }, 300)

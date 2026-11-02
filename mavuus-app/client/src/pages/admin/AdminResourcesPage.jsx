@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { Search, Plus, Edit2, Trash2, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const emptyForm = {
@@ -17,11 +18,13 @@ const emptyForm = {
 
 export default function AdminResourcesPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [resources, setResources] = useState([])
   const [categories, setCategories] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -32,39 +35,50 @@ export default function AdminResourcesPage() {
   const [formData, setFormData] = useState({ ...emptyForm })
   const [deleteId, setDeleteId] = useState(null)
 
-  const fetchResources = async () => {
-    const params = new URLSearchParams({ page, limit })
-    if (search) params.set('search', search)
-    if (typeFilter) params.set('type', typeFilter)
-    if (categoryFilter) params.set('category', categoryFilter)
-    if (statusFilter) params.set('status', statusFilter)
-    try {
-      const res = await fetch(`/api/admin/resources?${params}`, { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
-        setResources(data.data || [])
-        setTotal(data.total || 0)
-      }
-    } catch {}
-  }
+  const [reloadKey, setReloadKey] = useState(0)
+  const reloadResources = () => setReloadKey(k => k + 1)
 
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch('/api/categories?type=resource', { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
-        setCategories(data.data || data || [])
+  useEffect(() => {
+    const fetchResources = async () => {
+      const params = new URLSearchParams({ page, limit })
+      if (appliedSearch) params.set('search', appliedSearch)
+      if (typeFilter) params.set('type', typeFilter)
+      if (categoryFilter) params.set('category', categoryFilter)
+      if (statusFilter) params.set('status', statusFilter)
+      try {
+        const res = await fetch(`/api/admin/resources?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          setResources(data.data || [])
+          setTotal(data.total || 0)
+        }
+      } catch (err) {
+        console.error('Failed to load resources', err)
       }
-    } catch {}
-  }
+    }
+    fetchResources()
+  }, [page, appliedSearch, typeFilter, categoryFilter, statusFilter, token, reloadKey])
 
-  useEffect(() => { fetchCategories() }, [token])
-  useEffect(() => { fetchResources() }, [page, typeFilter, categoryFilter, statusFilter, token])
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/categories?type=resource', { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          setCategories(data.data || data || [])
+        }
+      } catch (err) {
+        console.error('Failed to load resource categories', err)
+      }
+    }
+    fetchCategories()
+  }, [token])
 
   const handleSearch = (e) => {
     e.preventDefault()
     setPage(1)
-    fetchResources()
+    setAppliedSearch(search)
+    reloadResources()
   }
 
   const openCreate = () => {
@@ -112,9 +126,11 @@ export default function AdminResourcesPage() {
       })
       if (res.ok) {
         closeModal()
-        fetchResources()
+        reloadResources()
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't save the resource. Try again.")
+    }
   }
 
   const handleDelete = async () => {
@@ -126,9 +142,11 @@ export default function AdminResourcesPage() {
       })
       if (res.ok) {
         setDeleteId(null)
-        fetchResources()
+        reloadResources()
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't delete the resource. Try again.")
+    }
   }
 
   const totalPages = Math.ceil(total / limit)

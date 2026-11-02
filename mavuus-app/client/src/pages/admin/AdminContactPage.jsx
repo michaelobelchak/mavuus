@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { ChevronLeft, ChevronRight, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react'
 
 export default function AdminContactPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [submissions, setSubmissions] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -13,20 +15,20 @@ export default function AdminContactPage() {
   const [expandedId, setExpandedId] = useState(null)
   const [editStatus, setEditStatus] = useState('')
 
-  const fetchSubmissions = async () => {
+  const fetchSubmissions = useCallback(() => {
     const params = new URLSearchParams({ page, limit })
     if (statusFilter) params.set('status', statusFilter)
-    try {
-      const res = await fetch(`/api/admin/contact?${params}`, { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
+    return fetch(`/api/admin/contact?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!data) return
         setSubmissions(data.data || [])
         setTotal(data.total || 0)
-      }
-    } catch {}
-  }
+      })
+      .catch(err => console.error('Failed to load contact submissions', err))
+  }, [page, statusFilter, token])
 
-  useEffect(() => { fetchSubmissions() }, [page, statusFilter, token])
+  useEffect(() => { fetchSubmissions() }, [fetchSubmissions])
 
   const updateStatus = async (id, status) => {
     try {
@@ -36,7 +38,9 @@ export default function AdminContactPage() {
         body: JSON.stringify({ status }),
       })
       fetchSubmissions()
-    } catch {}
+    } catch {
+      toast.error("Couldn't update the submission status. Try again.")
+    }
   }
 
   const toggleExpand = (submission) => {

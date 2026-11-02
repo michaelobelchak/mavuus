@@ -3,20 +3,21 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { CheckCircle, AlertCircle } from 'lucide-react'
 import Button from '../../components/ui/Button'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 
 export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { token: authToken } = useAuth()
+  const toast = useToast()
   const verifyToken = searchParams.get('token')
-  const [status, setStatus] = useState('loading') // loading, success, error
+  const [requestStatus, setStatus] = useState('loading') // loading, success, error
+  // A missing token is an error right away, no request needed
+  const status = verifyToken ? requestStatus : 'error'
   const [resending, setResending] = useState(false)
 
   useEffect(() => {
-    if (!verifyToken) {
-      setStatus('error')
-      return
-    }
+    if (!verifyToken) return
 
     fetch(`/api/auth/verify-email?token=${verifyToken}`)
       .then(res => {
@@ -38,7 +39,9 @@ export default function VerifyEmailPage() {
         method: 'POST',
         headers: { Authorization: `Bearer ${authToken}` },
       })
-    } catch {}
+    } catch {
+      toast.error("Couldn't resend the verification email. Try again.")
+    }
     setResending(false)
   }
 

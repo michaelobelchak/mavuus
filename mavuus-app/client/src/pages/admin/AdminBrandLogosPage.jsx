@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { Search, Plus, Edit2, Trash2, X, Check } from 'lucide-react'
 
 const emptyForm = {
@@ -11,6 +12,7 @@ const emptyForm = {
 
 export default function AdminBrandLogosPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [logos, setLogos] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -20,23 +22,21 @@ export default function AdminBrandLogosPage() {
   const [saving, setSaving] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
-  const fetchLogos = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/admin/brand-logos', {
-        headers: { Authorization: `Bearer ${token}` },
+  const fetchLogos = useCallback(() => {
+    return fetch('/api/admin/brand-logos', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data) setLogos(data.data || data || [])
       })
-      if (res.ok) {
-        const data = await res.json()
-        setLogos(data.data || data || [])
-      }
-    } catch {}
-    setLoading(false)
-  }
+      .catch(err => console.error('Failed to load brand logos', err))
+      .finally(() => setLoading(false))
+  }, [token])
 
   useEffect(() => {
     fetchLogos()
-  }, [token])
+  }, [fetchLogos])
 
   const openCreate = () => {
     setEditingItem(null)
@@ -79,9 +79,12 @@ export default function AdminBrandLogosPage() {
       })
       if (res.ok) {
         closeModal()
+        setLoading(true)
         fetchLogos()
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't save the brand logo. Try again.")
+    }
     setSaving(false)
   }
 
@@ -98,7 +101,9 @@ export default function AdminBrandLogosPage() {
       setLogos((prev) =>
         prev.map((l) => (l.id === item.id ? { ...l, is_active: !l.is_active } : l))
       )
-    } catch {}
+    } catch {
+      toast.error("Couldn't update the brand logo. Try again.")
+    }
   }
 
   const handleDelete = async (id) => {
@@ -108,8 +113,11 @@ export default function AdminBrandLogosPage() {
         headers: { Authorization: `Bearer ${token}` },
       })
       setDeleteConfirm(null)
+      setLoading(true)
       fetchLogos()
-    } catch {}
+    } catch {
+      toast.error("Couldn't delete the brand logo. Try again.")
+    }
   }
 
   const filtered = logos.filter(

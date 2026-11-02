@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
@@ -20,6 +21,7 @@ export default function ResourceDetailPage() {
   const { id } = useParams()
   const { token } = useAuth()
   const navigate = useNavigate()
+  const toast = useToast()
   const [resource, setResource] = useState(null)
   const [loading, setLoading] = useState(true)
   const [shareOpen, setShareOpen] = useState(false)
@@ -33,7 +35,9 @@ export default function ResourceDetailPage() {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (res.ok) setResource(await res.json())
-      } catch {} finally { setLoading(false) }
+      } catch (err) {
+        console.error('Failed to load resource', err)
+      } finally { setLoading(false) }
     }
     fetchResource()
 
@@ -68,7 +72,9 @@ export default function ResourceDetailPage() {
         const data = await res.json()
         setBookmarked(data.bookmarked)
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't update bookmark. Try again.")
+    }
   }
 
   if (loading) {

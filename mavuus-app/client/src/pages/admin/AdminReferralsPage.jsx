@@ -23,7 +23,6 @@ export default function AdminReferralsPage() {
 
   useEffect(() => {
     if (!token) return
-    setLoading(true)
     const params = new URLSearchParams({ page, limit })
     fetch(`/api/admin/referrals?${params}`, {
       headers: { Authorization: `Bearer ${token}` },

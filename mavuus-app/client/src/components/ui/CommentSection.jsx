@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from './Toast'
 import Avatar from './Avatar'
 import { MessageSquare, Reply, Trash2, Send } from 'lucide-react'
 
@@ -103,15 +104,17 @@ export default function CommentSection({ entityType, entityId }) {
   const [newComment, setNewComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const fetchComments = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/comments?entity_type=${entityType}&entity_id=${entityId}`)
-      if (res.ok) setComments(await res.json())
-    } catch {}
-    setLoading(false)
-  }, [entityType, entityId])
+  const toast = useToast()
 
-  useEffect(() => { fetchComments() }, [fetchComments])
+  useEffect(() => {
+    let ignore = false
+    fetch(`/api/comments?entity_type=${entityType}&entity_id=${entityId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (!ignore && data) setComments(data) })
+      .catch((err) => console.error('Failed to load comments', err))
+      .finally(() => { if (!ignore) setLoading(false) })
+    return () => { ignore = true }
+  }, [entityType, entityId])
 
   const handleSubmit = async () => {
     if (!newComment.trim() || !token) return
@@ -127,7 +130,9 @@ export default function CommentSection({ entityType, entityId }) {
         setComments(prev => [{ ...comment, replies: [] }, ...prev])
         setNewComment('')
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't post your comment. Try again.")
+    }
     setSubmitting(false)
   }
 
@@ -144,7 +149,9 @@ export default function CommentSection({ entityType, entityId }) {
           c.id === parentId ? { ...c, replies: [...(c.replies || []), reply] } : c
         ))
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't post your reply. Try again.")
+    }
   }
 
   const handleDelete = async (id) => {
@@ -159,7 +166,9 @@ export default function CommentSection({ entityType, entityId }) {
           .map(c => ({ ...c, replies: (c.replies || []).filter(r => r.id !== id) }))
         )
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't delete the comment. Try again.")
+    }
   }
 
   return (

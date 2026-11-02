@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { Search, Plus, Edit2, Trash2, X, Check } from 'lucide-react'
 
 const FAQ_PAGES = ['general', 'contact', 'pricing', 'about']
@@ -13,6 +14,7 @@ const emptyForm = {
 
 export default function AdminFaqPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [faqs, setFaqs] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('general')
@@ -23,23 +25,21 @@ export default function AdminFaqPage() {
   const [saving, setSaving] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
-  const fetchFaqs = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/admin/faqs', {
-        headers: { Authorization: `Bearer ${token}` },
+  const fetchFaqs = useCallback(() => {
+    return fetch('/api/admin/faqs', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data) setFaqs(data.data || data || [])
       })
-      if (res.ok) {
-        const data = await res.json()
-        setFaqs(data.data || data || [])
-      }
-    } catch {}
-    setLoading(false)
-  }
+      .catch(err => console.error('Failed to load FAQs', err))
+      .finally(() => setLoading(false))
+  }, [token])
 
   useEffect(() => {
     fetchFaqs()
-  }, [token])
+  }, [fetchFaqs])
 
   const openCreate = () => {
     setEditingItem(null)
@@ -82,9 +82,12 @@ export default function AdminFaqPage() {
       })
       if (res.ok) {
         closeModal()
+        setLoading(true)
         fetchFaqs()
       }
-    } catch {}
+    } catch {
+      toast.error("Couldn't save the FAQ. Try again.")
+    }
     setSaving(false)
   }
 
@@ -101,7 +104,9 @@ export default function AdminFaqPage() {
       setFaqs((prev) =>
         prev.map((f) => (f.id === item.id ? { ...f, is_active: !f.is_active } : f))
       )
-    } catch {}
+    } catch {
+      toast.error("Couldn't update the FAQ. Try again.")
+    }
   }
 
   const handleDelete = async (id) => {
@@ -111,8 +116,11 @@ export default function AdminFaqPage() {
         headers: { Authorization: `Bearer ${token}` },
       })
       setDeleteConfirm(null)
+      setLoading(true)
       fetchFaqs()
-    } catch {}
+    } catch {
+      toast.error("Couldn't delete the FAQ. Try again.")
+    }
   }
 
   const filtered = faqs.filter((f) => {

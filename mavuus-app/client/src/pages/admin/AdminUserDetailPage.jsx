@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import Avatar from '../../components/ui/Avatar'
 import { ArrowLeft, Shield, Ban, Trash2, RotateCcw, Star } from 'lucide-react'
 
@@ -9,6 +10,7 @@ const tabs = ['Profile', 'Experience', 'Connections', 'Activity', 'Messages', 'A
 export default function AdminUserDetailPage() {
   const { id } = useParams()
   const { token } = useAuth()
+  const toast = useToast()
   const [user, setUser] = useState(null)
   const [activeTab, setActiveTab] = useState('Profile')
   const [loading, setLoading] = useState(true)
@@ -19,19 +21,25 @@ export default function AdminUserDetailPage() {
   const [editRole, setEditRole] = useState('')
   const [editTier, setEditTier] = useState('')
 
-  const fetchUser = async () => {
-    try {
-      const res = await fetch(`/api/admin/users/${id}`, { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
-        setUser(data)
-        setEditRole(data.user.role)
-        setEditTier(data.user.membership_tier)
-      }
-    } catch {} finally { setLoading(false) }
-  }
+  const [reloadKey, setReloadKey] = useState(0)
+  const reloadUser = () => setReloadKey(k => k + 1)
 
-  useEffect(() => { fetchUser() }, [id, token])
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`/api/admin/users/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          setUser(data)
+          setEditRole(data.user.role)
+          setEditTier(data.user.membership_tier)
+        }
+      } catch (err) {
+        console.error('Failed to load user', err)
+      } finally { setLoading(false) }
+    }
+    fetchUser()
+  }, [id, token, reloadKey])
 
   const updateUser = async (body) => {
     try {
@@ -40,8 +48,10 @@ export default function AdminUserDetailPage() {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
-      fetchUser()
-    } catch {}
+      reloadUser()
+    } catch {
+      toast.error("Couldn't update the user. Try again.")
+    }
   }
 
   const banUser = async () => {
@@ -52,7 +62,7 @@ export default function AdminUserDetailPage() {
     })
     setShowBanModal(false)
     setBanReason('')
-    fetchUser()
+    reloadUser()
   }
 
   const unbanUser = async () => {
@@ -60,7 +70,7 @@ export default function AdminUserDetailPage() {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}` },
     })
-    fetchUser()
+    reloadUser()
   }
 
   const softDelete = async () => {
@@ -68,7 +78,7 @@ export default function AdminUserDetailPage() {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })
-    fetchUser()
+    reloadUser()
   }
 
   const restore = async () => {
@@ -76,7 +86,7 @@ export default function AdminUserDetailPage() {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}` },
     })
-    fetchUser()
+    reloadUser()
   }
 
   const permanentDelete = async () => {

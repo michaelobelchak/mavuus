@@ -1,39 +1,42 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/ui/Toast'
 import { Search, ChevronLeft, ChevronRight, Eye, Trash2, X } from 'lucide-react'
 
 export default function AdminCommentsPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [comments, setComments] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
   const [entityTypeFilter, setEntityTypeFilter] = useState('')
   const limit = 20
 
   const [viewModal, setViewModal] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(() => {
     const params = new URLSearchParams({ page, limit })
-    if (search) params.set('search', search)
+    if (appliedSearch) params.set('search', appliedSearch)
     if (entityTypeFilter) params.set('entity_type', entityTypeFilter)
-    try {
-      const res = await fetch(`/api/admin/comments?${params}`, { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
+    return fetch(`/api/admin/comments?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!data) return
         setComments(data.data || [])
         setTotal(data.total || 0)
-      }
-    } catch {}
-  }
+      })
+      .catch(err => console.error('Failed to load comments', err))
+  }, [page, appliedSearch, entityTypeFilter, token])
 
-  useEffect(() => { fetchComments() }, [page, entityTypeFilter, token])
+  useEffect(() => { fetchComments() }, [fetchComments])
 
   const handleSearch = (e) => {
     e.preventDefault()
     setPage(1)
-    fetchComments()
+    setAppliedSearch(search)
   }
 
   const handleDelete = async (id) => {
@@ -44,7 +47,9 @@ export default function AdminCommentsPage() {
       })
       setDeleteConfirm(null)
       fetchComments()
-    } catch {}
+    } catch {
+      toast.error("Couldn't delete the comment. Try again.")
+    }
   }
 
   const totalPages = Math.ceil(total / limit)
