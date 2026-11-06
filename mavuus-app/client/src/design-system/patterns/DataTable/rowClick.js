@@ -26,9 +26,10 @@ export function opensNewTab(event) {
  * Opens the row's link in a new tab. A dispatched click carrying the modifier keys is an
  * untrusted event, and browsers don't reliably honor modifiers on those (some open in the same
  * tab, some treat it as a popup). window.open runs inside the user's click, so it has user
- * activation and opens a tab everywhere. noopener matches what a real ctrl-click gives.
+ * activation and opens a tab everywhere. Only noopener is set, so the Referer is still sent, like a native ctrl-click
+ * (the links are internal routes).
  */
 export function openRowLinkInNewTab(row) {
   const link = row.querySelector('a[data-row-target]')
-  if (link) window.open(link.href, '_blank', 'noopener,noreferrer')
+  if (link) window.open(link.href, '_blank', 'noopener')
 }

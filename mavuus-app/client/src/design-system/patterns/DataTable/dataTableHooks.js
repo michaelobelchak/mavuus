@@ -19,7 +19,8 @@ export function useSort({ rows, columns, sort, defaultSort, onSortChange, manual
 /**
  * Paging from the `pagination` prop: { page, defaultPage, pageSize, rowCount, onPageChange,
  * manual }, or false / undefined for none. A page past the end is written back once (state when
- * uncontrolled, onPageChange when controlled), except while loading.
+ * uncontrolled, onPageChange when controlled), except while loading or, for manual paging,
+ * before rowCount is known.
  */
 export function usePagination({ pagination, rowsLength, loading }) {
   const enabled = Boolean(pagination)
@@ -35,13 +36,16 @@ export function usePagination({ pagination, rowsLength, loading }) {
   const total = manual ? config.rowCount : rowsLength
   const pageCount = enabled ? Math.max(1, Math.ceil((total ?? 0) / pageSize)) : 1
   const [requested, setPage] = useControllableState(config.page, config.defaultPage ?? 1, config.onPageChange)
-  const page = clampPage(requested, pageCount)
+  // With manual paging and no rowCount yet (before the first fetch) the page count isn't known,
+  // so the requested page stands: a deep link to ?page=3 isn't reset to 1.
+  const countKnown = !manual || config.rowCount !== undefined
+  const page = countKnown ? clampPage(requested, pageCount) : Math.max(1, requested || 1)
 
   // Remembers the last clamp it asked for, so a parent that ignores onPageChange isn't asked
   // again on every render.
   const lastClamp = useRef(null)
   useEffect(() => {
-    if (!enabled || loading || page === requested) {
+    if (!enabled || loading || !countKnown || page === requested) {
       lastClamp.current = null
       return
     }

@@ -421,7 +421,7 @@ describe('DataTable', () => {
     fireEvent.click(cell, { shiftKey: true })
     fireEvent(cell, new MouseEvent('auxclick', { bubbles: true, button: 1 }))
     expect(open).toHaveBeenCalledTimes(4)
-    expect(open).toHaveBeenCalledWith(expect.stringMatching(/\/admin\/users\/3$/), '_blank', 'noopener,noreferrer')
+    expect(open).toHaveBeenCalledWith(expect.stringMatching(/\/admin\/users\/3$/), '_blank', 'noopener')
   })
 
   it('should leave a right click on a linked row alone', () => {
@@ -454,6 +454,13 @@ describe('DataTable', () => {
     expect(onPageChange).toHaveBeenCalledWith(2)
     rerender(view(30))
     expect(onPageChange).toHaveBeenCalledTimes(1)
+  })
+
+  it('should not clamp a manual page before rowCount is known, so a deep link keeps its page', () => {
+    const onPageChange = vi.fn()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    renderTable({ rows: [], pagination: { manual: true, page: 3, pageSize: 20, onPageChange } })
+    expect(onPageChange).not.toHaveBeenCalled()
   })
 
   it('should not clamp a controlled page while loading', () => {
