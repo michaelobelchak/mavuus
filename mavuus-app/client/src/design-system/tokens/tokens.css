@@ -154,10 +154,10 @@
   --ds-z-base: 0;
   --ds-z-raised: 10;
   --ds-z-sticky: 100;
-  --ds-z-dropdown: 200;
   --ds-z-overlay: 300;
   --ds-z-modal: 400;
-  --ds-z-popover: 500;
+  --ds-z-dropdown: 500;
+  --ds-z-popover: 550;
   --ds-z-tooltip: 600;
   --ds-z-toast: 700;
   --surface-page: var(--mv-color-neutral-25);
