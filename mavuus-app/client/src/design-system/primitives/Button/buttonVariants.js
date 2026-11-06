@@ -20,7 +20,7 @@ export const buttonVariantStyles = {
   secondary:
     'bg-surface-brand-strong text-text-on-brand hover:bg-surface-brand-strong-hover aria-disabled:hover:bg-surface-brand-strong',
   outline: [
-    'border border-border-strong bg-transparent text-text-primary hover:border-border-brand hover:text-text-brand',
+    'border border-border-strong bg-transparent text-text-primary hover:border-border-brand hover:text-text-brand-strong',
     'aria-disabled:hover:border-border-strong aria-disabled:hover:text-text-primary',
   ].join(' '),
   ghost: 'bg-transparent text-text-primary hover:bg-surface-hover aria-disabled:hover:bg-transparent',
