@@ -67,7 +67,7 @@ export default {
       </MemoryRouter>
     ),
   ],
-  args: { caption: 'Members', columns, rows: users, pageSize: 5, rowActions, rowHref: (row) => `/admin/users/${row.id}` },
+  args: { caption: 'Members', columns, rows: users, pagination: { pageSize: 5 }, rowActions, rowHref: (row) => `/admin/users/${row.id}` },
 }
 
 export const Default = {}
@@ -146,13 +146,8 @@ function ServerSideStory(args) {
     <DataTable
       {...args}
       rows={args.rows.slice(0, 5)}
-      manualPagination
+      pagination={{ manual: true, page, pageSize: 20, rowCount: 134, onPageChange: setPage }}
       manualSorting
-      page={page}
-      pageCount={7}
-      rowCount={134}
-      pageSize={20}
-      onPageChange={setPage}
       sort={sort}
       onSortChange={setSort}
     />
@@ -162,6 +157,11 @@ function ServerSideStory(args) {
 export const ServerSide = { render: (args) => <ServerSideStory {...args} /> }
 
 export const Loading = { args: { loading: true, rows: [] } }
+
+// A page change on the server: the old rows stay, dimmed and aria-busy, until the new page lands.
+export const LoadingNextPage = {
+  render: (args) => <ServerSideStory {...args} loading />,
+}
 
 export const Empty = { args: { rows: [] } }
 

@@ -62,23 +62,36 @@ export function sortOptions(columns, rows) {
       const sample = rows.map((row) => (column.sortValue ? column.sortValue(row) : row[column.key])).find((value) => !isEmpty(value))
       const [asc, desc] = column.sortLabels ?? (typeof sample === 'number' ? ['low to high', 'high to low'] : ['A to Z', 'Z to A'])
       return [
-        { value: `${column.key}:asc`, label: `${column.header}, ${asc}` },
-        { value: `${column.key}:desc`, label: `${column.header}, ${desc}` },
+        { sort: { key: column.key, direction: 'asc' }, label: `${column.header}, ${asc}` },
+        { sort: { key: column.key, direction: 'desc' }, label: `${column.header}, ${desc}` },
       ]
     })
 }
 
 // Selecting the page adds its ids after the ones already selected; unselecting removes only them.
 export function togglePage(selected, pageIds, allSelected) {
-  if (allSelected) return selected.filter((id) => !pageIds.includes(id))
-  return [...selected, ...pageIds.filter((id) => !selected.includes(id))]
+  if (allSelected) {
+    const page = new Set(pageIds)
+    return selected.filter((id) => !page.has(id))
+  }
+  const current = new Set(selected)
+  return [...selected, ...pageIds.filter((id) => !current.has(id))]
 }
 
 export function toggleRow(selected, id) {
   return selected.includes(id) ? selected.filter((item) => item !== id) : [...selected, id]
 }
 
+export const DEFAULT_PAGE_SIZE = 20
+
 export const hideBelowClasses = {
   md: 'hidden md:table-cell',
   lg: 'hidden lg:table-cell',
+}
+
+const ABSOLUTE_URL = /^https?:\/\//i
+
+// A rowHref value as link props: absolute http(s) URLs are anchors, anything else a router path.
+export function hrefProps(href) {
+  return ABSOLUTE_URL.test(href) ? { href } : { to: href }
 }

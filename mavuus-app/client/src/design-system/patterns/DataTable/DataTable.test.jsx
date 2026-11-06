@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom'
 import { useState } from 'react'
@@ -86,10 +86,10 @@ describe('DataTable', () => {
     expect(names()).toEqual(['Dilya Abushayeva', 'Elmira Abushayeva', 'Sam Carter'])
   })
 
-  it('should page rows on the client with pageSize and call onPageChange', async () => {
+  it('should page rows on the client with pagination.pageSize and call onPageChange', async () => {
     const user = userEvent.setup()
     const onPageChange = vi.fn()
-    renderTable({ pageSize: 2, onPageChange })
+    renderTable({ pagination: { pageSize: 2, onPageChange } })
     expect(names()).toEqual(['Dilya Abushayeva', 'Elmira Abushayeva'])
     expect(screen.getByText('Showing 1-2 of 3')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Page 2' }))
@@ -101,7 +101,7 @@ describe('DataTable', () => {
   it('should show the given rows and ask for a page when pagination is manual', async () => {
     const user = userEvent.setup()
     const onPageChange = vi.fn()
-    renderTable({ manualPagination: true, page: 1, pageCount: 5, rowCount: 98, pageSize: 3, onPageChange })
+    renderTable({ pagination: { manual: true, page: 1, rowCount: 98, pageSize: 3, onPageChange } })
     expect(names()).toHaveLength(3)
     expect(screen.getByText('Showing 1-3 of 98')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Next page' }))
@@ -139,7 +139,7 @@ describe('DataTable', () => {
           caption="Members"
           columns={columns}
           rows={users}
-          pageSize={2}
+          pagination={{ pageSize: 2 }}
           selectable
           selectedIds={selected}
           onSelectionChange={(ids) => {
@@ -173,8 +173,7 @@ describe('DataTable', () => {
         caption="Members"
         columns={columns}
         rows={users}
-        pageSize={2}
-        page={2}
+        pagination={{ pageSize: 2, page: 2 }}
         selectable
         selectedIds={[1]}
         onSelectionChange={onSelectionChange}
@@ -197,6 +196,7 @@ describe('DataTable', () => {
   it('should make the first cell a link named by the row when rowHref is given', () => {
     renderTable({ rowHref: (row) => `/admin/users/${row.id}` })
     const link = screen.getByRole('link', { name: 'Sam Carter' })
+    expect(link).not.toHaveAttribute('aria-label')
     expect(link).toHaveAttribute('href', '/admin/users/3')
     expect(link.closest('tr')).not.toHaveClass('relative')
     expect(link.closest('tr')).toHaveClass('cursor-pointer')
@@ -208,7 +208,7 @@ describe('DataTable', () => {
     const onRowClick = vi.fn()
     renderTable({ onRowClick })
     await user.click(screen.getByRole('button', { name: 'Sam Carter' }))
-    expect(onRowClick).toHaveBeenCalledWith(users[2])
+    expect(onRowClick).toHaveBeenCalledWith(users[2], expect.objectContaining({ type: 'click' }))
   })
 
   it('should hide columns below a breakpoint with hideBelow', () => {
@@ -252,21 +252,28 @@ describe('DataTable', () => {
 
   it('should compute a manual page range from page, pageSize and rowCount so a short last page reads 81-98', () => {
     const lastPage = Array.from({ length: 18 }, (_, index) => ({ id: index + 81, name: `Member ${index + 81}`, role: 'member', reviews: 0 }))
-    renderTable({ rows: lastPage, manualPagination: true, page: 5, pageCount: 5, pageSize: 20, rowCount: 98 })
+    renderTable({ rows: lastPage, pagination: { manual: true, page: 5, pageSize: 20, rowCount: 98 } })
     expect(screen.getByText('Showing 81-98 of 98')).toBeInTheDocument()
   })
 
-  it('should warn in dev and skip the range when manualPagination has no pageSize', () => {
+  it('should warn in dev and fall back to 20 rows a page when pagination has no pageSize', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    renderTable({ manualPagination: true, page: 2, pageCount: 5, rowCount: 98 })
+    renderTable({ pagination: { manual: true, page: 2, rowCount: 98 } })
     expect(error).toHaveBeenCalledWith(expect.stringMatching(/DataTable: .*pageSize/))
-    expect(screen.queryByText(/Showing/)).toBeNull()
+    expect(screen.getByText('Showing 21-40 of 98')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Page 5' })).toBeInTheDocument()
+  })
+
+  it('should not page when pagination is false or left out', () => {
+    renderTable({ pagination: false })
+    expect(screen.queryByRole('navigation')).toBeNull()
+    expect(names()).toHaveLength(3)
   })
 
   it('should ask for page 1 when the sort changes and the page is controlled', async () => {
     const user = userEvent.setup()
     const onPageChange = vi.fn()
-    renderTable({ pageSize: 2, page: 2, onPageChange })
+    renderTable({ pagination: { pageSize: 2, page: 2, onPageChange } })
     await user.click(screen.getByRole('button', { name: /Reviews/ }))
     expect(onPageChange).toHaveBeenCalledWith(1)
   })
@@ -297,7 +304,7 @@ describe('DataTable', () => {
     renderTable({ onRowClick })
     await user.click(screen.getByRole('cell', { name: '4' }))
     expect(onRowClick).toHaveBeenCalledTimes(1)
-    expect(onRowClick).toHaveBeenLastCalledWith(users[2])
+    expect(onRowClick).toHaveBeenLastCalledWith(users[2], expect.objectContaining({ type: 'click' }))
     await user.click(screen.getByRole('button', { name: 'Sam Carter' }))
     expect(onRowClick).toHaveBeenCalledTimes(2)
   })
@@ -348,5 +355,143 @@ describe('DataTable', () => {
     mockViewport(375)
     renderTable({ columns: columns.map(({ sortable: _sortable, ...column }) => column) })
     expect(screen.queryByRole('combobox', { name: 'Sort by' })).toBeNull()
+  })
+
+  it('should name the row link by the visible cell text, email included', () => {
+    renderTable({
+      columns: [{ key: 'name', header: 'User', cell: (row) => <span>{row.name}<span>{`${row.id}@mavuus.com`}</span></span> }, ...columns.slice(1)],
+      rowHref: (row) => `/admin/users/${row.id}`,
+    })
+    const link = screen.getByRole('link', { name: /Sam Carter/ })
+    expect(link).toHaveAccessibleName('Sam Carter3@mavuus.com')
+  })
+
+  it('should add the row name for screen readers when the first cell has no text', async () => {
+    renderTable({
+      columns: [{ key: 'avatar', header: 'Photo', cell: () => <img src="/a.png" alt="" /> }, ...columns],
+      rowHref: (row) => `/admin/users/${row.id}`,
+    })
+    const link = await screen.findByRole('link', { name: 'Sam Carter' })
+    expect(within(link).getByText('Sam Carter')).toHaveClass('sr-only')
+  })
+
+  it('should warn in dev when both rowHref and onRowClick are given', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    renderTable({ rowHref: (row) => `/u/${row.id}`, onRowClick: vi.fn() })
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/DataTable: .*rowHref.*onRowClick/))
+  })
+
+  it('should not navigate when an item in a row actions menu is picked', async () => {
+    const user = userEvent.setup()
+    const onBan = vi.fn()
+    function UserPage() {
+      return <p>User page {useParams().id}</p>
+    }
+    render(
+      <MemoryRouter initialEntries={['/admin/users']}>
+        <Routes>
+          <Route
+            path="/admin/users"
+            element={
+              <DataTable
+                caption="Members"
+                columns={columns}
+                rows={users}
+                rowHref={(row) => `/admin/users/${row.id}`}
+                rowActions={(row) => [{ label: 'Ban', onSelect: () => onBan(row.id) }]}
+              />
+            }
+          />
+          <Route path="/admin/users/:id" element={<UserPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    await user.click(screen.getByRole('button', { name: 'Actions for Sam Carter' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Ban' }))
+    expect(onBan).toHaveBeenCalledWith(3)
+    expect(screen.queryByText(/User page/)).toBeNull()
+  })
+
+  it('should open a linked row in a new tab on a ctrl, meta or shift click and on a middle click', () => {
+    const open = vi.spyOn(window, 'open').mockReturnValue(null)
+    renderTable({ rowHref: (row) => `/admin/users/${row.id}` })
+    const cell = screen.getByRole('cell', { name: '4' })
+    fireEvent.click(cell, { ctrlKey: true })
+    fireEvent.click(cell, { metaKey: true })
+    fireEvent.click(cell, { shiftKey: true })
+    fireEvent(cell, new MouseEvent('auxclick', { bubbles: true, button: 1 }))
+    expect(open).toHaveBeenCalledTimes(4)
+    expect(open).toHaveBeenCalledWith(expect.stringMatching(/\/admin\/users\/3$/), '_blank', 'noopener,noreferrer')
+  })
+
+  it('should leave a right click on a linked row alone', () => {
+    const open = vi.spyOn(window, 'open').mockReturnValue(null)
+    renderTable({ rowHref: (row) => `/admin/users/${row.id}` })
+    fireEvent(screen.getByRole('cell', { name: '4' }), new MouseEvent('auxclick', { bubbles: true, button: 2 }))
+    expect(open).not.toHaveBeenCalled()
+  })
+
+  it('should pass the original event to onRowClick so modifier clicks can be handled', () => {
+    const onRowClick = vi.fn()
+    renderTable({ onRowClick })
+    fireEvent.click(screen.getByRole('cell', { name: '4' }), { ctrlKey: true })
+    expect(onRowClick).toHaveBeenCalledTimes(1)
+    expect(onRowClick.mock.calls[0][0]).toBe(users[2])
+    expect(onRowClick.mock.calls[0][1].ctrlKey).toBe(true)
+  })
+
+  it('should write a clamped page back through onPageChange once when a controlled page is past the end', () => {
+    const onPageChange = vi.fn()
+    const view = (rowCount) => (
+      <MemoryRouter>
+        <DataTable caption="Members" columns={columns} rows={users} pagination={{ manual: true, page: 5, pageSize: 20, rowCount, onPageChange }} />
+      </MemoryRouter>
+    )
+    const { rerender } = render(view(98))
+    expect(onPageChange).not.toHaveBeenCalled()
+    rerender(view(30))
+    expect(onPageChange).toHaveBeenCalledTimes(1)
+    expect(onPageChange).toHaveBeenCalledWith(2)
+    rerender(view(30))
+    expect(onPageChange).toHaveBeenCalledTimes(1)
+  })
+
+  it('should not clamp a controlled page while loading', () => {
+    const onPageChange = vi.fn()
+    renderTable({ loading: true, pagination: { manual: true, page: 5, pageSize: 20, rowCount: 0, onPageChange } })
+    expect(onPageChange).not.toHaveBeenCalled()
+  })
+
+  it('should move an uncontrolled page back when client rows shrink, so growing rows start at page 1', async () => {
+    const user = userEvent.setup()
+    const view = (rows) => (
+      <MemoryRouter>
+        <DataTable caption="Members" columns={columns} rows={rows} pagination={{ pageSize: 2 }} />
+      </MemoryRouter>
+    )
+    const { rerender } = render(view(users))
+    await user.click(screen.getByRole('button', { name: 'Page 2' }))
+    expect(names()).toEqual(['Sam Carter'])
+    rerender(view(users.slice(0, 2)))
+    rerender(view(users))
+    expect(names()).toEqual(['Dilya Abushayeva', 'Elmira Abushayeva'])
+  })
+
+  it('should keep stale rows dimmed and busy while a new page loads', () => {
+    const { container } = renderTable({ loading: true, pagination: { manual: true, page: 2, pageSize: 3, rowCount: 98 } })
+    expect(names()).toEqual(['Dilya Abushayeva', 'Elmira Abushayeva', 'Sam Carter'])
+    expect(screen.getByRole('table', { name: 'Members' })).toHaveAttribute('aria-busy', 'true')
+    expect(container.querySelector('tbody')).toHaveClass('opacity-60')
+  })
+
+  it('should sort cards from a Sort by option whose column key has a colon', async () => {
+    mockViewport(375)
+    const user = userEvent.setup()
+    const onSortChange = vi.fn()
+    const rows = users.map((row) => ({ ...row, 'stats:reviews': row.reviews }))
+    renderTable({ rows, onSortChange, columns: [columns[0], { key: 'stats:reviews', header: 'Reviews', sortable: true }] })
+    await user.click(screen.getByRole('combobox', { name: 'Sort by' }))
+    await user.click(await screen.findByRole('option', { name: 'Reviews, high to low' }))
+    expect(onSortChange).toHaveBeenLastCalledWith({ key: 'stats:reviews', direction: 'desc' })
   })
 })
