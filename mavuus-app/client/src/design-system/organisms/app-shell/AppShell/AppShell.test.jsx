@@ -203,4 +203,10 @@ describe('AppShell', () => {
     expect(jobs()).not.toHaveTextContent('Jobs')
     expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument()
   })
+
+  it('should render the sidebar without an extra complementary landmark and pass navLabel to the nav', () => {
+    renderShell(1440, { navLabel: 'Admin' })
+    expect(screen.getByRole('navigation', { name: 'Admin' })).toBeInTheDocument()
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
+  })
 })

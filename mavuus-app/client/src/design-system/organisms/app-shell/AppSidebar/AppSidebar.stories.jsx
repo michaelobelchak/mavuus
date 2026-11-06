@@ -23,6 +23,7 @@ export const Member = {}
 export const Admin = {
   args: {
     nav: ADMIN_NAV,
+    'aria-label': 'Admin',
     logoTo: '/admin',
     footer: (
       <Button to="/dashboard" variant="ghost" leadingIcon={ArrowLeft} block>

@@ -75,4 +75,15 @@ describe('AppSidebar', () => {
     await user.click(screen.getByRole('button', { name: 'Expand sidebar' }))
     expect(onCollapsedChange).toHaveBeenLastCalledWith(false)
   })
+
+  it('should name section lists with plain-text labels, not headings', () => {
+    renderSidebar({ nav: ADMIN_NAV }, '/admin')
+    expect(screen.getByRole('list', { name: 'Content' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument()
+  })
+
+  it('should take a nav label such as Admin', () => {
+    renderSidebar({ nav: ADMIN_NAV, 'aria-label': 'Admin' }, '/admin')
+    expect(screen.getByRole('navigation', { name: 'Admin' })).toBeInTheDocument()
+  })
 })

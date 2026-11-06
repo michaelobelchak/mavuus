@@ -15,7 +15,8 @@ import { readCollapsed, writeCollapsed } from './sidebarStorage'
  *   the sidebar is hidden and the top bar's menu button opens it in a left Sheet with focus on the
  *   active nav link (or the first one); it closes on Escape (focus goes back to the button) and on
  *   navigation.
- * - `nav`, `badges`, `logo`, `logoTo`, `sidebarFooter` go to AppSidebar; `title`, `breadcrumbs`,
+ * - `nav`, `badges`, `logo`, `logoTo`, `sidebarFooter` go to AppSidebar, and `navLabel` names its
+ *   nav landmark (default "Main", "Admin" for the admin shell); `title`, `breadcrumbs`,
  *   `actions`, `search`, `notifications`, `user`, `userMenuItems`, `onLogout` go to AppTopBar.
  * - `children` render in `<main id="main-content">`, a scrollable panel on `bg-surface-sunken`
  *   with a large top-left radius on desktop. A "Skip to main content" link comes first.
@@ -24,6 +25,7 @@ import { readCollapsed, writeCollapsed } from './sidebarStorage'
  */
 export function AppShell({
   nav,
+  navLabel = 'Main',
   badges,
   logo,
   logoTo,
@@ -70,7 +72,7 @@ export function AppShell({
     return nav?.querySelector('a[aria-current="page"]') ?? nav?.querySelector('a') ?? true
   }
 
-  const sidebarProps = { nav, badges, logo, logoTo, footer: sidebarFooter }
+  const sidebarProps = { nav, badges, logo, logoTo, footer: sidebarFooter, 'aria-label': navLabel }
 
   function changeCollapsed(next) {
     setStored(next)
@@ -90,7 +92,7 @@ export function AppShell({
         Skip to main content
       </a>
       {!mobile && (
-        <aside
+        <div
           className={cn(
             'flex shrink-0 flex-col transition-[width] duration-300 ease-move motion-reduce:transition-none',
             collapsed ? 'w-20' : 'w-70',
@@ -101,7 +103,7 @@ export function AppShell({
             collapsed={collapsed}
             onCollapsedChange={isDesktop ? undefined : changeCollapsed}
           />
-        </aside>
+        </div>
       )}
       {mobile && (
         <Sheet

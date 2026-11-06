@@ -60,6 +60,7 @@ export const MemberShell = {}
 export const AdminShell = {
   args: {
     nav: ADMIN_NAV,
+    navLabel: 'Admin',
     logoTo: '/admin',
     title: 'Users',
     badges: undefined,

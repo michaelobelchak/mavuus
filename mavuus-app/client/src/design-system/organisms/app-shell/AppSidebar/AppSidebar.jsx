@@ -20,15 +20,15 @@ function Section({ section, collapsed, ...itemProps }) {
   return (
     <div className="flex flex-col gap-ds-xxs">
       {section.label && (
-        <h2
+        <div
           id={labelId}
           className={cn(
-            'm-ds-none px-ds-md pt-ds-md pb-ds-xxs text-caption font-semibold tracking-wide text-text-muted uppercase',
+            'px-ds-md pt-ds-md pb-ds-xxs text-caption font-semibold tracking-wide text-text-muted uppercase',
             collapsed && 'sr-only',
           )}
         >
           {section.label}
-        </h2>
+        </div>
       )}
       <ul
         aria-labelledby={section.label ? labelId : undefined}
@@ -45,7 +45,7 @@ function Section({ section, collapsed, ...itemProps }) {
 /**
  * The app sidebar: logo, nav sections and a footer slot, on a white surface.
  * - `nav`: sections `[{ label?, items }]` (MEMBER_NAV, ADMIN_NAV from nav.js). Labeled sections get
- *   an h2 that names their list; one item is active at a time (`findActiveItem`).
+ *   a plain-text label that names their list (aria-labelledby); one item is active at a time (`findActiveItem`).
  * - `collapsed`: the icon rail (labels become tooltips, the logo becomes the mark).
  * - `badges`: counts per badge key (`{ messages: 3 }`). `onNavigate(event, item)`: a link was followed.
  * - `logo` replaces the Mavuus logo; `logoTo` is where it links (default '/dashboard').
