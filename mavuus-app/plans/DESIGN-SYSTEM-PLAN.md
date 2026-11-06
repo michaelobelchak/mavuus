@@ -377,6 +377,8 @@ Full gate: `npx vitest run`, `npx eslint . --max-warnings 0`, `npm run lint:ds`,
 
 Replace `components/layout/DashboardLayout.jsx` and `AdminLayout.jsx` with `AppShell` (member and admin nav). Keep all routes, auth guards, notifications and search behavior (port from DashboardLayout). e2e smoke must pass.
 
+TODO: AppShell owns the "Skip to main content" link. Remove the skip link from `App.jsx` when the shell is wired in, so pages under the shell don't get two.
+
 ### Tasks 8.2 to 8.18: Dashboard pages (one task per page)
 
 For each of `AcademyPage` (home), `LiveSessionsPage`, `SessionDetailPage`, `OnDemandPage`, `ResourcesPage`, `ResourceDetailPage`, `SpeakersPage`, `MembersPage`, `MemberProfilePage`, `VendorsPage`, `VendorDetailPage`, `JobsPage`, `JobDetailPage`, `MyJobsPage`, `MessagesPage`, `ProfilePage`, `InvitePage`:
