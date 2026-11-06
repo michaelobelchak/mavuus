@@ -140,15 +140,21 @@ export function buildTokens(source) {
   // Every value is validated up front so a bad reference fails the build, not a later lookup.
   for (const t of all) resolve(t)
 
+  // Media queries can't read CSS variables, so breakpoints are written as their resolved value,
+  // both as --ds-breakpoint-* and as Tailwind's --breakpoint-* (one value, one source).
+  const isBreakpoint = (t) => t.path[0] === 'alias' && t.path[1] === 'breakpoint'
+  const breakpointValue = (t) => resolve(t)
+
   const decl = (name, value) => `  --${name}: ${value};`
-  const block = (selector, tokens) => [`${selector} {`, ...tokens.map((t) => decl(varName(t.path), cssValue(t))), '}']
+  const value = (t) => (isBreakpoint(t) ? breakpointValue(t) : cssValue(t))
+  const block = (selector, tokens) => [`${selector} {`, ...tokens.map((t) => decl(varName(t.path), value(t))), '}']
 
   const css = [`/* ${HEADER} */`, '']
   css.push(...block(':root', rootTokens))
   for (const theme of themes.filter((t) => t !== DEFAULT_THEME)) {
     css.push('', ...block(`[data-theme="${theme}"]`, roles(theme)))
   }
-  const entries = themeEntries(all, byPath, resolve)
+  const entries = themeEntries(all, byPath, breakpointValue)
   css.push('', '@theme inline {', ...entries.map(([k, v]) => decl(k, v)), '}', '')
 
   // The JS map holds the light theme only (plus primitives and aliases). Other themes exist
@@ -186,7 +192,7 @@ function twMergeModule(entries) {
   return [`// ${HEADER}`, '', `export const themeScales = ${JSON.stringify(scales, null, 2)}`, ''].join('\n')
 }
 
-function themeEntries(all, byPath, resolve) {
+function themeEntries(all, byPath, breakpointValue) {
   const entries = []
   const ref = (t) => `var(--${varName(t.path)})`
   const alias = (group) => all.filter((t) => t.path[0] === 'alias' && t.path[1] === group)
@@ -212,8 +218,7 @@ function themeEntries(all, byPath, resolve) {
     const key = EASING_THEME[t.path[2]]
     if (key) entries.push([`ease-${key}`, ref(t)])
   }
-  // Media queries can't read CSS variables, so breakpoints get their resolved value.
-  for (const t of alias('breakpoint')) entries.push([`breakpoint-${t.path[2]}`, resolve(t)])
+  for (const t of alias('breakpoint')) entries.push([`breakpoint-${t.path[2]}`, breakpointValue(t)])
   const sans = byPath.get('primitive.font.family.sans')
   if (sans) entries.push(['font-sans', ref(sans)])
   return entries

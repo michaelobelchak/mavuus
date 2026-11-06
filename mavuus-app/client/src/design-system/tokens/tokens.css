@@ -177,9 +177,9 @@
   --ds-z-popover: 550;
   --ds-z-tooltip: 600;
   --ds-z-toast: 700;
-  --ds-breakpoint-site-sm: var(--mv-size-480);
-  --ds-breakpoint-site-md: var(--mv-size-992);
-  --ds-breakpoint-site-lg: var(--mv-size-1200);
+  --ds-breakpoint-site-sm: 480px;
+  --ds-breakpoint-site-md: 992px;
+  --ds-breakpoint-site-lg: 1200px;
   --surface-page: var(--mv-color-neutral-25);
   --surface-raised: var(--mv-color-neutral-0);
   --surface-sunken: var(--mv-color-blue-50);

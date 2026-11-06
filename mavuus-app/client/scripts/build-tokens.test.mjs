@@ -129,6 +129,20 @@ describe('buildTokens', () => {
     expect(twMerge).toContain('"breakpoint": [')
   })
 
+  it('should give the --ds-breakpoint variable and the Tailwind breakpoint the same resolved value', () => {
+    const source = {
+      ...full,
+      primitive: { ...full.primitive, size: { ...full.primitive.size, 992: { $value: '992px' } } },
+      alias: { ...full.alias, breakpoint: { 'site-md': { $value: '{primitive.size.992}' } } },
+    }
+    const { css } = buildTokens(source)
+    const root = css.slice(0, css.indexOf('@theme inline'))
+    const rootValue = root.match(/--ds-breakpoint-site-md: ([^;]+);/)[1]
+    const themeValue = themeBlock(css).match(/--breakpoint-site-md: ([^;]+);/)[1]
+    expect(rootValue).toBe('992px')
+    expect(themeValue).toBe(rootValue)
+  })
+
   it('should map font sizes with line-height companions', () => {
     const theme = themeBlock(buildTokens(full).css)
     expect(theme).toContain('--text-body: var(--ds-font-size-body);')
