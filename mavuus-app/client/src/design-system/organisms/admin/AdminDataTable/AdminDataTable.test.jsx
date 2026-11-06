@@ -89,7 +89,7 @@ describe('AdminDataTable', () => {
     expect(screen.getByRole('region', { name: 'Bulk actions' })).toHaveTextContent('2 selected')
     expect(screen.getAllByRole('status').some((node) => node.textContent === '2 selected')).toBe(true)
     await user.click(screen.getByRole('button', { name: 'Approve' }))
-    expect(onApprove).toHaveBeenCalledWith([1, 3])
+    expect(onApprove).toHaveBeenCalledWith([1, 3], { clearSelection: expect.any(Function) })
   })
 
   it('should clear the selection when Clear selection is pressed', async () => {
@@ -175,7 +175,7 @@ describe('AdminDataTable', () => {
     await user.click(screen.getByRole('button', { name: 'Delete' }))
     const dialog = await screen.findByRole('dialog', { name: 'Delete 2 rows?' })
     await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
-    expect(onDelete).toHaveBeenCalledWith([1, 2])
+    expect(onDelete).toHaveBeenCalledWith([1, 2], { clearSelection: expect.any(Function) })
   })
 
   it('should show an error alert with a retry button instead of the table when loading failed', async () => {
@@ -223,4 +223,146 @@ describe('AdminDataTable', () => {
     await user.click(screen.getByRole('button', { name: /page 2/i }))
     expect(onPageChange).toHaveBeenCalledWith(2)
   })
+
+  it('should keep the confirm dialog open and show the error when a destructive action rejects', async () => {
+    const user = userEvent.setup()
+    const onDelete = vi.fn().mockRejectedValue(new Error('The review is locked by another admin.'))
+    renderTable({ rowActions: [{ key: 'delete', label: 'Delete', destructive: true, onSelect: onDelete }] })
+    await openActions(user, 'Priya Nair')
+    await user.click(await screen.findByRole('menuitem', { name: 'Delete' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Delete Priya Nair?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('The review is locked by another admin.')
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('should show a fallback message when the rejection has no message', async () => {
+    const user = userEvent.setup()
+    renderTable({
+      rowActions: [{ key: 'delete', label: 'Delete', destructive: true, onSelect: () => Promise.reject(null) }],
+    })
+    await openActions(user, 'Priya Nair')
+    await user.click(await screen.findByRole('menuitem', { name: 'Delete' }))
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Something went wrong. Try again.')
+  })
+
+  it('should close the confirm dialog once a destructive action resolves', async () => {
+    const user = userEvent.setup()
+    const onDelete = vi.fn().mockResolvedValue(undefined)
+    renderTable({ rowActions: [{ key: 'delete', label: 'Delete', destructive: true, onSelect: onDelete }] })
+    await openActions(user, 'Priya Nair')
+    await user.click(await screen.findByRole('menuitem', { name: 'Delete' }))
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(onDelete).toHaveBeenCalledTimes(1)
+  })
+
+  it('should ask first when an action has confirm even if it is not destructive', async () => {
+    const user = userEvent.setup()
+    const onFeature = vi.fn()
+    renderTable({
+      rowActions: [{ key: 'feature', label: 'Feature', confirm: { title: 'Feature this review?' }, onSelect: onFeature }],
+    })
+    await openActions(user, 'Priya Nair')
+    await user.click(await screen.findByRole('menuitem', { name: 'Feature' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Feature this review?' })
+    expect(onFeature).not.toHaveBeenCalled()
+    await user.click(within(dialog).getByRole('button', { name: 'Feature' }))
+    expect(onFeature).toHaveBeenCalledWith(reviews[0])
+  })
+
+  it('should pass a failed non-destructive action to onActionError instead of throwing', async () => {
+    const user = userEvent.setup()
+    const failure = new Error('Network down')
+    const onActionError = vi.fn()
+    const action = { key: 'approve', label: 'Approve', onSelect: () => Promise.reject(failure) }
+    renderTable({ rowActions: [action], onActionError })
+    await openActions(user, 'Priya Nair')
+    await user.click(await screen.findByRole('menuitem', { name: 'Approve' }))
+    await waitFor(() => expect(onActionError).toHaveBeenCalledWith(failure, action, reviews[0]))
+  })
+
+  it('should catch a non-destructive action that throws synchronously', async () => {
+    const user = userEvent.setup()
+    const onActionError = vi.fn()
+    const action = {
+      key: 'approve',
+      label: 'Approve',
+      onSelect: () => {
+        throw new Error('Boom')
+      },
+    }
+    renderTable({ rowActions: [action], onActionError })
+    await openActions(user, 'Priya Nair')
+    await user.click(await screen.findByRole('menuitem', { name: 'Approve' }))
+    await waitFor(() => expect(onActionError).toHaveBeenCalledWith(expect.any(Error), action, reviews[0]))
+  })
+
+  it('should clear the selection after a bulk action succeeds and pass clearSelection', async () => {
+    const user = userEvent.setup()
+    const onApprove = vi.fn().mockResolvedValue(undefined)
+    renderTable({ selectable: true, defaultSelectedIds: [1, 3], bulkActions: [{ key: 'approve', label: 'Approve', onSelect: onApprove }] })
+    await user.click(screen.getByRole('button', { name: 'Approve' }))
+    expect(onApprove).toHaveBeenCalledWith([1, 3], { clearSelection: expect.any(Function) })
+    await waitFor(() => expect(screen.queryByRole('region', { name: 'Bulk actions' })).toBeNull())
+  })
+
+  it('should keep the selection after a bulk action with keepSelection', async () => {
+    const user = userEvent.setup()
+    renderTable({
+      selectable: true,
+      defaultSelectedIds: [1, 3],
+      bulkActions: [{ key: 'export', label: 'Export', keepSelection: true, onSelect: () => {} }],
+    })
+    await user.click(screen.getByRole('button', { name: 'Export' }))
+    expect(screen.getByRole('region', { name: 'Bulk actions' })).toHaveTextContent('2 selected')
+  })
+
+  it('should keep the selection when a bulk action fails', async () => {
+    const user = userEvent.setup()
+    const onActionError = vi.fn()
+    renderTable({
+      selectable: true,
+      defaultSelectedIds: [1, 3],
+      onActionError,
+      bulkActions: [{ key: 'approve', label: 'Approve', onSelect: () => Promise.reject(new Error('Nope')) }],
+    })
+    await user.click(screen.getByRole('button', { name: 'Approve' }))
+    await waitFor(() => expect(onActionError).toHaveBeenCalled())
+    expect(screen.getByRole('region', { name: 'Bulk actions' })).toHaveTextContent('2 selected')
+  })
+
+  it('should drop selected ids whose rows are gone when rows change', () => {
+    const onSelectionChange = vi.fn()
+    const { rerender } = renderTable({ selectable: true, defaultSelectedIds: [1, 3], onSelectionChange })
+    rerender(
+      <MemoryRouter>
+        <AdminDataTable caption="Reviews" columns={columns} rows={reviews.slice(0, 2)} selectable onSelectionChange={onSelectionChange} />
+      </MemoryRouter>,
+    )
+    expect(onSelectionChange).toHaveBeenLastCalledWith([1])
+    expect(screen.getByRole('region', { name: 'Bulk actions' })).toHaveTextContent('1 selected')
+  })
+
+  it('should keep selected ids that are off the current page with manual pagination', () => {
+    const onSelectionChange = vi.fn()
+    const pagination = { pageSize: 2, page: 1, manual: true, rowCount: 6, onPageChange: () => {} }
+    const { rerender } = renderTable({ selectable: true, defaultSelectedIds: [1, 3], onSelectionChange, pagination })
+    rerender(
+      <MemoryRouter>
+        <AdminDataTable caption="Reviews" columns={columns} rows={reviews.slice(0, 2)} selectable onSelectionChange={onSelectionChange} pagination={pagination} />
+      </MemoryRouter>,
+    )
+    expect(onSelectionChange).not.toHaveBeenCalled()
+    expect(screen.getByRole('region', { name: 'Bulk actions' })).toHaveTextContent('2 selected')
+  })
+
+  it('should fall back to "this list" in the error title when the caption is not a string', () => {
+    renderTable({ rows: [], caption: <span>Reviews</span>, error: true })
+    expect(screen.getByRole('alert')).toHaveTextContent("Couldn't load this list")
+  })
 })
+
