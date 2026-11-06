@@ -110,7 +110,7 @@ export async function checkPage(page, { name, path, width, ready }) {
   await page.setViewportSize({ width, height: 900 })
   await page.goto(path)
   await ready(page)
-  await page.waitForLoadState('networkidle').catch(() => {})
+  await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
   await page.screenshot({ path: `e2e/screenshots/${name}-${width}.png`, fullPage: true, animations: 'disabled' })
   const { scrollWidth, innerWidth } = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,

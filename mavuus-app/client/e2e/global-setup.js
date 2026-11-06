@@ -16,8 +16,10 @@ export default function resetE2eDatabase() {
   const env = { ...process.env, DB_PATH: E2E_DB_PATH }
   // seed.js creates every table and the demo admin; seed-demo.js adds the demo user's
   // conversations, applications and other dashboard data.
-  execSync('node db/seed.js', { cwd: serverDir, env, stdio: 'ignore' })
-  execSync('node db/seed-demo.js', { cwd: serverDir, env, stdio: 'ignore' })
+  // Keep stderr so a failing seed says why.
+  const stdio = ['ignore', 'ignore', 'inherit']
+  execSync('node db/seed.js', { cwd: serverDir, env, stdio })
+  execSync('node db/seed-demo.js', { cwd: serverDir, env, stdio })
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) resetE2eDatabase()

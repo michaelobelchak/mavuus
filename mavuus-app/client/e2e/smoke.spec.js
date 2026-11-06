@@ -1,5 +1,8 @@
 // Smoke test: every main public, member and admin page renders without errors and without
 // horizontal overflow at 1440, 1024, 768 and 390px. Screenshots go to e2e/screenshots/.
+// These tests only read: they run fully parallel against one seeded database. A spec that
+// changes data (posting, applying, editing) must run serially (test.describe.configure({ mode:
+// 'serial' })) or reseed, so it can't change what these pages show mid-run.
 import { expect, test } from '@playwright/test'
 import { DEMO_STATE, WIDTHS, checkPage } from './helpers.js'
 

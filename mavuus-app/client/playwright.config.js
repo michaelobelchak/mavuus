@@ -45,7 +45,8 @@ export default defineConfig({
     {
       command: `npx vite --port ${WEB_PORT} --strictPort`,
       url: `http://localhost:${WEB_PORT}`,
-      reuseExistingServer: !process.env.CI,
+      // Never reuse either: a leftover Vite on 5181 could proxy to some other API.
+      reuseExistingServer: false,
       timeout: 60_000,
       env: { VITE_API_TARGET: `http://localhost:${API_PORT}` },
     },
