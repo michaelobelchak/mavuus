@@ -12,6 +12,7 @@ Execute phases in order. Each phase builds on the previous one.
 |------|-------|---------------|
 | `WEBSITE-1TO1-REBUILD.md` | DONE 2026-10-31: public pages rebuilt 1:1 to live mavuus.com | - |
 
+| `DESIGN-SYSTEM-PLAN.md` | NEXT: one agent-ready design system for site, dashboard and admin (design: `2026-11-06-design-system-design.md`, research: `research/`) | 4 to 6 |
 | `PUBLIC-DESIGN-SYSTEM.md` | DONE 2026-10-31: one card, button, type, spacing and motion system across the public site (from `audits/2026-10-31-public-site-audit.md`) | 2 to 3 |
 
 ## Pre-Launch Fix + Figma Rebuild (done earlier)
