@@ -59,3 +59,35 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - Resources sign-up links now show totals (2 events, 50 videos) instead of the number on screen.
 - Privacy page subtitle said "Terms of Service" (copy error on live); now "The Mavuus Privacy Policy covers the following topics:".
 - Below 992px the Resources card grids become a swipeable row so no card is left alone on a row.
+
+## 2026-11-06 - Design system foundation (feat/design-system, PR A)
+
+**Decision:** one design system for the public site, dashboard and admin, in `mavuus-app/client/src/design-system/`, with Fixel Text everywhere (Manrope retired). Design: [mavuus-app/plans/2026-11-06-design-system-design.md](mavuus-app/plans/2026-11-06-design-system-design.md); map for humans and agents: root `DESIGN.md`.
+
+**Why one system:** three styles (public `components/live/`, dashboard `components/ui/`, ad-hoc admin pages) meant agents and people restyled the same card three ways. One set of tokens, components and lint rules gives one answer.
+
+**Approach B:** our own components, shadcn-style (in the repo, `cva` variants, `cn()` merge), on Base UI for focus, keyboard and layering, Recharts for charts, Sonner for toasts. **Rejected:** writing interactions in-house (menus, dialogs and focus traps are where accessibility bugs live) and adopting a themed library wholesale (agents learn someone else's rules and the brand fights its defaults). **Deviation from the design:** no shadcn component tokens (`--card`, `--primary`); one role scheme (`bg-surface-*`, `text-text-*`, `border-border-*`) is easier to lint and to learn.
+
+**Tokens:** three tiers in DTCG JSON, light now, dark-ready (dark is one `role.dark` block). Alias variables carry a `--ds-` prefix because Tailwind v4 reads `--spacing-*`, `--radius-*` and `--text-*` as theme keys: `--spacing-md` would have turned `max-w-md` into 16px. The drift test also rejects any key that overrides a Tailwind default.
+
+**Layers:** menus and selects (500) sit above dialogs (400) so a Select can open inside a Dialog; popovers 550, tooltips 600, toasts 700. `zOrder.test.js` guards it.
+
+**Accessibility:** pink `#F26D92` stays (owner decision, 2026-10-31) with the navy focus ring; small brand text gets a new `text-brand-strong` role (pink-800, 5.74:1) instead of pink.
+
+**Legacy lint baseline instead of fixing pages now:** `lint:ds` found 651 errors in 97 legacy files. They're counted in `scripts/lint-design-system.baseline.json` so new code can't add any while Phase 8 rewrites the pages anyway; fixing them in place first would be thrown away.
+
+**E2E isolation:** Playwright starts its own API on 3101 with a fresh `server/db/e2e.db` (through `DB_PATH`) and Vite on 5181, never reusing a running server, so `db/mavuus.db` and the dev servers on 3001 and 5180 are never touched. Rate-limit overrides for e2e are ignored when `NODE_ENV` is production. Playwright is pinned to 1.56.1 because that version's Chromium build is already in the local cache; CI installs the matching build.
+
+**Component calls:**
+- StatusBadge is the one status-to-color map (`in-progress` is info, `completed` success); unknown statuses render neutral and warn once.
+- Cards take preformatted dates (`dateLabel`, `postedLabel`, `time`) plus `dateTime`; pages build them with the shared `lib/formatDate.js`, so no card formats dates its own way.
+- SessionCard drops the old "View Details" button: the title is the card's one stretched link.
+- MemberCard drops the Pro gradient avatar ring of the old Avatar: Pro shows a brand "Pro member" badge, other paid tiers a neutral one, free none.
+- StarRating lives in `organisms/dashboard`, not primitives, because only reviews and vendors use it.
+
+**Bugs found by the smoke test:** `/admin` crashed (the weekly signups chart called `week.slice` on a number); the same chart and the `/resources` sign-up link overflowed a 390px screen, hidden by `overflow-x-clip` (the smoke test now catches clipped overflow too). Two more legacy bugs are logged in the plan for Phase 8.
+
+**Learned:**
+- A hidden browser preview pane pauses `requestAnimationFrame`, so count-ups, reveals and chart animations look stuck there. Verify motion in headless Chromium (Playwright) instead.
+- Unlayered base heading rules beat Tailwind utilities; base `h1` to `h6` styles must stay in `@layer base`.
+- SQLite `CURRENT_TIMESTAMP` is UTC with no zone marker (`2026-10-28 23:30:00`), so `new Date()` reads it as local time. `parseDate` treats that shape as UTC and date-only strings as local calendar dates; Vitest runs in UTC so date tests are stable.
