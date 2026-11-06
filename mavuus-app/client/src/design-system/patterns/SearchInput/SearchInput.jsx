@@ -1,4 +1,4 @@
-import { use, useEffect, useId, useRef, useState } from 'react'
+import { use, useEffect, useId, useReducer, useRef, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { mergeRefs } from '../../lib/mergeRefs'
@@ -53,8 +53,11 @@ export function SearchInput({
   const inputRef = useRef(null)
   const field = use(FormFieldContext)
   // True between our own change event and the render it causes, so a value that moves for any
-  // other reason (a parent reset, a new value prop) can drop the pending search.
+  // other reason (a parent reset, a new value prop) can drop the pending search. Every change
+  // event forces that render (`rerender`), even when a controlled parent keeps the same value
+  // (it trimmed a trailing space), and the flag is cleared after every render.
   const ownChange = useRef(false)
+  const [, rerender] = useReducer((count) => count + 1, 0)
   const ariaLabel = props['aria-label']
   const ariaLabelledBy = props['aria-labelledby']
   const named = Boolean(ariaLabel || ariaLabelledBy || label || (field?.labelled && field.controlId === id))
@@ -82,13 +85,19 @@ export function SearchInput({
 
   // A value that changes from outside (not through typing) drops the pending search.
   useEffect(() => {
-    if (ownChange.current) ownChange.current = false
-    else clearTimeout(timer.current)
+    if (!ownChange.current) clearTimeout(timer.current)
   }, [current])
+
+  // Runs after the effect above on every render, so the flag never outlives the render its
+  // change event caused.
+  useEffect(() => {
+    ownChange.current = false
+  })
 
   function handleChange(event) {
     const next = event.target.value
     if (!controlled) setInnerValue(next)
+    rerender()
     onChange?.(event)
     clearTimeout(timer.current)
     if (next === '') {
@@ -99,7 +108,6 @@ export function SearchInput({
     // Search with the text the field shows now, so a parent that trims or lowercases the value
     // still gets onSearch, with the transformed text.
     timer.current = setTimeout(() => {
-      ownChange.current = false
       const shown = inputRef.current?.value ?? ''
       if (shown !== '') onSearchRef.current?.(shown)
     }, debounce)

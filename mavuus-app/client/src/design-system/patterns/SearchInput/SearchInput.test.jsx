@@ -176,6 +176,33 @@ describe('SearchInput', () => {
     expect(onSearch).toHaveBeenCalledWith('seo')
   })
 
+  it('should drop a pending search when the value changes from outside after a keystroke the parent trimmed away', () => {
+    vi.useFakeTimers()
+    const onSearch = vi.fn()
+    function Trimmed() {
+      const [value, setValue] = useState('')
+      return (
+        <>
+          <SearchInput aria-label="Search" value={value} onChange={(event) => setValue(event.target.value.trim())} onSearch={onSearch} />
+          <button type="button" onClick={() => setValue('growth')}>
+            Preset
+          </button>
+        </>
+      )
+    }
+    render(<Trimmed />)
+    const input = screen.getByRole('searchbox')
+    fireEvent.change(input, { target: { value: 'seo' } })
+    act(() => vi.advanceTimersByTime(300))
+    expect(onSearch).toHaveBeenCalledTimes(1)
+    fireEvent.change(input, { target: { value: 'seo ' } })
+    expect(input).toHaveValue('seo')
+    fireEvent.click(screen.getByRole('button', { name: 'Preset' }))
+    act(() => vi.advanceTimersByTime(300))
+    expect(onSearch).toHaveBeenCalledTimes(1)
+    expect(onSearch).not.toHaveBeenCalledWith('growth')
+  })
+
   it('should not search after unmount', () => {
     vi.useFakeTimers()
     const onSearch = vi.fn()
