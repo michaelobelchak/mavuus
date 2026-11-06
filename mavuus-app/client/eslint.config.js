@@ -27,7 +27,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['vite.config.js', 'vitest.config.js', 'scripts/**/*.mjs', '.storybook/main.js'],
+    files: ['vite.config.js', 'vitest.config.js', 'playwright.config.js', 'scripts/**/*.mjs', '.storybook/main.js', 'e2e/**/*.js'],
     languageOptions: { globals: globals.node },
   },
   {

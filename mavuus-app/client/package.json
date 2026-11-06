@@ -14,7 +14,8 @@
     "build-storybook": "storybook build -o storybook-static",
     "check:stories": "node scripts/check-story-coverage.mjs",
     "lint:ds": "node scripts/lint-design-system.mjs",
-    "guard": "npm run lint:ds && npm run check:stories"
+    "guard": "npm run lint:ds && npm run check:stories",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -34,7 +35,7 @@
   "devDependencies": {
     "@babel/parser": "^7.29.2",
     "@eslint/js": "^9.39.1",
-    "@playwright/test": "^1.65.0",
+    "@playwright/test": "1.65.0",
     "@storybook/addon-a11y": "^10.6.6",
     "@storybook/addon-docs": "^10.6.6",
     "@storybook/react-vite": "^10.6.6",

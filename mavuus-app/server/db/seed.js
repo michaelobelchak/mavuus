@@ -1,11 +1,12 @@
 import Database from 'better-sqlite3'
 import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import { dirname, join, resolve } from 'path'
 import bcrypt from 'bcryptjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const db = new Database(join(__dirname, 'mavuus.db'))
+// DB_PATH is relative to the server folder (e2e uses db/e2e.db); the default is db/mavuus.db.
+const db = new Database(resolve(__dirname, '..', process.env.DB_PATH || 'db/mavuus.db'))
 
 // Enable WAL mode for better performance
 db.pragma('journal_mode = WAL')

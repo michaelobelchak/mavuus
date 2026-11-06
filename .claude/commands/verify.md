@@ -9,5 +9,6 @@ Run these in order. Stop on the first failure.
 3. Client lint: `cd mavuus-app/client && npx eslint . --max-warnings 0`
 4. Design-system guards: `cd mavuus-app/client && npm run guard` (runs `npm run lint:ds`, then `npm run check:stories`)
 5. If the change touched the UI, start `mavuus-client` and `mavuus-server` from `.claude/launch.json` and check the affected pages in the browser, logged in as the demo user if needed.
+6. E2E smoke: `cd mavuus-app/client && npm run e2e` (Playwright starts its own API on 3101 with a fresh `db/e2e.db` and Vite on 5181, so the dev servers and `db/mavuus.db` are untouched; screenshots land in `e2e/screenshots/`). If Playwright's browser isn't installed, run `npx playwright install chromium` or set `PLAYWRIGHT_CHROMIUM_PATH` to a downloaded Chromium.
 
 Report pass or fail for each step with the relevant output. Don't commit anything.

@@ -43,3 +43,33 @@ jobs:
           cache-dependency-path: mavuus-app/server/package-lock.json
       - run: npm ci
       - run: npm test
+
+  e2e:
+    name: E2E smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            mavuus-app/client/package-lock.json
+            mavuus-app/server/package-lock.json
+      - run: npm ci
+        working-directory: mavuus-app/server
+      - run: npm ci
+        working-directory: mavuus-app/client
+      - run: npx playwright install --with-deps chromium
+        working-directory: mavuus-app/client
+      - run: npm run e2e
+        working-directory: mavuus-app/client
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-results
+          path: |
+            mavuus-app/client/e2e/screenshots/
+            mavuus-app/client/playwright-report/
+            mavuus-app/client/test-results/
+          retention-days: 7
