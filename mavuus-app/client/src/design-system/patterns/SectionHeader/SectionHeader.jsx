@@ -1,13 +1,15 @@
 import { cn } from '../../lib/cn'
+import { resolveHeadingLevel } from '../../lib/resolveOption'
 import { Eyebrow, Heading, Text } from '../../primitives'
 
 /**
  * Heading row for a section: eyebrow, title, description, and actions on the right
  * (they wrap under the title on small screens).
- * - `title`: an h2 by default. `level` (1 to 4) picks the tag and its matching size.
+ * - `title`: an h2 by default. `headingLevel` (1 to 4) picks the tag and its matching size.
  * - `description`, `eyebrow`, `actions`. Other props go to the root.
  */
-export function SectionHeader({ title, level = 2, description, eyebrow, actions, className, ref, ...props }) {
+export function SectionHeader({ title, headingLevel, description, eyebrow, actions, className, ref, ...props }) {
+  const level = resolveHeadingLevel(headingLevel, [1, 2, 3, 4], 2, 'SectionHeader')
   return (
     <div
       ref={ref}

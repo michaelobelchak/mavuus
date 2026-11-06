@@ -2,7 +2,7 @@ import { createElement } from 'react'
 import { Accordion as AccordionPrimitive } from '@base-ui/react/accordion'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '../../lib/cn'
-import { resolveOption } from '../../lib/resolveOption'
+import { resolveHeadingLevel } from '../../lib/resolveOption'
 
 const HEADING_LEVELS = [2, 3, 4, 5, 6]
 const DEFAULT_HEADING_LEVEL = 3
@@ -32,13 +32,7 @@ export function Accordion({
   ref,
   ...props
 }) {
-  const level = resolveOption(
-    headingLevel === undefined ? undefined : Number(headingLevel),
-    HEADING_LEVELS,
-    DEFAULT_HEADING_LEVEL,
-    'Accordion',
-    'headingLevel',
-  )
+  const level = resolveHeadingLevel(headingLevel, HEADING_LEVELS, DEFAULT_HEADING_LEVEL, 'Accordion')
 
   return (
     <AccordionPrimitive.Root

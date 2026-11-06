@@ -14,3 +14,12 @@ export function resolveOption(value, allowed, fallback, component, prop) {
   )
   return fallback
 }
+
+/**
+ * Resolves a `headingLevel` prop (number or numeric string) through resolveOption, so every pattern
+ * that renders a title heading uses the same prop name and the same dev warning.
+ */
+export function resolveHeadingLevel(level, allowed, fallback, component) {
+  const value = level === undefined || level === null ? level : Number(level)
+  return resolveOption(value, allowed, fallback, component, 'headingLevel')
+}

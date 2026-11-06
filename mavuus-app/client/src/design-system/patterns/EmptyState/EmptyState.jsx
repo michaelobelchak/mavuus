@@ -1,5 +1,5 @@
 import { cn } from '../../lib/cn'
-import { resolveOption } from '../../lib/resolveOption'
+import { resolveHeadingLevel, resolveOption } from '../../lib/resolveOption'
 import { Heading, Text } from '../../primitives'
 
 const sizes = {
@@ -14,9 +14,10 @@ const SIZES = Object.keys(sizes)
  *   `headingLevel` 1 to 4). `description`: one or two sentences on what goes here or what to do.
  * - `actions`: buttons or links below the text. `size`: sm (inside cards) or md (default, a page).
  */
-export function EmptyState({ icon: IconComponent, title, description, actions, headingLevel = 3, size, className, ref, ...props }) {
+export function EmptyState({ icon: IconComponent, title, description, actions, headingLevel, size, className, ref, ...props }) {
   const resolvedSize = resolveOption(size, SIZES, 'md', 'EmptyState', 'size')
   const style = sizes[resolvedSize]
+  const level = resolveHeadingLevel(headingLevel, [1, 2, 3, 4], 3, 'EmptyState')
   return (
     <div
       ref={ref}
@@ -35,7 +36,7 @@ export function EmptyState({ icon: IconComponent, title, description, actions, h
       )}
       <div className="flex max-w-md flex-col gap-ds-xs">
         {title && (
-          <Heading level={headingLevel} size={style.title}>
+          <Heading level={level} size={style.title}>
             {title}
           </Heading>
         )}

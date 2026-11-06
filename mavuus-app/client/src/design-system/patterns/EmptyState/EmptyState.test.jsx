@@ -1,8 +1,14 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { resetWarnings } from '../../lib/warnOnce'
 import { render, screen } from '@testing-library/react'
 import { Inbox } from 'lucide-react'
 import { Button } from '../../primitives'
 import { EmptyState } from './EmptyState'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  resetWarnings()
+})
 
 describe('EmptyState', () => {
   it('should render the title as an h3 with the description and a decorative icon', () => {
@@ -31,5 +37,12 @@ describe('EmptyState', () => {
     rerender(<EmptyState title="No jobs" size="sm" />)
     expect(container.firstElementChild).toHaveClass('p-ds-lg')
     expect(screen.getByRole('heading')).toHaveClass('text-h4')
+  })
+
+  it('should warn and use h3 when headingLevel is unsupported', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<EmptyState title="No jobs" headingLevel={5} />)
+    expect(screen.getByRole('heading', { level: 3 })).toBeInTheDocument()
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/EmptyState: headingLevel "5"/))
   })
 })
