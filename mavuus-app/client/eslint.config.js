@@ -27,7 +27,15 @@ export default defineConfig([
     },
   },
   {
-    files: ['vite.config.js'],
+    files: ['vite.config.js', 'vitest.config.js', 'scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
+  },
+  {
+    files: ['**/*.mjs'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+    },
   },
 ])
