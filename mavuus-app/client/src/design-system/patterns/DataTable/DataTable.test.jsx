@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom'
 import { useState } from 'react'
 import { resetWarnings } from '../../lib/warnOnce'
 import { mockViewport } from '../../test/browserMocks'
@@ -198,7 +198,8 @@ describe('DataTable', () => {
     renderTable({ rowHref: (row) => `/admin/users/${row.id}` })
     const link = screen.getByRole('link', { name: 'Sam Carter' })
     expect(link).toHaveAttribute('href', '/admin/users/3')
-    expect(link.closest('tr')).toHaveClass('relative')
+    expect(link.closest('tr')).not.toHaveClass('relative')
+    expect(link.closest('tr')).toHaveClass('cursor-pointer')
     expect(screen.getAllByRole('link')).toHaveLength(3)
   })
 
@@ -240,5 +241,112 @@ describe('DataTable', () => {
     mockViewport(375)
     renderTable({ mobileLayout: 'scroll' })
     expect(screen.getByRole('table', { name: 'Members' })).toBeInTheDocument()
+  })
+
+  it('should apply hideBelow to the loading skeleton cells too', () => {
+    const { container } = renderTable({ loading: true, columns: [...columns, { key: 'joined', header: 'Joined', hideBelow: 'md' }] })
+    const cells = container.querySelectorAll('tbody tr:first-child td')
+    expect(cells[3]).toHaveClass('hidden', 'md:table-cell')
+    expect(cells[0]).not.toHaveClass('hidden')
+  })
+
+  it('should compute a manual page range from page, pageSize and rowCount so a short last page reads 81-98', () => {
+    const lastPage = Array.from({ length: 18 }, (_, index) => ({ id: index + 81, name: `Member ${index + 81}`, role: 'member', reviews: 0 }))
+    renderTable({ rows: lastPage, manualPagination: true, page: 5, pageCount: 5, pageSize: 20, rowCount: 98 })
+    expect(screen.getByText('Showing 81-98 of 98')).toBeInTheDocument()
+  })
+
+  it('should warn in dev and skip the range when manualPagination has no pageSize', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    renderTable({ manualPagination: true, page: 2, pageCount: 5, rowCount: 98 })
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/DataTable: .*pageSize/))
+    expect(screen.queryByText(/Showing/)).toBeNull()
+  })
+
+  it('should ask for page 1 when the sort changes and the page is controlled', async () => {
+    const user = userEvent.setup()
+    const onPageChange = vi.fn()
+    renderTable({ pageSize: 2, page: 2, onPageChange })
+    await user.click(screen.getByRole('button', { name: /Reviews/ }))
+    expect(onPageChange).toHaveBeenCalledWith(1)
+  })
+
+  it('should navigate once when a plain cell of a linked row is clicked', async () => {
+    const user = userEvent.setup()
+    function UserPage() {
+      return <p>User page {useParams().id}</p>
+    }
+    render(
+      <MemoryRouter initialEntries={['/admin/users']}>
+        <Routes>
+          <Route
+            path="/admin/users"
+            element={<DataTable caption="Members" columns={columns} rows={users} rowHref={(row) => `/admin/users/${row.id}`} />}
+          />
+          <Route path="/admin/users/:id" element={<UserPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    await user.click(screen.getByRole('cell', { name: 'member' }))
+    expect(screen.getByText('User page 3')).toBeInTheDocument()
+  })
+
+  it('should call onRowClick once from a plain cell and from the first-cell button', async () => {
+    const user = userEvent.setup()
+    const onRowClick = vi.fn()
+    renderTable({ onRowClick })
+    await user.click(screen.getByRole('cell', { name: '4' }))
+    expect(onRowClick).toHaveBeenCalledTimes(1)
+    expect(onRowClick).toHaveBeenLastCalledWith(users[2])
+    await user.click(screen.getByRole('button', { name: 'Sam Carter' }))
+    expect(onRowClick).toHaveBeenCalledTimes(2)
+  })
+
+  it('should not treat clicks on the row checkbox or actions trigger as a row click', async () => {
+    const user = userEvent.setup()
+    const onRowClick = vi.fn()
+    renderTable({ onRowClick, selectable: true, rowActions: () => [{ label: 'Ban' }] })
+    await user.click(screen.getByRole('checkbox', { name: 'Select row Sam Carter' }))
+    await user.click(screen.getByRole('button', { name: 'Actions for Sam Carter' }))
+    expect(onRowClick).not.toHaveBeenCalled()
+  })
+
+  it('should not treat a click that ends a text selection as a row click', async () => {
+    const user = userEvent.setup()
+    const onRowClick = vi.fn()
+    renderTable({ onRowClick })
+    vi.spyOn(window, 'getSelection').mockReturnValue({ isCollapsed: false, toString: () => 'Carter' })
+    await user.click(screen.getByRole('cell', { name: '4' }))
+    expect(onRowClick).not.toHaveBeenCalled()
+  })
+
+  it('should leave columns hidden below md or lg out of the stacked cards', () => {
+    mockViewport(375)
+    renderTable({ columns: [...columns, { key: 'joined', header: 'Joined', hideBelow: 'lg' }] })
+    const cards = within(screen.getByRole('list', { name: 'Members' })).getAllByRole('listitem')
+    expect(within(cards[0]).queryByText('Joined')).toBeNull()
+    expect(within(cards[0]).getByText('Reviews')).toBeInTheDocument()
+  })
+
+  it('should sort the stacked cards from a Sort by select', async () => {
+    mockViewport(375)
+    const user = userEvent.setup()
+    const onSortChange = vi.fn()
+    renderTable({ onSortChange })
+    const cardNames = () =>
+      within(screen.getByRole('list', { name: 'Members' }))
+        .getAllByRole('listitem')
+        .map((card) => card.querySelector('[data-card-title]').textContent)
+    await user.click(screen.getByRole('combobox', { name: 'Sort by' }))
+    await user.click(await screen.findByRole('option', { name: 'Reviews, high to low' }))
+    expect(onSortChange).toHaveBeenLastCalledWith({ key: 'reviews', direction: 'desc' })
+    expect(cardNames()).toEqual(['Elmira Abushayeva', 'Dilya Abushayeva', 'Sam Carter'])
+    expect(screen.getByRole('combobox', { name: 'Sort by' })).toHaveTextContent('Reviews, high to low')
+  })
+
+  it('should not render a Sort by select in the cards when no column is sortable', () => {
+    mockViewport(375)
+    renderTable({ columns: columns.map(({ sortable: _sortable, ...column }) => column) })
+    expect(screen.queryByRole('combobox', { name: 'Sort by' })).toBeNull()
   })
 })

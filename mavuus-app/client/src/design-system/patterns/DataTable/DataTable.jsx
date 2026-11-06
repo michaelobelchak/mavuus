@@ -5,7 +5,7 @@ import { cn } from '../../lib/cn'
 import { linkProps } from '../../lib/linkProps'
 import { resolveOption } from '../../lib/resolveOption'
 import { warnOnce } from '../../lib/warnOnce'
-import { Checkbox, Icon, IconButton, Skeleton, Text } from '../../primitives'
+import { Checkbox, Icon, IconButton, Select, Skeleton, Text } from '../../primitives'
 import { Card, CardAction, CardLink } from '../Card/Card'
 import { DropdownMenu } from '../DropdownMenu/DropdownMenu'
 import { EmptyState } from '../EmptyState/EmptyState'
@@ -17,6 +17,7 @@ import {
   hideBelowClasses,
   nextSort,
   rangeText,
+  sortOptions,
   sortRows,
   togglePage,
   toggleRow,
@@ -27,8 +28,22 @@ const MOBILE_LAYOUTS = ['cards', 'scroll']
 const WIDE_QUERY = '(min-width: 48rem)'
 const ABSOLUTE_URL = /^https?:\/\//i
 
-// Keeps checkboxes, menus and other controls above a row's stretched link.
-const raised = 'relative z-(--ds-z-raised)'
+// A row click is ignored when it started on one of these (they do their own thing).
+const INTERACTIVE =
+  'a, button, input, select, textarea, label, summary, [role="button"], [role="link"], [role="checkbox"], [role="menuitem"], [role="option"], [contenteditable="true"]'
+
+// Follows the row's first-cell target (link or button) for a click anywhere else in the row.
+// Skips clicks on controls, clicks that end a text selection, and clicks from portaled content
+// (an open menu) that React bubbles through the row but that aren't inside it.
+function handleRowClick(event) {
+  const row = event.currentTarget
+  if (!(event.target instanceof Element) || !row.contains(event.target)) return
+  const control = event.target.closest(INTERACTIVE)
+  if (control && row.contains(control)) return
+  const selection = window.getSelection?.()
+  if (selection && !selection.isCollapsed && selection.toString() !== '') return
+  row.querySelector('[data-row-target]')?.click()
+}
 
 const defaultRowId = (row) => row.id
 const defaultRowName = (row) => String(row.name ?? row.title ?? row.id ?? '')
@@ -52,25 +67,22 @@ function SortIcon({ direction }) {
   return <Icon icon={icon} size="sm" className={direction === 'none' && 'text-text-faint'} />
 }
 
-// The row's one primary target. Its ::after covers the row (the row is relative), so a click
-// anywhere on the row follows it, while its name stays the first cell's text.
-function RowTarget({ row, href, onRowClick, children }) {
-  const stretched = "after:absolute after:inset-0 after:content-['']"
+// The row's one primary target, in the first cell: a real link (rowHref) or button (onRowClick)
+// named by the row. Keyboard and screen reader users reach the row through it; the row's own
+// click handler forwards other clicks to it.
+function RowTarget({ row, name, href, onRowClick, children }) {
+  const className = 'cursor-pointer text-left font-semibold text-text-primary hover:underline'
   if (href !== undefined) {
     const link = linkProps(hrefProps(href))
     const { Component } = link
     return (
-      <Component className={cn('font-semibold text-text-primary hover:underline', stretched)} {...link.props}>
+      <Component data-row-target="" aria-label={name} className={className} {...link.props}>
         {children}
       </Component>
     )
   }
   return (
-    <button
-      type="button"
-      className={cn('cursor-pointer text-left font-semibold text-text-primary hover:underline', stretched)}
-      onClick={() => onRowClick(row)}
-    >
+    <button type="button" data-row-target="" aria-label={name} className={className} onClick={() => onRowClick(row)}>
       {children}
     </button>
   )
@@ -98,21 +110,22 @@ function RowActions({ items, name }) {
  * - Sorting: `sort` { key, direction: 'asc' | 'desc' } / `defaultSort`, `onSortChange(sort)`.
  *   Rows sort on the client unless `manualSorting` (the server sorts; pass the sorted rows).
  * - Paging: `pageSize` pages the rows on the client. With `manualPagination` the rows are the
- *   current page and you pass `pageCount` (and `rowCount` for "Showing 1-20 of 98").
- *   `page` / `defaultPage` (1-based), `onPageChange(page)`. A client sort goes back to page 1
- *   when the page is uncontrolled.
+ *   current page and you pass `pageCount`, `pageSize` (required, dev warns) and `rowCount` for
+ *   "Showing 81-98 of 98". `page` / `defaultPage` (1-based), `onPageChange(page)`. A new sort
+ *   goes back to page 1 (through onPageChange when the page is controlled).
  * - `loading`: skeleton rows (`loadingRows`, default 5), aria-busy and a "Loading {caption}" status.
  * - `emptyState`: shown when there are no rows. Default: "No results" with a hint.
  * - `selectable`: a checkbox column. `selectedIds` / `defaultSelectedIds`,
  *   `onSelectionChange(ids)`. Select all covers the current page and keeps other pages' picks.
  * - `rowActions(row)`: DropdownMenu items for a kebab button in a last column.
- * - `rowHref(row)`: the first column's content becomes a link that covers the row (stretched
- *   link, like CardLink), so the row is clickable and keyboard reachable without nesting
- *   controls. `onRowClick(row)` does the same with a button. Wrap any other link or button in a
- *   cell in CardAction so it stays above the overlay.
+ * - `rowHref(row)`: the first column's content becomes a real link named by the row (the
+ *   keyboard and screen reader target), and a click anywhere else on the row follows it, unless
+ *   the click was on a control (button, link, input, label, checkbox, menu item) or ended a text
+ *   selection. `onRowClick(row)` does the same with a button in the first cell.
  * - `toolbar`: a slot above the table (FilterBar, SearchInput, bulk actions).
  * - `mobileLayout`: cards (default, rows stack as labelled cards below md) or scroll (keep the
- *   table and scroll it sideways). Sorting is only available in the table layout.
+ *   table and scroll it sideways). Cards leave out `hideBelow` columns and get a "Sort by"
+ *   select when any column is sortable (`sortLabels: [asc, desc]` names a column's options).
  * - `density`: passed to Table (comfortable or compact).
  * `ref`, `className` and other props go to the root.
  */
@@ -172,7 +185,14 @@ export function DataTable({
   const page = clampPage(pageState, pageCount)
   const pageRows = manualPagination || !pageSize ? sorted : sorted.slice((page - 1) * pageSize, page * pageSize)
   const total = manualPagination ? rowCount : sorted.length
-  const range = paged ? rangeText(page, pageSize ?? pageRows.length, pageRows.length, total) : null
+  if (manualPagination && pageSize === undefined) {
+    warnOnce(
+      'DataTable:pageSize',
+      'DataTable: pass pageSize with manualPagination so the "Showing 1-20 of 98" range can be worked out.',
+    )
+  }
+  const range = paged && pageSize !== undefined ? rangeText(page, pageSize, total) : null
+  const mobileSortOptions = asCards ? sortOptions(columns, rows) : []
 
   const pageIds = pageRows.map(getRowId)
   const selectedOnPage = pageIds.filter((id) => selected.includes(id))
@@ -182,11 +202,11 @@ export function DataTable({
   const columnCount = columns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0)
   const isEmpty = !loading && pageRows.length === 0
 
-  function changeSort(key) {
-    const next = nextSort(sort, key)
+  // A new sort starts again at page 1, for controlled pages too (through onPageChange).
+  function applySort(next) {
     if (!sortControlled) setSort(next)
-    if (!manualSorting && !pageControlled) setPage(1)
     onSortChange?.(next)
+    if (paged && page !== 1) changePage(1)
   }
 
   function changePage(next) {
@@ -208,9 +228,9 @@ export function DataTable({
     />
   )
 
-  const rowTarget = (row, content) =>
+  const rowTarget = (row, name, content) =>
     clickable ? (
-      <RowTarget row={row} href={rowHref?.(row)} onRowClick={onRowClick}>
+      <RowTarget row={row} name={name} href={rowHref?.(row)} onRowClick={onRowClick}>
         {content}
       </RowTarget>
     ) : (
@@ -250,7 +270,7 @@ export function DataTable({
                       'inline-flex cursor-pointer items-center gap-ds-xxs uppercase hover:text-text-primary',
                       align === 'right' && 'flex-row-reverse',
                     )}
-                    onClick={() => changeSort(column.key)}
+                    onClick={() => applySort(nextSort(sort, column.key))}
                   >
                     {column.header}
                     <SortIcon direction={direction} />
@@ -272,11 +292,21 @@ export function DataTable({
         {loading &&
           Array.from({ length: loadingRows }, (_, index) => (
             <TableRow key={`loading-${index}`}>
-              {Array.from({ length: columnCount }, (__, cell) => (
-                <TableCell key={cell}>
+              {selectable && (
+                <TableCell>
+                  <Skeleton shape="rect" className="size-5 rounded-tag" />
+                </TableCell>
+              )}
+              {columns.map((column) => (
+                <TableCell key={column.key} className={cn(column.hideBelow && hideBelowClasses[column.hideBelow])}>
                   <Skeleton className="w-3/4" />
                 </TableCell>
               ))}
+              {rowActions && (
+                <TableCell>
+                  <Skeleton className="w-3/4" />
+                </TableCell>
+              )}
             </TableRow>
           ))}
         {isEmpty && (
@@ -293,17 +323,16 @@ export function DataTable({
               <TableRow
                 key={id}
                 data-selected={isSelected ? '' : undefined}
-                className={cn(clickable && 'relative', 'data-[selected]:bg-surface-selected')}
+                onClick={clickable ? handleRowClick : undefined}
+                className={cn(clickable && 'cursor-pointer', 'data-[selected]:bg-surface-selected')}
               >
                 {selectable && (
                   <TableCell>
-                    <div className={raised}>
-                      <Checkbox
-                        aria-label={`Select row ${name}`}
-                        checked={isSelected}
-                        onCheckedChange={() => changeSelection(toggleRow(selected, id))}
-                      />
-                    </div>
+                    <Checkbox
+                      aria-label={`Select row ${name}`}
+                      checked={isSelected}
+                      onCheckedChange={() => changeSelection(toggleRow(selected, id))}
+                    />
                   </TableCell>
                 )}
                 {columns.map((column, index) => {
@@ -314,15 +343,13 @@ export function DataTable({
                       align={column.align}
                       className={cn(column.hideBelow && hideBelowClasses[column.hideBelow])}
                     >
-                      {index === 0 ? rowTarget(row, content) : content}
+                      {index === 0 ? rowTarget(row, name, content) : content}
                     </TableCell>
                   )
                 })}
                 {rowActions && (
                   <TableCell align="right">
-                    <div className={cn(raised, 'inline-flex')}>
-                      <RowActions items={rowActions(row)} name={name} />
-                    </div>
+                    <RowActions items={rowActions(row)} name={name} />
                   </TableCell>
                 )}
               </TableRow>
@@ -332,7 +359,9 @@ export function DataTable({
     </Table>
   )
 
-  const [primary, ...details] = columns
+  const [primary, ...rest] = columns
+  // Columns hidden below md or lg in the table stay out of the cards too.
+  const details = rest.filter((column) => !column.hideBelow)
   const cardsView = isEmpty ? (
     empty
   ) : (
@@ -360,7 +389,7 @@ export function DataTable({
                       />
                     </CardAction>
                   )}
-                  <div className="min-w-0 grow text-body font-semibold text-text-primary">
+                  <div data-card-title="" className="min-w-0 grow text-body font-semibold text-text-primary">
                     {href !== undefined ? (
                       <CardLink {...hrefProps(href)}>{title}</CardLink>
                     ) : onRowClick ? (
@@ -401,6 +430,20 @@ export function DataTable({
   return (
     <div ref={ref} className={cn('flex flex-col gap-ds-md', className)} {...props}>
       {toolbar}
+      {mobileSortOptions.length > 0 && (
+        <Select
+          aria-label="Sort by"
+          placeholder="Sort by"
+          items={mobileSortOptions}
+          value={sort ? `${sort.key}:${sort.direction}` : null}
+          onValueChange={(value) => {
+            if (!value) return
+            const [key, direction] = value.split(':')
+            applySort({ key, direction })
+          }}
+          className="w-full"
+        />
+      )}
       {asCards ? cardsView : tableView}
       <span role="status" className="sr-only">
         {loading ? `Loading ${caption ?? 'rows'}` : ''}

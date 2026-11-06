@@ -42,12 +42,30 @@ export function clampPage(page, pageCount) {
   return Math.min(Math.max(1, page || 1), Math.max(1, pageCount || 1))
 }
 
-// "Showing 21-40 of 134"; null when the total isn't known or there are no rows.
-export function rangeText(page, pageSize, shown, total) {
-  if (total === undefined || total === null || shown === 0) return null
+// "Showing 81-98 of 98": worked out from the page and page size, so a short last page reads right.
+// Null when the total isn't known or is zero.
+export function rangeText(page, pageSize, total) {
+  if (total === undefined || total === null || total === 0 || !pageSize) return null
   const start = (page - 1) * pageSize + 1
-  const end = Math.min(start + shown - 1, total)
+  if (start > total) return null
+  const end = Math.min(page * pageSize, total)
   return `Showing ${start}-${end} of ${total}`
+}
+
+// Options for the card layout's "Sort by" select: two per sortable column. Labels read
+// "Reviews, low to high" for numbers and "Name, A to Z" otherwise; a column's
+// `sortLabels: [ascending, descending]` overrides them.
+export function sortOptions(columns, rows) {
+  return columns
+    .filter((column) => column.sortable)
+    .flatMap((column) => {
+      const sample = rows.map((row) => (column.sortValue ? column.sortValue(row) : row[column.key])).find((value) => !isEmpty(value))
+      const [asc, desc] = column.sortLabels ?? (typeof sample === 'number' ? ['low to high', 'high to low'] : ['A to Z', 'Z to A'])
+      return [
+        { value: `${column.key}:asc`, label: `${column.header}, ${asc}` },
+        { value: `${column.key}:desc`, label: `${column.header}, ${desc}` },
+      ]
+    })
 }
 
 // Selecting the page adds its ids after the ones already selected; unselecting removes only them.
