@@ -16,6 +16,10 @@ describe('design tokens', () => {
     expect(read('tokens.js')).toBe(built.js)
   })
 
+  it('should match the committed lib/twMergeConfig.js (run npm run tokens if this fails)', () => {
+    expect(readFileSync(new URL('../lib/twMergeConfig.js', import.meta.url), 'utf8')).toBe(built.twMerge)
+  })
+
   it('should not override Tailwind default theme keys except allow-listed ones', () => {
     // Tailwind's default theme, e.g. --radius-lg, --text-xs, --shadow-md, --ease-out, --font-sans.
     const require = createRequire(import.meta.url)

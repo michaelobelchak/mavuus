@@ -2,6 +2,7 @@
 // Input:  src/design-system/tokens/tokens.json
 // Output: src/design-system/tokens/tokens.css (CSS variables + Tailwind @theme inline)
 //         src/design-system/tokens/tokens.js  (resolved light-theme values for charts and JS)
+//         src/design-system/lib/twMergeConfig.js (theme scales so cn() merges token classes)
 // Run with `npm run tokens`. The drift test fails when the outputs are stale.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -26,6 +27,30 @@ const THEME_NAME = /^[a-z0-9-]+$/
 const RADIUS_THEME = { xs: 'tag', sm: 'input', md: 'control', lg: 'card', xl: 'sheet', xxl: 'panel', pill: 'chip' }
 const EASING_THEME = { out: 'enter', in: 'exit', 'in-out': 'move' }
 const COLOR_ROLE_GROUPS = ['surface', 'text', 'border', 'status', 'chart']
+
+// Tailwind theme namespaces that tailwind-merge has a theme scale for (same names in both).
+// Longer names first so --inset-shadow-* is not read as --shadow-*.
+const MERGE_SCALES = [
+  'inset-shadow',
+  'drop-shadow',
+  'text-shadow',
+  'font-weight',
+  'breakpoint',
+  'container',
+  'perspective',
+  'tracking',
+  'leading',
+  'spacing',
+  'animate',
+  'aspect',
+  'radius',
+  'shadow',
+  'color',
+  'blur',
+  'ease',
+  'font',
+  'text',
+]
 
 function isToken(node) {
   return node !== null && typeof node === 'object' && '$value' in node
@@ -123,7 +148,8 @@ export function buildTokens(source) {
   for (const theme of themes.filter((t) => t !== DEFAULT_THEME)) {
     css.push('', ...block(`[data-theme="${theme}"]`, roles(theme)))
   }
-  css.push('', '@theme inline {', ...themeEntries(all, byPath).map(([k, v]) => decl(k, v)), '}', '')
+  const entries = themeEntries(all, byPath)
+  css.push('', '@theme inline {', ...entries.map(([k, v]) => decl(k, v)), '}', '')
 
   // The JS map holds the light theme only (plus primitives and aliases). Other themes exist
   // in CSS; JS consumers that need theme-aware colors should read the CSS variables.
@@ -143,7 +169,21 @@ export function buildTokens(source) {
     '',
   ].join('\n')
 
-  return { css: css.join('\n'), js }
+  return { css: css.join('\n'), js, twMerge: twMergeModule(entries) }
+}
+
+// tailwind-merge only knows Tailwind's default theme. Without these values it reads text-body
+// as a color (and drops it next to text-text-primary) and misses p-ds-md / p-ds-lg conflicts.
+function twMergeModule(entries) {
+  const scales = {}
+  for (const [key] of entries) {
+    if (key.includes('--')) continue // sub-properties such as --text-body--line-height
+    const scale = MERGE_SCALES.find((name) => key.startsWith(`${name}-`))
+    if (!scale) throw new Error(`Theme key --${key} has no tailwind-merge scale; add its namespace to MERGE_SCALES`)
+    if (!scales[scale]) scales[scale] = []
+    scales[scale].push(key.slice(scale.length + 1))
+  }
+  return [`// ${HEADER}`, '', `export const themeScales = ${JSON.stringify(scales, null, 2)}`, ''].join('\n')
 }
 
 function themeEntries(all, byPath) {
@@ -180,10 +220,15 @@ function themeEntries(all, byPath) {
 function main() {
   const dir = new URL('../src/design-system/tokens/', import.meta.url)
   const source = JSON.parse(readFileSync(new URL('tokens.json', dir), 'utf8'))
-  const { css, js } = buildTokens(source)
-  for (const [file, content] of [['tokens.css', css], ['tokens.js', js]]) {
-    writeFileSync(new URL(file, dir), content)
-    console.log(`Wrote ${fileURLToPath(new URL(file, dir))}`)
+  const { css, js, twMerge } = buildTokens(source)
+  const outputs = [
+    [new URL('tokens.css', dir), css],
+    [new URL('tokens.js', dir), js],
+    [new URL('../lib/twMergeConfig.js', dir), twMerge],
+  ]
+  for (const [url, content] of outputs) {
+    writeFileSync(url, content)
+    console.log(`Wrote ${fileURLToPath(url)}`)
   }
 }
 

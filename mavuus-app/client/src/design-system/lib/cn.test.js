@@ -1,8 +1,5 @@
-// @vitest-environment node
-import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import { cn } from './cn'
-import { themeScales } from './twMergeConfig'
 
 describe('cn', () => {
   it('should keep the last padding when two paddings conflict', () => {
@@ -57,21 +54,5 @@ describe('cn', () => {
 
   it('should keep only the last token easing when two easings conflict', () => {
     expect(cn('ease-enter', 'ease-exit')).toBe('ease-exit')
-  })
-})
-
-describe('tailwind-merge config', () => {
-  // Every key the generator writes into @theme inline must be known to tailwind-merge.
-  const css = readFileSync(new URL('../tokens/tokens.css', import.meta.url), 'utf8')
-  const theme = css.slice(css.indexOf('@theme inline'))
-  const keys = [...theme.matchAll(/^\s*--([\w-]+)\s*:/gm)].map((m) => m[1]).filter((k) => !k.includes('--'))
-  const prefixes = { color: 'color-', spacing: 'spacing-', radius: 'radius-', text: 'text-', shadow: 'shadow-', ease: 'ease-' }
-
-  it('should list every token theme key when tokens.css changes', () => {
-    for (const [scale, prefix] of Object.entries(prefixes)) {
-      const fromCss = keys.filter((k) => k.startsWith(prefix)).map((k) => k.slice(prefix.length))
-      expect(fromCss.length).toBeGreaterThan(0)
-      expect([...themeScales[scale]].sort()).toEqual(fromCss.sort())
-    }
   })
 })

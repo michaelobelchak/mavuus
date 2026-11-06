@@ -30,4 +30,4 @@ Tokens, primitives, patterns and organisms for the whole product. Design: `mavuu
 
 Role variables such as `--text-primary` live in `:root`, not in Tailwind's font-size namespace (`--text-*` in `@theme`). Tailwind sees them through `--color-text-primary`, so the class is `text-text-primary`. `text-body` is a font size, `text-text-primary` is a color.
 
-Tokens come from `tokens/tokens.json`. Run `npm run tokens` after editing it. The drift test fails when `tokens.css` or `tokens.js` is stale, and `lib/cn.test.js` fails when a new theme key isn't registered in `lib/twMergeConfig.js`.
+Tokens come from `tokens/tokens.json`. Run `npm run tokens` after editing it. It writes `tokens/tokens.css`, `tokens/tokens.js` and `lib/twMergeConfig.js` (the theme scales `cn()` needs, built from every `@theme inline` key). Don't edit those files by hand: the drift test fails when any of them is stale.
