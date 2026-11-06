@@ -24,7 +24,7 @@ export function CTABand({
     <section ref={ref} className={cn('px-ds-gutter max-md:px-ds-gutter-sm', className)} {...props}>
       <div className="mx-auto w-full max-w-7xl py-ds-section max-site-md:py-ds-section-md max-md:py-ds-section-sm">
         <Reveal
-          className="flex flex-col items-center rounded-sheet bg-surface-sunken bg-cover bg-left-top px-ds-xxxl py-ds-section-md text-center max-md:px-ds-lg max-md:py-ds-xxl"
+          className="flex flex-col items-center rounded-sheet bg-surface-sunken bg-cover bg-left-top px-ds-xxxl py-ds-band text-center max-md:px-ds-lg max-md:py-ds-xxl"
           style={{ backgroundImage: `url("${CTA_BG}")` }}
         >
           <div className={cn('flex w-full flex-col items-center gap-ds-md', wide ? 'max-w-220' : 'max-w-150')}>

@@ -12,10 +12,12 @@ export const SIZE_ORDER = [
   'lg',
   'xl',
   'gutter',
+  'section-xs',
   'xxl',
   'section-sm',
   'xxxl',
   'section-md',
+  'band',
   'section',
   'pill',
 ]

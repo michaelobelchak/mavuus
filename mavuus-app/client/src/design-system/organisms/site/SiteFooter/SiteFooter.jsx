@@ -18,7 +18,7 @@ export function SiteFooter({ columns = SITE_FOOTER_COLUMNS, className, ref, ...p
   return (
     <footer ref={ref} className={cn('border-t border-border-subtle text-text-primary', className)} {...props}>
       <div className="px-ds-gutter max-md:px-ds-gutter-sm">
-        <div className="mx-auto max-w-7xl pt-ds-section pb-ds-gutter max-site-md:pt-ds-section-md max-md:pt-ds-section-sm">
+        <div className="mx-auto max-w-7xl pt-ds-section pb-ds-section-xs max-site-md:pt-ds-section-md max-md:pt-ds-section-sm">
           <div className="flex gap-y-ds-md pb-ds-xxxl max-site-md:flex-col max-site-md:gap-y-ds-xxl max-md:pb-ds-xxl">
             <div className="flex min-w-0 grow flex-col items-start gap-ds-md">
               <RouterLink to="/" aria-label="Mavuus home" className="block w-fit">
@@ -35,7 +35,7 @@ export function SiteFooter({ columns = SITE_FOOTER_COLUMNS, className, ref, ...p
                 Marketing strategy, execution and leadership for B2B growth.
               </p>
             </div>
-            <div className="grid w-192 shrink-0 grid-cols-3 gap-y-ds-md max-site-lg:w-160 max-site-md:w-full max-md:gap-x-ds-lg max-site-sm:grid-cols-1 max-site-sm:gap-y-ds-gutter">
+            <div className="grid w-192 shrink-0 grid-cols-3 gap-y-ds-md max-site-lg:w-160 max-site-md:w-full max-md:gap-x-ds-lg max-site-sm:grid-cols-1 max-site-sm:gap-y-ds-section-xs">
               {columns.map((column) => (
                 <div key={column.title} className="flex flex-col items-start">
                   <h2 className={columnTitle}>{column.title}</h2>
@@ -48,6 +48,8 @@ export function SiteFooter({ columns = SITE_FOOTER_COLUMNS, className, ref, ...p
               ))}
               <div className="flex flex-col items-start">
                 <h2 className={columnTitle}>Get in Touch</h2>
+                {/* py-2.5 (10px, no token) lines this text up with the first link row next to it; a
+                    min-height would drop the top offset and lift the text 10px. */}
                 <p className="m-ds-none py-2.5 text-body leading-7 text-text-primary">
                   Question or feedback? We would love to{' '}
                   <RouterLink

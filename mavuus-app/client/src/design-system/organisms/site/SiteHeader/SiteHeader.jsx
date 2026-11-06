@@ -13,7 +13,7 @@ const linkBase =
 const navLinkClass = ({ isActive }) => cn(linkBase, isActive ? 'text-text-brand' : 'text-text-ink')
 
 // The public CTA look on Button: 56px tall, 16px radius, the blue drop shadow.
-const signUpClass = 'rounded-card leading-6 shadow-button-strong'
+const signUpClass = 'rounded-card leading-6 shadow-button-secondary'
 
 // The menu icon is drawn a little bolder than lucide's default, as on the live site.
 function MenuIcon(props) {

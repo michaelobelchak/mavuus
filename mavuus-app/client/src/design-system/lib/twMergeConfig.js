@@ -73,8 +73,10 @@ export const themeScales = {
     "ds-section",
     "ds-gutter-sm",
     "ds-gutter",
+    "ds-section-xs",
     "ds-section-sm",
-    "ds-section-md"
+    "ds-section-md",
+    "ds-band"
   ],
   "text": [
     "caption",
@@ -96,7 +98,7 @@ export const themeScales = {
     "float",
     "overlay",
     "button-brand",
-    "button-strong"
+    "button-secondary"
   ],
   "ease": [
     "enter",
