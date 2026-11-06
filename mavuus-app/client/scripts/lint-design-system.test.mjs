@@ -59,6 +59,11 @@ describe('no-arbitrary-size', () => {
     expect(new Set(found.map((v) => v.severity))).toEqual(new Set(['error']))
   })
 
+  it('should count a repeated token once per occurrence, each at its own column', () => {
+    const found = lintSource('src/pages/A.jsx', 'export const A = () => <div className="w-[3px] h-4 w-[3px]" />\n')
+    expect(found.filter((v) => v.rule === 'no-arbitrary-size').map((v) => v.col)).toEqual([40, 52])
+  })
+
   it('should only warn inside src/design-system/', () => {
     const found = lintSource('src/design-system/patterns/A/A.jsx', fixture('no-arbitrary-size.fail.jsx'))
     expect(found).toHaveLength(5)

@@ -293,9 +293,15 @@ function lintJs(file, source, ctx) {
 
   const checkText = (text, rawStart, rawEnd, ancestors) => {
     const raw = source.slice(rawStart, rawEnd)
+    // Maps a match to its own spot in the raw source. Repeats of the same text continue the
+    // search after the previous hit, so each occurrence gets its own offset (and its own count).
+    const cursors = new Map()
     const offsetOf = (needle, fallback) => {
-      const i = raw.indexOf(needle)
-      return rawStart + (i >= 0 ? i : fallback)
+      const from = cursors.get(needle) ?? 0
+      const i = raw.indexOf(needle, from)
+      if (i < 0) return rawStart + fallback
+      cursors.set(needle, i + needle.length)
+      return rawStart + i
     }
     DASHES.lastIndex = 0
     for (const m of [...text.matchAll(DASHES), ...raw.matchAll(/\\u201[34]|&(?:mdash|ndash);/g)].slice(0, 1)) {
@@ -479,7 +485,7 @@ export function lintSource(file, source, { strict = false } = {}) {
     const { line, col } = locate(starts, offset)
     overrideErrors.push({ file, line, col, rule, severity: 'error', message: `${RULES[rule]}: ${detail}` })
   })
-  // Tests build fixtures with raw styles on purpose, so only the dash rule applies to them.
+  // Tests build fixtures with raw styles on purpose, so only the dash and layering rules apply.
   const isTest = TEST_FILE.test(file)
   const kept = raw.filter((v) => !overrides.get(v.line)?.has(v.rule) && (!isTest || TEST_RULES.has(v.rule)))
   // Avoid double reports of the same rule at the same spot (a string seen as text and as a class).
