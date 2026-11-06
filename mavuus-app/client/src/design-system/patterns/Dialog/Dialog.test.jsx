@@ -124,6 +124,19 @@ describe('Dialog', () => {
     expect(error).toHaveBeenCalledWith(expect.stringMatching(/Dialog: size "xl"/))
   })
 
+  it('should pass Root options to Base UI and keep them off the DOM', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const onOpenChangeComplete = vi.fn()
+    renderDialog({ defaultOpen: true, modal: false, onOpenChangeComplete, 'data-testid': 'popup' })
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveAttribute('data-testid', 'popup')
+    expect(dialog).not.toHaveAttribute('modal')
+    // Not modal: the page outside stays in the accessibility tree.
+    expect(screen.getByRole('button', { name: 'Invite member' }).closest('[aria-hidden="true"]')).toBeNull()
+    await waitFor(() => expect(onOpenChangeComplete).toHaveBeenCalledWith(true))
+    expect(error).not.toHaveBeenCalled()
+  })
+
   it('should warn in dev when the title is missing', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(<Dialog defaultOpen>Body</Dialog>)

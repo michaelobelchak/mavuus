@@ -1,4 +1,4 @@
-import { cloneElement, isValidElement, useEffect } from 'react'
+import { isValidElement, useEffect } from 'react'
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import { cn } from '../../lib/cn'
@@ -13,6 +13,8 @@ const DISMISS_REASONS = ['escape-key', 'outside-press']
  * outside content made inert). Not exported from the barrel: use Dialog or Sheet.
  * - `component` names the caller in dev warnings. `viewportClassName` places the popup,
  *   `popupClass` is the caller's resolved popup styling.
+ * - Base UI Root options (`modal`, `onOpenChangeComplete`, `actionsRef`, `handle`, `triggerId`,
+ *   `defaultTriggerId`) go to the Root; everything else goes to the Popup.
  */
 export function OverlayShell({
   component,
@@ -24,6 +26,12 @@ export function OverlayShell({
   description,
   footer,
   dismissible = true,
+  modal,
+  onOpenChangeComplete,
+  actionsRef,
+  handle,
+  triggerId,
+  defaultTriggerId,
   viewportClassName,
   popupClass,
   className,
@@ -55,6 +63,12 @@ export function OverlayShell({
       defaultOpen={defaultOpen}
       onOpenChange={handleOpenChange}
       disablePointerDismissal={!dismissible}
+      modal={modal}
+      onOpenChangeComplete={onOpenChangeComplete}
+      actionsRef={actionsRef}
+      handle={handle}
+      triggerId={triggerId}
+      defaultTriggerId={defaultTriggerId}
     >
       {isValidElement(trigger) && <DialogPrimitive.Trigger render={trigger} />}
       <DialogPrimitive.Portal>
@@ -97,5 +111,5 @@ export function OverlayShell({
  * `<DialogClose><Button variant="ghost">Cancel</Button></DialogClose>`. Other props go to that element.
  */
 export function DialogClose({ children, ...props }) {
-  return <DialogPrimitive.Close render={isValidElement(children) ? cloneElement(children) : children} {...props} />
+  return <DialogPrimitive.Close render={children} {...props} />
 }
