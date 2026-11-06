@@ -144,7 +144,7 @@
   },
   "src/components/ui/Avatar.jsx": {
     "no-arbitrary-size": 2,
-    "no-em-dash": 1
+    "no-em-dash": 4
   },
   "src/components/ui/Breadcrumbs.jsx": {
     "no-arbitrary-size": 2

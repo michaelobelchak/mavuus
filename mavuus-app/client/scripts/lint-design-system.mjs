@@ -18,7 +18,8 @@
 // goes up or a file or rule that is not in the baseline has errors. When counts drop, it says to
 // run `npm run lint:ds -- --update-baseline`. src/design-system/ has no baseline: any error fails.
 //
-// Flags: --strict (no-retired-imports becomes an error, for Phase 8), --update-baseline,
+// Flags: --strict (no-retired-imports becomes an error, for Phase 8), --update-baseline (refuses
+// to raise any count unless --allow-increase is also passed),
 // --verbose (list every warning, not only the ones in src/design-system/).
 import fs from 'node:fs'
 import path from 'node:path'
@@ -35,7 +36,11 @@ export const RULES = {
   'pages-use-system': 'More than 3 className strings over 120 characters; compose design-system components instead',
   'ds-layering': 'Design-system layer import out of order',
   'ds-allow-reason': 'ds-allow override needs a known rule and a reason',
+  'parse-error': 'Could not parse the file',
 }
+
+// Rules that never go into the baseline: a legacy file with one of these always fails.
+const NEVER_BASELINED = new Set(['parse-error'])
 
 const DS = 'src/design-system/'
 const TOKENS_DIR = 'src/design-system/tokens/'
@@ -59,6 +64,7 @@ const CLASS_ATTR = /^(class|className|[A-Za-z]+ClassName|classNames)$/
 const HEX = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z_-])/g
 const COLOR_FN = /\b(?:rgba?|hsla?|oklch|oklab|lab|lch|hwb)\(/gi
 const DASHES = /[\u2013\u2014]|&(?:mdash|ndash|#8212|#8211|#x2014|#x2013);/g
+const RAW_DASHES = /[\u2013\u2014]|\\u201[34]|\\u\{201[34]\}|&(?:mdash|ndash|#8212|#8211|#x2014|#x2013);/g
 
 const SIZE_PREFIXES = new Set([
   'p', 'px', 'py', 'pt', 'pr', 'pb', 'pl', 'ps', 'pe',
@@ -73,6 +79,7 @@ const SIZE_PREFIXES = new Set([
 ])
 const LENGTH = /^-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em|%|vh|vw|dvh|svh|lvh|vmin|vmax|ch|ex|pt)?$/
 const SIZE_FN = /^(?:calc|clamp|min|max)\(.*\d/
+const RAW_COLOR_VALUE = /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab|lab|lch|hwb)\(/i
 
 const HANDLES_REDUCED = /motion-reduce:|prefers-reduced-motion|useReducedMotion|reducedMotion/
 
@@ -120,17 +127,24 @@ export function scanClassTokens(text) {
     if (!token.includes('[')) continue
     const { utility } = splitVariants(token)
     const bare = utility.replace(/^!/, '').replace(/!$/, '').replace(/^-/, '')
-    const arb = /^([a-z][a-z-]*?)-\[(.+)\]$/.exec(bare)
+    // An optional modifier follows a slash: /50, /6 or /[20px] (opacity on colors, line
+    // height on font sizes).
+    const arb = /^([a-z][a-z-]*?)-\[(.+?)\](?:\/(\[(.+)\]|[\w.]+))?$/.exec(bare)
     const prop = /^\[([a-z-]+):(.+)\]$/.exec(bare)
+    const plain = arb || prop ? null : /^([a-z][a-z-]*?)-[\w.-]+\/\[(.+)\]$/.exec(bare)
     const value = arb ? arb[2] : prop ? prop[2] : null
-    if (value === null) continue
-    if (/#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab|lab|lch|hwb)\(/i.test(value)) {
+    const modifier = arb ? arb[4] ?? null : plain ? plain[2] : null
+    const prefix = arb ? arb[1] : plain ? plain[1] : null
+    if (value === null && modifier === null) continue
+    if ([value, modifier].some((v) => v !== null && RAW_COLOR_VALUE.test(v))) {
       found.push({ index: m.index, rule: 'no-raw-color', text: token })
       continue
     }
-    if (arb && SIZE_PREFIXES.has(arb[1]) && (LENGTH.test(value) || SIZE_FN.test(value))) {
-      found.push({ index: m.index, rule: 'no-arbitrary-size', text: token })
-    }
+    const isSize = (v) => v !== null && (LENGTH.test(v) || SIZE_FN.test(v))
+    const sizeValue = arb && SIZE_PREFIXES.has(prefix) && isSize(value)
+    // Only a font size's modifier is a size (line height); bg-x/[0.5] is an opacity.
+    const sizeModifier = prefix === 'text' && isSize(modifier)
+    if (sizeValue || sizeModifier) found.push({ index: m.index, rule: 'no-arbitrary-size', text: token })
   }
   return found
 }
@@ -231,8 +245,11 @@ function styleObjectAllowed(obj) {
   })
 }
 
-function parseOverrides(comments, report) {
-  // Returns Map<line, Set<rule>>. Overrides apply to their own line and the line after.
+/**
+ * Returns Map<line, Set<rule>>. A comment alone on its line covers the next line; a comment
+ * after code on the same line covers only that line.
+ */
+function parseOverrides(comments, source, report) {
   const byLine = new Map()
   for (const c of comments) {
     const m = /ds-allow\s+([a-z-]+(?:\s*,\s*[a-z-]+)*)\s*(?::\s*(.*))?$/.exec(c.text.trim().replace(/\*\/$/, '').trim())
@@ -244,7 +261,11 @@ function parseOverrides(comments, report) {
       report('ds-allow-reason', c.offset, unknown.length > 0 ? `unknown rule ${unknown.join(', ')}` : 'missing reason after ":"')
       continue
     }
-    for (const line of [c.line, c.endLine + 1]) {
+    const lineStart = source.lastIndexOf('\n', c.offset - 1) + 1
+    const lineEnd = source.indexOf('\n', c.end) === -1 ? source.length : source.indexOf('\n', c.end)
+    // JSX comments sit in braces: {/* ds-allow ... */}
+    const alone = /^\s*\{?\s*$/.test(source.slice(lineStart, c.offset)) && /^\s*\}?\s*$/.test(source.slice(c.end, lineEnd))
+    for (const line of alone ? [c.line, c.endLine + 1] : [c.line]) {
       if (!byLine.has(line)) byLine.set(line, new Set())
       for (const r of rules) byLine.get(line).add(r)
     }
@@ -254,7 +275,7 @@ function parseOverrides(comments, report) {
 
 function severityFor(rule, file, strict) {
   if (rule === 'no-arbitrary-size') return file.startsWith(DS) ? 'warn' : 'error'
-  if (rule === 'no-retired-imports') return strict ? 'error' : 'warn'
+  if (rule === 'no-retired-imports') return strict || file.startsWith(DS) ? 'error' : 'warn'
   if (rule === 'motion-needs-reduced' || rule === 'pages-use-system') return 'warn'
   return 'error'
 }
@@ -269,20 +290,20 @@ function lintJs(file, source, ctx) {
       allowReturnOutsideFunction: true,
     })
   } catch (error) {
-    ctx.report('parse-error', 0, error.message, 'error')
+    ctx.report('parse-error', error.pos ?? 0, error.message)
     return []
   }
+  for (const error of ast.errors || []) ctx.report('parse-error', error.pos ?? 0, error.message)
   const comments = (ast.comments || []).map((c) => ({
     text: c.value,
     offset: c.start,
+    end: c.end,
     line: c.loc.start.line,
     endLine: c.loc.end.line,
   }))
 
   for (const c of ast.comments || []) {
-    DASHES.lastIndex = 0
-    const m = DASHES.exec(c.value)
-    if (m) ctx.report('no-em-dash', c.start + 2 + m.index, 'in a comment')
+    for (const m of c.value.matchAll(DASHES)) ctx.report('no-em-dash', c.start + 2 + m.index, 'in a comment')
   }
 
   const inlineExempt = INLINE_STYLE_EXEMPT.some((p) => file === p || file.startsWith(p))
@@ -303,18 +324,18 @@ function lintJs(file, source, ctx) {
       cursors.set(needle, i + needle.length)
       return rawStart + i
     }
-    DASHES.lastIndex = 0
-    for (const m of [...text.matchAll(DASHES), ...raw.matchAll(/\\u201[34]|&(?:mdash|ndash);/g)].slice(0, 1)) {
-      ctx.report('no-em-dash', offsetOf(m[0], 0), 'in text')
-    }
-    for (const f of scanClassTokens(text)) {
+    // Dashes are found in the raw source, so literal characters, \u2014 escapes and HTML
+    // entities each count once at their own position.
+    for (const m of raw.matchAll(RAW_DASHES)) ctx.report('no-em-dash', rawStart + m.index, 'in text')
+    const classFindings = scanClassTokens(text)
+    for (const f of classFindings) {
       ctx.report(f.rule, offsetOf(f.text, f.index), `"${f.text}"`)
     }
     const classy = inClassContext(ancestors)
     const styled = styleAttributeOf(ancestors)
     if (classy || styled) {
       for (const f of rawColors(text)) {
-        if (classy && scanClassTokens(text).some((t) => t.rule === 'no-raw-color' && t.text.includes(f.text))) continue
+        if (classy && classFindings.some((t) => t.rule === 'no-raw-color' && t.text.includes(f.text))) continue
         ctx.report('no-raw-color', offsetOf(f.text, f.index), `"${f.text}"${styled ? ' in a style object' : ''}`)
       }
     }
@@ -393,21 +414,49 @@ function lintJs(file, source, ctx) {
   return comments
 }
 
-/** Returns [start, end) offsets of the @theme and top-level :root blocks in a CSS source. */
-function tokenBlocks(source) {
-  const blocks = []
-  const re = /(^|\n)\s*(@theme\b[^{]*|:root)\s*\{/g
-  let m
-  while ((m = re.exec(source))) {
-    let depth = 0
-    let i = source.indexOf('{', m.index)
-    const start = m.index
-    for (; i < source.length; i++) {
-      if (source[i] === '{') depth++
-      else if (source[i] === '}' && --depth === 0) break
+const THEME_PRELUDE = /^(?:@theme\b|:root|\[data-theme|\.dark\b)/
+
+/**
+ * Splits CSS (comments already blanked) into segments ending at `{`, `;` or `}` outside
+ * parentheses and strings. Returns [{ start, end, text, opens }]; `opens` marks a selector or
+ * at-rule prelude (the segment ends at `{`), the rest are declarations.
+ */
+function cssSegments(code) {
+  const segments = []
+  let start = 0
+  let parens = 0
+  let quote = null
+  for (let i = 0; i < code.length; i++) {
+    const ch = code[i]
+    if (quote) {
+      if (ch === quote && code[i - 1] !== '\\') quote = null
+      continue
     }
-    blocks.push([start, i + 1])
-    re.lastIndex = i + 1
+    if (ch === '"' || ch === "'") quote = ch
+    else if (ch === '(') parens++
+    else if (ch === ')') parens = Math.max(0, parens - 1)
+    else if (parens === 0 && (ch === '{' || ch === ';' || ch === '}')) {
+      segments.push({ start, end: i, text: code.slice(start, i), opens: ch === '{' })
+      start = i + 1
+    }
+  }
+  if (start < code.length) segments.push({ start, end: code.length, text: code.slice(start), opens: false })
+  return segments
+}
+
+/** Returns [start, end) offsets of the theme blocks (@theme, :root..., [data-theme...], .dark). */
+function tokenBlocks(code) {
+  const blocks = []
+  for (const seg of cssSegments(code)) {
+    if (!seg.opens || !THEME_PRELUDE.test(seg.text.trim())) continue
+    if (blocks.some(([a, b]) => seg.start >= a && seg.start < b)) continue
+    let depth = 0
+    let i = seg.end
+    for (; i < code.length; i++) {
+      if (code[i] === '{') depth++
+      else if (code[i] === '}' && --depth === 0) break
+    }
+    blocks.push([seg.start, i + 1])
   }
   return blocks
 }
@@ -417,27 +466,27 @@ function lintCss(file, source, ctx) {
   // Blank out comments (keeping offsets) so declarations are scanned without them.
   let code = source.replace(/\/\*[\s\S]*?\*\//g, (text, offset) => {
     const startLine = locate(ctx.starts, offset).line
-    comments.push({ text: text.slice(2, -2), offset, line: startLine, endLine: locate(ctx.starts, offset + text.length - 1).line })
+    comments.push({ text: text.slice(2, -2), offset, end: offset + text.length, line: startLine, endLine: locate(ctx.starts, offset + text.length - 1).line })
     return text.replace(/[^\n]/g, ' ')
   })
   for (const c of comments) {
-    DASHES.lastIndex = 0
-    const m = DASHES.exec(c.text)
-    if (m) ctx.report('no-em-dash', c.offset + 2 + m.index, 'in a comment')
+    for (const m of c.text.matchAll(DASHES)) ctx.report('no-em-dash', c.offset + 2 + m.index, 'in a comment')
   }
-  DASHES.lastIndex = 0
   for (const m of code.matchAll(DASHES)) ctx.report('no-em-dash', m.index, 'in CSS')
   if (file === INDEX_CSS) {
     for (const [start, end] of tokenBlocks(code)) {
       code = code.slice(0, start) + code.slice(start, end).replace(/[^\n]/g, ' ') + code.slice(end)
     }
   }
-  for (const f of rawColors(code)) {
-    // Skip hex-looking selectors such as #root; only flag values after a colon.
-    const lineStart = code.lastIndexOf('\n', f.index) + 1
-    const before = code.slice(lineStart, f.index)
-    if (f.text.startsWith('#') && !before.includes(':')) continue
-    ctx.report('no-raw-color', f.index, `"${f.text}"`)
+  // Only declaration values can hold a raw color; selectors such as a:hover #bad are skipped.
+  for (const seg of cssSegments(code)) {
+    if (seg.opens) continue
+    const colon = seg.text.indexOf(':')
+    if (colon < 0 || seg.text.trim().startsWith('@')) continue
+    const valueStart = seg.start + colon + 1
+    for (const f of rawColors(code.slice(valueStart, seg.end))) {
+      ctx.report('no-raw-color', valueStart + f.index, `"${f.text}"`)
+    }
   }
   for (const m of code.matchAll(/@apply\s+([^;]+);/g)) {
     for (const f of scanClassTokens(m[1])) ctx.report(f.rule, m.index, `"${f.text}" in @apply`)
@@ -448,7 +497,6 @@ function lintCss(file, source, ctx) {
 }
 
 function lintMarkdown(file, source, ctx) {
-  DASHES.lastIndex = 0
   for (const m of source.matchAll(DASHES)) ctx.report('no-em-dash', m.index, 'in docs')
   return []
 }
@@ -481,7 +529,7 @@ export function lintSource(file, source, { strict = false } = {}) {
   else comments = lintJs(file, source, ctx)
 
   const overrideErrors = []
-  const overrides = parseOverrides(comments, (rule, offset, detail) => {
+  const overrides = parseOverrides(comments, source, (rule, offset, detail) => {
     const { line, col } = locate(starts, offset)
     overrideErrors.push({ file, line, col, rule, severity: 'error', message: `${RULES[rule]}: ${detail}` })
   })
@@ -520,7 +568,7 @@ export function listFiles(root) {
 export function countBaseline(violations) {
   const counts = {}
   for (const v of violations) {
-    if (v.severity !== 'error' || v.file.startsWith(DS)) continue
+    if (v.severity !== 'error' || v.file.startsWith(DS) || NEVER_BASELINED.has(v.rule)) continue
     counts[v.file] ??= {}
     counts[v.file][v.rule] = (counts[v.file][v.rule] || 0) + 1
   }
@@ -541,7 +589,7 @@ export function countBaseline(violations) {
 export function compareToBaseline(violations, baseline = {}) {
   const errors = violations.filter((v) => v.severity === 'error')
   const counts = countBaseline(errors)
-  const failing = errors.filter((v) => v.file.startsWith(DS))
+  const failing = errors.filter((v) => v.file.startsWith(DS) || NEVER_BASELINED.has(v.rule))
   let baselined = 0
   for (const [file, rules] of Object.entries(counts)) {
     for (const [rule, count] of Object.entries(rules)) {
@@ -578,11 +626,26 @@ function format(v) {
 export function run(argv, { root, baselinePath, log = console.log, error = console.error } = {}) {
   const strict = argv.includes('--strict')
   const update = argv.includes('--update-baseline')
+  const allowIncrease = argv.includes('--allow-increase')
   const verbose = argv.includes('--verbose')
   const violations = lintProject(root, { strict })
 
   if (update) {
     const counts = countBaseline(violations)
+    const previous = fs.existsSync(baselinePath) ? JSON.parse(fs.readFileSync(baselinePath, 'utf8')) : {}
+    const increases = []
+    for (const [file, rules] of Object.entries(counts)) {
+      for (const [rule, now] of Object.entries(rules)) {
+        const was = previous[file]?.[rule] || 0
+        if (now > was) increases.push(`${file} ${rule}: ${was} -> ${now}`)
+      }
+    }
+    if (increases.length > 0 && !allowIncrease) {
+      error('Refusing to raise the baseline. These counts went up:')
+      for (const line of increases) error(`  ${line}`)
+      error('Fix them, or pass --allow-increase if the rise is intended (a renamed or moved legacy file).')
+      return 1
+    }
     fs.writeFileSync(baselinePath, `${JSON.stringify(counts, null, 2)}\n`)
     const total = Object.values(counts).reduce((sum, rules) => sum + Object.values(rules).reduce((a, b) => a + b, 0), 0)
     log(`Wrote ${path.basename(baselinePath)}: ${total} legacy error(s) in ${Object.keys(counts).length} file(s).`)

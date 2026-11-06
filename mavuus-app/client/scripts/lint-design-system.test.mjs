@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { compareToBaseline, countBaseline, lintSource, run } from './lint-design-system.mjs'
+import { compareToBaseline, countBaseline, lintSource, run, scanClassTokens } from './lint-design-system.mjs'
 
 const FIXTURES = path.join(import.meta.dirname, '__fixtures__', 'lint-ds')
 const EM_DASH = String.fromCharCode(0x2014)
@@ -35,10 +35,60 @@ describe('no-raw-color', () => {
     ])
   })
 
+  it('should flag multi-line CSS values but not hex-like selectors', () => {
+    const css = 'a:hover #bad {\n  box-shadow:\n    0 1px 2px #000;\n}\n'
+    expect(lintSource('src/a.css', css).map((v) => [v.rule, v.line])).toEqual([['no-raw-color', 3]])
+  })
+
+  it('should skip :root, [data-theme] and .dark theme blocks in index.css', () => {
+    const css =
+      ':root[data-theme="dark"] {\n  --a: #000;\n}\n[data-theme="dark"] .x {\n  --b: #111;\n}\n.dark {\n  --c: #222;\n}\n.a { color: #333; }\n'
+    expect(lintSource('src/index.css', css).map((v) => [v.rule, v.line])).toEqual([['no-raw-color', 10]])
+    expect(lintSource('src/other.css', css).filter((v) => v.rule === 'no-raw-color')).toHaveLength(4)
+  })
+
   it('should flag raw colors in CSS declarations but not in the index.css theme blocks', () => {
     expect(only('no-raw-color', rulesOf('no-raw-color.fail.css', 'src/styles/a.css'))).toHaveLength(1)
     const css = '@theme {\n  --color-gray-50: #FAFAF9;\n}\n:root {\n  --glass: rgba(0, 0, 0, 0.1);\n}\n.a { color: #fff; }\n'
     expect(lintSource('src/index.css', css).map((v) => [v.rule, v.line])).toEqual([['no-raw-color', 7]])
+  })
+})
+
+describe('parse-error', () => {
+  it('should report recoverable parse errors as errors', () => {
+    const found = lintSource('src/pages/A.jsx', fixture('parse-error.jsx'))
+    const errors = found.filter((v) => v.rule === 'parse-error')
+    expect(errors.length).toBeGreaterThan(0)
+    expect(errors.every((v) => v.severity === 'error')).toBe(true)
+    expect(errors[0].message).toMatch(/^Could not parse the file: /)
+    expect(errors[0].message).not.toMatch(/parse-error/)
+  })
+
+  it('should never go into the baseline, so a legacy parse error always fails', () => {
+    const v = { file: 'src/pages/A.jsx', rule: 'parse-error', severity: 'error', line: 1, col: 1, message: '' }
+    expect(countBaseline([v])).toEqual({})
+    expect(compareToBaseline([v], { 'src/pages/A.jsx': { 'parse-error': 1 } }).failing).toHaveLength(1)
+  })
+})
+
+describe('arbitrary values with a modifier', () => {
+  it('should flag a raw color with an opacity modifier', () => {
+    expect(scanClassTokens('bg-[#fff]/50').map((f) => f.rule)).toEqual(['no-raw-color'])
+  })
+
+  it('should flag an arbitrary font size with a line-height modifier', () => {
+    expect(scanClassTokens('text-[14px]/[20px] text-[14px]/6').map((f) => f.rule)).toEqual([
+      'no-arbitrary-size',
+      'no-arbitrary-size',
+    ])
+  })
+
+  it('should flag an arbitrary line-height modifier on a token font size', () => {
+    expect(scanClassTokens('text-body/[20px]').map((f) => f.rule)).toEqual(['no-arbitrary-size'])
+  })
+
+  it('should leave token modifiers and opacity modifiers alone', () => {
+    expect(scanClassTokens('text-body/6 bg-surface-raised/50 bg-status-error/[0.5]')).toEqual([])
   })
 })
 
@@ -103,6 +153,11 @@ describe('no-em-dash', () => {
     ])
   })
 
+  it('should count every dash in one string', () => {
+    const js = `export const a = 'one ${EM_DASH} two ${EN_DASH} three'\n`
+    expect(lintSource('src/a.js', js).map((v) => v.col)).toEqual([23, 29])
+  })
+
   it('should flag dashes in comments, template literals, CSS comments and design-system docs', () => {
     const js = `// one ${EM_DASH} two\nconst a = \`x ${EN_DASH} y\`\n`
     expect(lintSource('src/a.js', js).map((v) => [v.rule, v.line])).toEqual([
@@ -152,6 +207,11 @@ describe('no-retired-imports', () => {
     expect(found.map((v) => v.severity)).toEqual(['error', 'error'])
   })
 
+  it('should always be an error inside src/design-system/', () => {
+    const found = lintSource('src/design-system/patterns/A/A.jsx', "import Button from '@/components/ui/Button'\n")
+    expect(found.map((v) => [v.rule, v.severity])).toEqual([['no-retired-imports', 'error']])
+  })
+
   it('should not flag imports inside the same retired folder', () => {
     expect(lintSource('src/components/ui/Card.jsx', "import Button from './Button'\n")).toEqual([])
   })
@@ -199,6 +259,24 @@ describe('ds-allow overrides', () => {
       ['ds-allow-reason', 7],
       ['no-raw-color', 8],
     ])
+  })
+
+  it('should limit a trailing override to its own line', () => {
+    const src = [
+      'export const A = () => (',
+      '  <div>',
+      '    <div className="bg-[#000000]" /> {/* ds-allow no-raw-color: brand swatch */}',
+      '    <div className="bg-[#111111]" />',
+      '  </div>',
+      ')',
+      '',
+    ].join('\n')
+    expect(lintSource('src/pages/A.jsx', src).map((v) => [v.rule, v.line])).toEqual([['no-raw-color', 4]])
+  })
+
+  it('should let an override alone on its line cover the next line', () => {
+    const src = "// ds-allow no-raw-color: share button brand color\nexport const a = cn('bg-[#000000]')\nexport const b = cn('bg-[#111111]')\n"
+    expect(lintSource('src/a.js', src).map((v) => [v.rule, v.line])).toEqual([['no-raw-color', 3]])
   })
 
   it('should report an override that names an unknown rule', () => {
@@ -271,13 +349,23 @@ describe('run', () => {
     fs.rmSync(root, { recursive: true, force: true })
   })
 
-  it('should fail on a new legacy error, then pass after --update-baseline', () => {
+  it('should fail on a new legacy error, then pass after --update-baseline --allow-increase', () => {
     write('src/pages/A.jsx', fixture('no-inline-style.fail.jsx'))
     expect(run([], io())).toBe(1)
     expect(logs.join('\n')).toMatch(/src\/pages\/A\.jsx:2:\d+ no-inline-style/)
-    expect(run(['--update-baseline'], io())).toBe(0)
+    expect(run(['--update-baseline', '--allow-increase'], io())).toBe(0)
     expect(JSON.parse(fs.readFileSync(baselinePath, 'utf8'))).toEqual({ 'src/pages/A.jsx': { 'no-inline-style': 1 } })
     expect(run([], io())).toBe(0)
+  })
+
+  it('should refuse to raise the baseline unless --allow-increase is passed', () => {
+    write('src/pages/A.jsx', fixture('no-inline-style.fail.jsx'))
+    fs.writeFileSync(baselinePath, `${JSON.stringify({ 'src/pages/Old.jsx': { 'no-raw-color': 1 } })}\n`)
+    expect(run(['--update-baseline'], io())).toBe(1)
+    expect(logs.join('\n')).toMatch(/src\/pages\/A\.jsx no-inline-style: 0 -> 1/)
+    expect(JSON.parse(fs.readFileSync(baselinePath, 'utf8'))).toEqual({ 'src/pages/Old.jsx': { 'no-raw-color': 1 } })
+    expect(run(['--update-baseline', '--allow-increase'], io())).toBe(0)
+    expect(JSON.parse(fs.readFileSync(baselinePath, 'utf8'))).toEqual({ 'src/pages/A.jsx': { 'no-inline-style': 1 } })
   })
 
   it('should print the update note when legacy counts drop', () => {
