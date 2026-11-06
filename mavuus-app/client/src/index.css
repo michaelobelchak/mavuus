@@ -1,4 +1,11 @@
 @import "tailwindcss";
+
+/* Keep build scripts, tests, stories and Storybook docs out of the app's class scan.
+   Storybook adds the stories back in .storybook/preview.css. */
+@source not "../scripts";
+@source not "./**/*.test.*";
+@source not "./**/*.stories.*";
+@source not "./**/*.mdx";
 @import "./design-system/tokens/tokens.css";
 @import "./design-system/styles/motion.css";
 

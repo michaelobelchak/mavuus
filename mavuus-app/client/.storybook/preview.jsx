@@ -1,6 +1,6 @@
 import { tokens } from '../src/design-system/tokens/tokens.js'
 import { THEMES, withLayout, withRouter, withTheme } from './decorators'
-import '../src/index.css'
+import './preview.css'
 
 /** @type {import('@storybook/react-vite').Preview} */
 const preview = {
