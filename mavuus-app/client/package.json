@@ -12,7 +12,9 @@
     "tokens": "node scripts/build-tokens.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build -o storybook-static",
-    "check:stories": "node scripts/check-story-coverage.mjs"
+    "check:stories": "node scripts/check-story-coverage.mjs",
+    "lint:ds": "node scripts/lint-design-system.mjs",
+    "guard": "npm run lint:ds && npm run check:stories"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

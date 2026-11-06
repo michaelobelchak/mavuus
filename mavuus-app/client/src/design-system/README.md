@@ -50,3 +50,20 @@ Tokens, primitives, patterns and organisms for the whole product. Design: `mavuu
 Role variables such as `--text-primary` live in `:root`, not in Tailwind's font-size namespace (`--text-*` in `@theme`). Tailwind sees them through `--color-text-primary`, so the class is `text-text-primary`. `text-body` is a font size, `text-text-primary` is a color.
 
 Tier 1 primitives (`var(--mv-...)`) never appear outside `tokens/`; CSS in `styles/` uses role variables (`--border-brand-subtle`, `--ds-duration-*`), and the drift test fails otherwise. Tokens come from `tokens/tokens.json`. Run `npm run tokens` after editing it. It writes `tokens/tokens.css`, `tokens/tokens.js` and `lib/twMergeConfig.js` (the theme scales `cn()` needs, built from every `@theme inline` key). Don't edit those files by hand: the drift test fails when any of them is stale.
+
+## Guards
+
+`npm run guard` runs `npm run lint:ds` and then `npm run check:stories`; CI and `/verify` run it. `lint:ds` (`scripts/lint-design-system.mjs`) scans `src/**/*.{js,jsx,mjs,css}` and the docs under `src/design-system/`, skipping the generated `tokens/` folder and the `@theme` and `:root` blocks of `src/index.css`. Test files only get the dash and layering rules.
+
+| Rule | Severity | Catches |
+|---|---|---|
+| `no-raw-color` | error | hex, `rgb(`, `hsl(`, `oklch(` in class strings, `cn`/`cva` calls, style objects and CSS values |
+| `no-arbitrary-size` | error, warn inside `src/design-system/` | `p-[13px]`, `rounded-[30px]`, `text-[21.6px]`, `w-[320px]` and other arbitrary sizes |
+| `no-inline-style` | error | `style={{ }}` other than `backgroundImage`, `--custom` properties and `var()` values (docs, chart swatches and the Toaster are exempt) |
+| `no-em-dash` | error | em and en dashes in strings, JSX text, comments, CSS and design-system docs |
+| `motion-needs-reduced` | warn | `animate-*`, `@keyframes` or infinite animations in a file with no `motion-reduce:`, `prefers-reduced-motion` or `useReducedMotion` |
+| `no-retired-imports` | warn, error with `--strict` | imports from `components/ui/` and `components/live/` |
+| `pages-use-system` | warn | a file in `src/pages/` with more than 3 className strings over 120 characters |
+| `ds-layering` | error | primitives importing patterns or organisms, patterns importing organisms |
+
+Override one finding with `// ds-allow <rule>: <reason>` (`{/* ... */}` in JSX, `/* ... */` in CSS) on the same line or the line above. The reason is required. Legacy errors outside `src/design-system/` are counted per file and rule in `scripts/lint-design-system.baseline.json`: the run fails when a count goes up or a new file has errors, and when counts drop it asks you to run `npm run lint:ds -- --update-baseline`. `src/design-system/` has no baseline. Add `--verbose` to list warnings outside the design system.

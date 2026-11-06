@@ -11,6 +11,7 @@ Plan file: <mavuus-app/plans/... or N/A>
 - [ ] `cd mavuus-app/client && npx vite build` passes
 - [ ] `cd mavuus-app/server && npm test` passes
 - [ ] `cd mavuus-app/client && npx eslint . --max-warnings 0` passes
+- [ ] `cd mavuus-app/client && npm run guard` passes (`lint:ds` and `check:stories`)
 - [ ] UI checked in the browser (desktop and mobile width), if UI changed
 
 ## Checklist
