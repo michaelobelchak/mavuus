@@ -196,6 +196,14 @@
 
 /* Base styles live in @layer base so utility classes on elements can override them */
 @layer base {
+  /* Fields get the same navy ring on keyboard focus. It sits in @layer base (unlike the rule above)
+     so older fields that use focus:outline-none with a pink focus ring keep that ring alone instead
+     of showing both. A small offset keeps the ring close to the field's own focus border. */
+  :where(input, textarea, select):focus-visible {
+    outline: 2px solid var(--color-dark-blue);
+    outline-offset: 2px;
+  }
+
   body {
     font-family: var(--font-sans);
     color: var(--color-neutral-600);

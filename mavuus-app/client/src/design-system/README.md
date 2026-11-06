@@ -5,7 +5,8 @@ Tokens, primitives, patterns and organisms for the whole product. Design: `mavuu
 ## Conventions
 
 - **Folder per component:** `primitives/Button/{Button.jsx, Button.test.jsx, Button.stories.jsx, index.js}`. Each tier has a barrel (`primitives/index.js`); add every new component to it.
-- **Variants** use `cva` from `class-variance-authority`. Put the `cva` call in its own file (`buttonVariants.js`) when it's exported, so the component file only exports components (react-refresh lint).
+- **Variants** use `cva` from `class-variance-authority`. Every component with a `cva` call exports it as `xVariants` from its own `xVariants.js` (so the component file only exports components, for react-refresh lint), and the barrel exports it too. Defaults live in `defaultVariants` only; when a lookup map needs the default, take it from the same constant.
+- **`variant` vs `tone`:** `variant` is visual emphasis (primary, outline, ghost). `tone` is status meaning (success, warning, error, info) and is used by status components like Badge.
 - **Class merging** goes through `cn()` from `lib/cn.js`. It's `twMerge(clsx(inputs))` with our theme keys registered, so `cn('p-ds-md', 'p-ds-lg')` keeps `p-ds-lg` and `cn('text-body', 'text-text-primary')` keeps both.
 - **Refs:** `ref` is a normal prop (React 19). No `forwardRef`.
 - **Props:** take `className` (merged last with `cn`) and spread the remaining props onto the root element.
@@ -13,7 +14,11 @@ Tokens, primitives, patterns and organisms for the whole product. Design: `mavuu
 - **Stories:** Storybook 10 CSF3, `export default { title: 'Primitives/Button', component: Button, tags: ['autodocs'] }`, one named export per variant or state.
 - **Tests:** test behavior that matters (roles, aria, callbacks, keyboard). Name them "should ... when ...".
 - **Focus:** the global navy `:focus-visible` outline in `index.css` handles visible focus. Don't add `outline-none`.
-- **Touch targets:** the md size of any control is at least 44px tall.
+- **Sizes:** controls share one height scale in `lib/controlSizes.js`: xs 32px, sm 40px, md 48px, lg 56px (squares use the same steps). md is the default and meets the 44px touch target. sm is for dense desktop toolbars only. Chips are small filter controls and use xs and sm. Unknown sizes fall back to md.
+- **Icons:** `leadingIcon` and `trailingIcon` take a lucide component (not an element) on Button, Badge, Chip and Input. The component renders it `aria-hidden` at the size that matches the control. IconButton takes `icon`. A loading Button shows the spinner in place of `leadingIcon`.
+- **Links:** anything that renders `to`/`href` goes through `lib/linkProps.js`. It picks the router Link or an anchor, opens absolute http(s) links in a new tab with `rel="noopener noreferrer"`, and makes disabled or loading links `aria-disabled` and unfocusable. Render `<ExternalHint />` inside the link when it returns `opensNewTab`.
+- **Fields:** Input and Textarea share `fieldVariants` and `isInvalid` from `lib/field.js`. Input's `className` and props go to the `<input>`; `wrapperClassName` only applies when an icon or `trailing` slot renders the wrapper.
+- **Refs:** combine refs with `lib/mergeRefs.js`, which supports React 19 ref cleanups.
 - **Motion:** every animation or transition that moves things gets `motion-reduce:` handling.
 - **Styling:** only token classes. No hex values, no arbitrary px values. Tailwind numeric sizes (`h-12`, `size-4`) are fine for fixed control heights and icon sizes.
 
