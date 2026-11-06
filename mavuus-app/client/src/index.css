@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./design-system/tokens/tokens.css";
 
 /* Fixel Text, the font used on the live mavuus.com site (served from its Webflow CDN) */
 @font-face {
@@ -37,17 +38,19 @@
   font-display: swap;
 }
 
+/* Legacy theme keys. The brand and live-site values below are a temporary bridge to the
+   design-system tokens (src/design-system/tokens) and are removed once pages migrate. */
 @theme {
   /* Brand Colors */
-  --color-brand-pink: #F26D92;
-  --color-brand-pink-light: #F9A8BF;
-  --color-brand-pink-dark: #D94D75;
-  --color-brand-pink-hover: #E05A7F;
-  --color-brand-blue: #1F648D;
-  --color-brand-blue-light: #2A85B8;
-  --color-brand-blue-dark: #164A6A;
-  --color-brand-blue-hover: #184F70;
-  --color-dark-blue: #1C2232;
+  --color-brand-pink: var(--mv-color-pink-500);
+  --color-brand-pink-light: var(--mv-color-pink-300);
+  --color-brand-pink-dark: var(--mv-color-pink-700);
+  --color-brand-pink-hover: var(--mv-color-pink-600);
+  --color-brand-blue: var(--mv-color-blue-500);
+  --color-brand-blue-light: var(--mv-color-blue-400);
+  --color-brand-blue-dark: var(--mv-color-blue-700);
+  --color-brand-blue-hover: var(--mv-color-blue-600);
+  --color-dark-blue: var(--mv-color-navy-900);
 
   --color-gray-50: #FAFAF9;
   --color-gray-100: #F5F5F4;
@@ -69,27 +72,27 @@
   --color-bg-white: #FFFFFF;
 
   /* Live site (mavuus.com) tokens */
-  --font-live: Fixeltext, sans-serif;
-  --color-live-bg: #fcfbfa;
-  --color-live-ink: #14213d;
-  --color-live-grey: #5e697c;
-  --color-live-blue-light: #eeeff4;
-  --color-live-line: #919aa8;
-  --color-live-muted: #6b7280;
-  --color-live-faint: #9ca3af;
-  --color-live-track: #e5e7eb;
-  --color-live-hairline: #dbe0e7;
-  --color-live-pink-50: #fdf0f4;
-  --color-live-pink-200: #f6b9cd;
-  --color-live-sky: #9cc3dd;
-  --shadow-live-card: 0 12px 32px rgba(17, 24, 39, 0.06);
-  --shadow-live-card-hover: 0 22px 46px rgba(242, 109, 146, 0.16);
-  --shadow-live-float: 0 18px 40px rgba(17, 24, 39, 0.14);
-  --ease-live: cubic-bezier(0.16, 1, 0.3, 1);
+  --font-live: var(--mv-font-family-sans);
+  --color-live-bg: var(--surface-page);
+  --color-live-ink: var(--mv-color-navy-800);
+  --color-live-grey: var(--text-secondary);
+  --color-live-blue-light: var(--surface-sunken);
+  --color-live-line: var(--mv-color-navy-300);
+  --color-live-muted: var(--text-muted);
+  --color-live-faint: var(--text-faint);
+  --color-live-track: var(--mv-color-neutral-100);
+  --color-live-hairline: var(--border-default);
+  --color-live-pink-50: var(--surface-selected);
+  --color-live-pink-200: var(--mv-color-pink-200);
+  --color-live-sky: var(--mv-color-blue-200);
+  --shadow-live-card: var(--shadow-card);
+  --shadow-live-card-hover: var(--shadow-card-hover);
+  --shadow-live-float: var(--shadow-float);
+  --ease-live: var(--easing-out);
 
-  /* Font Family */
-  --font-heading: 'Manrope', sans-serif;
-  --font-body: 'Manrope', sans-serif;
+  /* Font Family: Fixel Text everywhere */
+  --font-heading: var(--mv-font-family-sans);
+  --font-body: var(--mv-font-family-sans);
 
   /* Animation durations */
   --animate-duration-fast: 300ms;
@@ -194,7 +197,7 @@
 /* Base styles live in @layer base so utility classes on elements can override them */
 @layer base {
   body {
-    font-family: var(--font-body);
+    font-family: var(--font-sans);
     color: var(--color-neutral-600);
     background-color: var(--color-bg-white);
     -webkit-font-smoothing: antialiased;
