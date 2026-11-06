@@ -48,6 +48,7 @@ jobs:
   e2e:
     name: E2E smoke
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -61,7 +62,20 @@ jobs:
         working-directory: mavuus-app/server
       - run: npm ci
         working-directory: mavuus-app/client
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+        working-directory: mavuus-app/client
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       - run: npx playwright install --with-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        working-directory: mavuus-app/client
+      - run: npx playwright install-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
         working-directory: mavuus-app/client
       - run: npm run e2e
         working-directory: mavuus-app/client
