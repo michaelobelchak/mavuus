@@ -88,4 +88,24 @@ describe('Accordion', () => {
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3)
     expect(error).toHaveBeenCalledWith(expect.stringMatching(/Accordion: headingLevel "7"/))
   })
+
+  it('should close every item when controlled with null and open the item given a single value', async () => {
+    const onValueChange = vi.fn()
+    const { rerender } = render(<Accordion items={items} value={null} onValueChange={onValueChange} />)
+    for (const button of screen.getAllByRole('button')) expect(button).toHaveAttribute('aria-expanded', 'false')
+    rerender(<Accordion items={items} value="cost" onValueChange={onValueChange} />)
+    expect(screen.getByRole('button', { name: 'What does it cost?' })).toHaveAttribute('aria-expanded', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Can I cancel?' }))
+    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(['cancel'], expect.anything()))
+    expect(screen.getByRole('button', { name: 'What does it cost?' })).toHaveAttribute('aria-expanded', 'true')
+    rerender(<Accordion items={items} value={null} onValueChange={onValueChange} />)
+    expect(screen.getByRole('button', { name: 'What does it cost?' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('should emit an empty array when the last open item closes', async () => {
+    const onValueChange = vi.fn()
+    render(<Accordion items={items} defaultValue="join" onValueChange={onValueChange} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Who can join?' }))
+    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith([], expect.anything()))
+  })
 })

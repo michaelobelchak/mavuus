@@ -7,8 +7,10 @@ import { resolveHeadingLevel } from '../../lib/resolveOption'
 const HEADING_LEVELS = [2, 3, 4, 5, 6]
 const DEFAULT_HEADING_LEVEL = 3
 
+// The open values are always an array. null means all closed; undefined leaves `value` uncontrolled.
 function toArray(value) {
   if (value === undefined) return undefined
+  if (value === null) return []
   return Array.isArray(value) ? value : [value]
 }
 
@@ -16,7 +18,9 @@ function toArray(value) {
  * Accordion built on Base UI Accordion. Each title is a heading that wraps a button with aria-expanded.
  * - `items`: [{ value, title, content, disabled }].
  * - `multiple`: let several items stay open. Otherwise opening one closes the others.
- * - `defaultValue` / `value`: the open value or values. `onValueChange(values, details)`.
+ * - `defaultValue` / `value`: the open value, an array of open values, or null for all closed. Leaving
+ *   `value` undefined keeps it uncontrolled. `onValueChange(values, details)` always gets an array
+ *   (empty when everything is closed), in single and multiple mode.
  * - `headingLevel`: 2 to 6 (default 3), so it fits the page outline.
  * Closed panels are unmounted, so their content is out of the tab order. The chevron turns when
  * open and switches instantly with reduced motion. `className` goes to the root.
@@ -40,7 +44,7 @@ export function Accordion({
       multiple={multiple}
       defaultValue={toArray(defaultValue)}
       value={toArray(value)}
-      onValueChange={onValueChange}
+      onValueChange={(next, details) => onValueChange?.(toArray(next ?? null), details)}
       className={cn('flex flex-col border-y border-border-default', className)}
       {...props}
     >
