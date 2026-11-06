@@ -3,6 +3,7 @@ import { controlHeights, controlIconSizes } from '../../lib/controlSizes'
 
 // Chips are small filter controls, so they use the xs and sm steps of the control scale.
 export const CHIP_DEFAULT_SIZE = 'sm'
+export const CHIP_SIZES = ['xs', 'sm']
 
 export const chipIconSizes = { xs: controlIconSizes.xs, sm: controlIconSizes.sm }
 

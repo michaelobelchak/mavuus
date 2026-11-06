@@ -1,8 +1,14 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { ArrowRight, Plus } from 'lucide-react'
+import { resetWarnings } from '../../lib/warnOnce'
 import { Button } from './Button'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  resetWarnings()
+})
 
 describe('Button', () => {
   it('should call onClick when pressed', () => {
@@ -135,6 +141,7 @@ describe('Button', () => {
   })
 
   it('should use the control height scale and fall back to md when size is unknown', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     render(
       <>
         <Button size="sm">Small</Button>
@@ -143,6 +150,29 @@ describe('Button', () => {
     )
     expect(screen.getByRole('button', { name: 'Small' })).toHaveClass('h-10')
     expect(screen.getByRole('button', { name: 'Fallback' })).toHaveClass('h-12')
+  })
+
+  it('should fall back to sm and warn when size is xs', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<Button size="xs">Tiny</Button>)
+    expect(screen.getByRole('button', { name: 'Tiny' })).toHaveClass('h-10')
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Button.*"xs"/))
+  })
+
+  it('should keep the resting styles on hover when a button is loading or aria-disabled', () => {
+    render(
+      <>
+        <Button loading>Save</Button>
+        <Button variant="outline" loading>
+          Edit
+        </Button>
+      </>,
+    )
+    expect(screen.getByRole('button', { name: /Save/ })).toHaveClass('aria-disabled:hover:bg-surface-brand')
+    expect(screen.getByRole('button', { name: /Edit/ })).toHaveClass(
+      'aria-disabled:hover:border-border-strong',
+      'aria-disabled:hover:text-text-primary',
+    )
   })
 
   it('should merge className and spread props when given extra props', () => {

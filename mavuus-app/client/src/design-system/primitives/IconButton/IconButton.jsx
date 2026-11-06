@@ -1,15 +1,16 @@
 import { useEffect } from 'react'
 import { cn } from '../../lib/cn'
-import { controlIconSizes, resolveControlSize } from '../../lib/controlSizes'
+import { controlIconSizes, DEFAULT_CONTROL_SIZE, resolveControlSize } from '../../lib/controlSizes'
 import { warnOnce } from '../../lib/warnOnce'
-import { iconButtonVariants } from './iconButtonVariants'
+import { ICON_BUTTON_SIZES, iconButtonVariants } from './iconButtonVariants'
 
 /**
  * Square icon-only button on the control size scale (sm 40, md 48, lg 56).
+ * xs is not supported; it falls back to sm.
  * Needs `aria-label` (or `aria-labelledby`) because the icon has no visible text.
  */
 export function IconButton({ icon: Icon, variant, size, type = 'button', className, ref, ...props }) {
-  const resolvedSize = size === 'xs' ? 'md' : resolveControlSize(size)
+  const resolvedSize = resolveControlSize(size, ICON_BUTTON_SIZES, DEFAULT_CONTROL_SIZE, 'IconButton')
   const label = props['aria-label']
   const labelledBy = props['aria-labelledby']
 

@@ -1,8 +1,14 @@
 import { createRef, useState } from 'react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Mail, Search } from 'lucide-react'
+import { resetWarnings } from '../../lib/warnOnce'
 import { Input } from './Input'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  resetWarnings()
+})
 
 describe('Input', () => {
   it('should set aria-invalid and the error border when invalid', () => {
@@ -91,6 +97,7 @@ describe('Input', () => {
     ['lg', 'h-14'],
     ['huge', 'h-12'],
   ])('should use the control height scale when size is %s', (size, height) => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     render(<Input aria-label="Name" size={size} />)
     expect(screen.getByRole('textbox', { name: 'Name' })).toHaveClass(height)
   })

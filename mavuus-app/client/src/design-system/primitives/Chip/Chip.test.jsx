@@ -1,8 +1,14 @@
 import { useState } from 'react'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Check, X } from 'lucide-react'
+import { resetWarnings } from '../../lib/warnOnce'
 import { Chip } from './Chip'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  resetWarnings()
+})
 
 function ControlledChip() {
   const [selected, setSelected] = useState(false)
@@ -37,9 +43,17 @@ describe('Chip', () => {
     ['xs', 'h-8'],
     ['sm', 'h-10'],
     [undefined, 'h-10'],
+    ['md', 'h-10'],
   ])('should use the control height scale when size is %s', (size, height) => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     render(<Chip size={size}>Design</Chip>)
     expect(screen.getByRole('button', { name: 'Design' })).toHaveClass(height)
+  })
+
+  it('should warn when size is md, which chips do not support', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<Chip size="md">Design</Chip>)
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Chip.*"md"/))
   })
 
   it('should render decorative icons when given leadingIcon and trailingIcon', () => {

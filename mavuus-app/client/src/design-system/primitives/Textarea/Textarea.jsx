@@ -1,5 +1,6 @@
 import { useCallback, useLayoutEffect, useMemo, useRef } from 'react'
 import { cn } from '../../lib/cn'
+import { DEFAULT_CONTROL_SIZE, resolveControlSize } from '../../lib/controlSizes'
 import { fieldVariants, isInvalid } from '../../lib/field'
 import { mergeRefs } from '../../lib/mergeRefs'
 
@@ -10,6 +11,7 @@ const px = (value) => Number.parseFloat(value) || 0
  * scrolling; `maxRows` caps that growth and turns scrolling back on past the cap.
  */
 export function Textarea({ size, invalid = false, autoGrow = false, maxRows, rows = 3, onInput, className, ref, ...props }) {
+  const resolvedSize = resolveControlSize(size, ['sm', 'md', 'lg'], DEFAULT_CONTROL_SIZE, 'Textarea')
   const innerRef = useRef(null)
   const grown = useRef(false)
   const ariaInvalid = props['aria-invalid']
@@ -64,7 +66,7 @@ export function Textarea({ size, invalid = false, autoGrow = false, maxRows, row
         onInput?.(event)
       }}
       className={cn(
-        fieldVariants({ invalid: invalidState, size }),
+        fieldVariants({ invalid: invalidState, size: resolvedSize }),
         'block py-ds-sm',
         autoGrow ? 'resize-none overflow-hidden' : 'resize-y',
         className,

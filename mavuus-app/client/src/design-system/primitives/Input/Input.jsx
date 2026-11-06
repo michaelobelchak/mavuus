@@ -1,5 +1,5 @@
 import { cn } from '../../lib/cn'
-import { controlHeights, controlIconSizes, DEFAULT_CONTROL_SIZE } from '../../lib/controlSizes'
+import { controlHeights, controlIconSizes, DEFAULT_CONTROL_SIZE, resolveControlSize } from '../../lib/controlSizes'
 import { fieldVariants, isInvalid } from '../../lib/field'
 
 const SIZES = ['sm', 'md', 'lg']
@@ -27,7 +27,7 @@ export function Input({
   ref,
   ...props
 }) {
-  const resolvedSize = SIZES.includes(size) ? size : DEFAULT_CONTROL_SIZE
+  const resolvedSize = resolveControlSize(size, SIZES, DEFAULT_CONTROL_SIZE, 'Input')
   const ariaInvalid = props['aria-invalid']
   const invalidState = isInvalid(invalid, ariaInvalid)
   const hasTrailing = Boolean(TrailingIcon || trailing)

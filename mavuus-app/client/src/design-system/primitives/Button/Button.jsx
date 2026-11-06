@@ -1,9 +1,9 @@
 import { Loader2 } from 'lucide-react'
 import { cn } from '../../lib/cn'
-import { controlIconSizes, resolveControlSize } from '../../lib/controlSizes'
+import { controlIconSizes, DEFAULT_CONTROL_SIZE, resolveControlSize } from '../../lib/controlSizes'
 import { ExternalHint } from '../../lib/ExternalHint'
 import { linkProps } from '../../lib/linkProps'
-import { buttonVariants } from './buttonVariants'
+import { BUTTON_SIZES, buttonVariants } from './buttonVariants'
 
 function suppress(event) {
   event.preventDefault()
@@ -12,6 +12,8 @@ function suppress(event) {
 /**
  * Button. Renders a react-router Link when given `to`, an anchor when given `href`,
  * and a `<button type="button">` otherwise.
+ *
+ * Sizes are sm, md (default) and lg; xs is not supported and falls back to sm.
  *
  * `loading` keeps the button focusable: it sets aria-disabled and aria-busy, announces
  * "Loading", and swallows clicks (and form submits). `disabled` sets native disabled on a
@@ -36,7 +38,7 @@ export function Button({
   ref,
   ...props
 }) {
-  const resolvedSize = resolveControlSize(size)
+  const resolvedSize = resolveControlSize(size, BUTTON_SIZES, DEFAULT_CONTROL_SIZE, 'Button')
   const iconClass = cn('shrink-0', controlIconSizes[resolvedSize])
   const classes = cn(buttonVariants({ variant, size: resolvedSize, block }), className)
 

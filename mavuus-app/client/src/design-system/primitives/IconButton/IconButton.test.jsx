@@ -49,7 +49,9 @@ describe('IconButton', () => {
     ['md', 'size-12'],
     ['lg', 'size-14'],
     ['huge', 'size-12'],
+    ['xs', 'size-10'],
   ])('should be a square on the control scale when size is %s', (size, square) => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     render(<IconButton icon={Bell} aria-label="Notifications" size={size} />)
     const button = screen.getByRole('button', { name: 'Notifications' })
     expect(button).toHaveClass(square)

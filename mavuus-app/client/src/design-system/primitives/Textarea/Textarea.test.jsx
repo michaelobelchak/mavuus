@@ -4,6 +4,14 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { Textarea } from './Textarea'
 
 describe('Textarea', () => {
+  it('should fall back to the md text size and warn when size is unknown', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<Textarea aria-label="Bio" size="huge" />)
+    expect(screen.getByRole('textbox', { name: 'Bio' })).toHaveClass('text-body')
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Textarea.*"huge"/))
+    error.mockRestore()
+  })
+
   it('should set aria-invalid and the error border when invalid', () => {
     render(<Textarea aria-label="Bio" invalid />)
     const textarea = screen.getByRole('textbox', { name: 'Bio' })
