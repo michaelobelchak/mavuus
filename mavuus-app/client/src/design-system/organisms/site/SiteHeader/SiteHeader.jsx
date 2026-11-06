@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link as RouterLink, NavLink, useLocation } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
+import { useMediaQuery } from '../../../hooks'
 import { MAVUUS_LOGO_URL } from '../../../lib/brand'
 import { cn } from '../../../lib/cn'
 import { Button, IconButton } from '../../../primitives'
@@ -23,15 +24,22 @@ function MenuIcon(props) {
 /**
  * The public site header: logo, the main pages, Login and Sign Up. Sticky, on a translucent
  * blurred surface. Below 1200px the links move into a menu under the menu button: it opens with
- * focus on its first link and closes on Escape (focus back on the button), a click outside or
- * navigation. The current page's link is pink (`aria-current="page"`).
+ * focus on its first link and closes on Escape (focus back on the button), a click outside,
+ * navigation or the window growing to 1200px. The current page's link is pink (`aria-current="page"`).
  * `links` replaces the page links (`[{ label, to }]`); `className` and other props go to the `<header>`.
  */
 export function SiteHeader({ links = SITE_NAV_LINKS, className, ref, ...props }) {
   const { pathname } = useLocation()
   // The menu belongs to the page it was opened on, so navigating closes it.
   const [openFor, setOpenFor] = useState(null)
-  const menuOpen = openFor === pathname
+  // At 1200px and up the menu is hidden, so growing past it closes the menu for good.
+  const wide = useMediaQuery('(min-width: 75rem)')
+  const [wasWide, setWasWide] = useState(wide)
+  if (wasWide !== wide) {
+    setWasWide(wide)
+    if (wide) setOpenFor(null)
+  }
+  const menuOpen = !wide && openFor === pathname
   const menuRef = useRef(null)
   const toggleRef = useRef(null)
 

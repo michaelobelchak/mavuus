@@ -1,7 +1,8 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { mockViewport } from '../../../test/browserMocks'
 import { SiteHeader } from './SiteHeader'
 
 function Where() {
@@ -17,6 +18,10 @@ function renderHeader(path = '/') {
     </MemoryRouter>,
   )
 }
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 const menuButton = () => screen.getByRole('button', { name: /menu/ })
 
@@ -92,5 +97,18 @@ describe('SiteHeader', () => {
     await user.click(menuButton())
     await user.click(menuButton())
     expect(menuButton()).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('should close the menu when the window grows past 1200px and keep it closed on the way back', async () => {
+    const user = userEvent.setup()
+    const viewport = mockViewport(390)
+    renderHeader()
+    await user.click(menuButton())
+    expect(menuButton()).toHaveAttribute('aria-expanded', 'true')
+    act(() => viewport.resize(1440))
+    expect(menuButton()).toHaveAttribute('aria-expanded', 'false')
+    act(() => viewport.resize(390))
+    expect(menuButton()).toHaveAttribute('aria-expanded', 'false')
+    expect(document.getElementById(menuButton().getAttribute('aria-controls'))).not.toBeInTheDocument()
   })
 })

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -14,8 +14,8 @@ function Where() {
 }
 
 function renderShell(width, { path = '/dashboard/jobs', ...props } = {}) {
-  mockViewport(width)
-  return render(
+  const viewport = mockViewport(width)
+  const result = render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route
@@ -30,6 +30,7 @@ function renderShell(width, { path = '/dashboard/jobs', ...props } = {}) {
       </Routes>
     </MemoryRouter>,
   )
+  return { ...result, resize: (next) => act(() => viewport.resize(next)) }
 }
 
 beforeEach(() => {
@@ -165,5 +166,41 @@ describe('AppShell', () => {
     renderShell(1440)
     await user.click(screen.getByRole('link', { name: 'Skip to main content' }))
     expect(screen.getByRole('main')).toHaveFocus()
+  })
+
+  it('should keep the sheet closed after resizing to desktop and back while it was open', async () => {
+    const { resize } = renderShell(390, { defaultNavOpen: true })
+    await screen.findByRole('dialog')
+    resize(1440)
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument()
+    resize(390)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Open menu' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('should release the scroll lock and the inert outside content when the open sheet unmounts on resize', async () => {
+    const { resize } = renderShell(390, { defaultNavOpen: true })
+    await screen.findByRole('dialog')
+    resize(1440)
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() => {
+      expect(document.body.style.overflow).toBe('')
+      expect(document.documentElement.style.overflow).toBe('')
+      expect(document.querySelectorAll('[inert], [aria-hidden="true"][data-base-ui-inert]')).toHaveLength(0)
+    })
+    expect(screen.getByRole('main')).not.toHaveAttribute('inert')
+  })
+
+  it('should go rail, full, then rail again across 1280px with a stored collapsed preference', () => {
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, 'true')
+    const { resize } = renderShell(1100)
+    const jobs = () => within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Jobs' })
+    expect(jobs()).not.toHaveTextContent('Jobs')
+    resize(1440)
+    expect(jobs()).toHaveTextContent('Jobs')
+    resize(1100)
+    expect(jobs()).not.toHaveTextContent('Jobs')
+    expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument()
   })
 })

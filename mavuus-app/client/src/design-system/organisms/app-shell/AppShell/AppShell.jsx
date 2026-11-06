@@ -52,6 +52,12 @@ export function AppShell({
   const { pathname } = useLocation()
   // The sheet belongs to the page it was opened on, so any navigation closes it.
   const [openFor, setOpenFor] = useState(defaultNavOpen ? pathname : null)
+  // Leaving the mobile layout closes the sheet, so it doesn't pop open again on the way back.
+  const [wasMobile, setWasMobile] = useState(mobile)
+  if (wasMobile !== mobile) {
+    setWasMobile(mobile)
+    if (!mobile) setOpenFor(null)
+  }
   const navOpen = mobile && openFor === pathname
   const navId = useId()
   const menuButtonRef = useRef(null)

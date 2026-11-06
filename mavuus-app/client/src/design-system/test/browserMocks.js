@@ -95,8 +95,11 @@ export function mockOverflow({ scrollWidth = 900, clientWidth = 320 } = {}) {
 
 // Installs matchMedia for a viewport `width` px wide: min-width and max-width queries (px or rem,
 // 16px each) match against it, prefers-reduced-motion reports `reducedMotion`, anything else
-// false. Use it to render the small-screen layout of responsive patterns.
+// false. Use it to render the small-screen layout of responsive patterns. Returns
+// `{ resize(nextWidth) }`, which changes the width and fires the change listeners (wrap it in act).
 export function mockViewport(width, { reducedMotion = false } = {}) {
+  let current = width
+  const listeners = new Set()
   const toPx = (value, unit) => (unit === 'rem' || unit === 'em' ? value * 16 : value)
   const matches = (query) => {
     if (query.includes('prefers-reduced-motion: reduce')) return reducedMotion
@@ -104,15 +107,23 @@ export function mockViewport(width, { reducedMotion = false } = {}) {
     if (conditions.length === 0) return false
     return conditions.every(([, kind, value, unit]) => {
       const px = toPx(Number(value), unit)
-      return kind === 'min' ? width >= px : width <= px
+      return kind === 'min' ? current >= px : current <= px
     })
   }
   vi.stubGlobal('matchMedia', (query) => ({
-    matches: matches(query),
+    get matches() {
+      return matches(query)
+    },
     media: query,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    addListener: () => {},
-    removeListener: () => {},
+    addEventListener: (_type, listener) => listeners.add(listener),
+    removeEventListener: (_type, listener) => listeners.delete(listener),
+    addListener: (listener) => listeners.add(listener),
+    removeListener: (listener) => listeners.delete(listener),
   }))
+  return {
+    resize(nextWidth) {
+      current = nextWidth
+      for (const listener of [...listeners]) listener({ matches: undefined })
+    },
+  }
 }
