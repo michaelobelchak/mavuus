@@ -12,10 +12,15 @@ function isLocal(url) {
   }
 }
 
+const AUTH_ME = /^\/api\/auth\/me$/
+
 /**
  * Collects the problems a page should never have: uncaught errors, console errors from the app,
- * and /api responses of 500 or more. Allowed: the 401 from /api/auth/me when logged out, and
- * failed loads of third-party resources (live Webflow CDN images and fonts, avatars) when offline.
+ * /api responses of 400 or more, and failed requests to the app's own origin. The only allowed
+ * /api error is the 401 from /api/auth/me when logged out.
+ *
+ * Intentional deviation: failed loads from third-party hosts (live Webflow CDN images and fonts,
+ * pravatar avatars) are ignored, so the suite passes offline and isn't flaky on external CDNs.
  */
 export function watchPage(page) {
   const problems = []
@@ -24,19 +29,25 @@ export function watchPage(page) {
     if (message.type() !== 'error') return
     const text = message.text()
     const source = message.location()?.url || ''
-    if (text.startsWith('Failed to load resource')) {
-      if (!isLocal(source)) return
-      if (/\/api\/auth\/me(\?|$)/.test(source) && text.includes('401')) return
-      // /api failures are reported once by the response listener below.
-      if (/\/api\//.test(source) && !/status of 5\d\d/.test(text)) return
-    }
+    // Resource failures are reported by the response and requestfailed listeners below, which
+    // see the URL and status; the browser's console line for them adds nothing.
+    if (text.startsWith('Failed to load resource')) return
     problems.push(`console error: ${text}${source ? ` (${source})` : ''}`)
   })
   page.on('response', (response) => {
     const url = response.url()
-    if (isLocal(url) && new URL(url).pathname.startsWith('/api/') && response.status() >= 500) {
-      problems.push(`api ${response.status()}: ${response.request().method()} ${url}`)
-    }
+    if (!isLocal(url)) return
+    const { pathname } = new URL(url)
+    if (!pathname.startsWith('/api/') || response.status() < 400) return
+    if (response.status() === 401 && AUTH_ME.test(pathname)) return
+    problems.push(`api ${response.status()}: ${response.request().method()} ${url}`)
+  })
+  page.on('requestfailed', (request) => {
+    const url = request.url()
+    if (!isLocal(url)) return
+    // Navigating away aborts in-flight requests; that isn't a failure of the page.
+    if (request.failure()?.errorText === 'net::ERR_ABORTED') return
+    problems.push(`request failed: ${request.method()} ${url} (${request.failure()?.errorText})`)
   })
   return problems
 }
