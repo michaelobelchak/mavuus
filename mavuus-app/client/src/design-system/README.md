@@ -4,7 +4,7 @@ Tokens, primitives, patterns and organisms for the whole product. Design: `mavuu
 
 ## Conventions
 
-- **Folder per component:** `primitives/Button/{Button.jsx, Button.test.jsx, Button.stories.jsx, index.js}`. Each tier has a barrel (`primitives/index.js`, `patterns/index.js`) with a test that fails when a folder export is missing from it; add every new component to it. Patterns compose primitives and never import organisms (the patterns barrel test checks this). Hooks live in `hooks/` (`useReducedMotion`, `useInView`, `useMediaQuery`).
+- **Folder per component:** `primitives/Button/{Button.jsx, Button.test.jsx, Button.stories.jsx, index.js}`. Each tier has a barrel (`primitives/index.js`, `patterns/index.js`) with a test that fails when a folder export is missing from it; add every new component to it. Patterns compose primitives and never import organisms (the patterns barrel test checks this). Hooks live in `hooks/` (`useReducedMotion`, `useInView`, `useMediaQuery`, `useControllableState`).
 - **Variants** use `cva` from `class-variance-authority`. Every component with a `cva` call exports it as `xVariants` from its own `xVariants.js` (so the component file only exports components, for react-refresh lint), and the barrel exports it too. Defaults live in `defaultVariants` only; when a lookup map needs the default, take it from the same constant.
 - **`variant` vs `tone`:** `variant` is visual emphasis (primary, outline, ghost). `tone` is status meaning (success, warning, error, info) and is used by status components like Badge.
 - **Class merging** goes through `cn()` from `lib/cn.js`. It's `twMerge(clsx(inputs))` with our theme keys registered, so `cn('p-ds-md', 'p-ds-lg')` keeps `p-ds-lg` and `cn('text-body', 'text-text-primary')` keeps both.
@@ -41,10 +41,10 @@ Tokens, primitives, patterns and organisms for the whole product. Design: `mavuu
 | Kind | Classes |
 |---|---|
 | Color | `bg-surface-*` (including `bg-surface-inverse` for dark tooltips; `bg-surface-header` is site-only), `text-text-*` (`text-text-ink` is a site-only role for the public header links, not for the dashboard or admin), `border-border-*`, `bg-status-*` and `-subtle`, `text-status-*`, `*-chart-*` |
-| Spacing | `p-ds-*`, `m-ds-*`, `gap-ds-*` (`none`, `xxs`, `xs`, `sm`, `md`, `lg`, `xl`, `xxl`, `section`) |
+| Spacing | `p-ds-*`, `m-ds-*`, `gap-ds-*` (`none`, `xxs`, `xs`, `sm`, `md`, `lg`, `xl`, `xxl`, `xxxl`, `section`; site only: `gutter-sm`, `gutter`, `section-xs`, `section-sm`, `section-md`, `band`) |
 | Radius | `rounded-tag`, `-input`, `-control`, `-card`, `-sheet`, `-panel`, `-chip` (4, 8, 12, 16, 24, 32, pill) |
 | Type | `text-caption`, `-body-sm`, `-body`, `-lead`, `-h4`, `-h3`, `-h2`, `-h1`, `-display` (sizes with line heights) |
-| Shadow | `shadow-card`, `-card-hover`, `-float`, `-overlay`, `-button-brand` |
+| Shadow | `shadow-card`, `-card-hover`, `-float`, `-overlay`, `-button-brand`, `-button-secondary` |
 | Easing | `ease-enter`, `ease-exit`, `ease-move` |
 
 Role variables such as `--text-primary` live in `:root`, not in Tailwind's font-size namespace (`--text-*` in `@theme`). Tailwind sees them through `--color-text-primary`, so the class is `text-text-primary`. `text-body` is a font size, `text-text-primary` is a color.
