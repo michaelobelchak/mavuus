@@ -40,18 +40,10 @@ const MEMBER_PAGES = [
   { name: 'admin-jobs', path: '/admin/jobs' },
 ]
 
-// Known app bugs, keyed by "<name>@<width>". Each one is a single fixme'd check until it is fixed.
-const KNOWN_BUGS = {
-  'admin@390':
-    'Weekly Signups chart in AdminDashboardPage: the 12 flex-1 bar columns have no min-w-0, so the date labels push the row to 413px',
-}
-
 function smoke(pages, ready) {
   for (const { name, path } of pages) {
     for (const width of WIDTHS) {
       test(`${name} at ${width}px (${path})`, async ({ page }) => {
-        const bug = KNOWN_BUGS[`${name}@${width}`]
-        test.fixme(Boolean(bug), bug)
         await checkPage(page, { name, path, width, ready })
         // No redirect to /login or elsewhere.
         expect(new URL(page.url()).pathname).toBe(path)

@@ -41,25 +41,42 @@ export function watchPage(page) {
   return problems
 }
 
-/** Returns the widest elements that stick out past the right edge of the viewport. */
+/**
+ * Returns the outermost visible elements whose right edge is past the viewport. Overflow hidden
+ * by the page layout (an ancestor that contains <main>, like PublicLayout's overflow-x-clip
+ * wrapper) still counts. Skipped: elements inside a clipping or scrolling ancestor below the
+ * layout (carousels, marquees, table scrollers), elements marked data-overflow-ok, hidden
+ * elements, and fixed elements parked fully off screen (closed drawers).
+ */
 export function findOverflow(page) {
   return page.evaluate(() => {
-    const limit = window.innerWidth
+    const limit = window.innerWidth + 1
+    const main = document.querySelector('main')
     const offenders = []
+    const intentionallyClipped = (el) => {
+      for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+        if (main && p.contains(main)) return false
+        if (getComputedStyle(p).overflowX !== 'visible') return true
+      }
+      return false
+    }
+    const isFixed = (el) => {
+      for (let p = el; p && p !== document.body; p = p.parentElement) {
+        if (getComputedStyle(p).position === 'fixed') return true
+      }
+      return false
+    }
     for (const el of document.querySelectorAll('body *')) {
       const rect = el.getBoundingClientRect()
-      if (rect.width === 0 || rect.right <= limit + 1) continue
-      // Skip children of an element already reported, and anything inside a scroll container.
+      if (rect.width === 0 || rect.height === 0 || rect.right <= limit) continue
       if (offenders.some((o) => o.el.contains(el))) continue
-      let clipped = false
-      for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
-        const overflowX = getComputedStyle(p).overflowX
-        if (overflowX !== 'visible') {
-          clipped = true
-          break
-        }
-      }
-      if (clipped) continue
+      if (el.closest('[data-overflow-ok]')) continue
+      // Opacity is ignored on purpose: scroll reveals start transparent and become visible.
+      if (!el.checkVisibility({ visibilityProperty: true })) continue
+      // A closed off-canvas drawer parks a fixed element fully past the right edge; fixed
+      // elements don't make the page scroll, so only count them when part of them is on screen.
+      if (rect.left >= limit - 2 && isFixed(el)) continue
+      if (intentionallyClipped(el)) continue
       offenders.push({ el, right: Math.round(rect.right) })
     }
     return offenders.slice(0, 5).map(({ el, right }) => {
@@ -74,7 +91,8 @@ export function findOverflow(page) {
 /**
  * Visits `path` at one width: checks the page's main content renders, takes a full-page
  * screenshot to e2e/screenshots/<name>-<width>.png, checks there is no horizontal overflow
- * (naming the elements that stick out) and that the page logged no errors.
+ * (the document doesn't scroll sideways and no element sticks out past the viewport, even where
+ * the layout clips it) and that the page logged no errors.
  */
 export async function checkPage(page, { name, path, width, ready }) {
   const problems = watchPage(page)
@@ -87,9 +105,10 @@ export async function checkPage(page, { name, path, width, ready }) {
     scrollWidth: document.documentElement.scrollWidth,
     innerWidth: window.innerWidth,
   }))
-  const offenders = scrollWidth > innerWidth ? await findOverflow(page) : []
+  const offenders = await findOverflow(page)
   expect
-    .soft(scrollWidth, `${name} at ${width}px overflows horizontally: ${offenders.join('; ')}`)
+    .soft(scrollWidth, `${name} at ${width}px scrolls sideways: ${offenders.join('; ')}`)
     .toBeLessThanOrEqual(innerWidth)
+  expect.soft(offenders, `${name} at ${width}px has elements past the right edge`).toEqual([])
   expect(problems, `${name} at ${width}px had errors`).toEqual([])
 }
