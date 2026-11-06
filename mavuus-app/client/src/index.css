@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./design-system/tokens/tokens.css";
+@import "./design-system/styles/motion.css";
 
 /* Fixel Text, the font used on the live mavuus.com site (served from its Webflow CDN) */
 @font-face {
@@ -439,27 +440,4 @@
   }
 }
 
-/* ========== PUBLIC SITE MOTION (components/live/ui/Reveal.jsx) ==========
-   Content starts hidden only once Reveal has mounted, and shows when it scrolls into view. */
-.live-site [data-reveal] {
-  transition-property: opacity, transform, clip-path, filter;
-  transition-duration: 700ms;
-  transition-timing-function: var(--ease-live);
-  transition-delay: var(--reveal-delay, 0ms);
-}
-.live-site [data-reveal='rise'][data-armed]:not([data-in]) { opacity: 0; transform: translateY(18px); }
-.live-site [data-reveal='fade'][data-armed]:not([data-in]) { opacity: 0; }
-.live-site [data-reveal='clip'] { transition-duration: 1000ms; }
-.live-site [data-reveal='clip'][data-armed]:not([data-in]) { clip-path: inset(10% 10% 10% 10% round 24px); opacity: 0.4; filter: saturate(0.6); }
-@media (prefers-reduced-motion: reduce) {
-  .live-site [data-reveal] { transition-property: opacity; transition-duration: 250ms; transform: none !important; clip-path: none !important; filter: none !important; }
-}
-
-@keyframes live-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-.live-float { animation: live-float 6s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .live-float { animation: none; }
-}
+/* Public site motion (Reveal, .live-float) moved to design-system/styles/motion.css. */

@@ -1,0 +1,56 @@
+/* Design system motion. Imported once from src/index.css and scoped to the whole app.
+   Used by patterns/Reveal (and the older components/live/ui/Reveal, which sets --reveal-delay inline). */
+
+/* Reveal: content starts hidden only once Reveal has mounted (data-armed), and shows when it scrolls
+   into view (data-in). */
+[data-reveal] {
+  transition-property: opacity, transform, clip-path, filter;
+  transition-duration: var(--ds-duration-reveal);
+  transition-timing-function: var(--ds-easing-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+[data-reveal='rise'][data-armed]:not([data-in]) { opacity: 0; transform: translateY(18px); }
+[data-reveal='fade'][data-armed]:not([data-in]) { opacity: 0; }
+[data-reveal='clip'] { transition-duration: calc(var(--ds-duration-slow) * 2); }
+[data-reveal='clip'][data-armed]:not([data-in]) {
+  clip-path: inset(10% 10% 10% 10% round var(--ds-radius-xl));
+  opacity: 0.4;
+  filter: saturate(0.6);
+}
+
+/* Capped stagger for patterns/Reveal `index`: 70ms per step, 420ms max. */
+[data-reveal-step='1'] { --reveal-delay: 70ms; }
+[data-reveal-step='2'] { --reveal-delay: 140ms; }
+[data-reveal-step='3'] { --reveal-delay: 210ms; }
+[data-reveal-step='4'] { --reveal-delay: 280ms; }
+[data-reveal-step='5'] { --reveal-delay: 350ms; }
+[data-reveal-step='6'] { --reveal-delay: 420ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    transition-property: opacity;
+    transition-duration: 250ms;
+    transform: none !important;
+    clip-path: none !important;
+    filter: none !important;
+  }
+}
+
+/* Gentle float for decorative hero art. */
+@keyframes live-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.live-float { animation: live-float 6s ease-in-out infinite; }
+
+/* Panel fade for tab content (NumberedTabs). */
+@keyframes ds-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ds-animate-fade-in { animation: ds-fade-in var(--ds-duration-slow) var(--ds-easing-out) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .live-float,
+  .ds-animate-fade-in { animation: none; }
+}

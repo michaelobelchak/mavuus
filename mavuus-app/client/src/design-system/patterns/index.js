@@ -1,1 +1,5 @@
 export { Card, cardVariants } from './Card'
+export { CheckList } from './CheckList'
+export { CountUp } from './CountUp'
+export { MediaFrame } from './MediaFrame'
+export { Reveal } from './Reveal'
