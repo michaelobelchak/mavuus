@@ -36,6 +36,7 @@ const preview = {
     viewport: {
       options: {
         desktop: { name: 'Desktop 1440', styles: { width: '1440px', height: '900px' }, type: 'desktop' },
+        rail: { name: 'Rail 1100', styles: { width: '1100px', height: '800px' }, type: 'desktop' },
         laptop: { name: 'Laptop 1024', styles: { width: '1024px', height: '768px' }, type: 'desktop' },
         tablet: { name: 'Tablet 768', styles: { width: '768px', height: '1024px' }, type: 'tablet' },
         mobile: { name: 'Mobile 390', styles: { width: '390px', height: '844px' }, type: 'mobile' },
