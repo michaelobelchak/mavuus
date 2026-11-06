@@ -40,11 +40,37 @@ describe('no-raw-color', () => {
     expect(lintSource('src/a.css', css).map((v) => [v.rule, v.line])).toEqual([['no-raw-color', 3]])
   })
 
-  it('should skip :root, [data-theme] and .dark theme blocks in index.css', () => {
-    const css =
-      ':root[data-theme="dark"] {\n  --a: #000;\n}\n[data-theme="dark"] .x {\n  --b: #111;\n}\n.dark {\n  --c: #222;\n}\n.a { color: #333; }\n'
-    expect(lintSource('src/index.css', css).map((v) => [v.rule, v.line])).toEqual([['no-raw-color', 10]])
-    expect(lintSource('src/other.css', css).filter((v) => v.rule === 'no-raw-color')).toHaveLength(4)
+  it('should skip pure :root, [data-theme] and .dark theme blocks in index.css', () => {
+    const css = [
+      ':root:not([data-theme="light"]), [data-theme="dark"] {',
+      '  --a: #000;',
+      '}',
+      ':root[data-theme="dark"] { --b: #111; }',
+      '.dark { --c: #222; }',
+      '@theme inline { --d: #444; }',
+      '.a { color: #333; }',
+      '',
+    ].join('\n')
+    expect(lintSource('src/index.css', css).map((v) => [v.rule, v.line])).toEqual([['no-raw-color', 7]])
+    expect(lintSource('src/other.css', css).filter((v) => v.rule === 'no-raw-color')).toHaveLength(5)
+  })
+
+  it('should not skip blocks that only start with a theme selector', () => {
+    const css = [
+      '.dark .card { color: #fff; }',
+      '.dark-toggle { color: #eee; }',
+      ':root .x { color: #ddd; }',
+      '[data-theme] .y { color: #ccc; }',
+      '.dark, .card { color: #bbb; }',
+      '',
+    ].join('\n')
+    expect(lintSource('src/index.css', css).map((v) => [v.rule, v.line])).toEqual([
+      ['no-raw-color', 1],
+      ['no-raw-color', 2],
+      ['no-raw-color', 3],
+      ['no-raw-color', 4],
+      ['no-raw-color', 5],
+    ])
   })
 
   it('should flag raw colors in CSS declarations but not in the index.css theme blocks', () => {

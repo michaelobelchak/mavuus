@@ -414,7 +414,15 @@ function lintJs(file, source, ctx) {
   return comments
 }
 
-const THEME_PRELUDE = /^(?:@theme\b|:root|\[data-theme|\.dark\b)/
+// One pure theme selector: :root with optional :not(...) or [...] suffixes, [data-theme...]
+// (same suffixes), or .dark. A block counts as a theme block only when its whole selector list
+// is made of these, or it is an @theme block.
+const THEME_SELECTOR = /^(?::root|\[data-theme(?:[~|^$*]?=[^\]]*)?\]|\.dark)(?::not\([^()]*(?:\([^()]*\)[^()]*)*\)|\[[^\]]*\])*$/
+
+function isThemePrelude(prelude) {
+  if (/^@theme\b/.test(prelude)) return true
+  return prelude.split(',').every((part) => THEME_SELECTOR.test(part.trim()))
+}
 
 /**
  * Splits CSS (comments already blanked) into segments ending at `{`, `;` or `}` outside
@@ -448,7 +456,7 @@ function cssSegments(code) {
 function tokenBlocks(code) {
   const blocks = []
   for (const seg of cssSegments(code)) {
-    if (!seg.opens || !THEME_PRELUDE.test(seg.text.trim())) continue
+    if (!seg.opens || !isThemePrelude(seg.text.trim())) continue
     if (blocks.some(([a, b]) => seg.start >= a && seg.start < b)) continue
     let depth = 0
     let i = seg.end
