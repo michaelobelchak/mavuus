@@ -85,10 +85,10 @@
   --color-live-pink-50: var(--surface-selected);
   --color-live-pink-200: var(--mv-color-pink-200);
   --color-live-sky: var(--mv-color-blue-200);
-  --shadow-live-card: var(--shadow-card);
-  --shadow-live-card-hover: var(--shadow-card-hover);
-  --shadow-live-float: var(--shadow-float);
-  --ease-live: var(--easing-out);
+  --shadow-live-card: var(--ds-shadow-card);
+  --shadow-live-card-hover: var(--ds-shadow-card-hover);
+  --shadow-live-float: var(--ds-shadow-float);
+  --ease-live: var(--ds-easing-out);
 
   /* Font Family: Fixel Text everywhere */
   --font-heading: var(--mv-font-family-sans);
