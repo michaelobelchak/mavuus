@@ -19,6 +19,11 @@ Tokens, primitives, patterns and organisms for the whole product. Design: `mavuu
 - **Links:** anything that renders `to`/`href` goes through `lib/linkProps.js`. It picks the router Link or an anchor, opens absolute http(s) links in a new tab with `rel="noopener noreferrer"`, and makes disabled or loading links `aria-disabled` and unfocusable. Render `<ExternalHint />` inside the link when it returns `opensNewTab`.
 - **Fields:** Input and Textarea share `fieldVariants` and `isInvalid` from `lib/field.js`. Input's `className` and props go to the `<input>`; `wrapperClassName` only applies when an icon or `trailing` slot renders the wrapper.
 - **Refs:** combine refs with `lib/mergeRefs.js`, which supports React 19 ref cleanups.
+- **Choice controls:** Checkbox, Radio and Switch take `label` and wrap the control and text in a `<label>`, so the text toggles it and the row is at least 44px tall (`lib/choice.js`). Without `label`, pass `aria-label`; the hit area still grows to 44px. `ref` and props go to the control, `className` to the outer element.
+- **Base UI parts:** style them with their data attributes (`data-[checked]:`, `data-[highlighted]:`, `data-[disabled]:`, `data-[popup-open]:`, `data-[starting-style]:`). Layered popups use the z-index aliases through `z-(--ds-z-dropdown)` and `z-(--ds-z-tooltip)`.
+- **Tooltips** are visual only (Base UI sets no role or aria-describedby). The trigger needs its own accessible name.
+- **Standalone icons** (Icon, Spinner) use `lib/iconSizes.js`: sm 16px, md 20px, lg 24px.
+- **Eyebrow pink:** `text-text-brand` is 2.85:1 on white, so the default pink Eyebrow is a brand accent above a heading that carries the meaning. Use `tone="brand-strong"` when the eyebrow text stands alone. Text `tone="brand"` maps to `text-text-brand-strong` for the same reason.
 - **Motion:** every animation or transition that moves things gets `motion-reduce:` handling.
 - **Styling:** only token classes. No hex values, no arbitrary px values. Tailwind numeric sizes (`h-12`, `size-4`) are fine for fixed control heights and icon sizes.
 
@@ -26,7 +31,7 @@ Tokens, primitives, patterns and organisms for the whole product. Design: `mavuu
 
 | Kind | Classes |
 |---|---|
-| Color | `bg-surface-*`, `text-text-*`, `border-border-*`, `bg-status-*` and `-subtle`, `text-status-*`, `*-chart-*` |
+| Color | `bg-surface-*` (including `bg-surface-inverse` for dark tooltips), `text-text-*`, `border-border-*`, `bg-status-*` and `-subtle`, `text-status-*`, `*-chart-*` |
 | Spacing | `p-ds-*`, `m-ds-*`, `gap-ds-*` (`none`, `xxs`, `xs`, `sm`, `md`, `lg`, `xl`, `xxl`, `section`) |
 | Radius | `rounded-tag`, `-input`, `-control`, `-card`, `-sheet`, `-panel`, `-chip` (4, 8, 12, 16, 24, 32, pill) |
 | Type | `text-caption`, `-body-sm`, `-body`, `-lead`, `-h4`, `-h3`, `-h2`, `-h1`, `-display` (sizes with line heights) |
