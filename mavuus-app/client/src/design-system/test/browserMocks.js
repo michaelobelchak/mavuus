@@ -61,9 +61,10 @@ export function mockReducedMotion(initial) {
   }
 }
 
-// Installs a ResizeObserver that reports `size` for every observed element right away, and makes
-// getBoundingClientRect return that size. Charts (recharts ResponsiveContainer) need both to
-// render in jsdom. Undo with vi.unstubAllGlobals() and vi.restoreAllMocks().
+// Installs a ResizeObserver that reports `size` for every element as soon as it's observed.
+// Charts (recharts ResponsiveContainer) need it to render in jsdom. Only observed elements get
+// the size, so a y axis measuring its labels still sees jsdom's zero-size boxes. Undo with
+// vi.unstubAllGlobals().
 export function mockResizeObserver({ width = 600, height = 320 } = {}) {
   class FakeResizeObserver {
     constructor(callback) {
@@ -76,17 +77,6 @@ export function mockResizeObserver({ width = 600, height = 320 } = {}) {
     disconnect() {}
   }
   vi.stubGlobal('ResizeObserver', FakeResizeObserver)
-  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
-    width,
-    height,
-    top: 0,
-    left: 0,
-    right: width,
-    bottom: height,
-    x: 0,
-    y: 0,
-    toJSON: () => ({}),
-  })
 }
 
 // Makes every element report `scrollWidth` and `clientWidth`, so overflow checks see a table
