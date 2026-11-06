@@ -72,16 +72,74 @@ describe('NumberedTabs', () => {
     expect(selected()).toHaveAccessibleName(/Execution/)
   })
 
-  it('should pause while hovered and resume when the pointer leaves', () => {
+  it('should pause while a mouse hovers and resume when it leaves', () => {
     vi.useFakeTimers()
     mockReducedMotion(false)
     const { container } = renderTabs()
-    fireEvent.mouseEnter(container.firstElementChild)
+    fireEvent.pointerEnter(container.firstElementChild, { pointerType: 'mouse' })
     act(() => vi.advanceTimersByTime(12000))
     expect(selected()).toHaveAccessibleName(/Strategy/)
-    fireEvent.mouseLeave(container.firstElementChild)
+    fireEvent.pointerLeave(container.firstElementChild, { pointerType: 'mouse' })
     act(() => vi.advanceTimersByTime(6000))
     expect(selected()).toHaveAccessibleName(/Execution/)
+  })
+
+  it('should keep autoplay running when a touch pointer enters', () => {
+    vi.useFakeTimers()
+    mockReducedMotion(false)
+    const { container } = renderTabs()
+    fireEvent.pointerEnter(container.firstElementChild, { pointerType: 'touch' })
+    act(() => vi.advanceTimersByTime(6000))
+    expect(selected()).toHaveAccessibleName(/Execution/)
+  })
+
+  it('should call consumer pointer and focus handlers and still pause', () => {
+    vi.useFakeTimers()
+    mockReducedMotion(false)
+    const onPointerEnter = vi.fn()
+    const onFocus = vi.fn()
+    const onBlur = vi.fn()
+    const onPointerLeave = vi.fn()
+    const { container } = renderTabs({ onPointerEnter, onPointerLeave, onFocus, onBlur })
+    const root = container.firstElementChild
+    fireEvent.pointerEnter(root, { pointerType: 'mouse' })
+    fireEvent.focus(screen.getByRole('tab', { name: /Strategy/ }))
+    act(() => vi.advanceTimersByTime(12000))
+    expect(selected()).toHaveAccessibleName(/Strategy/)
+    fireEvent.pointerLeave(root, { pointerType: 'mouse' })
+    fireEvent.blur(screen.getByRole('tab', { name: /Strategy/ }))
+    expect(onPointerEnter).toHaveBeenCalledTimes(1)
+    expect(onPointerLeave).toHaveBeenCalledTimes(1)
+    expect(onFocus).toHaveBeenCalled()
+    expect(onBlur).toHaveBeenCalled()
+    act(() => vi.advanceTimersByTime(6000))
+    expect(selected()).toHaveAccessibleName(/Execution/)
+  })
+
+  it('should clamp initial to the items it has', () => {
+    mockReducedMotion(true)
+    const { unmount } = renderTabs({ initial: 9 })
+    expect(selected()).toHaveAccessibleName(/Leadership/)
+    unmount()
+    renderTabs({ initial: -2 })
+    expect(selected()).toHaveAccessibleName(/Strategy/)
+  })
+
+  it('should move to the last remaining tab when the items shrink below the active one', () => {
+    mockReducedMotion(true)
+    const { rerender } = renderTabs({ initial: 2 })
+    expect(selected()).toHaveAccessibleName(/Leadership/)
+    rerender(
+      <NumberedTabs
+        label="Ways to work together"
+        items={items.slice(0, 2)}
+        scaleStart="Strategy"
+        scaleEnd="Leadership"
+        renderPanel={(item) => <p>{item.body}</p>}
+      />,
+    )
+    expect(selected()).toHaveAccessibleName(/Execution/)
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Execution body')
   })
 
   it('should stop autoplay for good and hide the pause control once the user picks a tab', () => {

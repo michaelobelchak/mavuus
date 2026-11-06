@@ -8,6 +8,11 @@ import { Eyebrow, IconButton } from '../../primitives'
 
 const INTERVAL_MS = 6000
 
+function clampIndex(index, count) {
+  if (count === 0) return 0
+  return Math.min(Math.max(0, Math.floor(Number(index) || 0)), count - 1)
+}
+
 const tabClass = [
   'group -ml-0.5 flex cursor-pointer items-start gap-ds-md border-l-2 border-transparent py-ds-md pr-ds-md pl-ds-lg text-left',
   'transition-colors duration-300 ease-enter motion-reduce:transition-none',
@@ -18,26 +23,43 @@ const tabClass = [
  * Numbered vertical tabs with a progress scale, built on Base UI Tabs.
  * - `label`: names the tab list. `items`: [{ num, title, tag?, ... }]. `renderPanel(item)` renders the
  *   panel body (or the item's `content` is used). `scaleStart` / `scaleEnd`: text at the ends of the scale.
- * - `initial`: index of the first active tab (default 0).
- * Autoplay advances every 6s while the page is visible. It pauses on hover and keyboard focus, has a
+ * - `initial`: index of the first active tab (default 0, clamped to the items).
+ * - Pointer and focus handlers you pass run before the internal pause handlers.
+ * Autoplay advances every 6s while the page is visible. It pauses while a mouse hovers and on keyboard focus, has a
  * visible pause control, stops for good once someone picks a tab, and never runs under reduced motion.
  * Arrow Up/Down (and Left/Right), Home and End move between tabs and activate them.
  */
-export function NumberedTabs({ label, items = [], scaleStart, scaleEnd, initial = 0, renderPanel, className, ref, ...props }) {
-  const [active, setActive] = useState(initial)
+export function NumberedTabs({
+  label,
+  items = [],
+  scaleStart,
+  scaleEnd,
+  initial = 0,
+  renderPanel,
+  onPointerEnter,
+  onPointerLeave,
+  onFocus,
+  onBlur,
+  className,
+  ref,
+  ...props
+}) {
+  const count = items.length
+  const [activeState, setActive] = useState(() => clampIndex(initial, count))
   const [stopped, setStopped] = useState(false)
   const [userPaused, setUserPaused] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
   const reduced = useReducedMotion()
-  const count = items.length
+  // Clamped on every render, so a shorter items list never leaves the active tab out of range.
+  const active = clampIndex(activeState, count)
 
   const running = !stopped && !userPaused && !hovered && !focused && !reduced && count > 1
 
   useEffect(() => {
     if (!running) return undefined
     const timer = setInterval(() => {
-      if (document.visibilityState !== 'hidden') setActive((index) => (index + 1) % count)
+      if (document.visibilityState !== 'hidden') setActive((index) => (clampIndex(index, count) + 1) % count)
     }, INTERVAL_MS)
     return () => clearInterval(timer)
   }, [running, count])
@@ -66,14 +88,25 @@ export function NumberedTabs({ label, items = [], scaleStart, scaleEnd, initial 
   return (
     <div
       ref={ref}
+      {...props}
       className={cn('flex flex-col gap-ds-xl', className)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onFocus={() => setFocused(true)}
+      // Only a mouse pauses on hover: touch fires pointerenter without a matching leave, so it would stick.
+      onPointerEnter={(event) => {
+        onPointerEnter?.(event)
+        if (event.pointerType === 'mouse') setHovered(true)
+      }}
+      onPointerLeave={(event) => {
+        onPointerLeave?.(event)
+        if (event.pointerType === 'mouse') setHovered(false)
+      }}
+      onFocus={(event) => {
+        onFocus?.(event)
+        setFocused(true)
+      }}
       onBlur={(event) => {
+        onBlur?.(event)
         if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false)
       }}
-      {...props}
     >
       <div className="flex flex-wrap items-center gap-x-ds-md gap-y-ds-sm sm:flex-nowrap">
         <Eyebrow as="span" tone="muted" className="shrink-0">
