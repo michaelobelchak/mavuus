@@ -16,6 +16,8 @@ export const chartTheme = {
   fontSize: px('ds-font-size-caption'),
   barRadius: px('ds-radius-sm'),
   gap: px('ds-space-xs'),
+  // Space between the plot edge and the first and last points, so edge labels and dots aren't clipped.
+  edgePadding: px('ds-space-lg'),
 }
 
 // Bars that aren't under the pointer or keyboard focus fade to this opacity.

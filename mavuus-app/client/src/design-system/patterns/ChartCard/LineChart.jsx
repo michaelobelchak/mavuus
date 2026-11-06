@@ -30,7 +30,14 @@ export function LineChart({ data, xKey, series, valueFormatter, xFormatter, heig
         accessibilityLayer
       >
         <CartesianGrid vertical={false} stroke={chartTheme.grid} />
-        <XAxis dataKey={config.xKey} tickFormatter={config.xFormatter} tick={tick} axisLine={false} tickLine={false} />
+        <XAxis
+          dataKey={config.xKey}
+          tickFormatter={config.xFormatter}
+          tick={tick}
+          axisLine={false}
+          tickLine={false}
+          padding={{ left: chartTheme.edgePadding, right: chartTheme.edgePadding }}
+        />
         <YAxis tickFormatter={config.valueFormatter} tick={tick} axisLine={false} tickLine={false} width="auto" />
         <Tooltip
           cursor={{ stroke: chartTheme.grid }}

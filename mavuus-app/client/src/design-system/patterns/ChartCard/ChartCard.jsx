@@ -105,7 +105,7 @@ export function ChartCard({
             </Text>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-ds-xs">
+        <div className="flex flex-wrap items-center gap-ds-xs sm:flex-nowrap sm:*:w-auto">
           {actions}
           {canTable && (
             <Button
