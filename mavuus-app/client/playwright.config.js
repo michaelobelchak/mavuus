@@ -31,7 +31,9 @@ export default defineConfig({
       command: 'node ../client/e2e/global-setup.js && node index.js',
       cwd: '../server',
       url: `http://localhost:${API_PORT}/api/health`,
-      reuseExistingServer: !process.env.CI,
+      // Never reuse: every run must start from a freshly seeded db/e2e.db. The port is dedicated
+      // to e2e, so a server already on it is a leftover and the run should stop and say so.
+      reuseExistingServer: false,
       timeout: 60_000,
       env: {
         PORT: String(API_PORT),
