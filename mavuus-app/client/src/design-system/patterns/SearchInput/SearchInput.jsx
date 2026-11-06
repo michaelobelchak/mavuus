@@ -22,13 +22,17 @@ function setNativeValue(input, value) {
 /**
  * Search field: an Input with a search icon and a "Clear search" button while it has text.
  * - `onChange(event)` fires on every keystroke. `onSearch(value)` fires once typing pauses for
- *   `debounce` ms (default 300), and right away with '' when the field is cleared.
+ *   `debounce` ms (default 300) with the text the field shows then (so a parent's trim or
+ *   lowercase is kept), and right away with '' when the field is cleared. A value changed from
+ *   outside before the pause ends drops the pending search.
  * - Escape clears a field that has text (and doesn't bubble, so a surrounding Dialog stays open).
  * - `value` / `defaultValue` work as on any input.
  * - Name it with `label` (rendered visually hidden), `aria-label`, `aria-labelledby`, or put it
- *   in a FormField. Without one it falls back to aria-label "Search" and warns in dev, because
- *   "Search members" tells people more than "Search". A plain <Label htmlFor> outside FormField
- *   isn't detected, so pass `label` or `aria-label` there.
+ *   in a FormField as its direct child (FormField labels the control it clones; a SearchInput
+ *   wrapped in another element doesn't pick up the label). Without one it falls back to
+ *   aria-label "Search" and warns in dev, because "Search members" tells people more than
+ *   "Search". A plain <Label htmlFor> outside FormField isn't detected, so pass `label` or
+ *   `aria-label` there.
  * `ref`, `className` and other props go to the <input>; `size` follows Input (sm, md, lg).
  */
 export function SearchInput({
@@ -48,7 +52,9 @@ export function SearchInput({
   const id = props.id ?? generatedId
   const inputRef = useRef(null)
   const field = use(FormFieldContext)
-  const latestValue = useRef(null)
+  // True between our own change event and the render it causes, so a value that moves for any
+  // other reason (a parent reset, a new value prop) can drop the pending search.
+  const ownChange = useRef(false)
   const ariaLabel = props['aria-label']
   const ariaLabelledBy = props['aria-labelledby']
   const named = Boolean(ariaLabel || ariaLabelledBy || label || (field?.labelled && field.controlId === id))
@@ -74,12 +80,11 @@ export function SearchInput({
     }
   }, [named])
 
-  // The debounce only fires for the text that's still in the field. A controlled value cleared
-  // from outside drops the pending search.
+  // A value that changes from outside (not through typing) drops the pending search.
   useEffect(() => {
-    latestValue.current = current
-    if (controlled && current === '') clearTimeout(timer.current)
-  }, [controlled, current])
+    if (ownChange.current) ownChange.current = false
+    else clearTimeout(timer.current)
+  }, [current])
 
   function handleChange(event) {
     const next = event.target.value
@@ -90,8 +95,13 @@ export function SearchInput({
       onSearchRef.current?.('')
       return
     }
+    ownChange.current = true
+    // Search with the text the field shows now, so a parent that trims or lowercases the value
+    // still gets onSearch, with the transformed text.
     timer.current = setTimeout(() => {
-      if (latestValue.current === next) onSearchRef.current?.(next)
+      ownChange.current = false
+      const shown = inputRef.current?.value ?? ''
+      if (shown !== '') onSearchRef.current?.(shown)
     }, debounce)
   }
 

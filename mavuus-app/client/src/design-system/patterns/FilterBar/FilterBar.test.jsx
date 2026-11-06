@@ -184,7 +184,7 @@ describe('FilterBar', () => {
   })
 
   it('should size selects, chips and Clear filters for touch by default', () => {
-    render(<FilterBar filters={filters({ workType: 'remote' })} />)
+    render(<FilterBar filters={filters({ workType: 'remote' })} onClear={vi.fn()} />)
     expect(screen.getByRole('combobox', { name: 'Work type' })).toHaveClass('h-12')
     expect(screen.getByRole('button', { name: 'Clear filters' })).toHaveClass('h-12')
     const chip = screen.getByRole('button', { name: 'CMO' })
@@ -192,7 +192,7 @@ describe('FilterBar', () => {
   })
 
   it('should pass the dense sm size to its controls when size is sm', () => {
-    render(<FilterBar size="sm" filters={filters({ workType: 'remote' })} />)
+    render(<FilterBar size="sm" filters={filters({ workType: 'remote' })} onClear={vi.fn()} />)
     expect(screen.getByRole('combobox', { name: 'Work type' })).toHaveClass('h-10')
     expect(screen.getByRole('button', { name: 'Clear filters' })).toHaveClass('h-10')
     expect(screen.getByRole('button', { name: 'CMO' })).toHaveClass('h-10', 'after:-inset-y-1')
@@ -209,5 +209,22 @@ describe('FilterBar', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(<FilterBar filters={[{ type: 'range', key: 'salary', label: 'Salary' }]} />)
     expect(error).toHaveBeenCalledWith(expect.stringMatching(/FilterBar: .*type "range"/))
+  })
+
+  it('should hide Clear filters and warn in dev when a filter is active but there is no onClear', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<FilterBar filters={filters({ workType: 'remote' })} />)
+    expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/FilterBar: .*onClear/))
+  })
+
+  it('should leave a filter without a key out of the reset', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const user = userEvent.setup()
+    const onClear = vi.fn()
+    const [workType, roles] = filters({ workType: 'remote', roles: ['vp'] })
+    render(<FilterBar filters={[{ ...workType, key: undefined }, roles]} onClear={onClear} />)
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+    expect(onClear).toHaveBeenCalledWith({ roles: [] })
   })
 })

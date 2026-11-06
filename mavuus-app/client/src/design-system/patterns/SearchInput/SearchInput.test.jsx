@@ -161,6 +161,21 @@ describe('SearchInput', () => {
     expect(onSearch).not.toHaveBeenCalledWith('se')
   })
 
+  it('should search with the text the field shows when a controlled parent transforms it', () => {
+    vi.useFakeTimers()
+    const onSearch = vi.fn()
+    function Lowercase() {
+      const [value, setValue] = useState('')
+      return <SearchInput aria-label="Search" value={value} onChange={(event) => setValue(event.target.value.trim().toLowerCase())} onSearch={onSearch} />
+    }
+    render(<Lowercase />)
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'SEO ' } })
+    expect(screen.getByRole('searchbox')).toHaveValue('seo')
+    act(() => vi.advanceTimersByTime(300))
+    expect(onSearch).toHaveBeenCalledTimes(1)
+    expect(onSearch).toHaveBeenCalledWith('seo')
+  })
+
   it('should not search after unmount', () => {
     vi.useFakeTimers()
     const onSearch = vi.fn()

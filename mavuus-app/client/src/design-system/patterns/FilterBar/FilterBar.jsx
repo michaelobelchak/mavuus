@@ -78,9 +78,10 @@ function ChipsFilter({ filter }) {
  * - `size`: md (default, 48px selects and button, touch friendly) or sm (40px, dense desktop
  *   toolbars only). Chips are always 40px with a hit area that reaches 48px.
  * - "Clear filters" shows while any filter has a value (or `active` is true, for state kept
- *   outside the filters such as the search text). It calls `onClear(emptyValues)` once, with
+ *   outside the filters such as the search text) and `onClear` is given (without it the button
+ *   stays hidden and dev warns). It calls `onClear(emptyValues)` once, with
  *   `{ [key]: emptyValue }` for every filter (null, [] for multiple chips, or the filter's
- *   `emptyValue`; custom filters only when they give one). It doesn't call the filters' onChange,
+ *   `emptyValue`; custom filters only when they give one; filters without a `key` are left out). It doesn't call the filters' onChange,
  *   so apply the reset in one setState: `onClear={(empty) => setFilters((f) => ({ ...f, ...empty }))}`.
  * `className` and other props go to the root.
  */
@@ -109,7 +110,15 @@ export function FilterBar({
     return false
   })
   const activeFilters = known.filter(isActive)
-  const showClear = active || activeFilters.length > 0
+  const wantsClear = active || activeFilters.length > 0
+  // Without onClear the button would do nothing, so it stays hidden.
+  const showClear = wantsClear && typeof onClear === 'function'
+  if (wantsClear && !showClear) {
+    warnOnce(
+      'FilterBar:onClear',
+      'FilterBar: filters are active but there is no onClear, so Clear filters is hidden. Pass onClear to reset them.',
+    )
+  }
 
   function clearAll() {
     const empty = {}
@@ -117,7 +126,7 @@ export function FilterBar({
       const value = emptyValue(filter)
       if (value !== undefined && filter.key != null) empty[filter.key] = value
     }
-    onClear?.(empty)
+    onClear(empty)
   }
 
   return (
