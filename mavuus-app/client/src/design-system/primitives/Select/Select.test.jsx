@@ -100,4 +100,35 @@ describe('Select', () => {
     )
     expect(getTrigger()).toBeInTheDocument()
   })
+
+  it('should mark the highlighted item with the selected surface and a navy left border', async () => {
+    const user = userEvent.setup()
+    render(<Select aria-label="Work type" items={items} defaultValue="remote" />)
+    await openWith(user, '{ArrowDown}')
+    const option = screen.getByRole('option', { name: 'Remote' })
+    expect(option).toHaveClass(
+      'border-l-2',
+      'border-transparent',
+      'data-[highlighted]:border-border-focus',
+      'data-[highlighted]:bg-surface-selected',
+      'data-[highlighted]:text-text-primary',
+    )
+    expect(option).not.toHaveClass('outline-none')
+    expect(document.querySelector('[data-select-positioner]')).not.toHaveClass('outline-none')
+  })
+
+  it('should keep the error border while open when invalid', () => {
+    render(<Select aria-label="Work type" items={items} invalid />)
+    const trigger = getTrigger()
+    expect(trigger).toHaveClass('data-[popup-open]:border-status-error')
+    expect(trigger).not.toHaveClass('data-[popup-open]:border-border-focus')
+  })
+
+  it('should be natively disabled with a not-allowed cursor when disabled', () => {
+    render(<Select aria-label="Work type" items={items} disabled />)
+    const trigger = getTrigger()
+    expect(trigger).toBeDisabled()
+    expect(trigger).toHaveClass('disabled:cursor-not-allowed')
+    expect(trigger).not.toHaveClass('aria-disabled:cursor-not-allowed')
+  })
 })

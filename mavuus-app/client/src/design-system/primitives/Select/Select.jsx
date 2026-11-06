@@ -3,7 +3,7 @@ import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { controlIconSizes, DEFAULT_CONTROL_SIZE, resolveControlSize } from '../../lib/controlSizes'
 import { fieldVariants, isInvalid } from '../../lib/field'
-import { SELECT_SIZES, selectTriggerVariants } from './selectVariants'
+import { SELECT_SIZES, selectItemClass, selectTriggerVariants } from './selectVariants'
 
 /**
  * Single-value select built on Base UI Select, on the control height scale (sm 40, md 48, lg 56).
@@ -56,7 +56,7 @@ export function Select({
         ref={ref}
         className={cn(
           fieldVariants({ invalid: invalidState, size: resolvedSize }),
-          selectTriggerVariants({ size: resolvedSize }),
+          selectTriggerVariants({ invalid: invalidState, size: resolvedSize }),
           className,
         )}
         {...props}
@@ -77,7 +77,12 @@ export function Select({
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
       <SelectPrimitive.Portal>
-        <SelectPrimitive.Positioner sideOffset={4} alignItemWithTrigger={false} className="z-(--ds-z-dropdown) outline-none">
+        <SelectPrimitive.Positioner
+          sideOffset={4}
+          alignItemWithTrigger={false}
+          data-select-positioner=""
+          className="z-(--ds-z-dropdown)"
+        >
           <SelectPrimitive.Popup
             className={cn(
               'max-h-(--available-height) min-w-(--anchor-width) overflow-y-auto rounded-control border border-border-default',
@@ -95,11 +100,7 @@ export function Select({
                   key={String(item.value)}
                   value={item.value}
                   disabled={item.disabled}
-                  className={cn(
-                    'flex min-h-11 cursor-default items-center gap-ds-xs rounded-input px-ds-sm text-body outline-none select-none',
-                    'data-[highlighted]:bg-surface-hover data-[selected]:font-semibold',
-                    'data-[disabled]:cursor-not-allowed data-[disabled]:text-text-disabled',
-                  )}
+                  className={selectItemClass}
                 >
                   <SelectPrimitive.ItemText className="flex-1">{item.label}</SelectPrimitive.ItemText>
                   <SelectPrimitive.ItemIndicator className="flex text-text-brand-strong">
