@@ -21,7 +21,7 @@ const tabClass = [
  * - `initial`: index of the first active tab (default 0).
  * Autoplay advances every 6s while the page is visible. It pauses on hover and keyboard focus, has a
  * visible pause control, stops for good once someone picks a tab, and never runs under reduced motion.
- * Arrow Up/Down, Home and End move between tabs and activate them.
+ * Arrow Up/Down (and Left/Right), Home and End move between tabs and activate them.
  */
 export function NumberedTabs({ label, items = [], scaleStart, scaleEnd, initial = 0, renderPanel, className, ref, ...props }) {
   const [active, setActive] = useState(initial)
@@ -45,6 +45,19 @@ export function NumberedTabs({ label, items = [], scaleStart, scaleEnd, initial 
   const choose = (value) => {
     setStopped(true)
     setActive(value)
+  }
+
+  // Base UI handles Up/Down, Home and End for a vertical list. Left and Right stay as aliases for
+  // previous and next, as on the original public-site component.
+  const onListKeyDown = (event) => {
+    const delta = { ArrowRight: 1, ArrowLeft: -1 }[event.key]
+    if (!delta || count === 0) return
+    event.preventDefault()
+    const tabs = [...event.currentTarget.querySelectorAll('[role="tab"]')]
+    const from = tabs.indexOf(event.target)
+    const next = ((from === -1 ? active : from) + delta + count) % count
+    choose(next)
+    tabs[next]?.focus()
   }
 
   const showPause = !stopped && !reduced && count > 1
@@ -96,6 +109,7 @@ export function NumberedTabs({ label, items = [], scaleStart, scaleEnd, initial 
         <TabsPrimitive.List
           activateOnFocus
           aria-label={label}
+          onKeyDown={onListKeyDown}
           className="flex flex-col border-l-2 border-border-default lg:col-span-4"
         >
           {items.map((item, index) => (

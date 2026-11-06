@@ -73,4 +73,11 @@ describe('Banner', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
     expect(onDismiss).toHaveBeenCalled()
   })
+
+  it('should warn and fall back to inline when the Alert layout is unknown', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<Alert title="Saved" layout="toast" />)
+    expect(screen.getByRole('status')).toHaveClass('rounded-card')
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Alert: layout "toast"/))
+  })
 })

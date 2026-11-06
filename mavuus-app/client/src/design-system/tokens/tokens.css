@@ -186,6 +186,7 @@
   --border-strong: var(--mv-color-navy-900);
   --border-focus: var(--mv-color-navy-900);
   --border-brand: var(--mv-color-pink-500);
+  --border-brand-subtle: var(--mv-color-pink-200);
   --status-success: var(--mv-color-success-700);
   --status-success-subtle: var(--mv-color-success-50);
   --status-warning: var(--mv-color-warning-700);
@@ -234,6 +235,7 @@
   --color-border-strong: var(--border-strong);
   --color-border-focus: var(--border-focus);
   --color-border-brand: var(--border-brand);
+  --color-border-brand-subtle: var(--border-brand-subtle);
   --color-status-success: var(--status-success);
   --color-status-success-subtle: var(--status-success-subtle);
   --color-status-warning: var(--status-warning);

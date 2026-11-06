@@ -50,7 +50,7 @@ export function Tooltip({
         'Tooltip: the trigger has no accessible name. Give it text, aria-label or aria-labelledby; the tooltip only describes it.',
       )
     }
-  }, [content])
+  }, [children])
 
   return (
     <TooltipPrimitive.Root open={open} defaultOpen={defaultOpen} onOpenChange={onOpenChange}>

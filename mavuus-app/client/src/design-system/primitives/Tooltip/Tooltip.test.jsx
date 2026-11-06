@@ -125,5 +125,20 @@ describe('Tooltip', () => {
     expect(item.firstElementChild).toBe(screen.getByRole('button', { name: 'Copy link' }))
     expect(screen.getByRole('button', { name: 'Copy link' })).toHaveAccessibleDescription('Copy the invite link')
   })
-})
 
+  it('should check the name again when the trigger is renamed', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { rerender } = render(
+      <Tooltip content="Copy">
+        <IconButton icon={Copy} aria-label="Copy link" />
+      </Tooltip>,
+    )
+    expect(error).not.toHaveBeenCalled()
+    rerender(
+      <Tooltip content="Copy">
+        <IconButton icon={Copy} aria-label="" />
+      </Tooltip>,
+    )
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Tooltip.*accessible name/))
+  })
+})

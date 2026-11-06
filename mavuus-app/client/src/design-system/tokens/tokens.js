@@ -186,6 +186,7 @@ export const tokens = {
   "border-strong": "#1C2232",
   "border-focus": "#1C2232",
   "border-brand": "#F26D92",
+  "border-brand-subtle": "#f6b9cd",
   "status-success": "#15803d",
   "status-success-subtle": "#f0fdf4",
   "status-warning": "#b45309",

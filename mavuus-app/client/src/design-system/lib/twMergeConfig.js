@@ -28,6 +28,7 @@ export const themeScales = {
     "border-strong",
     "border-focus",
     "border-brand",
+    "border-brand-subtle",
     "status-success",
     "status-success-subtle",
     "status-warning",

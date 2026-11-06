@@ -2,7 +2,15 @@ import { AlertTriangle, CheckCircle2, Info, X, XCircle } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { resolveOption } from '../../lib/resolveOption'
 import { IconButton } from '../../primitives'
-import { ALERT_TONES, alertIconTones, alertRoles, alertVariants, DEFAULT_ALERT_TONE } from './alertVariants'
+import {
+  ALERT_LAYOUTS,
+  ALERT_TONES,
+  alertIconTones,
+  alertRoles,
+  alertVariants,
+  DEFAULT_ALERT_LAYOUT,
+  DEFAULT_ALERT_TONE,
+} from './alertVariants'
 
 const icons = { info: Info, success: CheckCircle2, warning: AlertTriangle, error: XCircle }
 
@@ -14,8 +22,9 @@ const icons = { info: Info, success: CheckCircle2, warning: AlertTriangle, error
  * - `onDismiss`: shows a close button (`dismissLabel`, default "Dismiss") that calls it.
  * Other props go to the root.
  */
-export function Alert({ layout = 'inline', ...props }) {
-  return <AlertBase layout={layout} component="Alert" {...props} />
+export function Alert({ layout, ...props }) {
+  const resolvedLayout = resolveOption(layout, ALERT_LAYOUTS, DEFAULT_ALERT_LAYOUT, 'Alert', 'layout')
+  return <AlertBase layout={resolvedLayout} component="Alert" {...props} />
 }
 
 // Shared by Alert and Banner.

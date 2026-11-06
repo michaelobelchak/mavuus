@@ -1,5 +1,7 @@
 // @vitest-environment node
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 import { describe, it, expect } from 'vitest'
 import { buildTokens } from '../../../scripts/build-tokens.mjs'
@@ -41,5 +43,22 @@ describe('design tokens', () => {
     expect(themeKeys.length).toBeGreaterThan(0)
     expect(themeKeys.filter((name) => tailwindKeys.has(name) && !allowedOverrides.includes(name))).toEqual([])
     expect(themeKeys.filter((name) => name.startsWith('--container-'))).toEqual([])
+  })
+
+  it('should keep tier 1 primitives (var(--mv-...)) inside tokens/', () => {
+    const root = fileURLToPath(new URL('..', import.meta.url))
+    const offenders = []
+    const walk = (dir) => {
+      for (const name of readdirSync(dir)) {
+        const full = path.join(dir, name)
+        if (statSync(full).isDirectory()) {
+          if (name !== 'tokens') walk(full)
+        } else if (/\.(css|js|jsx|mjs)$/.test(name) && readFileSync(full, 'utf8').includes('var(--mv-')) {
+          offenders.push(path.relative(root, full))
+        }
+      }
+    }
+    walk(root)
+    expect(offenders).toEqual([])
   })
 })

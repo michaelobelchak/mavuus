@@ -2,6 +2,8 @@ import { cva } from 'class-variance-authority'
 
 export const ALERT_TONES = ['info', 'success', 'warning', 'error']
 export const DEFAULT_ALERT_TONE = 'info'
+export const ALERT_LAYOUTS = ['inline', 'banner']
+export const DEFAULT_ALERT_LAYOUT = 'inline'
 
 // Polite status for good news and notes, assertive alert for problems that need attention.
 export const alertRoles = { info: 'status', success: 'status', warning: 'alert', error: 'alert' }
@@ -28,5 +30,5 @@ export const alertVariants = cva('flex items-start gap-ds-sm text-body-sm text-t
       banner: 'w-full px-ds-lg py-ds-sm',
     },
   },
-  defaultVariants: { tone: DEFAULT_ALERT_TONE, layout: 'inline' },
+  defaultVariants: { tone: DEFAULT_ALERT_TONE, layout: DEFAULT_ALERT_LAYOUT },
 })
