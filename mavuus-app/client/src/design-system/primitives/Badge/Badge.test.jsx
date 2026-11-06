@@ -21,6 +21,11 @@ describe('Badge', () => {
     expect(screen.getByText('Status')).toHaveClass(bg, text)
   })
 
+  it('should use the dark inverse surface with on-brand text when tone is inverse', () => {
+    render(<Badge tone="inverse">3</Badge>)
+    expect(screen.getByText('3')).toHaveClass('bg-surface-inverse', 'text-text-on-brand')
+  })
+
   it('should use the neutral tone when no tone is given', () => {
     render(<Badge>Draft</Badge>)
     expect(screen.getByText('Draft')).toHaveClass('bg-surface-sunken')

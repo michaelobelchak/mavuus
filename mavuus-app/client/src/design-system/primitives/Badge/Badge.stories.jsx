@@ -7,7 +7,7 @@ export default {
   tags: ['autodocs'],
   args: { children: 'Pro member' },
   argTypes: {
-    tone: { control: 'select', options: ['neutral', 'brand', 'success', 'warning', 'error', 'info'] },
+    tone: { control: 'select', options: ['neutral', 'brand', 'success', 'warning', 'error', 'info', 'inverse'] },
     size: { control: 'select', options: ['sm', 'md'] },
   },
 }
@@ -23,6 +23,8 @@ export const Warning = { args: { tone: 'warning', children: 'Pending review' } }
 export const ErrorTone = { name: 'Error', args: { tone: 'error', children: 'Closed' } }
 
 export const Info = { args: { tone: 'info', children: 'New' } }
+
+export const Inverse = { args: { tone: 'inverse', size: 'sm', children: '3' } }
 
 export const Sizes = {
   render: (args) => (

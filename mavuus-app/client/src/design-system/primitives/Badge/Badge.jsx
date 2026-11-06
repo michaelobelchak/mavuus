@@ -1,7 +1,7 @@
 import { cn } from '../../lib/cn'
 import { BADGE_DEFAULT_SIZE, badgeIconSizes, badgeVariants } from './badgeVariants'
 
-/** Small status label. `tone` carries the status meaning. Not interactive; use Chip for options. */
+/** Small status label. `tone` carries the status meaning (`inverse` is the dark count bubble). Not interactive; use Chip for options. */
 export function Badge({
   tone,
   size,

@@ -77,10 +77,10 @@ export function AppTopBar({
           />
           {count > 0 && (
             <Badge
-              tone="brand"
+              tone="inverse"
               size="sm"
               aria-hidden="true"
-              className="pointer-events-none absolute top-ds-none right-ds-none bg-surface-inverse text-text-on-brand"
+              className="pointer-events-none absolute top-ds-none right-ds-none"
             >
               {shortCount(count)}
             </Badge>
