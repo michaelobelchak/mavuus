@@ -70,6 +70,23 @@ describe('Dialog', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   })
 
+  it('should close on a click outside the popup when dismissible', async () => {
+    const user = userEvent.setup()
+    renderDialog({ defaultOpen: true })
+    const dialog = await screen.findByRole('dialog')
+    await user.click(dialog.parentElement)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('should stay open on an outside click and hide the close button when not dismissible', async () => {
+    const user = userEvent.setup()
+    renderDialog({ defaultOpen: true, dismissible: false })
+    const dialog = await screen.findByRole('dialog')
+    await user.click(dialog.parentElement)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Close' })).toBeNull()
+  })
+
   it('should stay open on Escape when not dismissible', async () => {
     const user = userEvent.setup()
     renderDialog({ defaultOpen: true, dismissible: false })
