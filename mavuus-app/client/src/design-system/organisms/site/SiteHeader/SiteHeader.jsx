@@ -5,9 +5,12 @@ import { useMediaQuery } from '../../../hooks'
 import { MAVUUS_LOGO_URL } from '../../../lib/brand'
 import { cn } from '../../../lib/cn'
 import { Button, IconButton } from '../../../primitives'
+import { tokens } from '../../../tokens/tokens.js'
 import { SITE_NAV_LINKS } from '../siteLinks'
 
 const MENU_ID = 'site-mobile-menu'
+// The same breakpoint as the max-site-lg: classes below, read from the token so they can't drift.
+const WIDE_QUERY = `(min-width: ${tokens['ds-breakpoint-site-lg']})`
 
 const linkBase =
   'block whitespace-nowrap rounded-control px-ds-md py-ds-sm text-body leading-6 font-medium transition-colors motion-reduce:transition-none hover:text-text-brand'
@@ -33,7 +36,7 @@ export function SiteHeader({ links = SITE_NAV_LINKS, className, ref, ...props })
   // The menu belongs to the page it was opened on, so navigating closes it.
   const [openFor, setOpenFor] = useState(null)
   // At 1200px and up the menu is hidden, so growing past it closes the menu for good.
-  const wide = useMediaQuery('(min-width: 75rem)')
+  const wide = useMediaQuery(WIDE_QUERY)
   const [wasWide, setWasWide] = useState(wide)
   if (wasWide !== wide) {
     setWasWide(wide)

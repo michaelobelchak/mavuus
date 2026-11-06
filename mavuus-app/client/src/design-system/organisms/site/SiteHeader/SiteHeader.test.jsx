@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mockViewport } from '../../../test/browserMocks'
+import { tokens } from '../../../tokens/tokens.js'
 import { SiteHeader } from './SiteHeader'
 
 function Where() {
@@ -110,5 +111,17 @@ describe('SiteHeader', () => {
     act(() => viewport.resize(390))
     expect(menuButton()).toHaveAttribute('aria-expanded', 'false')
     expect(document.getElementById(menuButton().getAttribute('aria-controls'))).not.toBeInTheDocument()
+  })
+
+  it('should close the menu exactly at the site-lg breakpoint token', async () => {
+    const user = userEvent.setup()
+    const siteLg = Number.parseFloat(tokens['ds-breakpoint-site-lg'])
+    const viewport = mockViewport(siteLg - 1)
+    renderHeader()
+    await user.click(menuButton())
+    act(() => viewport.resize(siteLg - 1))
+    expect(menuButton()).toHaveAttribute('aria-expanded', 'true')
+    act(() => viewport.resize(siteLg))
+    expect(menuButton()).toHaveAttribute('aria-expanded', 'false')
   })
 })
