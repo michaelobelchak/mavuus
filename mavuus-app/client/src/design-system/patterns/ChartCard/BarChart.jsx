@@ -47,7 +47,7 @@ export function BarChart({ data, xKey, series, valueFormatter, xFormatter, heigh
   const radius = chartTheme.barRadius
 
   return (
-    <ChartFrame height={config.height} animated={!reduced} legend={legend ?? resolved.length > 1} series={resolved} component="BarChart" {...props}>
+    <ChartFrame height={config.height} legend={legend ?? resolved.length > 1} series={resolved} component="BarChart" {...props}>
       <RechartsBarChart
         data={config.data}
         title={config.title}

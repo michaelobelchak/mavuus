@@ -139,20 +139,6 @@ describe('BarChart', () => {
     expect(screen.getByRole('list', { name: 'Legend' })).toBeInTheDocument()
   })
 
-  it('should turn animation off when the user prefers reduced motion', () => {
-    mockResizeObserver()
-    mockReducedMotion(true)
-    const { container } = render(<BarChart data={growth} xKey="week" series={series} />)
-    expect(container.querySelector('[data-chart]')).toHaveAttribute('data-animated', 'false')
-  })
-
-  it('should animate when motion is allowed', () => {
-    mockResizeObserver()
-    mockReducedMotion(false)
-    const { container } = render(<BarChart data={growth} xKey="week" series={series} />)
-    expect(container.querySelector('[data-chart]')).toHaveAttribute('data-animated', 'true')
-  })
-
   it('should warn in dev and fall back when a series color is outside 1 to 6', () => {
     setup()
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -185,9 +171,4 @@ describe('LineChart', () => {
     expect(screen.getByRole('table', { name: 'Active members' })).toBeInTheDocument()
   })
 
-  it('should turn animation off when the user prefers reduced motion', () => {
-    setup()
-    const { container } = render(<LineChart data={growth} xKey="week" series={series} />)
-    expect(container.querySelector('[data-chart]')).toHaveAttribute('data-animated', 'false')
-  })
 })

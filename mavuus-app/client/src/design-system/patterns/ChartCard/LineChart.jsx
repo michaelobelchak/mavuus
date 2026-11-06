@@ -22,7 +22,7 @@ export function LineChart({ data, xKey, series, valueFormatter, xFormatter, heig
   const tick = { fill: chartTheme.axis, fontSize: chartTheme.fontSize }
 
   return (
-    <ChartFrame height={config.height} animated={!reduced} legend={legend ?? resolved.length > 1} series={resolved} component="LineChart" {...props}>
+    <ChartFrame height={config.height} legend={legend ?? resolved.length > 1} series={resolved} component="LineChart" {...props}>
       <RechartsLineChart
         data={config.data}
         title={config.title}

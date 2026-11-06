@@ -56,12 +56,12 @@ export function ChartTooltip({ active, payload, label, series, data, valueFormat
 
 /**
  * Shared chart wrapper: a fixed-height plot area with a ResponsiveContainer, then the legend.
- * The svg text inherits Fixel from `font-sans`. `data-animated` mirrors isAnimationActive.
+ * The svg text inherits Fixel from `font-sans`.
  */
-export function ChartFrame({ height, animated, legend, series, component, className, children, ref, ...props }) {
+export function ChartFrame({ height, legend, series, component, className, children, ref, ...props }) {
   const resolvedHeight = resolveOption(height, CHART_HEIGHTS, DEFAULT_CHART_HEIGHT, component, 'height')
   return (
-    <div ref={ref} data-chart="" data-animated={String(animated)} className={cn('flex flex-col gap-ds-sm font-sans', className)} {...props}>
+    <div ref={ref} data-chart="" className={cn('flex flex-col gap-ds-sm font-sans', className)} {...props}>
       <div data-chart-plot="" className={cn('w-full', chartHeightClasses[resolvedHeight])}>
         <ResponsiveContainer width="100%" height="100%">
           {children}
