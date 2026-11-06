@@ -1,7 +1,7 @@
 import { createRef, useState } from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { Search } from 'lucide-react'
+import { Mail, Search } from 'lucide-react'
 import { Input } from './Input'
 
 describe('Input', () => {
@@ -16,6 +16,18 @@ describe('Input', () => {
   it('should not set aria-invalid when valid', () => {
     render(<Input aria-label="Email" />)
     expect(screen.getByRole('textbox', { name: 'Email' })).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('should pass aria-invalid="false" through and keep the default border when given it', () => {
+    render(<Input aria-label="Email" aria-invalid="false" />)
+    const input = screen.getByRole('textbox', { name: 'Email' })
+    expect(input).toHaveAttribute('aria-invalid', 'false')
+    expect(input).toHaveClass('border-border-default')
+  })
+
+  it('should treat a truthy aria-invalid like invalid when given it without invalid', () => {
+    render(<Input aria-label="Email" aria-invalid="true" />)
+    expect(screen.getByRole('textbox', { name: 'Email' })).toHaveClass('border-status-error')
   })
 
   it('should forward value and onChange when controlled', () => {
@@ -55,8 +67,31 @@ describe('Input', () => {
     expect(screen.getByText('Cmd K')).toBeInTheDocument()
   })
 
-  it('should be 40px tall when size is sm', () => {
-    render(<Input aria-label="Name" size="sm" />)
-    expect(screen.getByRole('textbox', { name: 'Name' })).toHaveClass('h-10')
+  it('should render a decorative trailingIcon when given one', () => {
+    render(<Input aria-label="Email" trailingIcon={Mail} />)
+    const input = screen.getByRole('textbox', { name: 'Email' })
+    expect(input).toHaveClass('pr-ds-xxl')
+    const icon = input.parentElement.querySelector('svg')
+    expect(icon).toHaveAttribute('aria-hidden', 'true')
+    expect(icon).toHaveClass('size-5')
+  })
+
+  it('should apply wrapperClassName to the wrapper only when a slot renders', () => {
+    const { container, rerender } = render(<Input aria-label="Search" leadingIcon={Search} wrapperClassName="max-w-sm" />)
+    const input = screen.getByRole('textbox', { name: 'Search' })
+    expect(input.parentElement).toHaveClass('relative', 'max-w-sm')
+    expect(input).not.toHaveClass('max-w-sm')
+    rerender(<Input aria-label="Search" wrapperClassName="max-w-sm" />)
+    expect(container.querySelector('.max-w-sm')).toBeNull()
+  })
+
+  it.each([
+    ['sm', 'h-10'],
+    ['md', 'h-12'],
+    ['lg', 'h-14'],
+    ['huge', 'h-12'],
+  ])('should use the control height scale when size is %s', (size, height) => {
+    render(<Input aria-label="Name" size={size} />)
+    expect(screen.getByRole('textbox', { name: 'Name' })).toHaveClass(height)
   })
 })

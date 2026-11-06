@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { Star } from 'lucide-react'
+import { ArrowRight, Star } from 'lucide-react'
 import { Badge } from './Badge'
 
 describe('Badge', () => {
@@ -16,7 +16,7 @@ describe('Badge', () => {
     ['warning', 'bg-status-warning-subtle', 'text-status-warning'],
     ['error', 'bg-status-error-subtle', 'text-status-error'],
     ['info', 'bg-status-info-subtle', 'text-status-info'],
-  ])('should use the %s tone classes when tone is %s', (tone, bg, text) => {
+  ])('should use its subtle background and text color when tone is %s', (tone, bg, text) => {
     render(<Badge tone={tone}>Status</Badge>)
     expect(screen.getByText('Status')).toHaveClass(bg, text)
   })
@@ -26,9 +26,17 @@ describe('Badge', () => {
     expect(screen.getByText('Draft')).toHaveClass('bg-surface-sunken')
   })
 
-  it('should render a decorative leading icon when given icon', () => {
-    render(<Badge icon={Star}>Featured</Badge>)
-    const svg = screen.getByText('Featured').querySelector('svg')
-    expect(svg).toHaveAttribute('aria-hidden', 'true')
+  it('should render decorative icons sized to the badge when given leadingIcon and trailingIcon', () => {
+    render(
+      <Badge size="sm" leadingIcon={Star} trailingIcon={ArrowRight}>
+        Featured
+      </Badge>,
+    )
+    const icons = screen.getByText('Featured').querySelectorAll('svg')
+    expect(icons).toHaveLength(2)
+    for (const icon of icons) {
+      expect(icon).toHaveAttribute('aria-hidden', 'true')
+      expect(icon).toHaveClass('size-3')
+    }
   })
 })

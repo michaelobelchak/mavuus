@@ -1,7 +1,8 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Avatar } from './Avatar'
 import { AvatarStack } from './AvatarStack'
+import { initialsOf } from './avatarUtils'
 
 describe('Avatar', () => {
   it('should render an image with the name as alt text when given src', () => {
@@ -22,9 +23,30 @@ describe('Avatar', () => {
     expect(screen.queryByRole('img', { name: 'Dilya Abushayeva' }).tagName).toBe('SPAN')
   })
 
+  it('should call the consumer onError and still fall back when the image fails', () => {
+    const onError = vi.fn()
+    render(<Avatar src="/broken.jpg" name="Dilya Abushayeva" onError={onError} />)
+    fireEvent.error(screen.getByRole('img', { name: 'Dilya Abushayeva' }))
+    expect(onError).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('DA')).toBeInTheDocument()
+  })
+
+  it('should hide the fallback from assistive tech when there is no name', () => {
+    const { container } = render(<Avatar />)
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(container.firstElementChild).toHaveAttribute('aria-hidden', 'true')
+  })
+
   it('should use one initial when the name is a single word', () => {
     render(<Avatar name="madonna" />)
     expect(screen.getByText('M')).toBeInTheDocument()
+  })
+})
+
+describe('initialsOf', () => {
+  it('should keep characters outside the basic plane whole when taking initials', () => {
+    expect(initialsOf('\u{1D400}da \u{1D401}yron')).toBe('\u{1D400}\u{1D401}')
+    expect(initialsOf('  ')).toBe('')
   })
 })
 

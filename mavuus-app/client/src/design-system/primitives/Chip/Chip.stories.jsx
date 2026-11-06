@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import { Chip } from './Chip'
 
 export default {
@@ -6,18 +7,20 @@ export default {
   component: Chip,
   tags: ['autodocs'],
   args: { children: 'Remote' },
-  argTypes: { size: { control: 'select', options: ['sm', 'md'] } },
+  argTypes: { size: { control: 'select', options: ['xs', 'sm'] } },
 }
 
 export const Default = { args: { selected: false } }
 
 export const Selected = { args: { selected: true } }
 
+export const WithIcon = { args: { selected: true, leadingIcon: Check } }
+
 export const Sizes = {
   render: (args) => (
     <div className="flex items-center gap-ds-sm">
+      <Chip {...args} size="xs" />
       <Chip {...args} size="sm" />
-      <Chip {...args} size="md" />
     </div>
   ),
 }

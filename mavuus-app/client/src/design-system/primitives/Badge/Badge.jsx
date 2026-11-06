@@ -1,32 +1,23 @@
-import { cva } from 'class-variance-authority'
 import { cn } from '../../lib/cn'
+import { BADGE_DEFAULT_SIZE, badgeIconSizes, badgeVariants } from './badgeVariants'
 
-const badgeVariants = cva('inline-flex items-center gap-ds-xxs rounded-chip font-semibold whitespace-nowrap', {
-  variants: {
-    tone: {
-      neutral: 'bg-surface-sunken text-text-secondary',
-      brand: 'bg-surface-selected text-text-brand-strong',
-      success: 'bg-status-success-subtle text-status-success',
-      warning: 'bg-status-warning-subtle text-status-warning',
-      error: 'bg-status-error-subtle text-status-error',
-      info: 'bg-status-info-subtle text-status-info',
-    },
-    size: {
-      sm: 'h-6 px-ds-xs text-caption',
-      md: 'h-7 px-ds-sm text-body-sm',
-    },
-  },
-  defaultVariants: { tone: 'neutral', size: 'md' },
-})
-
-const iconSize = { sm: 'size-3', md: 'size-3.5' }
-
-/** Small status label. Not interactive; use Chip for selectable options. */
-export function Badge({ tone, size = 'md', icon: Icon, className, children, ref, ...props }) {
+/** Small status label. `tone` carries the status meaning. Not interactive; use Chip for options. */
+export function Badge({
+  tone,
+  size,
+  leadingIcon: LeadingIcon,
+  trailingIcon: TrailingIcon,
+  className,
+  children,
+  ref,
+  ...props
+}) {
+  const iconClass = cn('shrink-0', badgeIconSizes[size] ?? badgeIconSizes[BADGE_DEFAULT_SIZE])
   return (
     <span ref={ref} className={cn(badgeVariants({ tone, size }), className)} {...props}>
-      {Icon && <Icon aria-hidden="true" className={cn('shrink-0', iconSize[size])} />}
+      {LeadingIcon && <LeadingIcon aria-hidden="true" className={iconClass} />}
       {children}
+      {TrailingIcon && <TrailingIcon aria-hidden="true" className={iconClass} />}
     </span>
   )
 }

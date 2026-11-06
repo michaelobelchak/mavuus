@@ -33,4 +33,4 @@ export const Sizes = {
   ),
 }
 
-export const WithIcon = { args: { tone: 'brand', icon: Star, children: 'Featured' } }
+export const WithIcon = { args: { tone: 'brand', leadingIcon: Star, children: 'Featured' } }

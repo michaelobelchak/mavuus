@@ -18,7 +18,7 @@ export function TrendBadge({ value, direction, goodWhen = 'up', size, ...props }
   const amount = Math.abs(value).toFixed(2)
 
   return (
-    <Badge tone={toneFor(resolved, goodWhen)} size={size} icon={icons[resolved]} {...props}>
+    <Badge tone={toneFor(resolved, goodWhen)} size={size} leadingIcon={icons[resolved]} {...props}>
       <span aria-hidden="true">{amount}%</span>
       <span className="sr-only">{`${spoken[resolved]} ${amount} percent`}</span>
     </Badge>

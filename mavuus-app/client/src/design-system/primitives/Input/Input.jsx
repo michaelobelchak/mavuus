@@ -1,20 +1,25 @@
 import { cn } from '../../lib/cn'
-import { fieldVariants } from './fieldVariants'
+import { controlHeights, controlIconSizes, DEFAULT_CONTROL_SIZE } from '../../lib/controlSizes'
+import { fieldVariants, isInvalid } from '../../lib/field'
 
-const heights = { sm: 'h-10', md: 'h-12' }
-const iconSize = { sm: 'size-4', md: 'size-5' }
-const iconOffset = { sm: 'left-ds-xs', md: 'left-ds-md' }
-const leadingPadding = { sm: 'pl-ds-xl', md: 'pl-ds-xxl' }
+const SIZES = ['sm', 'md', 'lg']
+const iconOffset = { sm: 'left-ds-xs', md: 'left-ds-md', lg: 'left-ds-md' }
+const trailingIconOffset = { sm: 'right-ds-xs', md: 'right-ds-md', lg: 'right-ds-md' }
+const leadingPadding = { sm: 'pl-ds-xl', md: 'pl-ds-xxl', lg: 'pl-ds-xxl' }
 
 /**
- * Text input. `size` is the visual size ('sm' | 'md'), not the native size attribute.
- * `leadingIcon` takes a lucide component; `trailing` takes any node (a unit, a clear button).
- * Props, `ref` and `className` go to the <input>; use `wrapperClassName` for the slot wrapper.
+ * Text input on the control height scale (sm 40, md 48, lg 56). `size` is the visual size,
+ * not the native size attribute.
+ * - `leadingIcon` / `trailingIcon`: lucide components, decorative.
+ * - `trailing`: any node on the right, such as a unit or a clear button.
+ * Props, `ref` and `className` go to the <input>. `wrapperClassName` styles the wrapper,
+ * which only renders when an icon or `trailing` is given.
  */
 export function Input({
-  size = 'md',
+  size,
   invalid = false,
   leadingIcon: LeadingIcon,
+  trailingIcon: TrailingIcon,
   trailing,
   type = 'text',
   className,
@@ -22,40 +27,37 @@ export function Input({
   ref,
   ...props
 }) {
+  const resolvedSize = SIZES.includes(size) ? size : DEFAULT_CONTROL_SIZE
   const ariaInvalid = props['aria-invalid']
-  const isInvalid = Boolean(invalid) || (Boolean(ariaInvalid) && ariaInvalid !== 'false')
+  const invalidState = isInvalid(invalid, ariaInvalid)
+  const hasTrailing = Boolean(TrailingIcon || trailing)
+  const iconClass = cn('pointer-events-none absolute top-1/2 -translate-y-1/2 text-text-muted', controlIconSizes[resolvedSize])
 
   const input = (
     <input
       ref={ref}
       type={type}
       className={cn(
-        fieldVariants({ invalid: isInvalid, size }),
-        heights[size],
-        LeadingIcon && leadingPadding[size],
-        trailing && 'pr-ds-xxl',
+        fieldVariants({ invalid: invalidState, size: resolvedSize }),
+        controlHeights[resolvedSize],
+        LeadingIcon && leadingPadding[resolvedSize],
+        hasTrailing && 'pr-ds-xxl',
         className,
       )}
       {...props}
-      aria-invalid={isInvalid || undefined}
+      aria-invalid={invalidState ? true : ariaInvalid}
     />
   )
 
-  if (!LeadingIcon && !trailing) return input
+  if (!LeadingIcon && !hasTrailing) return input
 
   return (
     <div className={cn('relative', wrapperClassName)}>
-      {LeadingIcon && (
-        <LeadingIcon
-          aria-hidden="true"
-          className={cn(
-            'pointer-events-none absolute top-1/2 -translate-y-1/2 text-text-muted',
-            iconOffset[size],
-            iconSize[size],
-          )}
-        />
-      )}
+      {LeadingIcon && <LeadingIcon aria-hidden="true" className={cn(iconClass, iconOffset[resolvedSize])} />}
       {input}
+      {TrailingIcon && !trailing && (
+        <TrailingIcon aria-hidden="true" className={cn(iconClass, trailingIconOffset[resolvedSize])} />
+      )}
       {trailing && (
         <div className="absolute inset-y-0 right-ds-xxs flex items-center pr-ds-xxs text-text-muted">{trailing}</div>
       )}

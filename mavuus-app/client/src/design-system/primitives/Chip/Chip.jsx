@@ -1,33 +1,23 @@
-import { cva } from 'class-variance-authority'
 import { cn } from '../../lib/cn'
-
-const chipVariants = cva(
-  [
-    'inline-flex items-center justify-center gap-ds-xxs rounded-chip border font-semibold whitespace-nowrap',
-    'transition-[background-color,color,border-color] duration-150 ease-enter motion-reduce:transition-none',
-    'disabled:pointer-events-none disabled:opacity-60',
-  ],
-  {
-    variants: {
-      selected: {
-        true: 'bg-surface-selected border-border-brand text-text-brand-strong',
-        false:
-          'bg-surface-raised border-border-default text-text-secondary hover:border-border-strong hover:text-text-primary',
-      },
-      size: {
-        sm: 'h-9 px-ds-sm text-body-sm',
-        md: 'h-11 px-ds-md text-body',
-      },
-    },
-    defaultVariants: { selected: false, size: 'md' },
-  },
-)
+import { CHIP_DEFAULT_SIZE, chipIconSizes, chipVariants } from './chipVariants'
 
 /**
- * Selectable pill. Controlled: pass `selected` and toggle it in `onClick`.
+ * Selectable pill (filters, tags). Controlled: pass `selected` and toggle it in `onClick`.
  * `aria-pressed` is set only when `selected` is given, so a plain chip is a normal button.
+ * Sizes are xs (32px) and sm (40px, default).
  */
-export function Chip({ selected, size, icon: Icon, type = 'button', className, children, ref, ...props }) {
+export function Chip({
+  selected,
+  size,
+  leadingIcon: LeadingIcon,
+  trailingIcon: TrailingIcon,
+  type = 'button',
+  className,
+  children,
+  ref,
+  ...props
+}) {
+  const iconClass = cn('shrink-0', chipIconSizes[size] ?? chipIconSizes[CHIP_DEFAULT_SIZE])
   return (
     <button
       ref={ref}
@@ -36,8 +26,9 @@ export function Chip({ selected, size, icon: Icon, type = 'button', className, c
       className={cn(chipVariants({ selected: Boolean(selected), size }), className)}
       {...props}
     >
-      {Icon && <Icon aria-hidden="true" className="size-4 shrink-0" />}
+      {LeadingIcon && <LeadingIcon aria-hidden="true" className={iconClass} />}
       {children}
+      {TrailingIcon && <TrailingIcon aria-hidden="true" className={iconClass} />}
     </button>
   )
 }

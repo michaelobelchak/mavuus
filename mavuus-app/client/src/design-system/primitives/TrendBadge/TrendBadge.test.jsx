@@ -42,4 +42,9 @@ describe('TrendBadge', () => {
     render(<TrendBadge value={-3} />)
     expect(screen.getByText('down 3.00 percent')).toBeInTheDocument()
   })
+
+  it('should render a decorative direction icon when rendered', () => {
+    const { container } = render(<TrendBadge value={2} direction="up" />)
+    expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+  })
 })
