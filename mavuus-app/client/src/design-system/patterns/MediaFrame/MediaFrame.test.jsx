@@ -36,4 +36,13 @@ describe('MediaFrame', () => {
     expect(container.firstElementChild).toHaveClass('aspect-3/2')
     expect(error).toHaveBeenCalledWith(expect.stringMatching(/MediaFrame: ratio "21\/9"/))
   })
+
+  it('should zoom when the group is hovered or holds keyboard focus, with no zoom for reduced motion', () => {
+    const { container } = render(<MediaFrame src="/recap.jpg" />)
+    expect(container.querySelector('img')).toHaveClass(
+      'group-hover:scale-105',
+      'group-has-[:focus-visible]:scale-105',
+      'motion-reduce:group-has-[:focus-visible]:scale-100',
+    )
+  })
 })
