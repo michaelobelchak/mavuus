@@ -13,6 +13,7 @@ import { dirname, join } from 'path'
 import { mkdirSync, readFileSync } from 'fs'
 
 import { JWT_SECRET } from './middleware/auth.js'
+import { dbPath, rateLimitMax } from './config.js'
 import authRoutes from './routes/auth.js'
 import sessionsRoutes from './routes/sessions.js'
 import resourcesRoutes from './routes/resources.js'
@@ -45,8 +46,8 @@ const PORT = process.env.PORT || 3001
 mkdirSync(join(__dirname, 'uploads', 'avatars'), { recursive: true })
 mkdirSync(join(__dirname, 'uploads', 'resumes'), { recursive: true })
 
-// Database
-const db = new Database(join(__dirname, 'db', 'mavuus.db'))
+// Database. DB_PATH (relative to this folder) lets e2e runs use their own file.
+const db = new Database(dbPath())
 db.pragma('journal_mode = WAL')
 
 // Ensure schema is applied (idempotent — uses CREATE TABLE IF NOT EXISTS)
@@ -111,7 +112,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 // Rate limiting on auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // 20 attempts per window
+  max: rateLimitMax('AUTH_RATE_LIMIT_MAX', 20), // 20 attempts per window
   message: { error: 'Too many attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -120,7 +121,7 @@ const authLimiter = rateLimit({
 // General API rate limiter
 const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 100, // 100 requests per minute
+  max: rateLimitMax('API_RATE_LIMIT_MAX', 100), // 100 requests per minute
   message: { error: 'Too many requests, please slow down' },
   standardHeaders: true,
   legacyHeaders: false,

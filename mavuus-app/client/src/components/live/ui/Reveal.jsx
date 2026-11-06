@@ -5,7 +5,7 @@ const STEP_MS = 70
 const MAX_DELAY_MS = 420
 
 /**
- * Shows its content when it scrolls into view. Styles live in index.css under [data-reveal].
+ * Shows its content when it scrolls into view. Styles live in design-system/styles/motion.css under [data-reveal].
  * variant: 'rise' (text, cards), 'fade' (subtle), 'clip' (images: the frame opens up).
  * index: position in a list, for a capped stagger.
  */

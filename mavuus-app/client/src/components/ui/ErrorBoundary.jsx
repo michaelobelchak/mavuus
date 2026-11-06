@@ -7,7 +7,7 @@ const wrapperStyle = {
   justifyContent: 'center',
   padding: '24px',
   background: '#F5F8FE',
-  fontFamily: 'Manrope, system-ui, sans-serif',
+  fontFamily: 'var(--font-sans)',
 }
 
 /**

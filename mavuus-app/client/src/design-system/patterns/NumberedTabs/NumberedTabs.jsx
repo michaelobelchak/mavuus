@@ -1,0 +1,184 @@
+import { useEffect, useState } from 'react'
+import { Progress } from '@base-ui/react/progress'
+import { Tabs as TabsPrimitive } from '@base-ui/react/tabs'
+import { Pause, Play } from 'lucide-react'
+import { useReducedMotion } from '../../hooks/useReducedMotion'
+import { cn } from '../../lib/cn'
+import { Eyebrow, IconButton } from '../../primitives'
+
+const INTERVAL_MS = 6000
+
+function clampIndex(index, count) {
+  if (count === 0) return 0
+  return Math.min(Math.max(0, Math.floor(Number(index) || 0)), count - 1)
+}
+
+const tabClass = [
+  'group -ml-0.5 flex cursor-pointer items-start gap-ds-md border-l-2 border-transparent py-ds-md pr-ds-md pl-ds-lg text-left',
+  'transition-colors duration-300 ease-enter motion-reduce:transition-none',
+  'hover:bg-surface-hover data-[active]:border-border-brand data-[active]:bg-surface-selected',
+].join(' ')
+
+/**
+ * Numbered vertical tabs with a progress scale, built on Base UI Tabs.
+ * - `label`: names the tab list. `items`: [{ num, title, tag?, ... }]. `renderPanel(item)` renders the
+ *   panel body (or the item's `content` is used). `scaleStart` / `scaleEnd`: text at the ends of the scale.
+ * - `initial`: index of the first active tab (default 0, clamped to the items).
+ * - Pointer and focus handlers you pass run before the internal pause handlers.
+ * Autoplay advances every 6s while the page is visible. It pauses while a mouse hovers and on keyboard focus, has a
+ * visible pause control, stops for good once someone picks a tab, and never runs under reduced motion.
+ * Arrow Up/Down (and Left/Right), Home and End move between tabs and activate them.
+ */
+export function NumberedTabs({
+  label,
+  items = [],
+  scaleStart,
+  scaleEnd,
+  initial = 0,
+  renderPanel,
+  onPointerEnter,
+  onPointerLeave,
+  onFocus,
+  onBlur,
+  className,
+  ref,
+  ...props
+}) {
+  const count = items.length
+  const [activeState, setActive] = useState(() => clampIndex(initial, count))
+  const [stopped, setStopped] = useState(false)
+  const [userPaused, setUserPaused] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const reduced = useReducedMotion()
+  // Clamped on every render, so a shorter items list never leaves the active tab out of range.
+  const active = clampIndex(activeState, count)
+
+  const running = !stopped && !userPaused && !hovered && !focused && !reduced && count > 1
+
+  useEffect(() => {
+    if (!running) return undefined
+    const timer = setInterval(() => {
+      if (document.visibilityState !== 'hidden') setActive((index) => (clampIndex(index, count) + 1) % count)
+    }, INTERVAL_MS)
+    return () => clearInterval(timer)
+  }, [running, count])
+
+  const choose = (value) => {
+    setStopped(true)
+    setActive(value)
+  }
+
+  // Base UI handles Up/Down, Home and End for a vertical list. Left and Right stay as aliases for
+  // previous and next, as on the original public-site component.
+  const onListKeyDown = (event) => {
+    const delta = { ArrowRight: 1, ArrowLeft: -1 }[event.key]
+    if (!delta || count === 0) return
+    event.preventDefault()
+    const tabs = [...event.currentTarget.querySelectorAll('[role="tab"]')]
+    const from = tabs.indexOf(event.target)
+    const next = ((from === -1 ? active : from) + delta + count) % count
+    choose(next)
+    tabs[next]?.focus()
+  }
+
+  const showPause = !stopped && !reduced && count > 1
+  const current = items[active]
+
+  return (
+    <div
+      ref={ref}
+      {...props}
+      className={cn('flex flex-col gap-ds-xl', className)}
+      // Only a mouse pauses on hover: touch fires pointerenter without a matching leave, so it would stick.
+      onPointerEnter={(event) => {
+        onPointerEnter?.(event)
+        if (event.pointerType === 'mouse') setHovered(true)
+      }}
+      onPointerLeave={(event) => {
+        onPointerLeave?.(event)
+        if (event.pointerType === 'mouse') setHovered(false)
+      }}
+      onFocus={(event) => {
+        onFocus?.(event)
+        setFocused(true)
+      }}
+      onBlur={(event) => {
+        onBlur?.(event)
+        if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false)
+      }}
+    >
+      <div className="flex flex-wrap items-center gap-x-ds-md gap-y-ds-sm sm:flex-nowrap">
+        <Eyebrow as="span" tone="muted" className="shrink-0">
+          {scaleStart}
+        </Eyebrow>
+        <div aria-hidden="true" className="order-3 min-w-full grow sm:order-none sm:min-w-0">
+          <Progress.Root value={count ? ((active + 1) / count) * 100 : 0}>
+            <Progress.Track className="relative h-1.5 w-full overflow-hidden rounded-chip bg-border-default">
+              <Progress.Indicator className="block h-full rounded-chip bg-surface-brand transition-[width] duration-500 ease-enter motion-reduce:transition-none" />
+            </Progress.Track>
+          </Progress.Root>
+        </div>
+        <Eyebrow as="span" tone="muted" className="shrink-0">
+          {scaleEnd}
+        </Eyebrow>
+        {showPause && (
+          <IconButton
+            icon={userPaused ? Play : Pause}
+            variant="ghost"
+            className="order-2 shrink-0 rounded-chip sm:order-none"
+            aria-label={userPaused ? 'Resume automatic tab rotation' : 'Pause automatic tab rotation'}
+            onClick={() => setUserPaused((paused) => !paused)}
+          />
+        )}
+      </div>
+
+      <TabsPrimitive.Root
+        value={active}
+        onValueChange={choose}
+        orientation="vertical"
+        className="grid grid-cols-1 items-start gap-x-ds-xxl gap-y-ds-xl lg:grid-cols-9"
+      >
+        <TabsPrimitive.List
+          activateOnFocus
+          aria-label={label}
+          onKeyDown={onListKeyDown}
+          className="flex flex-col border-l-2 border-border-default lg:col-span-4"
+        >
+          {items.map((item, index) => (
+            <TabsPrimitive.Tab key={item.num ?? index} value={index} className={tabClass}>
+              <span className="text-h4 font-semibold text-text-faint tabular-nums group-data-[active]:text-text-brand-strong">
+                {item.num}
+              </span>
+              <span className="flex flex-col gap-ds-xxs">
+                <span className="text-h4 font-medium text-text-muted group-hover:text-text-primary group-data-[active]:text-text-primary">
+                  {item.title}
+                </span>
+                {item.tag && (
+                  <span className="text-body-sm text-text-faint group-data-[active]:text-text-brand-strong">{item.tag}</span>
+                )}
+              </span>
+            </TabsPrimitive.Tab>
+          ))}
+        </TabsPrimitive.List>
+
+        {items.map((item, index) => (
+          <TabsPrimitive.Panel key={item.num ?? index} value={index} className="rounded-card lg:col-span-5">
+            {index === active && current && (
+              <div key={active} className="ds-animate-fade-in flex flex-col gap-ds-md pt-ds-xs">
+                <div
+                  data-numbered-tabs-number=""
+                  aria-hidden="true"
+                  className="text-outline-brand text-display font-semibold tracking-tight"
+                >
+                  {item.num}
+                </div>
+                {renderPanel ? renderPanel(item) : item.content}
+              </div>
+            )}
+          </TabsPrimitive.Panel>
+        ))}
+      </TabsPrimitive.Root>
+    </div>
+  )
+}

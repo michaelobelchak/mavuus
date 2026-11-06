@@ -1,0 +1,334 @@
+{
+  "src/App.jsx": {
+    "no-em-dash": 3
+  },
+  "src/components/RouteTitles.jsx": {
+    "no-em-dash": 1
+  },
+  "src/components/index.js": {
+    "no-em-dash": 1
+  },
+  "src/components/layout/AdminLayout.jsx": {
+    "no-arbitrary-size": 1,
+    "no-raw-color": 1
+  },
+  "src/components/layout/DashboardLayout.jsx": {
+    "no-arbitrary-size": 5,
+    "no-em-dash": 2,
+    "no-inline-style": 1
+  },
+  "src/components/layout/DashboardSidebar.jsx": {
+    "no-arbitrary-size": 3,
+    "no-em-dash": 2,
+    "no-raw-color": 3
+  },
+  "src/components/layout/Footer.jsx": {
+    "no-arbitrary-size": 7
+  },
+  "src/components/layout/PublicHeader.jsx": {
+    "no-arbitrary-size": 4,
+    "no-raw-color": 2
+  },
+  "src/components/live/CTABand.jsx": {
+    "no-arbitrary-size": 3
+  },
+  "src/components/live/LiveButton.jsx": {
+    "no-raw-color": 2
+  },
+  "src/components/live/LiveContainer.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/components/live/home/CompanyLogos.jsx": {
+    "no-arbitrary-size": 3,
+    "no-inline-style": 1
+  },
+  "src/components/live/home/ForBusinesses.jsx": {
+    "no-arbitrary-size": 3
+  },
+  "src/components/live/home/ForMarketers.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/components/live/home/HomeHero.jsx": {
+    "no-arbitrary-size": 8
+  },
+  "src/components/live/home/InsightsSlider.jsx": {
+    "no-arbitrary-size": 2,
+    "no-inline-style": 2
+  },
+  "src/components/live/home/LeadersMarquee.jsx": {
+    "no-arbitrary-size": 2
+  },
+  "src/components/live/home/NetworkSection.jsx": {
+    "no-arbitrary-size": 2
+  },
+  "src/components/live/home/ReadyCTA.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/components/live/home/SeniorExperience.jsx": {
+    "no-arbitrary-size": 4
+  },
+  "src/components/live/home/ServiceTabs.jsx": {
+    "no-arbitrary-size": 4
+  },
+  "src/components/live/info/CategoryLayout.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/components/live/info/PageHero.jsx": {
+    "no-arbitrary-size": 2
+  },
+  "src/components/live/info/RichText.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/components/live/resources/EventsSlider.jsx": {
+    "no-arbitrary-size": 5
+  },
+  "src/components/live/resources/cards.jsx": {
+    "no-arbitrary-size": 7
+  },
+  "src/components/live/services/HowWeHelp.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/components/live/services/ServicesHero.jsx": {
+    "no-arbitrary-size": 4
+  },
+  "src/components/live/services/WaysToWork.jsx": {
+    "no-arbitrary-size": 5
+  },
+  "src/components/live/services/WhyMavuus.jsx": {
+    "no-arbitrary-size": 10
+  },
+  "src/components/live/ui/CheckList.jsx": {
+    "no-arbitrary-size": 3
+  },
+  "src/components/live/ui/NumberedTabs.jsx": {
+    "no-arbitrary-size": 6,
+    "no-inline-style": 1,
+    "no-raw-color": 1
+  },
+  "src/components/live/ui/Reveal.jsx": {
+    "no-inline-style": 1
+  },
+  "src/components/live/ui/Section.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/components/live/ui/Typography.jsx": {
+    "no-arbitrary-size": 20
+  },
+  "src/components/sections/CTABannerQuote.jsx": {
+    "no-arbitrary-size": 24,
+    "no-em-dash": 1,
+    "no-inline-style": 1,
+    "no-raw-color": 4
+  },
+  "src/components/sections/FAQSection.jsx": {
+    "no-arbitrary-size": 12,
+    "no-raw-color": 1
+  },
+  "src/components/sections/InfiniteLeaderScroll.jsx": {
+    "no-arbitrary-size": 16,
+    "no-inline-style": 2,
+    "no-raw-color": 1
+  },
+  "src/components/sections/LogoBar.jsx": {
+    "no-arbitrary-size": 8
+  },
+  "src/components/sections/TestimonialRow.jsx": {
+    "no-arbitrary-size": 17,
+    "no-raw-color": 1
+  },
+  "src/components/sections/TestimonialsSection.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/components/ui/AnimatedSection.jsx": {
+    "no-inline-style": 1
+  },
+  "src/components/ui/Avatar.jsx": {
+    "no-arbitrary-size": 2,
+    "no-em-dash": 4
+  },
+  "src/components/ui/Breadcrumbs.jsx": {
+    "no-arbitrary-size": 2
+  },
+  "src/components/ui/Button.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/components/ui/CommandPalette.jsx": {
+    "no-arbitrary-size": 8
+  },
+  "src/components/ui/ConnectionStatus.jsx": {
+    "no-em-dash": 1
+  },
+  "src/components/ui/DetailPageHeader.jsx": {
+    "no-em-dash": 1
+  },
+  "src/components/ui/Divider.jsx": {
+    "no-arbitrary-size": 2
+  },
+  "src/components/ui/ErrorBoundary.jsx": {
+    "no-inline-style": 9,
+    "no-raw-color": 12
+  },
+  "src/components/ui/GradientText.jsx": {
+    "no-raw-color": 2
+  },
+  "src/components/ui/Modal.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/components/ui/ProgressRing.jsx": {
+    "no-inline-style": 2
+  },
+  "src/components/ui/ScrollProgress.jsx": {
+    "no-arbitrary-size": 1,
+    "no-inline-style": 1
+  },
+  "src/components/ui/SearchResultsDropdown.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/components/ui/ShareModal.jsx": {
+    "no-arbitrary-size": 6,
+    "no-raw-color": 4
+  },
+  "src/components/ui/ShortcutsHelp.jsx": {
+    "no-arbitrary-size": 4
+  },
+  "src/components/ui/Tabs.jsx": {
+    "no-arbitrary-size": 2
+  },
+  "src/components/ui/TagInput.jsx": {
+    "no-arbitrary-size": 2
+  },
+  "src/components/ui/Toast.jsx": {
+    "no-arbitrary-size": 1,
+    "no-inline-style": 1
+  },
+  "src/context/AuthContext.jsx": {
+    "no-em-dash": 4
+  },
+  "src/hooks/useApiData.js": {
+    "no-em-dash": 1
+  },
+  "src/index.css": {
+    "no-em-dash": 1,
+    "no-raw-color": 6
+  },
+  "src/pages/NotFoundPage.jsx": {
+    "no-arbitrary-size": 7
+  },
+  "src/pages/admin/AdminCommentsPage.jsx": {
+    "no-arbitrary-size": 2
+  },
+  "src/pages/admin/AdminContactPage.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/pages/admin/AdminDashboardPage.jsx": {
+    "no-arbitrary-size": 2,
+    "no-inline-style": 1
+  },
+  "src/pages/admin/AdminJobsPage.jsx": {
+    "no-arbitrary-size": 2
+  },
+  "src/pages/admin/AdminRecommendationsPage.jsx": {
+    "no-arbitrary-size": 2
+  },
+  "src/pages/admin/AdminResourcesPage.jsx": {
+    "no-arbitrary-size": 1,
+    "no-em-dash": 4
+  },
+  "src/pages/admin/AdminReviewsPage.jsx": {
+    "no-arbitrary-size": 2
+  },
+  "src/pages/admin/AdminSessionsPage.jsx": {
+    "no-arbitrary-size": 1,
+    "no-em-dash": 5
+  },
+  "src/pages/admin/AdminSpeakersPage.jsx": {
+    "no-arbitrary-size": 1,
+    "no-em-dash": 4
+  },
+  "src/pages/admin/AdminUserDetailPage.jsx": {
+    "no-em-dash": 2
+  },
+  "src/pages/admin/AdminVendorsPage.jsx": {
+    "no-arbitrary-size": 2,
+    "no-em-dash": 4,
+    "no-inline-style": 2
+  },
+  "src/pages/auth/LoginPage.jsx": {
+    "no-arbitrary-size": 27,
+    "no-em-dash": 8,
+    "no-raw-color": 8
+  },
+  "src/pages/auth/RegisterPage.jsx": {
+    "no-arbitrary-size": 27,
+    "no-em-dash": 3,
+    "no-raw-color": 10
+  },
+  "src/pages/dashboard/AcademyPage.jsx": {
+    "no-arbitrary-size": 4,
+    "no-em-dash": 2
+  },
+  "src/pages/dashboard/JobDetailPage.jsx": {
+    "no-em-dash": 1
+  },
+  "src/pages/dashboard/JobsPage.jsx": {
+    "no-inline-style": 1
+  },
+  "src/pages/dashboard/LiveSessionsPage.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/pages/dashboard/MemberProfilePage.jsx": {
+    "no-em-dash": 3
+  },
+  "src/pages/dashboard/MessagesPage.jsx": {
+    "no-arbitrary-size": 5,
+    "no-em-dash": 3
+  },
+  "src/pages/dashboard/OnDemandPage.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/pages/dashboard/ProfilePage.jsx": {
+    "no-arbitrary-size": 1,
+    "no-em-dash": 5
+  },
+  "src/pages/dashboard/SessionDetailPage.jsx": {
+    "no-arbitrary-size": 5
+  },
+  "src/pages/dashboard/VendorDetailPage.jsx": {
+    "no-em-dash": 1
+  },
+  "src/pages/public/AboutPage.jsx": {
+    "no-arbitrary-size": 3
+  },
+  "src/pages/public/ArticlesPage.jsx": {
+    "no-arbitrary-size": 33,
+    "no-em-dash": 3,
+    "no-raw-color": 5
+  },
+  "src/pages/public/BlogDetailPage.jsx": {
+    "no-arbitrary-size": 46,
+    "no-raw-color": 11
+  },
+  "src/pages/public/ContactPage.jsx": {
+    "no-arbitrary-size": 6
+  },
+  "src/pages/public/EventConfirmationPage.jsx": {
+    "no-arbitrary-size": 19,
+    "no-em-dash": 2
+  },
+  "src/pages/public/EventsPage.jsx": {
+    "no-arbitrary-size": 28,
+    "no-raw-color": 1
+  },
+  "src/pages/public/MarketingServicesPage.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/pages/public/PostPage.jsx": {
+    "no-arbitrary-size": 14
+  },
+  "src/pages/public/ResourcesHubPage.jsx": {
+    "no-arbitrary-size": 1
+  },
+  "src/pages/public/VideoPage.jsx": {
+    "no-arbitrary-size": 1
+  }
+}

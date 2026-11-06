@@ -1,0 +1,59 @@
+# Mavuus design system
+
+> One design system for the Mavuus product (public site, member dashboard and admin): three-tier tokens, primitives, patterns and organisms built on React 19, Tailwind CSS v4, Base UI and Recharts, with Fixel Text everywhere. The docs live in the source repository, not on this site: every path below is relative to the repository root, and `#` anchors point at DESIGN.md headings as GitHub renders them.
+
+Rules in one breath: import components from `@/design-system/primitives`, `@/design-system/patterns` and `@/design-system/organisms`; style with role token classes only (`bg-surface-raised`, `text-text-secondary`, `p-ds-lg`, `rounded-card`); pages compose organisms and patterns; no hex, no arbitrary px, no em or en dashes. Prove changes with `npm run guard`, `npx vitest run`, `npx eslint . --max-warnings 0`, `npm run build-storybook` and `npm run e2e` in `mavuus-app/client`.
+
+## Start here
+
+- `DESIGN.md`: the design system map, sections 1 to 19
+- `mavuus-app/client/src/design-system/AGENTS.md`: the short rules for agents
+- `mavuus-app/client/src/design-system/README.md`: full component conventions
+- `mavuus-app/client/src/design-system/tokens/tokens.json`: the token source (DTCG); run `npm run tokens` after editing
+
+## Foundations
+
+- `DESIGN.md#2-color-roles`: surfaces, text, borders, status, chart colors and the active gradient
+- `DESIGN.md#3-token-architecture`: tiers, naming, Tailwind classes, adding a token, the drift test
+- `DESIGN.md#4-typography`: Fixel Text and the type scale
+- `DESIGN.md#5-iconography`: lucide icons and sizes through the Icon primitive
+- `DESIGN.md#6-voice-and-tone`: American English, plain copy, no em dashes
+- `DESIGN.md#7-layout`: app shell, public sections, breakpoints, spacing scale
+- `DESIGN.md#8-shapes`: radius roles
+- `DESIGN.md#9-depth`: shadows and z-index order
+- `DESIGN.md#13-motion`: durations, easings, Reveal, reduced motion
+- `DESIGN.md#14-accessibility`: pink contrast decision, navy focus ring, 44px targets
+- `DESIGN.md#15-responsive`: widths to check and how components adapt
+
+## Components
+
+- `DESIGN.md#10-component-catalog`: every component with when to use, key props, do and don't
+- `DESIGN.md#11-signature-components`: StatCard, NumberedTabs, CTABand, the app sidebar
+- `DESIGN.md#12-loading-empty-and-error-states`: skeletons, EmptyState, Alert, retry
+
+### Primitives (`mavuus-app/client/src/design-system/primitives/`)
+
+Button, IconButton, Link, Badge, TrendBadge, Chip, Avatar, AvatarStack, Input, Textarea, Select, Checkbox, Radio, RadioGroup, Switch, Label, Spinner, Skeleton, Divider, Tooltip, ProgressBar, Heading, Text, Eyebrow, Caption, Icon
+
+### Patterns (`mavuus-app/client/src/design-system/patterns/`)
+
+Accordion, Alert, Banner, Breadcrumbs, Card, CardLink, CardAction, ChartCard, BarChart, LineChart, CheckList, CountUp, DataTable, Dialog, DialogClose, DropdownMenu, EmptyState, FilterBar, FormField, MediaFrame, NumberedTabs, PageHeader, Pagination, Popover, Reveal, SearchInput, SectionHeader, Sheet, SheetClose, StatCard, Table (TableCaption, TableHeader, TableBody, TableRow, TableHead, TableCell), Tabs (TabList, Tab, TabPanel), Toaster, toast, useToast
+
+### Organisms (`mavuus-app/client/src/design-system/organisms/`)
+
+- admin: AdminDataTable, StatusBadge
+- app-shell: AppShell, AppSidebar, AppTopBar, SidebarNavItem, nav config (MEMBER_NAV, ADMIN_NAV)
+- dashboard: JobCard, MemberCard, SessionCard, VendorCard, ResourceCard, MessageThreadItem, ConnectionRequest, ReviewCard, RecommendationCard, MetaList, CompanyLogo, StarRating (cards ship a matching Skeleton)
+- site: SiteHeader, SiteFooter, CTABand
+
+## Building with it
+
+- `DESIGN.md#16-dos-and-donts`: the short list of what to do and avoid
+- `DESIGN.md#17-atomic-taxonomy-and-import-rules`: folders, barrels and the layering lint
+- `DESIGN.md#19-agent-prompt-guide`: token cheat sheet and ready prompts (admin list page, member detail page, KPI row, form in a dialog)
+
+## Optional
+
+- `DESIGN.md#18-known-gaps`: dark theme, Webflow CDN assets, pages not yet migrated, legacy lint baseline
+- `mavuus-app/plans/2026-11-06-design-system-design.md`: the approved design
+- `mavuus-app/plans/DESIGN-SYSTEM-PLAN.md`: the implementation plan and the Phase 8 migration

@@ -13,10 +13,12 @@ import Database from 'better-sqlite3'
 import bcrypt from 'bcryptjs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import { dbPath } from '../config.js'
 import { readFileSync } from 'fs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const db = new Database(join(__dirname, 'mavuus.db'))
+// DB_PATH is relative to the server folder (e2e uses db/e2e.db); the default is db/mavuus.db.
+const db = new Database(dbPath())
 
 // Ensure schema exists before we try to write
 const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8')

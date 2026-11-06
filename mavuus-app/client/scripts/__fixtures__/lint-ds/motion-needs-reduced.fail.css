@@ -1,0 +1,5 @@
+@keyframes drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(8px); }
+}
+.drift { animation: drift 2s ease-in-out infinite; }

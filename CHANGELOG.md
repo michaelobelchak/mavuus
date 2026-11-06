@@ -177,3 +177,15 @@ All notable changes to the Mavuus project are documented here, organized by phas
 - Accessibility: navy focus ring, reduced motion respected everywhere, mobile menu keyboard support, hidden content no longer focusable, heading order, 44px targets, Contact form errors
 - Performance: /resources images 7.1 MB to 0.8 MB, article bodies split per post, Manrope no longer blocks first paint
 - Content best guesses (for the founders to confirm): +1.7K avatar badge, 1,100+ on Membership, free 30-day trial line, article vs video labels on Resources, Privacy subtitle fix
+
+## Design System Foundation - 2026-11-06
+**Status:** Complete (branch `feat/design-system`, PR A; page migration is Phase 8)
+
+- Tokens: three tiers (primitive `--mv-`, alias `--ds-`, role) in `design-system/tokens/tokens.json`, generated into `tokens.css`, `tokens.js` and `lib/twMergeConfig.js` by `npm run tokens`, with a drift test and a z-order test. Fixel Text everywhere
+- Components in `client/src/design-system/`: 21 primitive folders (26 components), 26 pattern folders (DataTable, Dialog, Sheet, FormField, FilterBar, ChartCard on Recharts, StatCard, NumberedTabs and more) and 21 organisms (app shell, site header, footer and CTA band, 12 dashboard cards and parts, AdminDataTable, StatusBadge). Interactive parts on Base UI, toasts on Sonner
+- Storybook 10 (`npm run storybook`, port 6006): Foundations pages rendered from `tokens.js`, a story for every component (71 story files), theme toolbar, router and auth decorators
+- Guards: `npm run guard` runs `lint:ds` (raw colors, arbitrary sizes, inline styles, em dashes, reduced motion, retired imports, layering) with a legacy baseline, then `check:stories`. CI runs client unit tests, lint, build, guard, server tests and e2e
+- E2E: Playwright smoke test (`npm run e2e`) over the main public, member and admin pages at 1440, 1024, 768 and 390px, failing on console errors, `/api` errors, failed requests and horizontal overflow. Own API on 3101 with a fresh `db/e2e.db`, Vite on 5181
+- Docs: root `DESIGN.md`, `design-system/AGENTS.md`, `client/public/llms.txt` (served at `/llms.txt`), the `mavuus-design-system` skill, CLAUDE.md pointers
+- Fixed: `/admin` crashed into the error boundary (weekly signups read `week.slice` on a number; labels now use the week start date); `/admin` weekly signups chart and the `/resources` sign-up link overflowed a 390px screen
+- Server: `config.js` resolves `DB_PATH` and the test-only rate-limit overrides, which are ignored in production
