@@ -1,4 +1,4 @@
-import { isValidElement } from 'react'
+import { Fragment, isValidElement } from 'react'
 import { Menu } from '@base-ui/react/menu'
 import { cn } from '../../lib/cn'
 import { ExternalHint } from '../../lib/ExternalHint'
@@ -126,7 +126,7 @@ export function DropdownMenu({
                 return <Menu.Separator key={group.key} className="mx-ds-xs my-ds-xxs h-px bg-border-default" />
               }
               const entries = group.items.map((item) => <MenuEntry key={item.key} item={item} />)
-              if (!group.label) return entries
+              if (!group.label) return <Fragment key={`section-${index}`}>{entries}</Fragment>
               return (
                 <Menu.Group key={`group-${index}`} className="flex flex-col">
                   <Menu.GroupLabel className="px-ds-sm py-ds-xxs text-caption font-semibold text-text-muted">
