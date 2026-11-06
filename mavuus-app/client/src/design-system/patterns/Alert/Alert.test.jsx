@@ -60,9 +60,10 @@ describe('Alert', () => {
 })
 
 describe('Banner', () => {
-  it('should render a full-width banner with the role for its tone', () => {
+  it('should render a full-width banner with a polite status role even for warnings', () => {
     render(<Banner tone="warning" title="Scheduled maintenance on Sunday" />)
-    const banner = screen.getByRole('alert')
+    expect(screen.queryByRole('alert')).toBeNull()
+    const banner = screen.getByRole('status')
     expect(banner).toHaveClass('w-full', 'bg-status-warning-subtle')
     expect(banner).not.toHaveClass('rounded-card')
   })

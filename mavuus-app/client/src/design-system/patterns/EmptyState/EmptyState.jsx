@@ -1,10 +1,10 @@
 import { cn } from '../../lib/cn'
 import { resolveHeadingLevel, resolveOption } from '../../lib/resolveOption'
-import { Heading, Text } from '../../primitives'
+import { Heading, Icon, Text } from '../../primitives'
 
 const sizes = {
-  sm: { root: 'gap-ds-sm p-ds-lg', tile: 'size-10', icon: 'size-5', title: 'h4' },
-  md: { root: 'gap-ds-md p-ds-xxl', tile: 'size-14', icon: 'size-6', title: 'h3' },
+  sm: { root: 'gap-ds-sm p-ds-lg', tile: 'size-10', icon: 'md', title: 'h4' },
+  md: { root: 'gap-ds-md p-ds-xxl', tile: 'size-14', icon: 'lg', title: 'h3' },
 }
 const SIZES = Object.keys(sizes)
 
@@ -31,7 +31,7 @@ export function EmptyState({ icon: IconComponent, title, description, actions, h
             style.tile,
           )}
         >
-          <IconComponent aria-hidden="true" className={style.icon} />
+          <Icon icon={IconComponent} size={style.icon} />
         </span>
       )}
       <div className="flex max-w-md flex-col gap-ds-xs">

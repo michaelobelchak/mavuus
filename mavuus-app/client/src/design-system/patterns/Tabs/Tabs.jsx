@@ -1,8 +1,9 @@
 import { createContext, use } from 'react'
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs'
 import { cn } from '../../lib/cn'
-import { controlIconSizes, resolveControlSize } from '../../lib/controlSizes'
+import { resolveControlSize } from '../../lib/controlSizes'
 import { resolveOption } from '../../lib/resolveOption'
+import { Icon } from '../../primitives'
 import {
   DEFAULT_TABS_SIZE,
   DEFAULT_TABS_VARIANT,
@@ -103,7 +104,7 @@ export function Tab({ icon: IconComponent, className, children, ref, ...props })
   const { variant, size } = use(TabsStyleContext)
   return (
     <TabsPrimitive.Tab ref={ref} className={cn(tabVariants({ variant, size }), className)} {...props}>
-      {IconComponent && <IconComponent aria-hidden="true" className={cn('shrink-0', controlIconSizes[size])} />}
+      <Icon icon={IconComponent} size={size === 'sm' ? 'sm' : 'md'} />
       {children}
     </TabsPrimitive.Tab>
   )

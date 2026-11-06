@@ -1,7 +1,7 @@
 import { AlertTriangle, CheckCircle2, Info, X, XCircle } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { resolveOption } from '../../lib/resolveOption'
-import { IconButton } from '../../primitives'
+import { Icon, IconButton } from '../../primitives'
 import {
   ALERT_LAYOUTS,
   ALERT_TONES,
@@ -37,21 +37,21 @@ export function AlertBase({
   actions,
   onDismiss,
   dismissLabel = 'Dismiss',
+  role,
   className,
   children,
   ref,
   ...props
 }) {
   const resolvedTone = resolveOption(tone, ALERT_TONES, DEFAULT_ALERT_TONE, component, 'tone')
-  const ToneIcon = icons[resolvedTone]
   return (
     <div
       ref={ref}
-      role={alertRoles[resolvedTone]}
+      role={role ?? alertRoles[resolvedTone]}
       className={cn(alertVariants({ tone: resolvedTone, layout }), className)}
       {...props}
     >
-      <ToneIcon aria-hidden="true" className={cn('mt-ds-xxs size-5 shrink-0', alertIconTones[resolvedTone])} />
+      <Icon icon={icons[resolvedTone]} size="md" className={cn('mt-ds-xxs', alertIconTones[resolvedTone])} />
       <div className="flex min-w-0 grow flex-col gap-ds-xxs">
         {title && <p className="font-semibold">{title}</p>}
         {description && <p className="text-text-secondary">{description}</p>}
