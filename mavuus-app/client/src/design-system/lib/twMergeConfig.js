@@ -21,6 +21,7 @@ export const themeScales = {
     'text-on-brand',
     'text-link',
     'text-brand',
+    'text-brand-strong',
     'text-disabled',
     'border-default',
     'border-subtle',

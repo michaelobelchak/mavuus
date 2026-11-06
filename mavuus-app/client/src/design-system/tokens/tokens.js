@@ -177,6 +177,7 @@ export const tokens = {
   "text-on-brand": "#ffffff",
   "text-link": "#1F648D",
   "text-brand": "#F26D92",
+  "text-brand-strong": "#b23a5d",
   "text-disabled": "#9ca3af",
   "border-default": "#dbe0e7",
   "border-subtle": "rgba(0, 0, 0, 0.06)",
