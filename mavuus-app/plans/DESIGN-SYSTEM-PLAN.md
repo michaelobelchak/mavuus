@@ -379,6 +379,8 @@ Replace `components/layout/DashboardLayout.jsx` and `AdminLayout.jsx` with `AppS
 
 TODO: AppShell owns the "Skip to main content" link. Remove the skip link from `App.jsx` when the shell is wired in, so pages under the shell don't get two.
 
+Known bug to fix here (found by the Phase 6 smoke test): the closed notifications drawer in `DashboardLayout.jsx` is only moved off screen with `translate-x-full`, so its controls are likely still focusable. The AppShell replacement must render it closed with `inert` or unmounted.
+
 ### Tasks 8.2 to 8.18: Dashboard pages (one task per page)
 
 For each of `AcademyPage` (home), `LiveSessionsPage`, `SessionDetailPage`, `OnDemandPage`, `ResourcesPage`, `ResourceDetailPage`, `SpeakersPage`, `MembersPage`, `MemberProfilePage`, `VendorsPage`, `VendorDetailPage`, `JobsPage`, `JobDetailPage`, `MyJobsPage`, `MessagesPage`, `ProfilePage`, `InvitePage`:
@@ -389,6 +391,8 @@ For each of `AcademyPage` (home), `LiveSessionsPage`, `SessionDetailPage`, `OnDe
 ### Tasks 8.19 to 8.41: Admin pages
 
 Same steps for all 23 `pages/admin/*.jsx`, using `DataTable` + `FilterBar` + `Dialog` + `StatusBadge`. The admin overview gets `StatCard` rows and `ChartCard` from `/api/admin/stats`, `/stats/growth`, `/stats/activity`.
+
+Known bug to fix here: the weekly signups bars on `AdminDashboardPage` render empty at every width (percent heights inside a column with no definite height). The `ChartCard` bar chart replaces it.
 
 ### Task 8.42: Auth pages
 
