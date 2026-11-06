@@ -1,4 +1,4 @@
-import { createContext, use } from 'react'
+import { createContext, use, useId } from 'react'
 import { Radio as RadioPrimitive } from '@base-ui/react/radio'
 import { RadioGroup as RadioGroupPrimitive } from '@base-ui/react/radio-group'
 import { choiceHitArea, choiceInvalidClass, choiceLabelClass } from '../../lib/choice'
@@ -48,17 +48,36 @@ export function Radio({ label, className, ref, ...props }) {
  * - `value` / `defaultValue` / `onValueChange(value, details)`.
  * - `orientation`: vertical (default) or horizontal. Sets the layout and aria-orientation.
  * - `invalid` (or a truthy aria-invalid): aria-invalid on the group and the error border on every radio.
- * Name the group with `aria-label` or `aria-labelledby`.
+ * - `required`: aria-required on the group, and the Label-style asterisk and sr-only "(required)" on `label`.
+ * - `label`: visible group label above the radios, wired with aria-labelledby. Or pass `aria-label`.
+ * `className` goes to the outer element (the wrapper when `label` is given), other props to the group.
  */
-export function RadioGroup({ options, orientation = 'vertical', invalid = false, className, children, ref, ...props }) {
+export function RadioGroup({
+  label,
+  options,
+  orientation = 'vertical',
+  invalid = false,
+  required = false,
+  className,
+  children,
+  ref,
+  ...props
+}) {
+  const labelId = useId()
   const ariaInvalid = props['aria-invalid']
   const invalidState = isInvalid(invalid, ariaInvalid)
-  return (
+  const group = (
     <RadioGroupInvalidContext value={invalidState}>
       <RadioGroupPrimitive
         ref={ref}
+        required={required}
+        aria-labelledby={label ? labelId : undefined}
         aria-orientation={orientation}
-        className={cn('flex', orientation === 'horizontal' ? 'flex-row flex-wrap gap-ds-lg' : 'flex-col gap-ds-xxs', className)}
+        className={cn(
+          'flex',
+          orientation === 'horizontal' ? 'flex-row flex-wrap gap-ds-lg' : 'flex-col gap-ds-xxs',
+          !label && className,
+        )}
         {...props}
         aria-invalid={invalidState ? true : ariaInvalid}
       >
@@ -69,5 +88,25 @@ export function RadioGroup({ options, orientation = 'vertical', invalid = false,
           : children}
       </RadioGroupPrimitive>
     </RadioGroupInvalidContext>
+  )
+
+  if (!label) return group
+
+  return (
+    <div className={cn('flex flex-col gap-ds-xs', className)}>
+      <span id={labelId} className="text-body-sm font-semibold text-text-primary">
+        {label}
+        {required && (
+          <>
+            {' '}
+            <span aria-hidden="true" className="text-status-error">
+              *
+            </span>
+            <span className="sr-only">(required)</span>
+          </>
+        )}
+      </span>
+      {group}
+    </div>
   )
 }

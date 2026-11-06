@@ -32,4 +32,8 @@ export const WithChildren = {
 
 export const Disabled = { args: { disabled: true } }
 
-export const Invalid = { args: { invalid: true, defaultValue: undefined } }
+export const WithLabel = { args: { 'aria-label': undefined, label: 'Digest frequency' } }
+
+export const Required = { args: { 'aria-label': undefined, label: 'Plan', required: true, defaultValue: undefined } }
+
+export const Invalid = { args: { 'aria-label': undefined, label: 'Plan', required: true, invalid: true, defaultValue: undefined } }

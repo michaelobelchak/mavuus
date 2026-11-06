@@ -75,4 +75,17 @@ describe('RadioGroup', () => {
     expect(screen.getByRole('radiogroup', { name: 'Plan' })).toHaveAttribute('aria-invalid', 'true')
     for (const radio of screen.getAllByRole('radio')) expect(radio).toHaveClass('border-status-error')
   })
+
+  it('should name the group with a visible label when given label', () => {
+    render(<RadioGroup label="Digest frequency" options={options} />)
+    expect(screen.getByRole('radiogroup', { name: 'Digest frequency' })).toBeInTheDocument()
+    expect(screen.getByText('Digest frequency')).toBeVisible()
+  })
+
+  it('should set aria-required and add the required marker to the label when required', () => {
+    render(<RadioGroup label="Plan" required options={options} />)
+    const group = screen.getByRole('radiogroup', { name: 'Plan (required)' })
+    expect(group).toHaveAttribute('aria-required', 'true')
+    expect(screen.getByText('*')).toHaveAttribute('aria-hidden', 'true')
+  })
 })
