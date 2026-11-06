@@ -11,8 +11,9 @@ Execute phases in order. Each phase builds on the previous one.
 | File | Focus | Est. Sessions |
 |------|-------|---------------|
 | `WEBSITE-1TO1-REBUILD.md` | DONE 2026-10-31: public pages rebuilt 1:1 to live mavuus.com | - |
-
-| `DESIGN-SYSTEM-PLAN.md` | NEXT: one agent-ready design system for site, dashboard and admin (design: `2026-11-06-design-system-design.md`, research: `research/`) | 4 to 6 |
+| `DESIGN-SYSTEM-PLAN.md` | Phases 0 to 7 DONE 2026-11-06 (foundation, map in root `DESIGN.md`); Phase 8 NEXT: migrate every page onto it | 4 to 6 |
+| `2026-11-06-design-system-design.md` | DONE 2026-11-06: approved design for the design system (scope, tokens, components, app shell, guards) | - |
+| `research/2026-11-02-design-system-candidates.md` | DONE 2026-11-02: research comparing design-system candidates (shadcn/ui, Base UI, Radix, Mantine, ...) | - |
 | `PUBLIC-DESIGN-SYSTEM.md` | DONE 2026-10-31: one card, button, type, spacing and motion system across the public site (from `audits/2026-10-31-public-site-audit.md`) | 2 to 3 |
 
 ## Pre-Launch Fix + Figma Rebuild (done earlier)
@@ -76,4 +77,4 @@ git commit -m "Phase X: [description]"
 
 ## Phase 6 Note
 
-Phase 6 is the largest phase. It has two prompts (Part A and Part B) — run them sequentially in the same or separate Claude Code sessions. Part A sets up the backend and database. Part B builds all 21 admin pages.
+Phase 6 is the largest phase. It has two prompts (Part A and Part B) - run them sequentially in the same or separate Claude Code sessions. Part A sets up the backend and database. Part B builds all 21 admin pages.

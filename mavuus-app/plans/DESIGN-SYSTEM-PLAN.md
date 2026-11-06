@@ -1,5 +1,7 @@
 # Mavuus Design System Implementation Plan
 
+**Status:** Phases 0 to 7 DONE 2026-11-06 (branch `feat/design-system`, PR A "Design system foundation"). Phase 8 (migration, PR B) PENDING.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans (or subagent-driven-development) to implement this plan task-by-task.
 
 **Goal:** One agent-ready design system (three-tier tokens, primitives, patterns, organisms, Storybook, guards, docs) used by the public site, member dashboard and admin, with the after-login app shell from the owner's layout reference.
