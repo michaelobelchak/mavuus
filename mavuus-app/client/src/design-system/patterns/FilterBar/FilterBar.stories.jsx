@@ -12,8 +12,8 @@ export default {
 
 function MemberFilters() {
   const [query, setQuery] = useState('')
-  const [workType, setWorkType] = useState(null)
-  const [roles, setRoles] = useState([])
+  const [{ workType, roles }, setFilters] = useState({ workType: null, roles: [] })
+  const set = (key) => (value) => setFilters((current) => ({ ...current, [key]: value }))
   return (
     <FilterBar
       aria-label="Member filters"
@@ -38,7 +38,7 @@ function MemberFilters() {
             { value: 'onsite', label: 'On site' },
           ],
           value: workType,
-          onChange: setWorkType,
+          onChange: set('workType'),
         },
         {
           type: 'chips',
@@ -51,11 +51,14 @@ function MemberFilters() {
             { value: 'director', label: 'Director' },
           ],
           value: roles,
-          onChange: setRoles,
+          onChange: set('roles'),
         },
       ]}
       active={query !== ''}
-      onClear={() => setQuery('')}
+      onClear={(empty) => {
+        setFilters((current) => ({ ...current, ...empty }))
+        setQuery('')
+      }}
       actions={
         <Button variant="outline" size="sm" leadingIcon={Download}>
           Export

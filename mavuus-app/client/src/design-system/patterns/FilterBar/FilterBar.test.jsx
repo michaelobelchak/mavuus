@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { resetWarnings } from '../../lib/warnOnce'
 import { Button } from '../../primitives'
 import { SearchInput } from '../SearchInput'
@@ -98,20 +99,87 @@ describe('FilterBar', () => {
     expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
   })
 
-  it('should reset every active filter through its onChange when Clear filters is clicked', async () => {
+  it('should clear every filter in one onClear call with the empty values and not call onChange', async () => {
     const user = userEvent.setup()
     const onWorkType = vi.fn()
     const onRoles = vi.fn()
     const onClear = vi.fn()
     render(<FilterBar filters={filters({ workType: 'remote', roles: ['vp'], onWorkType, onRoles })} onClear={onClear} />)
     await user.click(screen.getByRole('button', { name: 'Clear filters' }))
-    expect(onWorkType).toHaveBeenCalledWith(null)
-    expect(onRoles).toHaveBeenCalledWith([])
     expect(onClear).toHaveBeenCalledTimes(1)
+    expect(onClear).toHaveBeenCalledWith({ workType: null, roles: [] })
+    expect(onWorkType).not.toHaveBeenCalled()
+    expect(onRoles).not.toHaveBeenCalled()
+  })
+
+  it('should reset a shared state object in one update', async () => {
+    const user = userEvent.setup()
+    function Harness() {
+      const [state, setState] = useState({ workType: 'remote', roles: ['vp', 'cmo'], when: 'week' })
+      const set = (key) => (value) => setState((current) => ({ ...current, [key]: value }))
+      return (
+        <FilterBar
+          filters={[
+            ...filters({ workType: state.workType, roles: state.roles, onWorkType: set('workType'), onRoles: set('roles') }),
+            {
+              type: 'chips',
+              key: 'when',
+              label: 'When',
+              options: [{ value: 'week', label: 'This week' }],
+              value: state.when,
+              onChange: set('when'),
+            },
+          ]}
+          onClear={(empty) => setState((current) => ({ ...current, ...empty }))}
+        />
+      )
+    }
+    render(<Harness />)
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+    expect(screen.getByRole('combobox', { name: 'Work type' })).toHaveTextContent('Any work type')
+    for (const name of ['CMO', 'VP', 'This week']) {
+      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'false')
+    }
+    expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
+  })
+
+  it('should treat an array value equal to its empty value as inactive', () => {
+    const custom = [{ ...filters()[1], value: ['all'], emptyValue: ['all'] }]
+    render(<FilterBar filters={custom} />)
+    expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
+  })
+
+  it('should render a custom filter with the bar size and include it in clear-all', async () => {
+    const user = userEvent.setup()
+    const onClear = vi.fn()
+    const render_ = vi.fn(({ size }) => <button type="button">Salary {size}</button>)
+    render(
+      <FilterBar
+        size="sm"
+        filters={[{ type: 'custom', key: 'salary', render: render_, active: true, emptyValue: [0, 500] }]}
+        onClear={onClear}
+      />,
+    )
+    expect(screen.getByRole('button', { name: 'Salary sm' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+    expect(onClear).toHaveBeenCalledWith({ salary: [0, 500] })
+  })
+
+  it('should leave a custom filter without an emptyValue out of the reset and inactive by default', () => {
+    render(<FilterBar filters={[{ type: 'custom', key: 'sort', render: () => <span>Sort</span> }]} />)
+    expect(screen.getByText('Sort')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
+  })
+
+  it('should warn in dev when a filter has no key', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<FilterBar filters={[{ ...filters()[0], key: undefined }]} />)
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/FilterBar: .*key/))
   })
 
   it('should count a filter as active when active is set, for search text kept outside the filters', () => {
-    render(<FilterBar filters={filters()} active onClear={() => {}} />)
+    const onClear = vi.fn()
+    render(<FilterBar filters={filters()} active onClear={onClear} />)
     expect(screen.getByRole('button', { name: 'Clear filters' })).toBeInTheDocument()
   })
 
