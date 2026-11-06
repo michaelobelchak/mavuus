@@ -1,4 +1,5 @@
 import { cn } from '../../lib/cn'
+import { warnOnce } from '../../lib/warnOnce'
 
 /**
  * Separator line.
@@ -7,6 +8,7 @@ import { cn } from '../../lib/cn'
  */
 export function Divider({ orientation = 'horizontal', label, className, ref, ...props }) {
   if (orientation === 'vertical') {
+    if (label) warnOnce('Divider:vertical-label', 'Divider: label only works on a horizontal divider; it is ignored when vertical.')
     return (
       <div
         ref={ref}

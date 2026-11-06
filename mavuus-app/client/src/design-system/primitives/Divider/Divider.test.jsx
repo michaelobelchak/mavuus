@@ -1,6 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { resetWarnings } from '../../lib/warnOnce'
 import { Divider } from './Divider'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  resetWarnings()
+})
 
 describe('Divider', () => {
   it('should be a horizontal separator by default', () => {
@@ -26,5 +32,11 @@ describe('Divider', () => {
   it('should merge className when given one', () => {
     render(<Divider className="my-ds-lg" />)
     expect(screen.getByRole('separator')).toHaveClass('my-ds-lg', 'border-border-default')
+  })
+
+  it('should warn when label is passed with a vertical divider', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<Divider orientation="vertical" label="or" />)
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Divider.*label.*vertical/))
   })
 })

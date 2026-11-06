@@ -1,5 +1,6 @@
 import { Progress } from '@base-ui/react/progress'
 import { cn } from '../../lib/cn'
+import { warnOnce } from '../../lib/warnOnce'
 import { progressIndicatorVariants, progressTrackVariants } from './progressBarVariants'
 
 /**
@@ -10,6 +11,9 @@ import { progressIndicatorVariants, progressTrackVariants } from './progressBarV
  * - `tone`: brand (default), success, warning or error. `size`: sm (4px) or md (8px, default).
  */
 export function ProgressBar({ value, max = 100, label, hideLabel = false, showValue = false, tone, size, className, ref, ...props }) {
+  if (!label && !props['aria-label'] && !props['aria-labelledby']) {
+    warnOnce('ProgressBar:accessible-name', 'ProgressBar: pass label, aria-label or aria-labelledby so it has an accessible name.')
+  }
   const hasHeader = label && (!hideLabel || showValue)
   return (
     <Progress.Root ref={ref} value={value} max={max} className={cn('flex w-full flex-col gap-ds-xxs', className)} {...props}>

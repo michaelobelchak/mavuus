@@ -1,6 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { resetWarnings } from '../../lib/warnOnce'
 import { ProgressBar } from './ProgressBar'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  resetWarnings()
+})
 
 describe('ProgressBar', () => {
   it('should be a named progressbar with aria-valuenow and aria-valuemax', () => {
@@ -44,5 +50,18 @@ describe('ProgressBar', () => {
   ])('should size the track when size is %s', (size, cls) => {
     const { container } = render(<ProgressBar label="Progress" value={50} size={size} />)
     expect(container.querySelector('[data-progress-track]')).toHaveClass(cls)
+  })
+
+  it('should warn when it has no label, aria-label or aria-labelledby', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<ProgressBar value={10} />)
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/ProgressBar.*accessible name/))
+  })
+
+  it('should not warn when named by aria-label', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<ProgressBar value={10} aria-label="Upload" />)
+    expect(screen.getByRole('progressbar', { name: 'Upload' })).toBeInTheDocument()
+    expect(error).not.toHaveBeenCalled()
   })
 })

@@ -7,7 +7,8 @@ export const controlHeights = { xs: 'h-8', sm: 'h-10', md: 'h-12', lg: 'h-14' }
 // Square controls (IconButton) use the same steps.
 export const controlSquares = { xs: 'size-8', sm: 'size-10', md: 'size-12', lg: 'size-14' }
 
-// Icon size that matches each control size.
+// Icon size that matches each control size. Standalone icons (Icon, Spinner) use lib/iconSizes.js,
+// where lg is 24px; inside controls lg stays at 20px so icons don't crowd the label.
 export const controlIconSizes = { xs: 'size-4', sm: 'size-4', md: 'size-5', lg: 'size-5' }
 
 export const DEFAULT_CONTROL_SIZE = 'md'
