@@ -40,7 +40,7 @@ Tokens, primitives, patterns and organisms for the whole product. Design: `mavuu
 
 | Kind | Classes |
 |---|---|
-| Color | `bg-surface-*` (including `bg-surface-inverse` for dark tooltips), `text-text-*`, `border-border-*`, `bg-status-*` and `-subtle`, `text-status-*`, `*-chart-*` |
+| Color | `bg-surface-*` (including `bg-surface-inverse` for dark tooltips; `bg-surface-header` is site-only), `text-text-*` (`text-text-ink` is a site-only role for the public header links, not for the dashboard or admin), `border-border-*`, `bg-status-*` and `-subtle`, `text-status-*`, `*-chart-*` |
 | Spacing | `p-ds-*`, `m-ds-*`, `gap-ds-*` (`none`, `xxs`, `xs`, `sm`, `md`, `lg`, `xl`, `xxl`, `section`) |
 | Radius | `rounded-tag`, `-input`, `-control`, `-card`, `-sheet`, `-panel`, `-chip` (4, 8, 12, 16, 24, 32, pill) |
 | Type | `text-caption`, `-body-sm`, `-body`, `-lead`, `-h4`, `-h3`, `-h2`, `-h1`, `-display` (sizes with line heights) |
