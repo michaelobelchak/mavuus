@@ -218,6 +218,7 @@
   --status-error-subtle: var(--mv-color-error-50);
   --status-info: var(--mv-color-info-700);
   --status-info-subtle: var(--mv-color-info-50);
+  --status-rating: var(--mv-color-warning-700);
   --chart-1: var(--mv-color-blue-500);
   --chart-2: var(--mv-color-pink-500);
   --chart-3: var(--mv-color-data-teal);
@@ -270,6 +271,7 @@
   --color-status-error-subtle: var(--status-error-subtle);
   --color-status-info: var(--status-info);
   --color-status-info-subtle: var(--status-info-subtle);
+  --color-status-rating: var(--status-rating);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);

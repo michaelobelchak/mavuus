@@ -40,6 +40,7 @@ export const themeScales = {
     "status-error-subtle",
     "status-info",
     "status-info-subtle",
+    "status-rating",
     "chart-1",
     "chart-2",
     "chart-3",

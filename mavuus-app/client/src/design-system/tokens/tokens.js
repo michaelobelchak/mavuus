@@ -218,6 +218,7 @@ export const tokens = {
   "status-error-subtle": "#fef2f2",
   "status-info": "#0369a1",
   "status-info-subtle": "#f0f9ff",
+  "status-rating": "#b45309",
   "chart-1": "#1F648D",
   "chart-2": "#F26D92",
   "chart-3": "#0d9488",
