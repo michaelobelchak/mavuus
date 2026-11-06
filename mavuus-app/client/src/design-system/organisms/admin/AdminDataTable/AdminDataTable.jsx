@@ -8,6 +8,7 @@ import { Button, Text } from '../../../primitives'
 const DEFAULT_CONFIRM_DESCRIPTION = "This can't be undone."
 const DEFAULT_ACTION_ERROR = 'Something went wrong. Try again.'
 const NO_IDS = []
+const NO_ROWS = []
 
 const callOrValue = (value, arg) => (typeof value === 'function' ? value(arg) : value)
 const isHidden = (action, arg) => Boolean(callOrValue(action.hidden, arg))
@@ -27,7 +28,7 @@ const rowsLabel = (count) => `${count} ${count === 1 ? 'row' : 'rows'}`
  * - `selectable`, `selectedIds` / `defaultSelectedIds`, `onSelectionChange(ids)`. While rows are
  *   selected a bar shows "3 selected", the `bulkActions` and Clear selection. When `rows` change,
  *   selected ids missing from `rows` are dropped, unless `pagination.manual` (then `rows` is only
- *   the current page and ids on other pages stay selected).
+ *   the current page and ids on other pages stay selected) or while `loading`.
  * - `bulkActions`: [{ key, label, icon, onSelect(ids, { clearSelection }), destructive, confirm,
  *   keepSelection, hidden(ids) }]. The selection clears once onSelect succeeds (resolves or returns),
  *   unless `keepSelection`; a failed action keeps it.
@@ -53,7 +54,7 @@ const rowsLabel = (count) => `${count} ${count === 1 ? 'row' : 'rows'}`
  */
 export function AdminDataTable({
   caption,
-  rows = [],
+  rows = NO_ROWS,
   getRowId = (row) => row.id,
   getRowName,
   search,
@@ -81,16 +82,18 @@ export function AdminDataTable({
   const [dialogError, setDialogError] = useState(null)
   const nameOf = (row) => String(getRowName ? getRowName(row) : (row.name ?? row.title ?? getRowId(row) ?? ''))
   const manual = Boolean(tableProps.pagination?.manual)
+  const loading = Boolean(tableProps.loading)
 
   // Drop selected ids whose rows are gone. With manual paging `rows` is one page, so keep them.
   useEffect(() => {
-    if (!selectable || manual) return
+    // A refetch often passes no rows while loading; wait for the new rows before pruning.
+    if (!selectable || manual || loading) return
     const present = new Set(rows.map((row) => getRowId(row)))
     const kept = selected.filter((id) => present.has(id))
     if (kept.length !== selected.length) setSelected(kept)
     // Only a new rows array should prune; selection changes are handled where they happen.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows])
+  }, [rows, loading])
 
   const clearSelection = () => setSelected([])
 

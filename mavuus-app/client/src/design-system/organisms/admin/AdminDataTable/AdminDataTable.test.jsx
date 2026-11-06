@@ -364,5 +364,18 @@ describe('AdminDataTable', () => {
     renderTable({ rows: [], caption: <span>Reviews</span>, error: true })
     expect(screen.getByRole('alert')).toHaveTextContent("Couldn't load this list")
   })
-})
 
+  it('should keep the selection through a refetch that passes no rows while loading', () => {
+    const onSelectionChange = vi.fn()
+    const view = (props) => (
+      <MemoryRouter>
+        <AdminDataTable caption="Reviews" columns={columns} selectable defaultSelectedIds={[1]} onSelectionChange={onSelectionChange} {...props} />
+      </MemoryRouter>
+    )
+    const { rerender } = render(view({ rows: reviews }))
+    rerender(view({ rows: [], loading: true }))
+    rerender(view({ rows: reviews }))
+    expect(onSelectionChange).not.toHaveBeenCalled()
+    expect(screen.getByRole('region', { name: 'Bulk actions' })).toHaveTextContent('1 selected')
+  })
+})
