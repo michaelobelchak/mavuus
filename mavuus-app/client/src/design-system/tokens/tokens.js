@@ -164,6 +164,7 @@ export const tokens = {
   "surface-raised": "#ffffff",
   "surface-sunken": "#eeeff4",
   "surface-overlay": "#ffffff",
+  "surface-inverse": "#1C2232",
   "surface-brand": "#F26D92",
   "surface-brand-hover": "#E05A7F",
   "surface-brand-strong": "#1F648D",

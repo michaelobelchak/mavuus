@@ -164,6 +164,7 @@
   --surface-raised: var(--mv-color-neutral-0);
   --surface-sunken: var(--mv-color-blue-50);
   --surface-overlay: var(--mv-color-neutral-0);
+  --surface-inverse: var(--mv-color-navy-900);
   --surface-brand: var(--mv-color-pink-500);
   --surface-brand-hover: var(--mv-color-pink-600);
   --surface-brand-strong: var(--mv-color-blue-500);
@@ -210,6 +211,7 @@
   --color-surface-raised: var(--surface-raised);
   --color-surface-sunken: var(--surface-sunken);
   --color-surface-overlay: var(--surface-overlay);
+  --color-surface-inverse: var(--surface-inverse);
   --color-surface-brand: var(--surface-brand);
   --color-surface-brand-hover: var(--surface-brand-hover);
   --color-surface-brand-strong: var(--surface-brand-strong);

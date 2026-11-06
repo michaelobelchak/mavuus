@@ -6,6 +6,7 @@ export const themeScales = {
     "surface-raised",
     "surface-sunken",
     "surface-overlay",
+    "surface-inverse",
     "surface-brand",
     "surface-brand-hover",
     "surface-brand-strong",
