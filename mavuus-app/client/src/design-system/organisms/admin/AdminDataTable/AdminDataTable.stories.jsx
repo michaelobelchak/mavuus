@@ -155,3 +155,27 @@ export const BulkDestructiveConfirm = {
     await body.findByRole('dialog')
   },
 }
+
+export const DestructiveConfirmError = {
+  args: {
+    rowActions: (row) => [
+      {
+        key: 'delete',
+        label: 'Delete',
+        icon: Trash2,
+        destructive: true,
+        confirm: { title: `Delete ${row.name}'s review?`, confirmLabel: 'Delete review' },
+        onSelect: () => Promise.reject(new Error('This review is locked while the vendor dispute is open.')),
+      },
+    ],
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const body = within(canvasElement.ownerDocument.body)
+    await userEvent.click(canvas.getByRole('button', { name: 'Actions for Marcus Lee' }))
+    await userEvent.click(await body.findByRole('menuitem', { name: 'Delete' }))
+    const dialog = await body.findByRole('dialog')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete review' }))
+    await within(dialog).findByRole('alert')
+  },
+}
