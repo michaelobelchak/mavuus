@@ -54,3 +54,10 @@
   .live-float,
   .ds-animate-fade-in { animation: none; }
 }
+
+/* Decorative outlined numerals (NumberedTabs big number). Kept here so every design-system CSS rule
+   has one home; aria-hidden content only. */
+@utility text-outline-brand {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--mv-color-pink-200);
+}

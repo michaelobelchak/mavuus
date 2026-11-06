@@ -1,0 +1,1 @@
+export { NumberedTabs } from './NumberedTabs'
