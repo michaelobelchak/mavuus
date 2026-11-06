@@ -50,17 +50,19 @@ function MenuEntry({ item }) {
   const tone = resolveOption(item.tone, TONES, 'default', 'DropdownMenu', 'tone')
   const className = menuItemVariants({ tone })
 
-  if (item.to !== undefined || item.href !== undefined) {
-    const link = linkProps({ to: item.to, href: item.href, target: item.target, rel: item.rel, inactive: item.disabled })
+  // A disabled link renders as a disabled Item: Base UI LinkItem has no disabled state. The Item
+  // stays reachable with the arrow keys (Base UI keeps disabled items discoverable) but never
+  // navigates, calls onSelect or closes the menu.
+  if (!item.disabled && (item.to !== undefined || item.href !== undefined)) {
+    const link = linkProps({ to: item.to, href: item.href, target: item.target, rel: item.rel })
     const { Component } = link
     return (
       <Menu.LinkItem
         closeOnClick
         label={item.label}
-        data-disabled={item.disabled ? '' : undefined}
         render={<Component {...link.props} />}
         className={className}
-        onClick={item.disabled ? undefined : item.onSelect}
+        onClick={item.onSelect}
       >
         <ItemContent item={item} opensNewTab={link.opensNewTab} />
       </Menu.LinkItem>
@@ -68,7 +70,12 @@ function MenuEntry({ item }) {
   }
 
   return (
-    <Menu.Item label={item.label} disabled={item.disabled} className={className} onClick={item.onSelect}>
+    <Menu.Item
+      label={item.label}
+      disabled={item.disabled}
+      className={className}
+      onClick={item.disabled ? undefined : item.onSelect}
+    >
       <ItemContent item={item} />
     </Menu.Item>
   )

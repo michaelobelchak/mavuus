@@ -85,6 +85,40 @@ describe('DropdownMenu', () => {
     expect(link).toHaveAttribute('target', '_blank')
   })
 
+  it('should render a disabled link entry as a disabled item that keeps the menu open', async () => {
+    const user = userEvent.setup()
+    const onSelect = vi.fn()
+    renderMenu({ items: [{ label: 'Billing', to: '/billing', disabled: true, onSelect }, { label: 'Profile', to: '/profile' }] })
+    await user.click(screen.getByRole('button', { name: 'Actions' }))
+    const item = await screen.findByRole('menuitem', { name: 'Billing' })
+    expect(item.tagName).not.toBe('A')
+    expect(item).not.toHaveAttribute('href')
+    expect(item).toHaveAttribute('aria-disabled', 'true')
+    await user.click(item)
+    expect(onSelect).not.toHaveBeenCalled()
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+    // Base UI still marks a hovered disabled item highlighted, so the highlight styles are undone.
+    expect(item).toHaveClass('data-[disabled]:data-[highlighted]:bg-transparent', 'data-[disabled]:data-[highlighted]:border-transparent')
+  })
+
+  // Base UI Menu keeps disabled items in arrow key order (disabledIndices is empty), as the ARIA
+  // menu pattern recommends, so they stay discoverable. Enter on one does nothing.
+  it('should keep a disabled link entry reachable by arrow keys but inert on Enter', async () => {
+    const user = userEvent.setup()
+    const onSelect = vi.fn()
+    const { trigger } = renderMenu({
+      items: [{ label: 'Profile', to: '/profile' }, { label: 'Billing', to: '/billing', disabled: true, onSelect }],
+    })
+    trigger.focus()
+    await user.keyboard('{ArrowDown}')
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Profile' })).toHaveFocus())
+    await user.keyboard('{ArrowDown}')
+    expect(screen.getByRole('menuitem', { name: 'Billing' })).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(onSelect).not.toHaveBeenCalled()
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+  })
+
   it('should mark disabled items and not call their handler', async () => {
     const user = userEvent.setup()
     const onArchive = vi.fn()

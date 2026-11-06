@@ -20,6 +20,8 @@ export const menuItemVariants = cva(
     'text-body-sm no-underline select-none',
     'data-[highlighted]:border-border-focus data-[highlighted]:bg-surface-selected',
     'data-[disabled]:cursor-not-allowed data-[disabled]:text-text-disabled',
+    // Base UI highlights a hovered disabled item; it shouldn't look selectable.
+    'data-[disabled]:data-[highlighted]:border-transparent data-[disabled]:data-[highlighted]:bg-transparent',
   ],
   {
     variants: {
