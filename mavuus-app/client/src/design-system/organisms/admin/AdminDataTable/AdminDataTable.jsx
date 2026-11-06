@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { useControllableState } from '../../../hooks'
 import { cn } from '../../../lib/cn'
+import { lowerFirst } from '../../../lib/text'
 import { Alert, DataTable, Dialog, DialogClose, FilterBar, SearchInput } from '../../../patterns'
 import { Button, Text } from '../../../primitives'
 
@@ -12,7 +13,6 @@ const NO_ROWS = []
 
 const callOrValue = (value, arg) => (typeof value === 'function' ? value(arg) : value)
 const isHidden = (action, arg) => Boolean(callOrValue(action.hidden, arg))
-const lowerFirst = (text) => (typeof text === 'string' && text ? text.charAt(0).toLowerCase() + text.slice(1) : null)
 const errorMessage = (error) => (typeof error?.message === 'string' && error.message ? error.message : DEFAULT_ACTION_ERROR)
 const rowsLabel = (count) => `${count} ${count === 1 ? 'row' : 'rows'}`
 

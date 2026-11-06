@@ -1,9 +1,8 @@
 import { cn } from '../../../lib/cn'
 import { linkProps } from '../../../lib/linkProps'
+import { shortCount } from '../../../lib/text'
 import { Avatar, Caption, Skeleton } from '../../../primitives'
 import { skeletonA11y } from '../skeletonA11y'
-
-const shortCount = (count) => (count > 99 ? '99+' : String(count))
 
 const rowClass = [
   'relative flex w-full cursor-pointer items-center gap-ds-sm px-ds-md py-ds-sm text-left',

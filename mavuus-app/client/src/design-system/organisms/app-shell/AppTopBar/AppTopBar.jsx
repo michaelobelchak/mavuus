@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Bell, ChevronDown, Menu, Search } from 'lucide-react'
 import { useMediaQuery } from '../../../hooks'
 import { cn } from '../../../lib/cn'
+import { shortCount } from '../../../lib/text'
 import { Breadcrumbs, DropdownMenu, Popover } from '../../../patterns'
 import { Avatar, Badge, Heading, IconButton } from '../../../primitives'
 import { buildUserMenuItems } from '../nav'
 
-const shortCount = (count) => (count > 9 ? '9+' : String(count))
 const PULSE_MS = 700
 
 function isTyping(target) {
@@ -43,7 +43,7 @@ function NotificationsButton({ count, onClick, open, controlsId, buttonRef, puls
       />
       {count > 0 && (
         <Badge tone="inverse" size="sm" aria-hidden="true" className="pointer-events-none absolute top-ds-none right-ds-none">
-          {shortCount(count)}
+          {shortCount(count, 9)}
         </Badge>
       )}
     </span>

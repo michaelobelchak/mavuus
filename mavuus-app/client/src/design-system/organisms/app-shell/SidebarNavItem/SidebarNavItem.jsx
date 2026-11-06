@@ -2,6 +2,7 @@ import { useId, useState } from 'react'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { cn } from '../../../lib/cn'
+import { shortCount } from '../../../lib/text'
 import { Badge, Icon, Tooltip } from '../../../primitives'
 import { findActiveItem } from '../nav'
 
@@ -17,8 +18,6 @@ function countFor(item, badges) {
   const count = typeof item.badge === 'number' ? item.badge : badges?.[item.badge]
   return Number.isFinite(count) && count > 0 ? count : 0
 }
-
-const shortCount = (count) => (count > 99 ? '99+' : String(count))
 
 function ItemLink({ item, active, collapsed, badges, onNavigate, className }) {
   const count = countFor(item, badges)

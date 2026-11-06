@@ -3,10 +3,7 @@ import { trendSpoken } from '../../primitives/TrendBadge/trendText'
 import { Card, CardLink } from '../Card/Card'
 import { CountUp } from '../CountUp/CountUp'
 import { isCountable } from '../CountUp/countFormat'
-
-function lowerFirst(text) {
-  return text ? text.charAt(0).toLowerCase() + text.slice(1) : text
-}
+import { lowerFirst } from '../../lib/text'
 
 /**
  * KPI card: icon tile, label, big value, then the period and a TrendBadge.
