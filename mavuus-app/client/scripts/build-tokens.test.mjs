@@ -118,6 +118,17 @@ describe('buildTokens', () => {
     expect(theme).not.toMatch(/--ease-(in|out|in-out):/)
   })
 
+  it('should map breakpoint aliases to literal Tailwind breakpoints, since media queries cannot read variables', () => {
+    const source = {
+      ...full,
+      primitive: { ...full.primitive, size: { ...full.primitive.size, 1200: { $value: '1200px' } } },
+      alias: { ...full.alias, breakpoint: { 'site-lg': { $value: '{primitive.size.1200}' } } },
+    }
+    const { css, twMerge } = buildTokens(source)
+    expect(themeBlock(css)).toContain('--breakpoint-site-lg: 1200px;')
+    expect(twMerge).toContain('"breakpoint": [')
+  })
+
   it('should map font sizes with line-height companions', () => {
     const theme = themeBlock(buildTokens(full).css)
     expect(theme).toContain('--text-body: var(--ds-font-size-body);')

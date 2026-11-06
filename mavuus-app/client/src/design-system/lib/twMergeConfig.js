@@ -14,6 +14,7 @@ export const themeScales = {
     "surface-hover",
     "surface-selected",
     "surface-control-off",
+    "surface-header",
     "text-primary",
     "text-secondary",
     "text-muted",
@@ -23,12 +24,14 @@ export const themeScales = {
     "text-brand",
     "text-brand-strong",
     "text-disabled",
+    "text-ink",
     "border-default",
     "border-subtle",
     "border-strong",
     "border-focus",
     "border-brand",
     "border-brand-subtle",
+    "border-divider",
     "status-success",
     "status-success-subtle",
     "status-warning",
@@ -66,7 +69,12 @@ export const themeScales = {
     "ds-lg",
     "ds-xl",
     "ds-xxl",
-    "ds-section"
+    "ds-xxxl",
+    "ds-section",
+    "ds-gutter-sm",
+    "ds-gutter",
+    "ds-section-sm",
+    "ds-section-md"
   ],
   "text": [
     "caption",
@@ -77,19 +85,28 @@ export const themeScales = {
     "h3",
     "h2",
     "h1",
-    "display"
+    "display",
+    "lead-sm",
+    "h2-md",
+    "h2-sm"
   ],
   "shadow": [
     "card",
     "card-hover",
     "float",
     "overlay",
-    "button-brand"
+    "button-brand",
+    "button-strong"
   ],
   "ease": [
     "enter",
     "exit",
     "move"
+  ],
+  "breakpoint": [
+    "site-sm",
+    "site-md",
+    "site-lg"
   ],
   "font": [
     "sans"

@@ -148,7 +148,7 @@ export function buildTokens(source) {
   for (const theme of themes.filter((t) => t !== DEFAULT_THEME)) {
     css.push('', ...block(`[data-theme="${theme}"]`, roles(theme)))
   }
-  const entries = themeEntries(all, byPath)
+  const entries = themeEntries(all, byPath, resolve)
   css.push('', '@theme inline {', ...entries.map(([k, v]) => decl(k, v)), '}', '')
 
   // The JS map holds the light theme only (plus primitives and aliases). Other themes exist
@@ -186,7 +186,7 @@ function twMergeModule(entries) {
   return [`// ${HEADER}`, '', `export const themeScales = ${JSON.stringify(scales, null, 2)}`, ''].join('\n')
 }
 
-function themeEntries(all, byPath) {
+function themeEntries(all, byPath, resolve) {
   const entries = []
   const ref = (t) => `var(--${varName(t.path)})`
   const alias = (group) => all.filter((t) => t.path[0] === 'alias' && t.path[1] === group)
@@ -212,6 +212,8 @@ function themeEntries(all, byPath) {
     const key = EASING_THEME[t.path[2]]
     if (key) entries.push([`ease-${key}`, ref(t)])
   }
+  // Media queries can't read CSS variables, so breakpoints get their resolved value.
+  for (const t of alias('breakpoint')) entries.push([`breakpoint-${t.path[2]}`, resolve(t)])
   const sans = byPath.get('primitive.font.family.sans')
   if (sans) entries.push(['font-sans', ref(sans)])
   return entries

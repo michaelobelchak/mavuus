@@ -2,7 +2,23 @@
 // a step these don't cover.
 
 // Display order for the space and radius steps.
-export const SIZE_ORDER = ['none', 'xxs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'section', 'pill']
+export const SIZE_ORDER = [
+  'none',
+  'xxs',
+  'xs',
+  'sm',
+  'md',
+  'gutter-sm',
+  'lg',
+  'xl',
+  'gutter',
+  'xxl',
+  'section-sm',
+  'xxxl',
+  'section-md',
+  'section',
+  'pill',
+]
 
 // Role names Tailwind exposes for each radius step (tokens.css `--radius-*`).
 export const RADIUS_ROLES = { xs: 'tag', sm: 'input', md: 'control', lg: 'card', xl: 'sheet', xxl: 'panel', pill: 'chip' }
