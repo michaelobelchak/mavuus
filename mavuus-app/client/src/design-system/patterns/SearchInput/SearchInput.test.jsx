@@ -129,6 +129,38 @@ describe('SearchInput', () => {
     expect(screen.getByRole('searchbox')).toHaveValue('')
   })
 
+  it('should drop a pending search when a controlled value is cleared from outside', () => {
+    vi.useFakeTimers()
+    const onSearch = vi.fn()
+    function Controlled() {
+      const [value, setValue] = useState('')
+      return (
+        <>
+          <SearchInput aria-label="Search" value={value} onChange={(event) => setValue(event.target.value)} onSearch={onSearch} />
+          <button type="button" onClick={() => setValue('')}>
+            Reset
+          </button>
+        </>
+      )
+    }
+    render(<Controlled />)
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'seo' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+    expect(screen.getByRole('searchbox')).toHaveValue('')
+    act(() => vi.advanceTimersByTime(300))
+    expect(onSearch).not.toHaveBeenCalledWith('seo')
+  })
+
+  it('should search with the latest value when a controlled value changes before the debounce fires', () => {
+    vi.useFakeTimers()
+    const onSearch = vi.fn()
+    const { rerender } = render(<SearchInput aria-label="Search" value="" onChange={() => {}} onSearch={onSearch} />)
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'se' } })
+    rerender(<SearchInput aria-label="Search" value="growth" onChange={() => {}} onSearch={onSearch} />)
+    act(() => vi.advanceTimersByTime(300))
+    expect(onSearch).not.toHaveBeenCalledWith('se')
+  })
+
   it('should not search after unmount', () => {
     vi.useFakeTimers()
     const onSearch = vi.fn()
