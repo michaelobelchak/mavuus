@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { contrastLevel, contrastRatio, parseColor } from './contrast'
+import { contrastLabel, contrastLevel, contrastRatio, parseColor } from './contrast'
 
 describe('contrast helpers', () => {
   it('should parse short and long hex and rgba values', () => {
@@ -25,5 +25,11 @@ describe('contrast helpers', () => {
     expect(contrastLevel(3.1)).toBe('AA large')
     expect(contrastLevel(2)).toBe('Fail')
     expect(contrastLevel(null)).toBe('n/a')
+  })
+
+  it('should label subtle backgrounds, unparseable values and ratios for the On white column', () => {
+    expect(contrastLabel('status-success-subtle', '#f0fdf4')).toBe('Background')
+    expect(contrastLabel('gradient-active', 'linear-gradient(90deg, #1F648D, #1C2232)')).toBe('n/a')
+    expect(contrastLabel('text-primary', '#000000')).toBe('21.00:1 AAA')
   })
 })

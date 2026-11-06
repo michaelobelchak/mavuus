@@ -2,9 +2,8 @@
 // and samples render through the CSS variables, so the pages can't drift from the tokens.
 import { Unstyled } from '@storybook/addon-docs/blocks'
 import { tokens } from '../../tokens/tokens.js'
-import { contrastLevel, contrastRatio } from './contrast.js'
-
-const SIZE_ORDER = ['none', 'xxs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'section', 'pill']
+import { contrastLabel } from './contrast.js'
+import { EASING_CLASSES, RADIUS_ROLES, SIZE_ORDER } from './foundationMaps.js'
 
 function entries(prefix) {
   return Object.entries(tokens)
@@ -58,8 +57,7 @@ export function ColorGroup({ prefix, showContrast = false }) {
   return (
     <DocTable headers={['Swatch', 'Token', 'CSS variable', 'Value', ...(showContrast ? ['On white'] : [])]}>
       {colors.map(({ name, value }) => {
-        const ratio = contrastRatio(value)
-        const isBackground = name.endsWith('-subtle')
+        const label = contrastLabel(name, value)
         return (
           <Row key={name}>
             <Cell>
@@ -77,13 +75,7 @@ export function ColorGroup({ prefix, showContrast = false }) {
               <Code>{value}</Code>
             </Cell>
             {showContrast && (
-              <Cell>
-                {isBackground || ratio == null ? (
-                  <span className="text-text-muted">Background</span>
-                ) : (
-                  `${ratio.toFixed(2)}:1 ${contrastLevel(ratio)}`
-                )}
-              </Cell>
+              <Cell>{label === 'Background' || label === 'n/a' ? <span className="text-text-muted">{label}</span> : label}</Cell>
             )}
           </Row>
         )
@@ -142,9 +134,6 @@ export function SpacingScale() {
   )
 }
 
-// Role names Tailwind exposes for each radius step (tokens.css `--radius-*`).
-const RADIUS_ROLES = { xs: 'tag', sm: 'input', md: 'control', lg: 'card', xl: 'sheet', xxl: 'panel', pill: 'chip' }
-
 /** The `rounded-*` role classes with their sizes. */
 export function RadiusScale() {
   const steps = entries('ds-radius-').sort(bySize)
@@ -189,9 +178,6 @@ export function ShadowScale() {
     </Unstyled>
   )
 }
-
-// Tailwind easing classes for each easing token (tokens.css `--ease-*`).
-const EASING_CLASSES = { out: 'ease-enter', in: 'ease-exit', 'in-out': 'ease-move' }
 
 /** Duration and easing tokens. */
 export function MotionTokens() {

@@ -61,3 +61,14 @@ export function contrastLevel(ratio) {
   if (ratio >= 3) return 'AA large'
   return 'Fail'
 }
+
+/**
+ * The "On white" cell for a color token: "Background" for `-subtle` backgrounds, "n/a" for values
+ * that aren't a single parseable color (gradients), otherwise the ratio and its WCAG level.
+ */
+export function contrastLabel(name, value) {
+  if (name.endsWith('-subtle')) return 'Background'
+  const ratio = contrastRatio(value)
+  if (ratio == null) return 'n/a'
+  return `${ratio.toFixed(2)}:1 ${contrastLevel(ratio)}`
+}
