@@ -93,7 +93,7 @@ export function Card({
     )
   }
 
-  const link = linkProps({ to, href, target, rel, onClick: props.onClick })
+  const link = linkProps({ to, href, target, rel })
   const { Component } = link
   const card = (
     <Component ref={mergeRefs(linkRef, tag === 'div' ? ref : undefined)} className={classes} {...link.props} {...props}>

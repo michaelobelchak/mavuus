@@ -4,7 +4,7 @@ Tokens, primitives, patterns and organisms for the whole product. Design: `mavuu
 
 ## Conventions
 
-- **Folder per component:** `primitives/Button/{Button.jsx, Button.test.jsx, Button.stories.jsx, index.js}`. Each tier has a barrel (`primitives/index.js`); add every new component to it.
+- **Folder per component:** `primitives/Button/{Button.jsx, Button.test.jsx, Button.stories.jsx, index.js}`. Each tier has a barrel (`primitives/index.js`, `patterns/index.js`) with a test that fails when a folder export is missing from it; add every new component to it. Patterns compose primitives and never import organisms (the patterns barrel test checks this). Hooks live in `hooks/`.
 - **Variants** use `cva` from `class-variance-authority`. Every component with a `cva` call exports it as `xVariants` from its own `xVariants.js` (so the component file only exports components, for react-refresh lint), and the barrel exports it too. Defaults live in `defaultVariants` only; when a lookup map needs the default, take it from the same constant.
 - **`variant` vs `tone`:** `variant` is visual emphasis (primary, outline, ghost). `tone` is status meaning (success, warning, error, info) and is used by status components like Badge.
 - **Class merging** goes through `cn()` from `lib/cn.js`. It's `twMerge(clsx(inputs))` with our theme keys registered, so `cn('p-ds-md', 'p-ds-lg')` keeps `p-ds-lg` and `cn('text-body', 'text-text-primary')` keeps both.
@@ -26,6 +26,8 @@ Tokens, primitives, patterns and organisms for the whole product. Design: `mavuu
 - **Typography tones** mean the same thing on Heading, Text, Eyebrow and Caption: primary, secondary, muted, brand (`text-text-brand-strong`, readable), link, on-brand, success, warning, error, info. Eyebrow adds `accent` (`text-text-brand`, the light pink, 2.85:1 on white) and uses it by default; it is decorative only, so the heading below must carry the meaning. Unknown tones, sizes and levels warn in dev and fall back (`lib/resolveOption.js`); Heading levels 5 and 6 render an h4.
 - **Motion:** every animation or transition that moves things gets `motion-reduce:` handling. Scroll reveals use `patterns/Reveal` (the `[data-reveal]` rules, the capped `[data-reveal-step]` stagger, `.live-float` and `.ds-animate-fade-in` live in `styles/motion.css`, imported once from `src/index.css`). JS that depends on the preference reads `useReducedMotion()` from `hooks/`; `useInView(ref)` reports when an element has scrolled into view.
 - **Styling:** only token classes. No hex values, no arbitrary px values. Tailwind numeric sizes (`h-12`, `size-4`) are fine for fixed control heights and icon sizes.
+
+- **Patterns:** Card (link cards are one link named by their content; nested buttons or links warn in dev), StatCard (one sr-only summary, visual parts aria-hidden), Tabs and NumberedTabs (Base UI Tabs), Accordion (Base UI, h3 titles by default), Breadcrumbs, Pagination (`getPaginationRange` for the page list), EmptyState, Alert and Banner (`status` role for info and success, `alert` for warning and error), PageHeader, SectionHeader, Reveal, CountUp, MediaFrame and CheckList.
 
 ## Token classes
 
