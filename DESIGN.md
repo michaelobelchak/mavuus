@@ -379,7 +379,18 @@ Dates: cards take preformatted text (`dateLabel`, `postedLabel` on JobCard, `tim
 
 ## 13. Motion
 
-Durations (`--ds-duration-*`): instant 100ms, quick 150ms, standard 200ms, emphasized 300ms, slow 500ms, reveal 700ms.
+Durations (`--ds-duration-*`): instant 100ms, quick 150ms, standard 200ms, emphasized 300ms, slow 500ms, reveal 700ms. They aren't generated as Tailwind theme keys, so in class strings use the Tailwind step with the same value:
+
+| Token | Value | Class |
+|---|---|---|
+| `--ds-duration-instant` | 100ms | `duration-100` |
+| `--ds-duration-quick` | 150ms | `duration-150` |
+| `--ds-duration-standard` | 200ms | `duration-200` |
+| `--ds-duration-emphasized` | 300ms | `duration-300` |
+| `--ds-duration-slow` | 500ms | `duration-500` |
+| `--ds-duration-reveal` | 700ms | `duration-700` |
+
+CSS in `styles/` uses the variables (`var(--ds-duration-reveal)`).
 
 Easings: `ease-enter` (`cubic-bezier(0.16, 1, 0.3, 1)`, things arriving), `ease-exit` (`cubic-bezier(0.4, 0, 1, 1)`, things leaving), `ease-move` (`cubic-bezier(0.65, 0, 0.35, 1)`, things moving on screen).
 
@@ -482,7 +493,7 @@ Space     p-ds-* m-ds-* gap-ds-*: none 0, xxs 4, xs 8, sm 12, md 16, lg 24, xl 3
 Radius    rounded-tag 4 | -input 8 | -control 12 | -card 16 | -sheet 24 | -panel 32 | -chip pill
 Type      text-caption 13 | -body-sm 14 | -body 16 | -lead 20 | -h4 18 | -h3 22 | -h2 36 | -h1 40 | -display 48
 Shadow    shadow-card | -card-hover | -float | -overlay | -button-brand | -button-secondary
-Motion    duration-* via var(--ds-duration-*), ease-enter | ease-exit | ease-move, Reveal, .ds-float
+Motion    duration-100 | -150 | -200 | -300 | -500 | -700 (match --ds-duration-*), ease-enter | ease-exit | ease-move, Reveal, .ds-float
 Layers    z-(--ds-z-overlay 300 | -modal 400 | -dropdown 500 | -popover 550 | -tooltip 600 | -toast 700)
 Breaks    md 768, lg 1024, xl 1280 (Tailwind); site-sm 480, site-md 992, site-lg 1200 (tokens)
 ```
