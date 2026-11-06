@@ -1,0 +1,31 @@
+import { cn } from '../../lib/cn'
+import { Avatar } from './Avatar'
+import { avatarSizes } from './avatarSizes'
+
+const overlap = 'ring-2 ring-surface-raised not-first:-ml-ds-xs'
+
+/** Overlapping row of avatars. Shows up to `max` and a "+N" chip for the rest. */
+export function AvatarStack({ people = [], max = 4, size = 'md', className, ref, ...props }) {
+  const shown = people.slice(0, max)
+  const extra = people.length - shown.length
+
+  return (
+    <div ref={ref} className={cn('flex items-center', className)} {...props}>
+      {shown.map((person, index) => (
+        <Avatar key={person.id ?? `${person.name}-${index}`} src={person.src} name={person.name} size={size} className={overlap} />
+      ))}
+      {extra > 0 && (
+        <span
+          className={cn(
+            'inline-flex shrink-0 items-center justify-center rounded-chip bg-surface-selected font-semibold text-text-brand-strong',
+            avatarSizes[size],
+            overlap,
+          )}
+        >
+          <span aria-hidden="true">+{extra}</span>
+          <span className="sr-only">and {extra} more</span>
+        </span>
+      )}
+    </div>
+  )
+}
