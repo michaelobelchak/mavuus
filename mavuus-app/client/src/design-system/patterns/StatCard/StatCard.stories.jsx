@@ -1,4 +1,3 @@
-import { MemoryRouter } from 'react-router-dom'
 import { Briefcase, Users } from 'lucide-react'
 import { StatCard } from './StatCard'
 
@@ -8,11 +7,9 @@ export default {
   tags: ['autodocs'],
   decorators: [
     (Story) => (
-      <MemoryRouter>
-        <div className="max-w-xs">
-          <Story />
-        </div>
-      </MemoryRouter>
+      <div className="max-w-xs">
+        <Story />
+      </div>
     ),
   ],
   args: { icon: Users, label: 'Users', value: 430, trend: { value: 32.54 }, period: 'Last 30 days' },

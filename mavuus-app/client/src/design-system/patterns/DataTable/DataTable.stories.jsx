@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { MemoryRouter } from 'react-router-dom'
 import { Avatar, Badge, Button } from '../../primitives'
 import { FilterBar } from '../FilterBar/FilterBar'
 import { SearchInput } from '../SearchInput/SearchInput'
@@ -60,13 +59,6 @@ export default {
   title: 'Patterns/DataTable',
   component: DataTable,
   tags: ['autodocs'],
-  decorators: [
-    (Story) => (
-      <MemoryRouter>
-        <Story />
-      </MemoryRouter>
-    ),
-  ],
   args: { caption: 'Members', columns, rows: users, pagination: { pageSize: 5 }, rowActions, rowHref: (row) => `/admin/users/${row.id}` },
 }
 

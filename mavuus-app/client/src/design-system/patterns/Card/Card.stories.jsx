@@ -1,4 +1,3 @@
-import { MemoryRouter } from 'react-router-dom'
 import { Bookmark } from 'lucide-react'
 import { Heading, IconButton, Text } from '../../primitives'
 import { Card, CardAction, CardLink } from './Card'
@@ -9,11 +8,9 @@ export default {
   tags: ['autodocs'],
   decorators: [
     (Story) => (
-      <MemoryRouter>
-        <div className="max-w-sm">
-          <Story />
-        </div>
-      </MemoryRouter>
+      <div className="max-w-sm">
+        <Story />
+      </div>
     ),
   ],
   args: {

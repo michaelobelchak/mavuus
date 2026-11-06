@@ -1,17 +1,9 @@
-import { MemoryRouter } from 'react-router-dom'
 import { Link } from './Link'
 
 export default {
   title: 'Primitives/Link',
   component: Link,
   tags: ['autodocs'],
-  decorators: [
-    (Story) => (
-      <MemoryRouter>
-        <Story />
-      </MemoryRouter>
-    ),
-  ],
   args: { children: 'Read the member guide', to: '/resources' },
   argTypes: { variant: { control: 'select', options: ['inline', 'standalone'] } },
 }

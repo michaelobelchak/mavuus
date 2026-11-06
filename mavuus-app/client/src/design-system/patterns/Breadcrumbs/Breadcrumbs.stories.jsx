@@ -1,17 +1,9 @@
-import { MemoryRouter } from 'react-router-dom'
 import { Breadcrumbs } from './Breadcrumbs'
 
 export default {
   title: 'Patterns/Breadcrumbs',
   component: Breadcrumbs,
   tags: ['autodocs'],
-  decorators: [
-    (Story) => (
-      <MemoryRouter>
-        <Story />
-      </MemoryRouter>
-    ),
-  ],
   args: {
     items: [
       { label: 'Home', to: '/dashboard' },

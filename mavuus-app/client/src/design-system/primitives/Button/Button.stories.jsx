@@ -1,4 +1,3 @@
-import { MemoryRouter } from 'react-router-dom'
 import { ArrowRight, Plus } from 'lucide-react'
 import { Button } from './Button'
 
@@ -49,15 +48,13 @@ export const Disabled = { args: { disabled: true } }
 
 export const AsLink = {
   render: (args) => (
-    <MemoryRouter>
-      <div className="flex items-center gap-ds-md">
-        <Button {...args} to="/jobs" trailingIcon={ArrowRight}>
-          Browse jobs
-        </Button>
-        <Button {...args} variant="outline" href="https://mavuus.com">
-          Visit mavuus.com
-        </Button>
-      </div>
-    </MemoryRouter>
+    <div className="flex items-center gap-ds-md">
+      <Button {...args} to="/jobs" trailingIcon={ArrowRight}>
+        Browse jobs
+      </Button>
+      <Button {...args} variant="outline" href="https://mavuus.com">
+        Visit mavuus.com
+      </Button>
+    </div>
   ),
 }
