@@ -1,9 +1,11 @@
+// @vitest-environment node
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, it, expect } from 'vitest'
 import * as patterns from './index'
 
-const here = path.dirname(new URL(import.meta.url).pathname)
+const here = path.dirname(fileURLToPath(import.meta.url))
 const folders = readdirSync(here).filter((name) => statSync(path.join(here, name)).isDirectory())
 
 describe('patterns barrel', () => {

@@ -1,10 +1,7 @@
-import { readFileSync } from 'node:fs'
-import path from 'node:path'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { act, render, screen } from '@testing-library/react'
 import { resetWarnings } from '../../lib/warnOnce'
 import { mockIntersectionObserver } from '../../test/browserMocks'
-import { MAX_REVEAL_STEP } from './revealOptions'
 import { Reveal } from './Reveal'
 
 afterEach(() => {
@@ -57,11 +54,4 @@ describe('Reveal', () => {
     expect(error).toHaveBeenCalledWith(expect.stringMatching(/Reveal: variant "spin"/))
   })
 
-  it('should have one stagger rule per step in motion.css, 70ms apart', () => {
-    const css = readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '../../styles/motion.css'), 'utf8')
-    const rules = [...css.matchAll(/\[data-reveal-step='(\d+)'\]\s*\{\s*--reveal-delay:\s*(\d+)ms;\s*\}/g)]
-    expect(rules).toHaveLength(MAX_REVEAL_STEP + 1)
-    for (const [, step, delay] of rules) expect(Number(delay)).toBe(Number(step) * 70)
-    expect(rules.map(([, step]) => Number(step))).toEqual(Array.from({ length: MAX_REVEAL_STEP + 1 }, (_, i) => i))
-  })
 })

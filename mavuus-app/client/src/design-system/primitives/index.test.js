@@ -1,9 +1,11 @@
+// @vitest-environment node
 import { readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, it, expect } from 'vitest'
 import * as primitives from './index'
 
-const here = path.dirname(new URL(import.meta.url).pathname)
+const here = path.dirname(fileURLToPath(import.meta.url))
 
 describe('primitives barrel', () => {
   it('should export every component folder', async () => {

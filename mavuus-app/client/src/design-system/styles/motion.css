@@ -1,8 +1,8 @@
 /* Design system motion. Imported once from src/index.css and scoped to the whole app.
    Used by patterns/Reveal (and the older components/live/ui/Reveal, which sets --reveal-delay inline). */
 
-/* Reveal: content starts hidden only once Reveal has mounted (data-armed), and shows when it scrolls
-   into view (data-in). */
+/* Reveal: content is hidden while data-armed is set without data-in, from the first render until it
+   scrolls into view. */
 [data-reveal] {
   transition-property: opacity, transform, clip-path, filter;
   transition-duration: var(--ds-duration-reveal);
@@ -19,7 +19,7 @@
 }
 
 /* Capped stagger for patterns/Reveal `index`: 70ms per step, 420ms max. One rule per step from 0 to
-   MAX_REVEAL_STEP in patterns/Reveal/revealOptions.js; Reveal.test.jsx fails when they drift apart. */
+   MAX_REVEAL_STEP in patterns/Reveal/revealOptions.js; styles/motion.test.js fails when they drift apart. */
 [data-reveal-step='0'] { --reveal-delay: 0ms; }
 [data-reveal-step='1'] { --reveal-delay: 70ms; }
 [data-reveal-step='2'] { --reveal-delay: 140ms; }
@@ -38,12 +38,13 @@
   }
 }
 
-/* Gentle float for decorative hero art. */
-@keyframes live-float {
+/* Gentle float for decorative hero art. .live-float is an alias for the public site until it migrates. */
+@keyframes ds-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
-.live-float { animation: live-float 6s ease-in-out infinite; }
+.ds-float,
+.live-float { animation: ds-float 6s ease-in-out infinite; }
 
 /* Panel fade for tab content (NumberedTabs). */
 @keyframes ds-fade-in {
@@ -53,6 +54,7 @@
 .ds-animate-fade-in { animation: ds-fade-in var(--ds-duration-slow) var(--ds-easing-out) both; }
 
 @media (prefers-reduced-motion: reduce) {
+  .ds-float,
   .live-float,
   .ds-animate-fade-in { animation: none; }
 }

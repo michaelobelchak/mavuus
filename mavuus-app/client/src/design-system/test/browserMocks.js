@@ -36,10 +36,14 @@ export function mockIntersectionObserver() {
 }
 
 // Installs matchMedia that reports `reduced` for prefers-reduced-motion and false for anything else.
-export function mockReducedMotion(reduced) {
+// `setReduced(value)` flips the setting and fires the change listeners, like the OS toggle.
+export function mockReducedMotion(initial) {
+  let reduced = initial
   const listeners = new Set()
   const matchMedia = (query) => ({
-    matches: query.includes('prefers-reduced-motion: reduce') ? reduced : false,
+    get matches() {
+      return query.includes('prefers-reduced-motion: reduce') ? reduced : false
+    },
     media: query,
     addEventListener: (_type, listener) => listeners.add(listener),
     removeEventListener: (_type, listener) => listeners.delete(listener),
@@ -47,5 +51,11 @@ export function mockReducedMotion(reduced) {
     removeListener: (listener) => listeners.delete(listener),
   })
   vi.stubGlobal('matchMedia', matchMedia)
-  return { listeners }
+  return {
+    listeners,
+    setReduced(value) {
+      reduced = value
+      for (const listener of listeners) listener({ matches: value })
+    },
+  }
 }
