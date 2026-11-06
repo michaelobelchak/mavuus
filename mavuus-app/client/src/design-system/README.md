@@ -21,7 +21,7 @@ Tokens, primitives, patterns and organisms for the whole product. Design: `mavuu
 - **Refs:** combine refs with `lib/mergeRefs.js`, which supports React 19 ref cleanups.
 - **Choice controls:** Checkbox, Radio and Switch take `label` and wrap the control and text in a `<label>`, so the text toggles it and the row is at least 44px tall (`lib/choice.js`). Without `label`, pass `aria-label`; the hit area still grows to 44px. `ref` and props go to the control, `className` to the outer element.
 - **Base UI parts:** style them with their data attributes (`data-[checked]:`, `data-[highlighted]:`, `data-[disabled]:`, `data-[popup-open]:`, `data-[starting-style]:`). Layered popups use the z-index aliases through `z-(--ds-z-dropdown)` and `z-(--ds-z-tooltip)`.
-- **Tooltips** are visual only (Base UI sets no role or aria-describedby). The trigger needs its own accessible name.
+- **Tooltips:** the content is always mounted in a hidden element that the trigger references with `aria-describedby` (merged with any existing one), and the visual popup is `aria-hidden`, so the hint is announced once. The trigger still needs its own accessible name; Tooltip warns in dev when it has none. Style the popup with `popupClassName`; other props go to the trigger.
 - **Standalone icons** (Icon, Spinner) use `lib/iconSizes.js`: sm 16px, md 20px, lg 24px.
 - **Eyebrow pink:** `text-text-brand` is 2.85:1 on white, so the default pink Eyebrow is a brand accent above a heading that carries the meaning. Use `tone="brand-strong"` when the eyebrow text stands alone. Text `tone="brand"` maps to `text-text-brand-strong` for the same reason.
 - **Motion:** every animation or transition that moves things gets `motion-reduce:` handling.
