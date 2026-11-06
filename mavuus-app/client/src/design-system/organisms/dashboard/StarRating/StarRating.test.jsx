@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StarRating } from './StarRating'
 
@@ -7,14 +7,34 @@ describe('StarRating', () => {
   it('should read as one image with the value when read only', () => {
     render(<StarRating value={4.5} />)
     const rating = screen.getByRole('img', { name: '4.5 out of 5 stars' })
-    expect(rating.querySelectorAll('svg')).toHaveLength(5)
+    expect(rating.querySelectorAll('[data-star]')).toHaveLength(5)
     expect(screen.queryByRole('radio')).toBeNull()
   })
 
-  it('should fill the stars up to the rounded value', () => {
+  it('should fill the stars to the nearest half star', () => {
     render(<StarRating value={3.6} />)
-    const stars = screen.getByRole('img').querySelectorAll('svg')
-    expect([...stars].filter((star) => star.dataset.filled === 'true')).toHaveLength(4)
+    const stars = [...screen.getByRole('img').querySelectorAll('[data-star]')]
+    expect(stars.map((star) => star.dataset.star)).toEqual(['full', 'full', 'full', 'half', 'empty'])
+  })
+
+  it('should show 4.5 as four full stars and a half star', () => {
+    render(<StarRating value={4.5} />)
+    const stars = [...screen.getByRole('img').querySelectorAll('[data-star]')]
+    expect(stars.map((star) => star.dataset.star)).toEqual(['full', 'full', 'full', 'full', 'half'])
+  })
+
+  it('should use the rating color for filled stars and the muted text color for empty ones', () => {
+    render(<StarRating value={1} />)
+    const stars = screen.getByRole('img').querySelectorAll('[data-star]')
+    expect(stars[0].querySelector('svg')).toHaveClass('text-status-rating', 'fill-current')
+    expect(stars[1].querySelector('svg')).toHaveClass('text-text-muted')
+  })
+
+  it('should call the consumer onMouseLeave as well as resetting the hover preview', () => {
+    const onMouseLeave = vi.fn()
+    render(<StarRating value={2} onChange={() => {}} onMouseLeave={onMouseLeave} />)
+    fireEvent.mouseLeave(screen.getByRole('group'))
+    expect(onMouseLeave).toHaveBeenCalledTimes(1)
   })
 
   it('should render a labelled radio group and call onChange when given onChange', async () => {

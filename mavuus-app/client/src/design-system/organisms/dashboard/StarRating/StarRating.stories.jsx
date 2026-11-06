@@ -32,3 +32,13 @@ export const Input = {
   args: { value: 3, label: 'Your rating', showLabel: true },
   render: (args) => <InputStory {...args} />,
 }
+
+export const HalfStars = {
+  render: () => (
+    <div className="flex flex-col gap-ds-xs">
+      {[1.5, 2.5, 3.6, 4.5].map((value) => (
+        <StarRating key={value} value={value} size="md" />
+      ))}
+    </div>
+  ),
+}
