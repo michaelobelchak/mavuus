@@ -3,7 +3,9 @@ import { AlertCircle } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { RequiredMark } from '../../lib/RequiredMark'
 import { resolveOption } from '../../lib/resolveOption'
+import { warnOnce } from '../../lib/warnOnce'
 import { Icon, Label } from '../../primitives'
+import { FormFieldContext } from './formFieldContext'
 
 const LAYOUTS = ['stacked', 'inline']
 
@@ -48,6 +50,13 @@ export function FormField({
   const invalid = Boolean(error)
   const describedBy = joinIds(child?.props?.['aria-describedby'], hintId, errorId)
 
+  if (child?.props?.label !== undefined) {
+    warnOnce(
+      'FormField:child-label',
+      'FormField: the control also has a label prop, so it gets two labels. Drop the label prop and let FormField label it.',
+    )
+  }
+
   const control =
     typeof children === 'function'
       ? children({ id, labelId, describedBy, invalid, required })
@@ -88,23 +97,30 @@ export function FormField({
     </>
   )
 
+  // A group is named by aria-labelledby on the cloned child; anything else by the <label for>.
+  const context = { controlId: id, labelled: !group }
+
   if (resolvedLayout === 'inline') {
     return (
-      <div ref={ref} className={cn('flex flex-col gap-ds-xxs', className)} {...props}>
-        <div className="flex min-h-11 items-center gap-ds-sm">
-          {control}
-          {labelNode}
+      <FormFieldContext value={context}>
+        <div ref={ref} className={cn('flex flex-col gap-ds-xxs', className)} {...props}>
+          <div className="flex min-h-11 items-center gap-ds-sm">
+            {control}
+            {labelNode}
+          </div>
+          {messages}
         </div>
-        {messages}
-      </div>
+      </FormFieldContext>
     )
   }
 
   return (
-    <div ref={ref} className={cn('flex flex-col gap-ds-xs', className)} {...props}>
-      {labelNode}
-      {control}
-      {messages}
-    </div>
+    <FormFieldContext value={context}>
+      <div ref={ref} className={cn('flex flex-col gap-ds-xs', className)} {...props}>
+        {labelNode}
+        {control}
+        {messages}
+      </div>
+    </FormFieldContext>
   )
 }

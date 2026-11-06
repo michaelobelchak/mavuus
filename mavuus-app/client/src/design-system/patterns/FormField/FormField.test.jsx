@@ -153,6 +153,16 @@ describe('FormField', () => {
     expect(screen.getByText('Seniority').tagName).not.toBe('LABEL')
   })
 
+  it('should warn in dev when the control also gets its own label prop', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <FormField label="Accept the terms" layout="inline">
+        <Checkbox label="Accept the terms" />
+      </FormField>,
+    )
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/FormField: .*label prop/))
+  })
+
   it('should warn and fall back to stacked when the layout is unknown', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(
