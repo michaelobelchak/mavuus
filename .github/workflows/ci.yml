@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   client:
-    name: Client lint + build
+    name: Client lint, tests + build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -25,6 +25,7 @@ jobs:
           cache-dependency-path: mavuus-app/client/package-lock.json
       - run: npm ci
       - run: npx eslint . --max-warnings 0
+      - run: npx vitest run
       - run: npx vite build
       - run: npm run guard
 
