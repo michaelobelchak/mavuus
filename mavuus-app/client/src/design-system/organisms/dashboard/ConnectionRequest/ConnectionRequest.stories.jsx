@@ -11,7 +11,7 @@ export default {
   title: 'Organisms/Dashboard/ConnectionRequest',
   component: ConnectionRequest,
   tags: ['autodocs'],
-  decorators: [(Story) => <div className="max-w-2xl"><Story /></div>],
+  decorators: [(Story) => <div className="w-2xl max-w-full"><Story /></div>],
   args: { ...requests[0], to: '/dashboard/members/1', onAccept: () => {}, onDecline: () => {} },
   argTypes: { status: { control: 'select', options: ['pending', 'accepted', 'declined'] } },
 }

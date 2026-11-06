@@ -100,6 +100,7 @@ export default {
   title: 'Organisms/Admin/AdminDataTable',
   component: AdminDataTable,
   tags: ['autodocs'],
+  decorators: [(Story) => <div className="w-7xl max-w-full"><Story /></div>],
   args: {
     caption: 'Reviews',
     columns,

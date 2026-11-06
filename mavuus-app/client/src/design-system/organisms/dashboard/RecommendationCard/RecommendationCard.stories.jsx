@@ -23,7 +23,7 @@ export default {
   title: 'Organisms/Dashboard/RecommendationCard',
   component: RecommendationCard,
   tags: ['autodocs'],
-  decorators: [(Story) => <div className="max-w-xl"><Story /></div>],
+  decorators: [(Story, { parameters }) => <div className={parameters.wide ? 'w-5xl max-w-full' : 'w-xl max-w-full'}><Story /></div>],
   args: recommendations[0],
 }
 
@@ -43,7 +43,7 @@ export const LongContent = {
 export const Loading = { render: () => <RecommendationCardSkeleton /> }
 
 export const Grid = {
-  decorators: [(Story) => <div className="max-w-5xl"><Story /></div>],
+  parameters: { wide: true },
   render: () => (
     <ul className="grid grid-cols-1 gap-ds-md md:grid-cols-2">
       {recommendations.map((recommendation) => (

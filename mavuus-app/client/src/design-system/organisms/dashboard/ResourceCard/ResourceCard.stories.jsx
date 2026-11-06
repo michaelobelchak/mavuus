@@ -51,7 +51,7 @@ export default {
   title: 'Organisms/Dashboard/ResourceCard',
   component: ResourceCard,
   tags: ['autodocs'],
-  decorators: [(Story) => <div className="max-w-sm"><Story /></div>],
+  decorators: [(Story, { parameters }) => <div className={parameters.wide ? 'w-6xl max-w-full' : 'w-sm max-w-full'}><Story /></div>],
   args: { ...resources[0], to: '/dashboard/resources/1' },
 }
 
@@ -75,7 +75,7 @@ export const LongContent = {
 export const Loading = { render: () => <ResourceCardSkeleton /> }
 
 export const Grid = {
-  decorators: [(Story) => <div className="max-w-6xl"><Story /></div>],
+  parameters: { wide: true },
   render: () => (
     <ul className="grid grid-cols-1 gap-ds-md md:grid-cols-2 lg:grid-cols-3">
       {resources.map((resource) => (

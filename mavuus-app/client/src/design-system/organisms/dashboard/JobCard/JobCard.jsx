@@ -55,11 +55,11 @@ export function JobCard({
     ...meta,
   ]
   const hasSave = typeof onSavedChange === 'function'
-  const hasSide = hasSave || onRemove || actions || postedLabel
+  const hasSide = hasSave || onRemove || actions
 
   return (
     <Card as={as} padding="md" interactive={linked} className={cn('flex h-full gap-ds-md', className)} {...props}>
-      <CompanyLogo name={company} src={logoSrc} size="lg" />
+      <CompanyLogo name={company} src={logoSrc} size="lg" className="max-sm:size-10 max-sm:text-body-sm" />
       <div className="flex min-w-0 grow flex-col gap-ds-xs">
         <div className="flex flex-wrap items-center gap-ds-xs">
           <Heading level={level} size="h4" className="line-clamp-2 min-w-0 break-words">
@@ -84,7 +84,7 @@ export function JobCard({
             {description}
           </Text>
         )}
-        {(facts.some((fact) => fact.label) || category) && (
+        {(facts.some((fact) => fact.label) || category || postedLabel) && (
           <div className="flex flex-wrap items-center gap-ds-sm">
             <MetaList items={facts} />
             {category && (
@@ -92,38 +92,34 @@ export function JobCard({
                 {category}
               </Badge>
             )}
+            {postedLabel && <Caption className="ml-auto whitespace-nowrap">{postedLabel}</Caption>}
           </div>
         )}
       </div>
       {hasSide && (
-        <div className="flex shrink-0 flex-col items-end justify-between gap-ds-xs">
-          {(hasSave || onRemove || actions) && (
-            <CardAction className="flex items-center gap-ds-xxs">
-              {actions}
-              {hasSave && (
-                <IconButton
-                  icon={Bookmark}
-                  variant="ghost"
-                  size="sm"
-                  aria-label={`Save ${title}`}
-                  aria-pressed={Boolean(saved)}
-                  onClick={() => onSavedChange(!saved)}
-                  className={cn(saved && 'text-text-brand-strong [&>svg]:fill-current')}
-                />
-              )}
-              {onRemove && (
-                <IconButton
-                  icon={Trash2}
-                  variant="ghost"
-                  size="sm"
-                  aria-label={`Remove ${title} from saved jobs`}
-                  onClick={onRemove}
-                />
-              )}
-            </CardAction>
+        <CardAction className="flex shrink-0 items-start gap-ds-xxs self-start">
+          {actions}
+          {hasSave && (
+            <IconButton
+              icon={Bookmark}
+              variant="ghost"
+              size="sm"
+              aria-label={`Save ${title}`}
+              aria-pressed={Boolean(saved)}
+              onClick={() => onSavedChange(!saved)}
+              className={cn(saved && 'text-text-brand-strong [&>svg]:fill-current')}
+            />
           )}
-          {postedLabel && <Caption className="whitespace-nowrap">{postedLabel}</Caption>}
-        </div>
+          {onRemove && (
+            <IconButton
+              icon={Trash2}
+              variant="ghost"
+              size="sm"
+              aria-label={`Remove ${title} from saved jobs`}
+              onClick={onRemove}
+            />
+          )}
+        </CardAction>
       )}
     </Card>
   )

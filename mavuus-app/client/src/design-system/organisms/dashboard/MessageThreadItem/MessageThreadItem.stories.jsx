@@ -12,7 +12,7 @@ export default {
   title: 'Organisms/Dashboard/MessageThreadItem',
   component: MessageThreadItem,
   tags: ['autodocs'],
-  decorators: [(Story) => <div className="max-w-sm rounded-card border border-border-subtle bg-surface-raised"><Story /></div>],
+  decorators: [(Story) => <div className="w-sm max-w-full overflow-hidden rounded-card border border-border-subtle bg-surface-raised"><Story /></div>],
   args: { ...threads[0], onSelect: () => {} },
 }
 

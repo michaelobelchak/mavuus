@@ -13,11 +13,11 @@ export function MetaList({ items = [], className, ref, ...props }) {
   return (
     <ul
       ref={ref}
-      className={cn('flex flex-wrap items-center gap-x-ds-md gap-y-ds-xxs text-body-sm text-text-muted', className)}
+      className={cn('flex min-w-0 max-w-full flex-wrap items-center gap-x-ds-md gap-y-ds-xxs text-body-sm text-text-muted', className)}
       {...props}
     >
       {shown.map((item, index) => (
-        <li key={item.key ?? index} className="inline-flex min-w-0 items-center gap-ds-xxs">
+        <li key={item.key ?? index} className="inline-flex min-w-0 max-w-full items-center gap-ds-xxs">
           {item.icon && <Icon icon={item.icon} size="sm" />}
           <span className="truncate">{item.label}</span>
         </li>

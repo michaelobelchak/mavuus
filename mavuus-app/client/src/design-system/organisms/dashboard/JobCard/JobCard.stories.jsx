@@ -49,7 +49,7 @@ export default {
   title: 'Organisms/Dashboard/JobCard',
   component: JobCard,
   tags: ['autodocs'],
-  decorators: [(Story) => <div className="max-w-3xl"><Story /></div>],
+  decorators: [(Story, { parameters }) => <div className={parameters.wide ? 'w-4xl max-w-full' : 'w-3xl max-w-full'}><Story /></div>],
   args: { ...jobs[0], to: '/dashboard/jobs/42' },
   render: (args) => <SaveableJob {...args} />,
 }
@@ -107,7 +107,7 @@ export const LongContent = {
 export const Loading = { render: () => <JobCardSkeleton /> }
 
 export const List = {
-  decorators: [(Story) => <div className="max-w-4xl"><Story /></div>],
+  parameters: { wide: true },
   render: () => (
     <ul className="flex flex-col gap-ds-sm">
       {jobs.map((job) => (

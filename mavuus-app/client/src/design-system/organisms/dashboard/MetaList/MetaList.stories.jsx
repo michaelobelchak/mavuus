@@ -27,7 +27,7 @@ export const MissingFields = {
 }
 
 export const NarrowWrap = {
-  decorators: [(Story) => <div className="max-w-56"><Story /></div>],
+  decorators: [(Story) => <div className="w-56 max-w-full"><Story /></div>],
   args: {
     items: [
       { key: 'location', icon: MapPin, label: 'San Francisco Bay Area, hybrid' },

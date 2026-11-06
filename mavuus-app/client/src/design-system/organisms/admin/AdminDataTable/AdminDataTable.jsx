@@ -161,10 +161,10 @@ export function AdminDataTable({
           aria-label="Bulk actions"
           className="flex flex-wrap items-center gap-ds-sm rounded-card bg-surface-selected px-ds-md py-ds-sm"
         >
-          <Text as="span" size="body-sm" className="font-semibold">
+          <Text as="span" size="body-sm" className="order-1 font-semibold">
             {`${count} selected`}
           </Text>
-          <div className="flex flex-wrap items-center gap-ds-xs">
+          <div className="order-3 flex w-full flex-wrap items-center gap-ds-xs sm:order-2 sm:w-auto">
             {visibleBulk.map((action) => (
               <Button
                 key={action.key ?? action.label}
@@ -177,7 +177,7 @@ export function AdminDataTable({
               </Button>
             ))}
           </div>
-          <Button size="sm" variant="ghost" leadingIcon={X} className="ml-auto" onClick={() => setSelected([])}>
+          <Button size="sm" variant="ghost" leadingIcon={X} className="order-2 ml-auto sm:order-3" onClick={() => setSelected([])}>
             Clear selection
           </Button>
         </div>

@@ -42,7 +42,7 @@ export default {
   title: 'Organisms/Dashboard/SessionCard',
   component: SessionCard,
   tags: ['autodocs'],
-  decorators: [(Story) => <div className="max-w-sm"><Story /></div>],
+  decorators: [(Story, { parameters }) => <div className={parameters.wide ? 'w-6xl max-w-full' : 'w-sm max-w-full'}><Story /></div>],
   args: { ...sessions[0], to: '/dashboard/live-sessions/1' },
   argTypes: { kind: { control: 'select', options: ['live', 'recording'] } },
 }
@@ -73,7 +73,7 @@ export const LongContent = {
 export const Loading = { render: () => <SessionCardSkeleton /> }
 
 export const Grid = {
-  decorators: [(Story) => <div className="max-w-6xl"><Story /></div>],
+  parameters: { wide: true },
   render: () => (
     <ul className="grid grid-cols-1 gap-ds-md md:grid-cols-2 lg:grid-cols-3">
       {sessions.map((session) => (

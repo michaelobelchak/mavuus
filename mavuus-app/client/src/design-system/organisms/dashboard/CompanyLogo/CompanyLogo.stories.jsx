@@ -16,4 +16,4 @@ export const Large = { args: { size: 'lg' } }
 
 export const NoName = { args: { name: undefined } }
 
-export const BrokenImage = { args: { name: 'Lumen Creative', src: '/does-not-exist.png' } }
+export const BrokenImage = { args: { name: 'Lumen Creative', src: 'data:image/png;base64,AAAA' } }

@@ -35,7 +35,7 @@ export default {
   title: 'Organisms/Dashboard/ReviewCard',
   component: ReviewCard,
   tags: ['autodocs'],
-  decorators: [(Story) => <div className="max-w-xl"><Story /></div>],
+  decorators: [(Story, { parameters }) => <div className={parameters.wide ? 'w-5xl max-w-full' : 'w-xl max-w-full'}><Story /></div>],
   args: reviews[0],
 }
 
@@ -63,7 +63,7 @@ export const Clamped = { args: { text: longText, clamp: true } }
 export const Loading = { render: () => <ReviewCardSkeleton /> }
 
 export const Grid = {
-  decorators: [(Story) => <div className="max-w-5xl"><Story /></div>],
+  parameters: { wide: true },
   render: () => (
     <ul className="grid grid-cols-1 gap-ds-md md:grid-cols-2">
       {reviews.map((review) => (

@@ -15,7 +15,7 @@ export default {
   title: 'Organisms/Dashboard/MemberCard',
   component: MemberCard,
   tags: ['autodocs'],
-  decorators: [(Story) => <div className="max-w-xs"><Story /></div>],
+  decorators: [(Story, { parameters }) => <div className={parameters.wide ? 'w-6xl max-w-full' : 'w-xs max-w-full'}><Story /></div>],
   args: { ...members[0], ...handlers, to: '/dashboard/members/1' },
   argTypes: { connection: { control: 'select', options: ['none', 'outgoing', 'incoming', 'connected'] } },
 }
@@ -45,7 +45,7 @@ export const LongContent = {
 export const Loading = { render: () => <MemberCardSkeleton /> }
 
 export const Grid = {
-  decorators: [(Story) => <div className="max-w-6xl"><Story /></div>],
+  parameters: { wide: true },
   render: () => (
     <ul className="grid grid-cols-1 gap-ds-md md:grid-cols-2 lg:grid-cols-3">
       {members.map((member) => (

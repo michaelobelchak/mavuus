@@ -29,8 +29,8 @@ export function RecommendationCard({ fromName, fromTitle, fromAvatarSrc, message
               {fromName}
             </Text>
             {subject && (
-              <Badge size="sm" tone="info">
-                {subject}
+              <Badge size="sm" tone="info" className="max-w-full min-w-0">
+                <span className="truncate">{subject}</span>
               </Badge>
             )}
           </div>
