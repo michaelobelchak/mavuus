@@ -65,15 +65,16 @@ export default function AdminDashboardPage() {
             <TrendingUp size={18} className="text-brand-pink" />
             <h2 className="text-lg font-semibold text-dark-blue">Weekly Signups (12 weeks)</h2>
           </div>
-          <div className="flex items-end gap-2 h-40">
+          <div className="flex items-end gap-1 sm:gap-2 h-40">
             {growth.map((w, i) => {
               const maxCount = Math.max(...growth.map(g => g.count), 1)
               const height = (w.count / maxCount) * 100
               return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                <div key={i} className="flex-1 min-w-0 flex flex-col items-center gap-1">
                   <span className="text-[10px] text-neutral-400">{w.count}</span>
                   <div className="w-full bg-brand-pink/80 rounded-t" style={{ height: `${Math.max(height, 4)}%` }} />
-                  <span className="text-[9px] text-neutral-400 truncate w-full text-center">{w.start?.slice(5)}</span>
+                  {/* Below sm only every other date fits, so odd weeks hide theirs */}
+                  <span className={`text-[9px] text-neutral-400 whitespace-nowrap text-center ${i % 2 ? 'max-sm:invisible' : ''}`}>{w.start?.slice(5)}</span>
                 </div>
               )
             })}
