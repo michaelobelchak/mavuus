@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Switch } from './Switch'
 
 describe('Switch', () => {
@@ -11,6 +12,14 @@ describe('Switch', () => {
     fireEvent.click(toggle)
     expect(toggle).toHaveAttribute('aria-checked', 'true')
     expect(onCheckedChange).toHaveBeenCalledWith(true, expect.anything())
+  })
+
+  it('should toggle when Space is pressed', async () => {
+    const user = userEvent.setup()
+    render(<Switch label="Email notifications" />)
+    await user.tab()
+    await user.keyboard(' ')
+    expect(screen.getByRole('switch', { name: 'Email notifications' })).toHaveAttribute('aria-checked', 'true')
   })
 
   it('should toggle when the label text is clicked', () => {

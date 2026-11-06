@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Radio, RadioGroup } from './Radio'
 
 const options = [
@@ -26,6 +27,7 @@ describe('RadioGroup', () => {
   })
 
   it('should move selection with arrow keys within the group', async () => {
+    const user = userEvent.setup()
     const onValueChange = vi.fn()
     render(
       <RadioGroup aria-label="Digest frequency" defaultValue="weekly" onValueChange={onValueChange}>
@@ -35,12 +37,13 @@ describe('RadioGroup', () => {
       </RadioGroup>,
     )
     const weekly = screen.getByRole('radio', { name: 'Weekly' })
-    act(() => weekly.focus())
-    fireEvent.keyDown(weekly, { key: 'ArrowDown' })
+    await user.tab()
+    expect(weekly).toHaveFocus()
+    await user.keyboard('{ArrowDown}')
     await waitFor(() => expect(screen.getByRole('radio', { name: 'Monthly' })).toHaveAttribute('aria-checked', 'true'))
     expect(screen.getByRole('radio', { name: 'Monthly' })).toHaveFocus()
     expect(onValueChange).toHaveBeenLastCalledWith('monthly', expect.anything())
-    fireEvent.keyDown(screen.getByRole('radio', { name: 'Monthly' }), { key: 'ArrowUp' })
+    await user.keyboard('{ArrowUp}')
     await waitFor(() => expect(weekly).toHaveAttribute('aria-checked', 'true'))
   })
 

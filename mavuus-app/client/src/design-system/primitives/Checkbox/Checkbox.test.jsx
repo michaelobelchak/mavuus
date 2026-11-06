@@ -1,12 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Checkbox } from './Checkbox'
-
-function pressSpace(element) {
-  act(() => element.focus())
-  fireEvent.keyDown(element, { key: ' ' })
-  fireEvent.keyUp(element, { key: ' ' })
-}
 
 describe('Checkbox', () => {
   it('should toggle and call onCheckedChange when clicked', () => {
@@ -19,10 +14,13 @@ describe('Checkbox', () => {
     expect(onCheckedChange).toHaveBeenCalledWith(true, expect.anything())
   })
 
-  it('should toggle when Space is pressed', () => {
+  it('should toggle when Space is pressed', async () => {
+    const user = userEvent.setup()
     render(<Checkbox label="Open to mentoring" />)
     const box = screen.getByRole('checkbox', { name: 'Open to mentoring' })
-    pressSpace(box)
+    await user.tab()
+    expect(box).toHaveFocus()
+    await user.keyboard(' ')
     expect(box).toHaveAttribute('aria-checked', 'true')
   })
 
