@@ -115,6 +115,28 @@ describe('FilterBar', () => {
     expect(screen.getByRole('button', { name: 'Clear filters' })).toBeInTheDocument()
   })
 
+  it('should size selects, chips and Clear filters for touch by default', () => {
+    render(<FilterBar filters={filters({ workType: 'remote' })} />)
+    expect(screen.getByRole('combobox', { name: 'Work type' })).toHaveClass('h-12')
+    expect(screen.getByRole('button', { name: 'Clear filters' })).toHaveClass('h-12')
+    const chip = screen.getByRole('button', { name: 'CMO' })
+    expect(chip).toHaveClass('h-10', 'relative', 'after:absolute', 'after:-inset-y-1')
+  })
+
+  it('should pass the dense sm size to its controls when size is sm', () => {
+    render(<FilterBar size="sm" filters={filters({ workType: 'remote' })} />)
+    expect(screen.getByRole('combobox', { name: 'Work type' })).toHaveClass('h-10')
+    expect(screen.getByRole('button', { name: 'Clear filters' })).toHaveClass('h-10')
+    expect(screen.getByRole('button', { name: 'CMO' })).toHaveClass('h-10', 'after:-inset-y-1')
+  })
+
+  it('should warn and fall back to md when the size is unknown', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<FilterBar size="xl" filters={filters()} />)
+    expect(screen.getByRole('combobox', { name: 'Work type' })).toHaveClass('h-12')
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/FilterBar: size "xl"/))
+  })
+
   it('should warn and skip a filter with an unknown type', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(<FilterBar filters={[{ type: 'range', key: 'salary', label: 'Salary' }]} />)

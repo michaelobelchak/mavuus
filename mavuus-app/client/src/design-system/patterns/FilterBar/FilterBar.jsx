@@ -1,9 +1,16 @@
 import { X } from 'lucide-react'
 import { cn } from '../../lib/cn'
+import { resolveControlSize } from '../../lib/controlSizes'
 import { warnOnce } from '../../lib/warnOnce'
 import { Button, Chip, Select } from '../../primitives'
 
 const FILTER_TYPES = ['select', 'chips']
+const SIZES = ['sm', 'md']
+const DEFAULT_SIZE = 'md'
+
+// Chips stop at 40px (sm). The ::after extends the hit area 4px above and below, so a chip is a
+// 48px touch target in the md bar and still at least 44px in the dense sm bar.
+const chipHitArea = "relative after:absolute after:inset-x-0 after:-inset-y-1 after:content-['']"
 
 // The value a filter goes back to on "Clear filters": no selection.
 function emptyValue(filter) {
@@ -36,7 +43,8 @@ function ChipsFilter({ filter }) {
       {filter.options.map((option) => (
         <Chip
           key={String(option.value)}
-          size={filter.size}
+          size="sm"
+          className={chipHitArea}
           selected={filter.multiple ? selected.includes(option.value) : selected === option.value}
           disabled={option.disabled}
           onClick={() => toggle(option.value)}
@@ -51,11 +59,12 @@ function ChipsFilter({ filter }) {
 /**
  * Row of list controls above a table or grid. Wraps onto more lines on small screens.
  * - `search`: a slot, usually a SearchInput. `actions`: a slot on the right (export, view toggles).
- * - `filters`: [{ type: 'select', key, label, items, value, onChange(value), placeholder, size }]
+ * - `filters`: [{ type: 'select', key, label, items, value, onChange(value), placeholder }]
  *   or [{ type: 'chips', key, label, options: [{ value, label, disabled }], multiple, value,
- *   onChange(value), size }]. `label` names the select or the chip group. Multiple chips use an
- *   array value; single chips toggle off on a second click. Selects and chips default to the sm
- *   (40px) toolbar size.
+ *   onChange(value) }]. `label` names the select or the chip group. Multiple chips use an
+ *   array value; single chips toggle off on a second click.
+ * - `size`: md (default, 48px selects and button, touch friendly) or sm (40px, dense desktop
+ *   toolbars only). Chips are always 40px with a hit area that reaches 48px.
  * - "Clear filters" shows while any filter has a value (or `active` is true, for state kept
  *   outside the filters such as the search text). It calls each active filter's onChange with its
  *   empty value (null, or [] for multiple chips, or the filter's `emptyValue`), then `onClear()`.
@@ -68,10 +77,12 @@ export function FilterBar({
   active = false,
   onClear,
   clearLabel = 'Clear filters',
+  size,
   className,
   ref,
   ...props
 }) {
+  const resolvedSize = resolveControlSize(size, SIZES, DEFAULT_SIZE, 'FilterBar')
   const known = filters.filter((filter) => {
     if (FILTER_TYPES.includes(filter.type)) return true
     warnOnce(
@@ -96,7 +107,7 @@ export function FilterBar({
           <Select
             key={filter.key}
             aria-label={filter.label}
-            size={filter.size ?? 'sm'}
+            size={resolvedSize}
             items={filter.items}
             placeholder={filter.placeholder}
             value={filter.value ?? null}
@@ -108,7 +119,7 @@ export function FilterBar({
         ),
       )}
       {showClear && (
-        <Button variant="ghost" size="sm" leadingIcon={X} onClick={clearAll}>
+        <Button variant="ghost" size={resolvedSize} leadingIcon={X} onClick={clearAll}>
           {clearLabel}
         </Button>
       )}
