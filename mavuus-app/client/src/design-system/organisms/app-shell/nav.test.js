@@ -1,46 +1,83 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs'
+import { parse } from '@babel/parser'
 import { describe, expect, it, vi } from 'vitest'
 import { ADMIN_NAV, buildUserMenuItems, findActiveItem, flattenNav, MEMBER_NAV } from './nav'
 
 const appSource = readFileSync(new URL('../../../App.jsx', import.meta.url), 'utf8')
 
-// The child route paths declared inside <Route path={base}> ... </Route> in App.jsx.
-function childRoutes(base) {
-  const start = appSource.indexOf(`path="${base}"`)
-  expect(start, `App.jsx has a ${base} route`).toBeGreaterThan(-1)
-  const open = appSource.indexOf('>', appSource.indexOf('element={', start))
-  let depth = 0
-  let index = start
-  const routes = []
-  const tag = /<Route\b[^>]*?(\/?)>|<\/Route>/g
-  tag.lastIndex = open
-  let match
-  while ((match = tag.exec(appSource))) {
-    if (match[0] === '</Route>') {
-      if (depth === 0) break
-      depth -= 1
-      continue
-    }
-    index = match.index
-    const element = match[0]
-    const path = element.match(/path="([^"]+)"/)?.[1]
-    if (/\bindex\b/.test(element)) routes.push(base)
-    else if (path) routes.push(`${base}/${path}`)
-    if (!match[1]) depth += 1
-  }
-  expect(index).toBeGreaterThan(start)
-  return routes
+function attribute(element, name) {
+  return element.openingElement.attributes.find((attr) => attr.type === 'JSXAttribute' && attr.name.name === name)
 }
 
+/**
+ * Every route path declared with <Route> in `source`, as full paths: nested paths are joined to
+ * their parent's, index routes take the parent's path and pathless layout routes pass theirs on.
+ * Parsed with @babel/parser (already installed with Vite), so attribute order, JSX inside
+ * `element={...}` and self-closing tags don't matter.
+ */
+function routePaths(source) {
+  const ast = parse(source, { sourceType: 'module', plugins: ['jsx'] })
+  const paths = []
+  const join = (base, path) => (path.startsWith('/') ? path : `${base.replace(/\/$/, '')}/${path}`)
+  const visit = (node, base) => {
+    if (!node || typeof node !== 'object') return
+    if (Array.isArray(node)) return node.forEach((child) => visit(child, base))
+    if (node.type === 'JSXElement' && node.openingElement.name.name === 'Route') {
+      const pathAttr = attribute(node, 'path')
+      const path = pathAttr?.value?.type === 'StringLiteral' ? join(base, pathAttr.value.value) : base
+      if (pathAttr || attribute(node, 'index')) paths.push(path || '/')
+      return node.children.forEach((child) => visit(child, path))
+    }
+    for (const [key, value] of Object.entries(node)) {
+      if (key !== 'loc' && key !== 'start' && key !== 'end') visit(value, base)
+    }
+  }
+  visit(ast.program, '')
+  return paths
+}
+
+const appRoutes = routePaths(appSource)
+const routesUnder = (base) => appRoutes.filter((path) => path === base || path.startsWith(`${base}/`))
 const sample = (route) => route.replace(/:[^/]+/g, '42')
+
+describe('routePaths', () => {
+  it('should build full nested paths, index routes and routes after a nested layout', () => {
+    const fixture = `
+      export const routes = (
+        <Routes>
+          <Route element={<Public />}>
+            <Route path="/" element={<Home />} />
+          </Route>
+          <Route path="/dashboard" element={<Guard><Layout /></Guard>}>
+            <Route index element={<Academy />} />
+            <Route element={<Nested />}>
+              <Route path="jobs/:id" element={<Job kind="a" />} />
+            </Route>
+            <Route element={<Settings />} path="settings" />
+          </Route>
+          <Route path="/after" element={<After />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      )`
+    expect(routePaths(fixture)).toEqual([
+      '/',
+      '/dashboard',
+      '/dashboard',
+      '/dashboard/jobs/:id',
+      '/dashboard/settings',
+      '/after',
+      '/*',
+    ])
+  })
+})
 
 describe('nav config', () => {
   it.each([
     ['/dashboard', MEMBER_NAV],
     ['/admin', ADMIN_NAV],
   ])('should cover every %s route in App.jsx so the nav cannot drift', (base, nav) => {
-    const routes = childRoutes(base)
+    const routes = routesUnder(base)
     expect(routes.length).toBeGreaterThan(10)
     for (const route of routes) {
       expect(findActiveItem(nav, { pathname: sample(route) }), route).not.toBeNull()
@@ -48,7 +85,7 @@ describe('nav config', () => {
   })
 
   it('should point every nav item at a route that exists in App.jsx', () => {
-    const routes = [...childRoutes('/dashboard'), ...childRoutes('/admin')]
+    const routes = [...routesUnder('/dashboard'), ...routesUnder('/admin')]
     for (const item of [...flattenNav(MEMBER_NAV), ...flattenNav(ADMIN_NAV)]) {
       const pathname = item.to.split('?')[0]
       expect(routes, item.label).toContain(pathname)
