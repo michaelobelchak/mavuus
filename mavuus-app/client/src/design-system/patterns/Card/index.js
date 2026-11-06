@@ -1,2 +1,2 @@
-export { Card } from './Card'
+export { Card, CardAction, CardLink } from './Card'
 export { cardVariants } from './cardVariants'

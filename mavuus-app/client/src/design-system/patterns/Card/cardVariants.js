@@ -14,7 +14,14 @@ export const cardPaddings = {
   lg: 'p-ds-lg',
 }
 
-export const cardVariants = cva('block rounded-card text-left', {
+// Always relative so a CardLink overlay covers the card; the ring shows when its CardLink has keyboard focus.
+const cardBase = [
+  'relative block rounded-card text-left',
+  'has-[[data-card-link]:focus-visible]:outline-2 has-[[data-card-link]:focus-visible]:outline-offset-2',
+  'has-[[data-card-link]:focus-visible]:outline-border-focus',
+]
+
+export const cardVariants = cva(cardBase, {
   variants: {
     variant: {
       // Stats, offering cards, proof boxes. `rule` adds the pink brand rule on the left.

@@ -65,4 +65,13 @@ describe('StatCard', () => {
     expect(screen.queryByText('430')).toBeNull()
     expect(screen.getByText('Loading Users')).toHaveClass('sr-only')
   })
+
+  it('should render no link while loading even when given to', () => {
+    render(
+      <MemoryRouter>
+        <StatCard {...stat} to="/admin/users" loading />
+      </MemoryRouter>,
+    )
+    expect(screen.queryByRole('link')).toBeNull()
+  })
 })

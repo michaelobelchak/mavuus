@@ -1,7 +1,7 @@
 export { Accordion } from './Accordion'
 export { Alert, alertVariants, Banner } from './Alert'
 export { Breadcrumbs } from './Breadcrumbs'
-export { Card, cardVariants } from './Card'
+export { Card, CardAction, CardLink, cardVariants } from './Card'
 export { CheckList } from './CheckList'
 export { CountUp } from './CountUp'
 export { EmptyState } from './EmptyState'

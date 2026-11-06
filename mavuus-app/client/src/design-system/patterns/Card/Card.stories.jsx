@@ -1,6 +1,7 @@
 import { MemoryRouter } from 'react-router-dom'
-import { Heading, Text } from '../../primitives'
-import { Card } from './Card'
+import { Bookmark } from 'lucide-react'
+import { Heading, IconButton, Text } from '../../primitives'
+import { Card, CardAction, CardLink } from './Card'
 
 export default {
   title: 'Patterns/Card',
@@ -51,4 +52,19 @@ export const WithRule = { args: { rule: true } }
 
 export const Interactive = { args: { interactive: true } }
 
-export const AsLink = { args: { to: '/jobs/42' } }
+export const Clickable = {
+  args: {
+    interactive: true,
+    children: (
+      <div className="flex flex-col gap-ds-xs">
+        <Heading level={3} size="h4">
+          <CardLink to="/jobs/42">Head of Growth</CardLink>
+        </Heading>
+        <Text tone="secondary">Remote, full time</Text>
+        <CardAction className="self-end">
+          <IconButton icon={Bookmark} aria-label="Save job" />
+        </CardAction>
+      </div>
+    ),
+  },
+}

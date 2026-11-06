@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { resetWarnings } from '../../lib/warnOnce'
-import { Card } from './Card'
+import { Card, CardAction, CardLink } from './Card'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -76,56 +76,90 @@ describe('Card', () => {
     expect(error).toHaveBeenCalledWith(expect.stringMatching(/Card: variant "glass"/))
   })
 
-  it('should make the whole card one router link named by its content when given to', () => {
+  it('should always be positioned so a CardLink overlay covers it', () => {
+    render(<Card data-testid="card" />)
+    expect(screen.getByTestId('card')).toHaveClass('relative')
+  })
+
+  it('should name the CardLink with the title only and stretch it over the card', () => {
     render(
       <MemoryRouter>
-        <Card to="/jobs/42">
-          <h3>Head of Growth</h3>
-          <p>Remote</p>
+        <Card interactive>
+          <h3>
+            <CardLink to="/jobs/42">Head of Growth</CardLink>
+          </h3>
+          <p>Remote, full time</p>
         </Card>
       </MemoryRouter>,
     )
     const links = screen.getAllByRole('link')
     expect(links).toHaveLength(1)
+    expect(links[0]).toHaveAccessibleName('Head of Growth')
     expect(links[0]).toHaveAttribute('href', '/jobs/42')
-    expect(links[0]).toHaveAccessibleName('Head of Growth Remote')
-    expect(links[0]).toHaveClass('rounded-card', 'hover:-translate-y-1')
+    expect(links[0]).toHaveClass('after:absolute', 'after:inset-0')
   })
 
-  it('should keep the as tag around the link when given as and to', () => {
+  it('should show the focus ring on the whole card when its CardLink has keyboard focus', () => {
+    render(<Card data-testid="card" />)
+    expect(screen.getByTestId('card')).toHaveClass(
+      'has-[[data-card-link]:focus-visible]:outline-2',
+      'has-[[data-card-link]:focus-visible]:outline-border-focus',
+    )
+  })
+
+  it('should keep a CardAction button clickable above the link and outside it', () => {
+    const onSave = vi.fn()
     render(
       <MemoryRouter>
-        <ul>
-          <Card as="li" to="/jobs/42" data-testid="card">
-            Head of Growth
-          </Card>
-        </ul>
+        <Card>
+          <h3>
+            <CardLink to="/jobs/42">Head of Growth</CardLink>
+          </h3>
+          <CardAction>
+            <button type="button" onClick={onSave}>
+              Save
+            </button>
+          </CardAction>
+        </Card>
       </MemoryRouter>,
     )
-    const item = screen.getByRole('listitem')
-    expect(item).toContainElement(screen.getByRole('link', { name: 'Head of Growth' }))
-    expect(screen.getByTestId('card')).toBe(screen.getByRole('link'))
+    const save = screen.getByRole('button', { name: 'Save' })
+    expect(save.closest('a')).toBeNull()
+    expect(save.parentElement).toHaveClass('relative', 'z-(--ds-z-raised)')
+    fireEvent.click(save)
+    expect(onSave).toHaveBeenCalledTimes(1)
   })
 
-  it('should open an external href in a new tab with the screen reader hint', () => {
-    render(<Card href="https://mavuus.com/events">Events</Card>)
-    const link = screen.getByRole('link', { name: 'Events (opens in a new tab)' })
-    expect(link).toHaveAttribute('target', '_blank')
-  })
-
-  it('should warn in dev when a link card contains another interactive element', () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+  it('should open an external CardLink in a new tab with the screen reader hint', () => {
     render(
-      <Card href="/jobs/42">
-        Head of Growth <button type="button">Save</button>
+      <Card>
+        <CardLink href="https://mavuus.com/events">Events</CardLink>
       </Card>,
     )
-    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Card: .*interactive/))
+    expect(screen.getByRole('link', { name: 'Events (opens in a new tab)' })).toHaveAttribute('target', '_blank')
   })
 
-  it('should not warn when a link card has no nested interactive elements', () => {
+  it('should not take to or href on Card itself', () => {
+    render(
+      <MemoryRouter>
+        <Card to="/jobs/42" data-testid="card">
+          Head of Growth
+        </Card>
+      </MemoryRouter>,
+    )
+    expect(screen.queryByRole('link')).toBeNull()
+    expect(screen.getByTestId('card')).not.toHaveAttribute('to')
+  })
+
+  it('should warn in dev when a CardLink sits inside another link', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    render(<Card href="/jobs/42">Head of Growth</Card>)
-    expect(error).not.toHaveBeenCalled()
+    render(
+      <a href="/outer">
+        <Card>
+          <CardLink href="/inner">Inner</CardLink>
+        </Card>
+      </a>,
+    )
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/CardLink: .*inside another link/))
   })
 })

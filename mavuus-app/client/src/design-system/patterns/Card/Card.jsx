@@ -18,9 +18,6 @@ import {
 // Static lookup so the rendered tag is never a component created during render.
 const cardTags = Object.fromEntries(CARD_TAGS.map((name) => [name, name]))
 
-const NESTED_INTERACTIVE =
-  'a[href], button, input, select, textarea, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])'
-
 /**
  * Card container.
  * - `variant`: feature (default, white with hairline border and card shadow), surface (white, default
@@ -28,83 +25,83 @@ const NESTED_INTERACTIVE =
  * - `rule`: the 4px pink left rule, the brand signature. `interactive`: hover lift (none with reduced motion).
  * - `padding`: none, sm, md or lg (default). On a media card it pads the body below `media`.
  * - `as`: div (default), article, section or li.
- * - `to` / `href`: the whole card becomes one link (through lib/linkProps), named by its content.
- *   Link cards lift on hover unless `interactive={false}`. Don't put buttons or links inside a link
- *   card; it warns in dev when you do. With `as`, the tag wraps the link (li > a).
- * `className` and other props go to the card element (the link for link cards).
+ *
+ * Clickable cards use the stretched-link pattern: put a <CardLink> in the title. Its overlay covers the
+ * whole card (the card is always `position: relative`), the link is named by the title only, and the
+ * focus ring is drawn on the card. Wrap buttons or other links in <CardAction> so they sit above the
+ * overlay. `className` and other props go to the card element.
  */
-export function Card({
-  as,
-  variant,
-  padding,
-  rule = false,
-  interactive,
-  media,
-  to,
-  href,
-  target,
-  rel,
-  className,
-  children,
-  ref,
-  ...props
-}) {
+export function Card({ as, variant, padding, rule = false, interactive = false, media, className, children, ref, ...props }) {
   const resolvedVariant = resolveOption(variant, CARD_VARIANTS, DEFAULT_CARD_VARIANT, 'Card', 'variant')
   const resolvedPadding = resolveOption(padding, CARD_PADDINGS, DEFAULT_CARD_PADDING, 'Card', 'padding')
-  const tag = resolveOption(as, CARD_TAGS, 'div', 'Card', 'as')
-  const Tag = cardTags[tag]
-  const isLink = to !== undefined || href !== undefined
+  const Tag = cardTags[resolveOption(as, CARD_TAGS, 'div', 'Card', 'as')]
   const isMedia = resolvedVariant === 'media'
-  const linkRef = useRef(null)
+  const { to, href, ...rest } = props
 
-  useEffect(() => {
-    if (isLink && linkRef.current?.querySelector(NESTED_INTERACTIVE)) {
-      warnOnce(
-        'Card:nested-interactive',
-        'Card: a link card contains another interactive element (button, link or input). Screen readers and clicks get confused; move it out of the card or drop to/href.',
-      )
-    }
-  })
-
-  const classes = cn(
-    cardVariants({
-      variant: resolvedVariant,
-      padding: isMedia ? 'none' : resolvedPadding,
-      rule,
-      interactive: interactive ?? isLink,
-    }),
-    className,
-  )
-
-  const content = isMedia ? (
-    <>
-      {media && <div>{media}</div>}
-      <div className={cardPaddings[resolvedPadding]}>{children}</div>
-    </>
-  ) : (
-    children
-  )
-
-  if (!isLink) {
-    return (
-      <Tag ref={ref} className={classes} {...props}>
-        {content}
-      </Tag>
-    )
+  if (to !== undefined || href !== undefined) {
+    warnOnce('Card:link-props', 'Card: to and href are not supported. Put a <CardLink> in the card title instead.')
   }
 
+  return (
+    <Tag
+      ref={ref}
+      className={cn(
+        cardVariants({ variant: resolvedVariant, padding: isMedia ? 'none' : resolvedPadding, rule, interactive }),
+        className,
+      )}
+      {...rest}
+    >
+      {isMedia ? (
+        <>
+          {media && <div>{media}</div>}
+          <div className={cardPaddings[resolvedPadding]}>{children}</div>
+        </>
+      ) : (
+        children
+      )}
+    </Tag>
+  )
+}
+
+/**
+ * The one link of a clickable Card. Put it in the title (`<Heading><CardLink to="/jobs/42">Head of
+ * Growth</CardLink></Heading>`). Its ::after overlay stretches over the card, so the whole card is
+ * clickable while the link's accessible name stays the title. Takes `to` or `href` (lib/linkProps).
+ * The card shows the focus ring instead of the small link text.
+ */
+export function CardLink({ to, href, target, rel, className, children, ref, ...props }) {
+  const innerRef = useRef(null)
   const link = linkProps({ to, href, target, rel })
   const { Component } = link
-  const card = (
-    <Component ref={mergeRefs(linkRef, tag === 'div' ? ref : undefined)} className={classes} {...link.props} {...props}>
-      {content}
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    if (innerRef.current?.parentElement?.closest('a[href]')) {
+      warnOnce('CardLink:nested-link', 'CardLink: this card link is inside another link. Nested links are invalid HTML; drop the outer link.')
+    }
+  }, [])
+
+  return (
+    <Component
+      ref={mergeRefs(innerRef, ref)}
+      data-card-link=""
+      className={cn(
+        "text-inherit after:absolute after:inset-0 after:rounded-card after:content-['']",
+        // The card draws the ring (has-[[data-card-link]:focus-visible] in cardVariants), so the
+        // global ring on the small link text is turned off here.
+        'focus-visible:outline-none!',
+        className,
+      )}
+      {...link.props}
+      {...props}
+    >
+      {children}
       {link.opensNewTab && <ExternalHint />}
     </Component>
   )
-  if (tag === 'div') return card
-  return (
-    <Tag ref={ref} className="list-none">
-      {card}
-    </Tag>
-  )
+}
+
+/** Wraps buttons and links inside a clickable Card so they sit above the CardLink overlay. */
+export function CardAction({ className, ref, ...props }) {
+  return <div ref={ref} className={cn('relative z-(--ds-z-raised)', className)} {...props} />
 }

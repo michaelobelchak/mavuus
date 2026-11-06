@@ -1,6 +1,6 @@
 import { Caption, Icon, Skeleton, TrendBadge } from '../../primitives'
 import { trendSpoken } from '../../primitives/TrendBadge/trendText'
-import { Card } from '../Card/Card'
+import { Card, CardLink } from '../Card/Card'
 import { CountUp } from '../CountUp/CountUp'
 import { isCountable } from '../CountUp/countFormat'
 
@@ -13,11 +13,25 @@ function lowerFirst(text) {
  * - `icon`: lucide component, shown in a 40px tinted tile. `label`, `value` (string or number;
  *   numeric-looking values count up with CountUp), `period` ("Last 30 days").
  * - `trend`: { value, direction?, goodWhen? }, passed to TrendBadge.
- * - `loading`: skeleton layout and aria-busy. `to` / `href`: the whole card is a link.
+ * - `loading`: skeleton layout and aria-busy, and no link. `to` / `href`: the whole card is a link
+ *   (a CardLink whose name is the summary).
  * Screen readers get one summary ("Users 430, up 32.54 percent, last 30 days"); the visual parts
  * are hidden from them. Other props go to the Card.
  */
-export function StatCard({ icon, label, value, trend, period, loading = false, className, ...props }) {
+export function StatCard({
+  icon,
+  label,
+  value,
+  trend,
+  period,
+  loading = false,
+  to,
+  href,
+  target,
+  rel,
+  className,
+  ...props
+}) {
   if (loading) {
     return (
       <Card aria-busy="true" className={className} {...props}>
@@ -31,6 +45,7 @@ export function StatCard({ icon, label, value, trend, period, loading = false, c
     )
   }
 
+  const isLink = to !== undefined || href !== undefined
   const valueText = typeof value === 'number' ? value.toLocaleString('en-US') : String(value ?? '')
   const summary = [
     [label, valueText].filter(Boolean).join(' '),
@@ -41,7 +56,7 @@ export function StatCard({ icon, label, value, trend, period, loading = false, c
     .join(', ')
 
   return (
-    <Card className={className} {...props}>
+    <Card interactive={isLink} className={className} {...props}>
       <div aria-hidden="true" className="flex flex-col gap-ds-md">
         {icon && (
           <span className="inline-flex size-10 items-center justify-center rounded-control bg-surface-selected text-text-brand-strong">
@@ -63,7 +78,14 @@ export function StatCard({ icon, label, value, trend, period, loading = false, c
           </div>
         )}
       </div>
-      <span className="sr-only">{summary}</span>
+      {isLink ? (
+        // The link holds only the summary, so its name is the summary; its overlay covers the card.
+        <CardLink to={to} href={href} target={target} rel={rel}>
+          <span className="sr-only">{summary}</span>
+        </CardLink>
+      ) : (
+        <span className="sr-only">{summary}</span>
+      )}
     </Card>
   )
 }
