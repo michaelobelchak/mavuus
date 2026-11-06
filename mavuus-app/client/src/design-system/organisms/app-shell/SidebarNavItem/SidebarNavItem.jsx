@@ -140,12 +140,11 @@ export function SidebarNavItem({ item, activeTo, collapsed = false, badges, onNa
       </div>
       {children.length > 0 && (
         <ul id={listId} hidden={!open} className="m-ds-none flex list-none flex-col gap-ds-xxs p-ds-none pl-ds-lg">
-          {open &&
-            children.map((child) => (
-              <li key={child.to}>
-                <ItemLink item={child} active={currentTo === child.to} {...linkProps} />
-              </li>
-            ))}
+          {children.map((child) => (
+            <li key={child.to}>
+              <ItemLink item={child} active={currentTo === child.to} {...linkProps} />
+            </li>
+          ))}
         </ul>
       )}
     </li>

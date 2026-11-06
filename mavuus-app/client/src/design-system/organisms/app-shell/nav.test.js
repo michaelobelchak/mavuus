@@ -134,6 +134,12 @@ describe('findActiveItem', () => {
     expect(findActiveItem(MEMBER_NAV, { pathname: '/dashboard/jobsx' })).toBeNull()
   })
 
+  it('should ignore a trailing slash on the config path and on the location', () => {
+    const nav = [{ items: [{ label: 'Jobs', to: '/dashboard/jobs/' }] }]
+    expect(findActiveItem(nav, { pathname: '/dashboard/jobs' }).label).toBe('Jobs')
+    expect(findActiveItem(nav, { pathname: '/dashboard/jobs/42/' }).label).toBe('Jobs')
+  })
+
   it('should prefer an item whose query matches over the plain path', () => {
     expect(findActiveItem(MEMBER_NAV, { pathname: '/dashboard/members', search: '?filter=connections' }).label).toBe(
       'Connections',

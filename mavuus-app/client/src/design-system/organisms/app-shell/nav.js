@@ -130,16 +130,18 @@ export function flattenNav(nav) {
   return items.flatMap((item) => [item, ...(item.children ?? [])])
 }
 
+const trimSlash = (pathname) => pathname.replace(/\/+$/, '') || '/'
+
 function splitTo(to) {
   const [pathname, query = ''] = to.split('?')
-  return { pathname, params: new URLSearchParams(query) }
+  return { pathname: trimSlash(pathname), params: new URLSearchParams(query) }
 }
 
 // How well `item` matches the location: -1 for no match, higher for a closer match. A query that
 // matches beats the same path without one; a longer path beats a shorter one.
 function matchScore(item, location) {
   const { pathname, params } = splitTo(item.to)
-  const current = location.pathname.replace(/\/+$/, '') || '/'
+  const current = trimSlash(location.pathname)
   const exact = current === pathname
   if (!exact && (item.end || !current.startsWith(`${pathname}/`))) return -1
   const search = new URLSearchParams(location.search ?? '')
