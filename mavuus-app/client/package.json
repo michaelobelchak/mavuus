@@ -11,7 +11,8 @@
     "test": "vitest run",
     "tokens": "node scripts/build-tokens.mjs",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build -o storybook-static"
+    "build-storybook": "storybook build -o storybook-static",
+    "check:stories": "node scripts/check-story-coverage.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
