@@ -1,4 +1,5 @@
 import { cloneElement, isValidElement, useEffect, useId, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Tooltip as TooltipPrimitive } from '@base-ui/react/tooltip'
 import { cn } from '../../lib/cn'
 import { mergeRefs } from '../../lib/mergeRefs'
@@ -19,8 +20,8 @@ function hasAccessibleName(element) {
  * - `side`: top (default), bottom, left or right. `delay`: ms before it opens on hover (default 600).
  * - `popupClassName` styles the popup. Other props go to the trigger.
  *
- * The content is always in the DOM in a hidden element that the trigger points at with
- * aria-describedby, so screen readers get the hint whether or not the popup is open. The visual
+ * The content is always in the DOM in a hidden element (portaled to document.body, so the trigger
+ * gets no extra siblings) that the trigger points at with aria-describedby, so screen readers get the hint whether or not the popup is open. The visual
  * popup is aria-hidden so the hint is announced once. The trigger still needs its own accessible
  * name (dev warning if it has none). Escape closes it. The fade turns off with reduced motion.
  */
@@ -49,7 +50,7 @@ export function Tooltip({
         'Tooltip: the trigger has no accessible name. Give it text, aria-label or aria-labelledby; the tooltip only describes it.',
       )
     }
-  })
+  }, [content])
 
   return (
     <TooltipPrimitive.Root open={open} defaultOpen={defaultOpen} onOpenChange={onOpenChange}>
@@ -61,9 +62,14 @@ export function Tooltip({
         {...props}
         aria-describedby={describedBy}
       />
-      <span id={descriptionId} hidden>
-        {content}
-      </span>
+      {/* Portaled to the body so the trigger keeps its place in lists, grids and :last-child rules. */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <span id={descriptionId} hidden>
+            {content}
+          </span>,
+          document.body,
+        )}
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Positioner side={side} sideOffset={8} className="z-(--ds-z-tooltip)">
           <TooltipPrimitive.Popup

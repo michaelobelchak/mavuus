@@ -1,4 +1,5 @@
 import { cn } from '../../lib/cn'
+import { RequiredMark } from '../../lib/RequiredMark'
 
 /**
  * Form label. Point it at a field with `htmlFor`.
@@ -9,15 +10,7 @@ export function Label({ required = false, className, children, ref, ...props }) 
   return (
     <label ref={ref} className={cn('text-body-sm font-semibold text-text-primary', className)} {...props}>
       {children}
-      {required && (
-        <>
-          {' '}
-          <span aria-hidden="true" className="text-status-error">
-            *
-          </span>
-          <span className="sr-only">(required)</span>
-        </>
-      )}
+      {required && <RequiredMark />}
     </label>
   )
 }

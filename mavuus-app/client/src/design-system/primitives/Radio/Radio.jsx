@@ -4,6 +4,7 @@ import { RadioGroup as RadioGroupPrimitive } from '@base-ui/react/radio-group'
 import { choiceHitArea, choiceInvalidClass, choiceLabelClass } from '../../lib/choice'
 import { cn } from '../../lib/cn'
 import { isInvalid } from '../../lib/field'
+import { RequiredMark } from '../../lib/RequiredMark'
 
 // RadioGroup shares its invalid state with every Radio inside it, options or children.
 const RadioGroupInvalidContext = createContext(false)
@@ -13,7 +14,13 @@ const circleClass = [
   'transition-[border-color] duration-150 ease-enter motion-reduce:transition-none',
   'data-[checked]:border-surface-brand-strong',
   'data-[disabled]:cursor-not-allowed data-[disabled]:border-border-default data-[disabled]:bg-surface-sunken',
+  // Disabled wins over checked, spelled out so the result doesn't depend on CSS order.
+  'data-[disabled]:data-[checked]:border-border-default data-[disabled]:data-[checked]:bg-surface-sunken',
 ].join(' ')
+
+// Disabled wins over the group's error border too. Applied after choiceInvalidClass.
+const disabledOverInvalidClass =
+  'data-[disabled]:border-border-default data-[disabled]:data-[checked]:border-border-default'
 
 /**
  * One radio, for use inside RadioGroup.
@@ -25,7 +32,12 @@ export function Radio({ label, className, ref, ...props }) {
   const radio = (
     <RadioPrimitive.Root
       ref={ref}
-      className={cn(circleClass, groupInvalid && choiceInvalidClass, !label && choiceHitArea, !label && className)}
+      className={cn(
+        circleClass,
+        groupInvalid && [choiceInvalidClass, disabledOverInvalidClass],
+        !label && choiceHitArea,
+        !label && className,
+      )}
       {...props}
     >
       <RadioPrimitive.Indicator className="size-2.5 rounded-chip bg-surface-brand-strong data-[disabled]:bg-text-disabled" />
@@ -96,15 +108,7 @@ export function RadioGroup({
     <div className={cn('flex flex-col gap-ds-xs', className)}>
       <span id={labelId} className="text-body-sm font-semibold text-text-primary">
         {label}
-        {required && (
-          <>
-            {' '}
-            <span aria-hidden="true" className="text-status-error">
-              *
-            </span>
-            <span className="sr-only">(required)</span>
-          </>
-        )}
+        {required && <RequiredMark />}
       </span>
       {group}
     </div>

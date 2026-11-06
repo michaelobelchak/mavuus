@@ -88,4 +88,36 @@ describe('RadioGroup', () => {
     expect(group).toHaveAttribute('aria-required', 'true')
     expect(screen.getByText('*')).toHaveAttribute('aria-hidden', 'true')
   })
+
+  it('should use explicit disabled styles when a radio is disabled and checked', () => {
+    render(
+      <RadioGroup aria-label="Plan" defaultValue="free">
+        <Radio value="free" label="Free" disabled />
+      </RadioGroup>,
+    )
+    const radio = screen.getByRole('radio', { name: 'Free' })
+    expect(radio).toHaveAttribute('data-checked')
+    expect(radio).toHaveAttribute('data-disabled')
+    expect(radio).toHaveClass(
+      'data-[disabled]:data-[checked]:border-border-default',
+      'data-[disabled]:data-[checked]:bg-surface-sunken',
+    )
+  })
+
+  it('should keep the disabled border over the error border when a radio is disabled in an invalid group', () => {
+    render(
+      <RadioGroup aria-label="Plan" invalid defaultValue="pro">
+        <Radio value="free" label="Free" disabled />
+        <Radio value="pro" label="Pro" disabled />
+      </RadioGroup>,
+    )
+    for (const radio of screen.getAllByRole('radio')) {
+      expect(radio).toHaveClass(
+        'data-[disabled]:border-border-default',
+        'data-[disabled]:data-[checked]:border-border-default',
+      )
+      expect(radio).not.toHaveClass('data-[checked]:border-surface-brand-strong')
+    }
+  })
 })
+

@@ -109,4 +109,21 @@ describe('Tooltip', () => {
     const popup = document.querySelector('[data-tooltip-popup]')
     expect(popup).toHaveClass('bg-surface-inverse', 'text-text-on-brand', 'rounded-tag', 'text-caption')
   })
+
+  it('should not add siblings next to the trigger when rendered in a list', () => {
+    render(
+      <ul data-testid="list">
+        <li>
+          <Tooltip content="Copy the invite link">
+            <Button>Copy link</Button>
+          </Tooltip>
+        </li>
+      </ul>,
+    )
+    const item = screen.getByTestId('list').firstElementChild
+    expect(item.children).toHaveLength(1)
+    expect(item.firstElementChild).toBe(screen.getByRole('button', { name: 'Copy link' }))
+    expect(screen.getByRole('button', { name: 'Copy link' })).toHaveAccessibleDescription('Copy the invite link')
+  })
 })
+
