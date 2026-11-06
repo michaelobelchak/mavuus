@@ -17,5 +17,14 @@ export { Skeleton, skeletonVariants } from './Skeleton'
 export { Divider } from './Divider'
 export { Tooltip } from './Tooltip'
 export { ProgressBar, progressIndicatorVariants, progressTrackVariants } from './ProgressBar'
-export { Caption, Eyebrow, Heading, Text, eyebrowVariants, headingVariants, textVariants } from './Typography'
+export {
+  Caption,
+  Eyebrow,
+  Heading,
+  Text,
+  captionVariants,
+  eyebrowVariants,
+  headingVariants,
+  textVariants,
+} from './Typography'
 export { Icon } from './Icon'

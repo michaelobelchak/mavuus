@@ -1,6 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { resetWarnings } from '../../lib/warnOnce'
 import { Caption, Eyebrow, Heading, Text } from './Typography'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  resetWarnings()
+})
 
 describe('Heading', () => {
   it.each([1, 2, 3, 4])('should render an h%i when level is %i', (level) => {
@@ -31,6 +37,30 @@ describe('Heading', () => {
       </Heading>,
     )
     expect(screen.getByRole('heading', { level: 1 })).toHaveClass('text-display', 'text-text-on-brand')
+  })
+
+  it.each([5, 6])('should warn and render an h4 when level is %i', (level) => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<Heading level={level}>Deep heading</Heading>)
+    const heading = screen.getByRole('heading', { level: 4 })
+    expect(heading).toHaveClass('text-h4')
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Heading.*level.*5|Heading.*level.*6/))
+  })
+
+  it('should warn and use the level size when size is unknown', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <Heading level={3} size="huge">
+        Upcoming events
+      </Heading>,
+    )
+    expect(screen.getByRole('heading', { level: 3 })).toHaveClass('text-h3')
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Heading.*size.*"huge"/))
+  })
+
+  it('should share the brand tone meaning with Text', () => {
+    render(<Heading tone="brand">Brand heading</Heading>)
+    expect(screen.getByRole('heading')).toHaveClass('text-text-brand-strong')
   })
 
   it('should default to primary text and an h2 when level is missing', () => {
@@ -78,17 +108,43 @@ describe('Text', () => {
   })
 })
 
+describe('Text fallbacks', () => {
+  it('should warn and fall back to the defaults when tone or size is unknown', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <Text tone="pink" size="giant">
+        Copy
+      </Text>,
+    )
+    expect(screen.getByText('Copy')).toHaveClass('text-body', 'text-text-primary')
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Text.*tone.*"pink"/))
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Text.*size.*"giant"/))
+  })
+})
+
 describe('Eyebrow', () => {
-  it('should be a pink uppercase label by default', () => {
+  it('should be the light pink accent by default', () => {
     render(<Eyebrow>For marketing leaders</Eyebrow>)
     const eyebrow = screen.getByText('For marketing leaders')
     expect(eyebrow.tagName).toBe('P')
     expect(eyebrow).toHaveClass('uppercase', 'font-semibold', 'text-body-sm', 'text-text-brand')
   })
 
-  it('should use the darker brand text when tone is brand-strong', () => {
-    render(<Eyebrow tone="brand-strong">Events</Eyebrow>)
+  it('should use the readable brand text when tone is brand, like Text', () => {
+    render(<Eyebrow tone="brand">Events</Eyebrow>)
     expect(screen.getByText('Events')).toHaveClass('text-text-brand-strong')
+  })
+
+  it('should accept the shared tones', () => {
+    render(<Eyebrow tone="muted">Events</Eyebrow>)
+    expect(screen.getByText('Events')).toHaveClass('text-text-muted')
+  })
+
+  it('should warn and use accent when the tone is unknown', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<Eyebrow tone="brand-strong">Events</Eyebrow>)
+    expect(screen.getByText('Events')).toHaveClass('text-text-brand')
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Eyebrow.*tone.*"brand-strong"/))
   })
 })
 
@@ -98,6 +154,19 @@ describe('Caption', () => {
     const caption = screen.getByText('Posted 2 days ago')
     expect(caption.tagName).toBe('SPAN')
     expect(caption).toHaveClass('text-caption', 'text-text-muted')
+  })
+
+  it('should take the shared tones and warn on unknown ones', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <>
+        <Caption tone="error">Required</Caption>
+        <Caption tone="accent">Odd</Caption>
+      </>,
+    )
+    expect(screen.getByText('Required')).toHaveClass('text-status-error')
+    expect(screen.getByText('Odd')).toHaveClass('text-text-muted')
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Caption.*tone.*"accent"/))
   })
 
   it('should render the element given in as', () => {

@@ -59,7 +59,7 @@ export const EyebrowAboveHeading = {
     <div className="flex flex-col gap-ds-xs">
       <Eyebrow>For marketing leaders</Eyebrow>
       <Heading level={2}>Grow with people who have done it</Heading>
-      <Eyebrow tone="brand-strong">Brand strong tone (AA contrast)</Eyebrow>
+      <Eyebrow tone="brand">Brand tone (AA contrast)</Eyebrow>
     </div>
   ),
 }
