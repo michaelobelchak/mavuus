@@ -36,10 +36,14 @@ export function Card({ as, variant, padding, rule = false, interactive = false, 
   const resolvedPadding = resolveOption(padding, CARD_PADDINGS, DEFAULT_CARD_PADDING, 'Card', 'padding')
   const Tag = cardTags[resolveOption(as, CARD_TAGS, 'div', 'Card', 'as')]
   const isMedia = resolvedVariant === 'media'
-  const { to, href, ...rest } = props
+  // Link props would land on a div, so they are dropped. The card links through <CardLink>.
+  const { to, href, target, rel, ...rest } = props
 
-  if (to !== undefined || href !== undefined) {
-    warnOnce('Card:link-props', 'Card: to and href are not supported. Put a <CardLink> in the card title instead.')
+  if ([to, href, target, rel].some((value) => value !== undefined)) {
+    warnOnce(
+      'Card:link-props',
+      'Card: to, href, target and rel are not supported. Put a <CardLink> in the card title instead.',
+    )
   }
 
   return (
@@ -68,6 +72,10 @@ export function Card({ as, variant, padding, rule = false, interactive = false, 
  * Growth</CardLink></Heading>`). Its ::after overlay stretches over the card, so the whole card is
  * clickable while the link's accessible name stays the title. Takes `to` or `href` (lib/linkProps).
  * The card shows the focus ring instead of the small link text.
+ *
+ * The overlay is positioned against the nearest positioned ancestor, which must be the card. Don't
+ * put a CardLink inside another positioned element (a `relative` wrapper, a CardAction) within the
+ * card, or the overlay only covers that element.
  */
 export function CardLink({ to, href, target, rel, className, children, ref, ...props }) {
   const innerRef = useRef(null)

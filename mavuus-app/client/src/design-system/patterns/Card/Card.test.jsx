@@ -151,6 +151,15 @@ describe('Card', () => {
     expect(screen.getByTestId('card')).not.toHaveAttribute('to')
   })
 
+  it('should strip target and rel from Card and warn when given link props', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<Card target="_blank" rel="noopener" data-testid="card" />)
+    const card = screen.getByTestId('card')
+    expect(card).not.toHaveAttribute('target')
+    expect(card).not.toHaveAttribute('rel')
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/Card: .*not supported/))
+  })
+
   it('should warn in dev when a CardLink sits inside another link', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(
