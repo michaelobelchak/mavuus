@@ -33,3 +33,9 @@ export const WithActions = {
 export const NoUnread = { args: { notifications: { count: 0, onClick: () => {} } } }
 
 export const WithMenuButton = { args: { onOpenNav: () => {} } }
+
+export const NotificationsOpen = {
+  args: { notifications: { count: 3, onClick: () => {}, open: true, controlsId: 'notifications-drawer', pulse: true } },
+}
+
+export const MobileSearch = { globals: { viewport: { value: 'mobile', isRotated: false } } }

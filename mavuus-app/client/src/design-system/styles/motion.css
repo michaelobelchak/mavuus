@@ -53,10 +53,18 @@
 }
 .ds-animate-fade-in { animation: ds-fade-in var(--ds-duration-slow) var(--ds-easing-out) both; }
 
+/* A short attention pulse (the notifications bell when the count goes up). */
+@keyframes ds-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+.ds-animate-pulse { animation: ds-pulse var(--ds-duration-slow) var(--ds-easing-in-out); }
+
 @media (prefers-reduced-motion: reduce) {
   .ds-float,
   .live-float,
-  .ds-animate-fade-in { animation: none; }
+  .ds-animate-fade-in,
+  .ds-animate-pulse { animation: none; }
 }
 
 /* Decorative outlined numerals (NumberedTabs big number). Kept here so every design-system CSS rule

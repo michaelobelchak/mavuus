@@ -17,6 +17,12 @@ describe('motion.css', () => {
     expect(reduced).toContain('.live-float')
   })
 
+  it('should turn the pulse off under reduced motion', () => {
+    const reduced = css.slice(css.lastIndexOf('@media (prefers-reduced-motion: reduce)'))
+    expect(css).toMatch(/\.ds-animate-pulse \{ animation: ds-pulse /)
+    expect(reduced).toContain('.ds-animate-pulse')
+  })
+
   it('should have one stagger rule per step in motion.css, 70ms apart', () => {
     const rules = [...css.matchAll(/\[data-reveal-step='(\d+)'\]\s*\{\s*--reveal-delay:\s*(\d+)ms;\s*\}/g)]
     expect(rules).toHaveLength(MAX_REVEAL_STEP + 1)

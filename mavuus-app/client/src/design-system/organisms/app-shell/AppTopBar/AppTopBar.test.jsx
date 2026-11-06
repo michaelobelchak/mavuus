@@ -1,7 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { createRef } from 'react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { mockViewport } from '../../../test/browserMocks'
 import { AppTopBar } from './AppTopBar'
 
 const admin = { name: 'Demo User', email: 'demo@mavuus.com', role: 'admin', avatar_url: null }
@@ -13,6 +15,13 @@ function renderBar(props = {}) {
     </MemoryRouter>,
   )
 }
+
+afterEach(() => {
+  vi.useRealTimers()
+  vi.unstubAllGlobals()
+})
+
+const searchSlot = <input aria-label="Search everything" />
 
 describe('AppTopBar', () => {
   it('should render the title as the page h1', () => {
@@ -75,8 +84,95 @@ describe('AppTopBar', () => {
   })
 
   it('should render the search and actions slots', () => {
+    mockViewport(1024)
     renderBar({ search: <input aria-label="Search everything" />, actions: <button type="button">New job</button> })
     expect(screen.getByRole('textbox', { name: 'Search everything' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'New job' })).toBeInTheDocument()
+  })
+
+  it('should expose open, controls and a ref on the notifications button for a drawer', () => {
+    const buttonRef = createRef()
+    renderBar({ notifications: { count: 3, onClick: () => {}, open: true, controlsId: 'notifications-drawer', buttonRef } })
+    const button = screen.getByRole('button', { name: 'Notifications, 3 unread' })
+    expect(button).toHaveAttribute('aria-expanded', 'true')
+    expect(button).toHaveAttribute('aria-controls', 'notifications-drawer')
+    expect(buttonRef.current).toBe(button)
+  })
+
+  it('should leave aria-expanded off when open is not given', () => {
+    renderBar({ notifications: { count: 1, onClick: () => {} } })
+    expect(screen.getByRole('button', { name: 'Notifications, 1 unread' })).not.toHaveAttribute('aria-expanded')
+  })
+
+  it('should pulse the bell briefly when the count goes up and pulse is on', () => {
+    vi.useFakeTimers()
+    const { rerender } = renderBar({ notifications: { count: 2, onClick: () => {}, pulse: true } })
+    const wrapper = () => screen.getByRole('button', { name: /^Notifications/ }).parentElement
+    expect(wrapper()).not.toHaveAttribute('data-pulse')
+    rerender(
+      <MemoryRouter>
+        <AppTopBar title="Jobs" user={admin} notifications={{ count: 3, onClick: () => {}, pulse: true }} />
+      </MemoryRouter>,
+    )
+    expect(wrapper()).toHaveAttribute('data-pulse')
+    expect(wrapper()).toHaveClass('ds-animate-pulse')
+    act(() => vi.advanceTimersByTime(700))
+    expect(wrapper()).not.toHaveAttribute('data-pulse')
+  })
+
+  it('should not pulse when pulse is off', () => {
+    const { rerender } = renderBar({ notifications: { count: 2, onClick: () => {} } })
+    rerender(
+      <MemoryRouter>
+        <AppTopBar title="Jobs" user={admin} notifications={{ count: 3, onClick: () => {} }} />
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('button', { name: /^Notifications/ }).parentElement).not.toHaveAttribute('data-pulse')
+  })
+
+  it('should put search behind a button below 768px that opens it with focus in the field', async () => {
+    const user = userEvent.setup()
+    mockViewport(390)
+    renderBar({ search: searchSlot })
+    expect(screen.queryByRole('textbox', { name: 'Search everything' })).not.toBeInTheDocument()
+    const button = screen.getByRole('button', { name: 'Search' })
+    await user.click(button)
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Search everything' })).toHaveFocus())
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Search everything' })).not.toBeInTheDocument())
+    await waitFor(() => expect(button).toHaveFocus())
+  })
+
+  it('should focus the search field when / is pressed outside a field', async () => {
+    const user = userEvent.setup()
+    mockViewport(1024)
+    renderBar({ search: searchSlot })
+    await user.keyboard('/')
+    expect(screen.getByRole('textbox', { name: 'Search everything' })).toHaveFocus()
+    expect(screen.getByRole('textbox', { name: 'Search everything' })).toHaveValue('')
+  })
+
+  it('should ignore / while typing in another field', async () => {
+    const user = userEvent.setup()
+    mockViewport(1024)
+    render(
+      <MemoryRouter>
+        <textarea aria-label="Note" />
+        <AppTopBar title="Jobs" user={admin} search={searchSlot} />
+      </MemoryRouter>,
+    )
+    const note = screen.getByRole('textbox', { name: 'Note' })
+    await user.click(note)
+    await user.keyboard('a/b')
+    expect(note).toHaveFocus()
+    expect(note).toHaveValue('a/b')
+  })
+
+  it('should open the mobile search with / below 768px', async () => {
+    const user = userEvent.setup()
+    mockViewport(390)
+    renderBar({ search: searchSlot })
+    await user.keyboard('/')
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Search everything' })).toHaveFocus())
   })
 })
