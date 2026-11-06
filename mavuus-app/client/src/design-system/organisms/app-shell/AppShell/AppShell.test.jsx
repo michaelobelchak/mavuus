@@ -76,13 +76,25 @@ describe('AppShell', () => {
     expect(window.localStorage.getItem(SIDEBAR_STORAGE_KEY)).toBe('false')
   })
 
-  it('should start collapsed when the stored preference says so', () => {
-    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, 'true')
-    renderShell(1440)
-    expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument()
+  it('should show the stored expanded preference in the 1024 to 1279px band', () => {
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, 'false')
+    renderShell(1100)
+    expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument()
+    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Jobs' })).toHaveTextContent(
+      'Jobs',
+    )
   })
 
-  it('should still render when localStorage throws', async () => {
+  it('should always show the full sidebar without a toggle at 1280px and up, whatever is stored', () => {
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, 'true')
+    renderShell(1440)
+    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Jobs' })).toHaveTextContent(
+      'Jobs',
+    )
+    expect(screen.queryByRole('button', { name: /(Collapse|Expand) sidebar/ })).not.toBeInTheDocument()
+  })
+
+  it('should still render and toggle when localStorage throws', async () => {
     const user = userEvent.setup()
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('blocked')
@@ -90,9 +102,9 @@ describe('AppShell', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('blocked')
     })
-    renderShell(1440)
-    await user.click(screen.getByRole('button', { name: 'Collapse sidebar' }))
-    expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument()
+    renderShell(1100)
+    await user.click(screen.getByRole('button', { name: 'Expand sidebar' }))
+    expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument()
   })
 
   it('should hide the sidebar below 1024px and open it in a sheet from the menu button', async () => {
@@ -104,6 +116,22 @@ describe('AppShell', () => {
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByRole('navigation', { name: 'Main' })).toBeInTheDocument()
     expect(button).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('should focus the active nav link when the sheet opens', async () => {
+    const user = userEvent.setup()
+    renderShell(390)
+    await user.click(screen.getByRole('button', { name: 'Open menu' }))
+    const dialog = await screen.findByRole('dialog')
+    await waitFor(() => expect(within(dialog).getByRole('link', { name: 'Jobs' })).toHaveFocus())
+  })
+
+  it('should focus the first nav link when no item is active', async () => {
+    const user = userEvent.setup()
+    renderShell(390, { path: '/dashboard/somewhere-else' })
+    await user.click(screen.getByRole('button', { name: 'Open menu' }))
+    const dialog = await screen.findByRole('dialog')
+    await waitFor(() => expect(within(dialog).getByRole('link', { name: 'Home' })).toHaveFocus())
   })
 
   it('should close the sheet on Escape and return focus to the menu button', async () => {

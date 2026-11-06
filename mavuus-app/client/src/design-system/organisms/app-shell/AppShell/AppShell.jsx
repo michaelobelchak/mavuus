@@ -9,10 +9,12 @@ import { readCollapsed, writeCollapsed } from './sidebarStorage'
 
 /**
  * The signed-in layout: sidebar, top bar and the tinted main panel the page renders into.
- * - 1280px and up: the full 280px sidebar. 1024 to 1279px: the 80px icon rail with tooltips. A
- *   toggle at the bottom of the sidebar switches between them, saved in localStorage under
- *   `mv.sidebar.collapsed`. Below 1024px the sidebar is hidden and the top bar's menu button opens
- *   it in a left Sheet, which closes on Escape (focus goes back to the button) and on navigation.
+ * - 1280px and up: always the full 280px sidebar, with no toggle. 1024 to 1279px: the 80px icon
+ *   rail with tooltips by default; a toggle at the bottom of the sidebar expands it, saved in
+ *   localStorage under `mv.sidebar.collapsed` (that choice only applies in this band). Below 1024px
+ *   the sidebar is hidden and the top bar's menu button opens it in a left Sheet with focus on the
+ *   active nav link (or the first one); it closes on Escape (focus goes back to the button) and on
+ *   navigation.
  * - `nav`, `badges`, `logo`, `logoTo`, `sidebarFooter` go to AppSidebar; `title`, `breadcrumbs`,
  *   `actions`, `search`, `notifications`, `user`, `userMenuItems`, `onLogout` go to AppTopBar.
  * - `children` render in `<main id="main-content">`, a scrollable panel on `bg-surface-sunken`
@@ -43,7 +45,8 @@ export function AppShell({
   const isDesktop = useMediaQuery('(min-width: 80rem)')
   const isLaptop = useMediaQuery('(min-width: 64rem)')
   const [stored, setStored] = useState(readCollapsed)
-  const collapsed = stored ?? !isDesktop
+  // The saved choice only applies to the rail band; 1280px and up always shows the full sidebar.
+  const collapsed = isDesktop ? false : (stored ?? true)
   const mobile = !isLaptop
 
   const { pathname } = useLocation()
@@ -53,6 +56,13 @@ export function AppShell({
   const navId = useId()
   const menuButtonRef = useRef(null)
   const mainRef = useRef(null)
+  const sheetRef = useRef(null)
+
+  // Open the sheet on the page's own nav link (or the first one), not on the logo.
+  function navFocusTarget() {
+    const nav = sheetRef.current?.querySelector('nav')
+    return nav?.querySelector('a[aria-current="page"]') ?? nav?.querySelector('a') ?? true
+  }
 
   const sidebarProps = { nav, badges, logo, logoTo, footer: sidebarFooter }
 
@@ -80,7 +90,11 @@ export function AppShell({
             collapsed ? 'w-20' : 'w-70',
           )}
         >
-          <AppSidebar {...sidebarProps} collapsed={collapsed} onCollapsedChange={changeCollapsed} />
+          <AppSidebar
+            {...sidebarProps}
+            collapsed={collapsed}
+            onCollapsedChange={isDesktop ? undefined : changeCollapsed}
+          />
         </aside>
       )}
       {mobile && (
@@ -91,6 +105,8 @@ export function AppShell({
           open={navOpen}
           onOpenChange={(open) => setOpenFor(open ? pathname : null)}
           title={<span className="sr-only">Menu</span>}
+          ref={sheetRef}
+          initialFocus={navFocusTarget}
           finalFocus={menuButtonRef}
           className="gap-ds-none p-ds-none"
         >
