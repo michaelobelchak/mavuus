@@ -37,7 +37,9 @@ function HighlightBar({ xKey, ...props }) {
  * - `height`: sm 240px, md 320px (default), lg 400px.
  * Bars have 8px rounded tops; hovering or arrowing to a bar fades the others. Arrow keys move
  * through the bars once the chart has focus (recharts accessibility layer). Animation is off
- * when the user prefers reduced motion. Other props go to the wrapper.
+ * when the user prefers reduced motion. The highlight matches bars by their x value, so keep
+ * x values unique (two rows with the same label light up together). Other props go to the
+ * wrapper.
  */
 export function BarChart({ data, xKey, series, valueFormatter, xFormatter, height, title, stacked = false, showDelta = false, legend, ...props }) {
   const config = useChartConfig({ data, xKey, series, valueFormatter, xFormatter, height, title })

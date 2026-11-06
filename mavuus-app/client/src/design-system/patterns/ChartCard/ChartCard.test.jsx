@@ -63,7 +63,10 @@ describe('ChartCard', () => {
     expect(screen.queryByRole('table')).toBeNull()
     expect(container.querySelector('.recharts-responsive-container')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'View as table' }))
+    const toggle = screen.getByRole('button', { name: 'View as table' })
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
     const table = screen.getByRole('table', { name: 'Weekly signups' })
     expect(container.querySelector('.recharts-responsive-container')).toBeNull()
     expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['Week', 'Signups', 'Invites'])
@@ -72,7 +75,8 @@ describe('ChartCard', () => {
     expect(within(lastRow).getByRole('cell', { name: '1,500' })).toBeInTheDocument()
     expect(within(lastRow).getByRole('cell', { name: '9' })).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'View as chart' }))
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
     expect(screen.queryByRole('table')).toBeNull()
   })
 
@@ -96,6 +100,20 @@ describe('ChartCard', () => {
     )
     expect(screen.queryByRole('button', { name: 'View as table' })).toBeNull()
     expect(error).toHaveBeenCalledWith(expect.stringMatching(/ChartCard: .*data/))
+  })
+})
+
+describe('ChartCard opt-out', () => {
+  it('should leave out the table toggle without a warning when tableView is false', () => {
+    setup()
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <ChartCard title="Weekly signups" tableView={false}>
+        <BarChart data={growth} xKey="week" series={series} />
+      </ChartCard>,
+    )
+    expect(screen.queryByRole('button', { name: 'View as table' })).toBeNull()
+    expect(error).not.toHaveBeenCalled()
   })
 })
 

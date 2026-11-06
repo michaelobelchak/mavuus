@@ -1,5 +1,5 @@
-import { useId, useState } from 'react'
-import { BarChart3, Table as TableIcon } from 'lucide-react'
+import { useId, useMemo, useState } from 'react'
+import { Table as TableIcon } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { resolveHeadingLevel } from '../../lib/resolveOption'
 import { warnOnce } from '../../lib/warnOnce'
@@ -48,8 +48,10 @@ function ChartDataTable({ title, data, xKey, xLabel, series, valueFormatter, xFo
  *   range Select).
  * - `height`: the plot area, sm 240px, md 320px (default), lg 400px.
  * - `xLabel`: the table's first column header (default "Category").
- * - `defaultView`: chart (default) or table.
- * Without `data` and `series` the card can't build the table, so the toggle is hidden (dev warns).
+ * - `defaultView`: chart (default) or table. The "View as table" toggle is a pressed button
+ *   (aria-pressed) whose label stays the same.
+ * - `tableView`: false leaves the toggle out on purpose. Otherwise, without `data` and `series`
+ *   the card can't build the table, so the toggle is hidden and dev warns.
  * `ref`, `className` and other props go to the Card (surface variant).
  */
 export function ChartCard({
@@ -65,6 +67,7 @@ export function ChartCard({
   valueFormatter = defaultFormatter,
   xFormatter = defaultFormatter,
   defaultView = 'chart',
+  tableView = true,
   className,
   children,
   ref,
@@ -73,9 +76,10 @@ export function ChartCard({
   const level = resolveHeadingLevel(headingLevel, [2, 3, 4], 3, 'ChartCard')
   const [view, setView] = useState(defaultView === 'table' ? 'table' : 'chart')
   const tableId = useId()
-  const canTable = Array.isArray(data) && Array.isArray(series) && series.length > 0
+  const hasConfig = Array.isArray(data) && Array.isArray(series) && series.length > 0
+  const canTable = tableView !== false && hasConfig
 
-  if (!canTable) {
+  if (tableView !== false && !hasConfig) {
     warnOnce(
       'ChartCard:data',
       'ChartCard: pass data, xKey and series to the card (not only the chart) so "View as table" can show the same numbers.',
@@ -83,7 +87,10 @@ export function ChartCard({
   }
 
   const showTable = canTable && view === 'table'
-  const context = { data, xKey, series, valueFormatter, xFormatter, height, title }
+  const context = useMemo(
+    () => ({ data, xKey, series, valueFormatter, xFormatter, height, title }),
+    [data, xKey, series, valueFormatter, xFormatter, height, title],
+  )
 
   return (
     <Card ref={ref} variant="surface" className={cn('flex flex-col gap-ds-md', className)} {...props}>
@@ -104,11 +111,13 @@ export function ChartCard({
             <Button
               variant="ghost"
               size="sm"
-              leadingIcon={showTable ? BarChart3 : TableIcon}
+              leadingIcon={TableIcon}
+              aria-pressed={showTable}
+              className="aria-pressed:bg-surface-selected"
               aria-controls={showTable ? tableId : undefined}
               onClick={() => setView(showTable ? 'chart' : 'table')}
             >
-              {showTable ? 'View as chart' : 'View as table'}
+              View as table
             </Button>
           )}
         </div>
