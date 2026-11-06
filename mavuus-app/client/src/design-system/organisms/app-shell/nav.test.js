@@ -25,7 +25,11 @@ function routePaths(source) {
     if (Array.isArray(node)) return node.forEach((child) => visit(child, base))
     if (node.type === 'JSXElement' && node.openingElement.name.name === 'Route') {
       const pathAttr = attribute(node, 'path')
-      const path = pathAttr?.value?.type === 'StringLiteral' ? join(base, pathAttr.value.value) : base
+      if (pathAttr && pathAttr.value?.type !== 'StringLiteral') {
+        const line = pathAttr.loc?.start.line
+        throw new Error(`<Route> path must be a string literal (line ${line}); the drift test can't follow expressions`)
+      }
+      const path = pathAttr ? join(base, pathAttr.value.value) : base
       if (pathAttr || attribute(node, 'index')) paths.push(path || '/')
       return node.children.forEach((child) => visit(child, path))
     }
@@ -42,6 +46,11 @@ const routesUnder = (base) => appRoutes.filter((path) => path === base || path.s
 const sample = (route) => route.replace(/:[^/]+/g, '42')
 
 describe('routePaths', () => {
+  it('should throw on a path that is not a string literal instead of guessing', () => {
+    const fixture = `const routes = <Routes><Route path={base} element={<Page />} /></Routes>`
+    expect(() => routePaths(fixture)).toThrow(/path must be a string literal/)
+  })
+
   it('should build full nested paths, index routes and routes after a nested layout', () => {
     const fixture = `
       export const routes = (
