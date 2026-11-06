@@ -1,5 +1,5 @@
 import { MemoryRouter } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Plus } from 'lucide-react'
 import { Button } from './Button'
 
 export default {
@@ -39,7 +39,11 @@ export const Sizes = {
   ),
 }
 
-export const Loading = { args: { loading: true, children: 'Saving' } }
+export const WithIcon = { args: { leadingIcon: Plus, children: 'Post a job' } }
+
+export const TrailingIcon = { args: { variant: 'outline', trailingIcon: ArrowRight, children: 'View all' } }
+
+export const Loading = { args: { loading: true, leadingIcon: Plus, children: 'Saving' } }
 
 export const Disabled = { args: { disabled: true } }
 
@@ -47,8 +51,8 @@ export const AsLink = {
   render: (args) => (
     <MemoryRouter>
       <div className="flex items-center gap-ds-md">
-        <Button {...args} to="/jobs">
-          Browse jobs <ArrowRight aria-hidden="true" className="size-4" />
+        <Button {...args} to="/jobs" trailingIcon={ArrowRight}>
+          Browse jobs
         </Button>
         <Button {...args} variant="outline" href="https://mavuus.com">
           Visit mavuus.com

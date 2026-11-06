@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Bell } from 'lucide-react'
+import { resetWarnings } from '../../lib/warnOnce'
 import { IconButton } from './IconButton'
 
 afterEach(() => {
   vi.restoreAllMocks()
+  resetWarnings()
 })
 
 describe('IconButton', () => {
@@ -30,10 +32,27 @@ describe('IconButton', () => {
     expect(error).not.toHaveBeenCalled()
   })
 
-  it('should be a 44px square when size is md', () => {
-    render(<IconButton icon={Bell} aria-label="Notifications" />)
+  it('should not warn when aria-labelledby is given instead of aria-label', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <>
+        <span id="bell-label">Notifications</span>
+        <IconButton icon={Bell} aria-labelledby="bell-label" />
+      </>,
+    )
+    expect(error).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument()
+  })
+
+  it.each([
+    ['sm', 'size-10'],
+    ['md', 'size-12'],
+    ['lg', 'size-14'],
+    ['huge', 'size-12'],
+  ])('should be a square on the control scale when size is %s', (size, square) => {
+    render(<IconButton icon={Bell} aria-label="Notifications" size={size} />)
     const button = screen.getByRole('button', { name: 'Notifications' })
-    expect(button.className).toContain('size-11')
-    expect(button.className).not.toContain('h-12')
+    expect(button).toHaveClass(square)
+    expect(button.className).not.toMatch(/\bh-\d/)
   })
 })

@@ -1,53 +1,20 @@
-import { Link as RouterLink } from 'react-router-dom'
-import { cva } from 'class-variance-authority'
 import { cn } from '../../lib/cn'
-
-const linkVariants = cva(
-  'text-text-link underline-offset-4 decoration-1 transition-colors duration-150 ease-enter hover:text-text-primary motion-reduce:transition-none',
-  {
-    variants: {
-      variant: {
-        inline: 'underline',
-        standalone: 'no-underline hover:underline font-semibold',
-      },
-    },
-    defaultVariants: { variant: 'inline' },
-  },
-)
-
-const EXTERNAL = /^https?:\/\//i
+import { ExternalHint } from '../../lib/ExternalHint'
+import { linkProps } from '../../lib/linkProps'
+import { linkVariants } from './linkVariants'
 
 /**
  * Text link. `to` renders a react-router Link; `href` renders an anchor. Absolute http(s)
- * hrefs open in a new tab with rel="noopener noreferrer" and announce that to screen readers.
+ * hrefs open in a new tab with rel="noopener noreferrer" and say so to screen readers.
+ * A `target` or `rel` you pass wins; the hint only shows when the link opens a new tab.
  */
-export function Link({ variant, to, href, className, children, ref, ...props }) {
-  const classes = cn(linkVariants({ variant }), className)
-
-  if (to !== undefined) {
-    return (
-      <RouterLink ref={ref} to={to} className={classes} {...props}>
-        {children}
-      </RouterLink>
-    )
-  }
-
-  const external = typeof href === 'string' && EXTERNAL.test(href)
+export function Link({ variant, to, href, target, rel, onClick, className, children, ref, ...props }) {
+  const link = linkProps({ to, href, target, rel, onClick })
+  const { Component } = link
   return (
-    <a
-      ref={ref}
-      href={href}
-      className={classes}
-      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-      {...props}
-    >
+    <Component ref={ref} className={cn(linkVariants({ variant }), className)} {...link.props} {...props}>
       {children}
-      {external && (
-        <>
-          {' '}
-          <span className="sr-only">(opens in a new tab)</span>
-        </>
-      )}
-    </a>
+      {link.opensNewTab && <ExternalHint />}
+    </Component>
   )
 }

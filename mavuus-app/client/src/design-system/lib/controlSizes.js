@@ -8,6 +8,8 @@ export const controlSquares = { xs: 'size-8', sm: 'size-10', md: 'size-12', lg: 
 // Icon size that matches each control size.
 export const controlIconSizes = { xs: 'size-4', sm: 'size-4', md: 'size-5', lg: 'size-5' }
 
+export const DEFAULT_CONTROL_SIZE = 'md'
+
 export function resolveControlSize(size) {
-  return Object.hasOwn(controlHeights, size) ? size : 'md'
+  return Object.hasOwn(controlHeights, size) ? size : DEFAULT_CONTROL_SIZE
 }

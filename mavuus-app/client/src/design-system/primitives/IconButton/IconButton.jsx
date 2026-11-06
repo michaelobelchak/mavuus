@@ -1,25 +1,21 @@
 import { useEffect } from 'react'
 import { cn } from '../../lib/cn'
-import { buttonVariants } from '../Button/buttonVariants'
+import { controlIconSizes, resolveControlSize } from '../../lib/controlSizes'
+import { warnOnce } from '../../lib/warnOnce'
+import { iconButtonVariants } from './iconButtonVariants'
 
-const squareSize = {
-  sm: 'size-9 px-ds-none',
-  md: 'size-11 px-ds-none',
-}
-
-const iconSize = {
-  sm: 'size-4',
-  md: 'size-5',
-}
-
-/** Square icon-only button. `aria-label` is required because the icon has no visible text. */
-export function IconButton({ icon: Icon, variant = 'ghost', size = 'md', type = 'button', className, ref, ...props }) {
+/**
+ * Square icon-only button on the control size scale (sm 40, md 48, lg 56).
+ * Needs `aria-label` (or `aria-labelledby`) because the icon has no visible text.
+ */
+export function IconButton({ icon: Icon, variant, size, type = 'button', className, ref, ...props }) {
+  const resolvedSize = size === 'xs' ? 'md' : resolveControlSize(size)
   const label = props['aria-label']
   const labelledBy = props['aria-labelledby']
 
   useEffect(() => {
     if (!label && !labelledBy) {
-      console.error('IconButton: pass an aria-label so screen readers can announce this button.')
+      warnOnce('IconButton:aria-label', 'IconButton: pass an aria-label so screen readers can announce this button.')
     }
   }, [label, labelledBy])
 
@@ -27,10 +23,10 @@ export function IconButton({ icon: Icon, variant = 'ghost', size = 'md', type = 
     <button
       ref={ref}
       type={type}
-      className={cn(buttonVariants({ variant, size: size === 'sm' ? 'sm' : 'md' }), squareSize[size], className)}
+      className={cn(iconButtonVariants({ variant, size: resolvedSize }), className)}
       {...props}
     >
-      {Icon && <Icon aria-hidden="true" className={iconSize[size]} />}
+      {Icon && <Icon aria-hidden="true" className={controlIconSizes[resolvedSize]} />}
     </button>
   )
 }

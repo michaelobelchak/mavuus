@@ -40,4 +40,26 @@ describe('Link', () => {
     const link = screen.getByRole('link', { name: 'About' })
     expect(link).toHaveClass('no-underline', 'hover:underline')
   })
+
+  it('should not add the new tab hint when the consumer sets target to _self', () => {
+    render(
+      <Link href="https://mavuus.com" target="_self" rel="external">
+        Mavuus
+      </Link>,
+    )
+    const link = screen.getByRole('link', { name: 'Mavuus' })
+    expect(link).toHaveAttribute('target', '_self')
+    expect(link).toHaveAttribute('rel', 'external')
+    expect(screen.queryByText('(opens in a new tab)')).not.toBeInTheDocument()
+  })
+
+  it('should add the new tab hint and a safe rel when the consumer sets target to _blank', () => {
+    render(
+      <Link href="/report.pdf" target="_blank">
+        Annual report
+      </Link>,
+    )
+    const link = screen.getByRole('link', { name: 'Annual report (opens in a new tab)' })
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
 })

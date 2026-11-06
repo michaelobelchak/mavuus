@@ -8,7 +8,7 @@ export default {
   args: { icon: Bell, 'aria-label': 'Notifications' },
   argTypes: {
     variant: { control: 'select', options: ['primary', 'secondary', 'outline', 'ghost', 'danger'] },
-    size: { control: 'select', options: ['sm', 'md'] },
+    size: { control: 'select', options: ['sm', 'md', 'lg'] },
   },
 }
 
@@ -25,6 +25,7 @@ export const Sizes = {
     <div className="flex items-center gap-ds-md">
       <IconButton {...args} size="sm" />
       <IconButton {...args} size="md" />
+      <IconButton {...args} size="lg" />
     </div>
   ),
 }

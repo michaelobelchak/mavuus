@@ -1,6 +1,6 @@
 export { Button, buttonVariants } from './Button'
-export { IconButton } from './IconButton'
-export { Link } from './Link'
+export { IconButton, iconButtonVariants } from './IconButton'
+export { Link, linkVariants } from './Link'
 export { Badge } from './Badge'
 export { TrendBadge } from './TrendBadge'
 export { Chip } from './Chip'
