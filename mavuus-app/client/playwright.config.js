@@ -16,9 +16,6 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
     trace: 'retain-on-failure',
-    // Optional: point at an already-downloaded Chromium instead of the revision this Playwright
-    // version expects (CI runs `npx playwright install` and leaves this unset).
-    launchOptions: process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : {},
   },
   projects: [
     { name: 'setup', testMatch: /auth\.setup\.js/ },
