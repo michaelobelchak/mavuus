@@ -1,7 +1,8 @@
 /* eslint-disable react-refresh/only-export-components -- AuthProvider + useAuth colocated by design, same as Toast */
 import { createContext, useContext, useState, useEffect } from 'react'
 
-const AuthContext = createContext(null)
+// Exported for the Storybook withAuth decorator, which provides a mock value with the same shape.
+export const AuthContext = createContext(null)
 
 const API_BASE = '/api'
 

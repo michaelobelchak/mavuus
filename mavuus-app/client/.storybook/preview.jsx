@@ -1,18 +1,22 @@
-import { MemoryRouter } from 'react-router-dom'
 import { tokens } from '../src/design-system/tokens/tokens.js'
+import { THEMES, withLayout, withRouter, withTheme } from './decorators'
 import '../src/index.css'
 
 /** @type {import('@storybook/react-vite').Preview} */
 const preview = {
-  decorators: [
-    (Story) => (
-      <MemoryRouter>
-        <div className="bg-surface-page p-ds-lg font-sans text-text-primary">
-          <Story />
-        </div>
-      </MemoryRouter>
-    ),
-  ],
+  // The first decorator is the innermost: layout padding, then theme, then the router outside.
+  decorators: [withLayout, withTheme, withRouter],
+  globalTypes: {
+    theme: {
+      description: 'Theme (dark is a placeholder until it has role tokens)',
+      toolbar: {
+        title: 'Theme',
+        icon: 'mirror',
+        items: Object.entries(THEMES).map(([value, title]) => ({ value, title })),
+        dynamicTitle: true,
+      },
+    },
+  },
   parameters: {
     layout: 'padded',
     controls: {
@@ -41,6 +45,7 @@ const preview = {
   },
   initialGlobals: {
     backgrounds: { value: 'page' },
+    theme: 'light',
   },
 }
 

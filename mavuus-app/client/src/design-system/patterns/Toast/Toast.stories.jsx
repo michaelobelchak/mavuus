@@ -1,3 +1,4 @@
+import { withToaster } from '../../../../.storybook/decorators'
 import { Button } from '../../primitives'
 import { Toaster } from './Toaster'
 import { toast } from './toast'
@@ -6,14 +7,7 @@ export default {
   title: 'Patterns/Toast',
   component: Toaster,
   tags: ['autodocs'],
-  decorators: [
-    (Story) => (
-      <>
-        <Story />
-        <Toaster />
-      </>
-    ),
-  ],
+  decorators: [withToaster],
 }
 
 function wait(ms) {

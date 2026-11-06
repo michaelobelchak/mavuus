@@ -3,7 +3,7 @@ const config = {
   framework: '@storybook/react-vite',
   stories: [
     '../src/design-system/**/*.mdx',
-    '../src/design-system/**/*.stories.@(js|jsx)',
+    '../src/design-system/**/*.stories.jsx',
   ],
   addons: ['@storybook/addon-docs', '@storybook/addon-a11y'],
   core: { disableTelemetry: true },
