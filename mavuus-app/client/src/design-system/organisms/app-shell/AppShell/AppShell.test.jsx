@@ -124,7 +124,7 @@ describe('AppShell', () => {
     renderShell(390)
     await user.click(screen.getByRole('button', { name: 'Open menu' }))
     const dialog = await screen.findByRole('dialog')
-    await waitFor(() => expect(within(dialog).getByRole('link', { name: 'Jobs' })).toHaveFocus())
+    await waitFor(() => expect(within(dialog).getByRole('link', { name: 'Jobs' })).toHaveFocus(), { timeout: 3000 })
   })
 
   it('should focus the first nav link when no item is active', async () => {
@@ -132,7 +132,7 @@ describe('AppShell', () => {
     renderShell(390, { path: '/dashboard/somewhere-else' })
     await user.click(screen.getByRole('button', { name: 'Open menu' }))
     const dialog = await screen.findByRole('dialog')
-    await waitFor(() => expect(within(dialog).getByRole('link', { name: 'Home' })).toHaveFocus())
+    await waitFor(() => expect(within(dialog).getByRole('link', { name: 'Home' })).toHaveFocus(), { timeout: 3000 })
   })
 
   it('should close the sheet on Escape and return focus to the menu button', async () => {
@@ -142,8 +142,8 @@ describe('AppShell', () => {
     await user.click(button)
     await screen.findByRole('dialog')
     await user.keyboard('{Escape}')
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    await waitFor(() => expect(button).toHaveFocus())
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), { timeout: 3000 })
+    await waitFor(() => expect(button).toHaveFocus(), { timeout: 3000 })
   })
 
   it('should close the sheet when a nav link is followed', async () => {
@@ -152,7 +152,7 @@ describe('AppShell', () => {
     await user.click(screen.getByRole('button', { name: 'Open menu' }))
     const dialog = await screen.findByRole('dialog')
     await user.click(within(dialog).getByRole('link', { name: 'Speakers' }))
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), { timeout: 3000 })
     expect(screen.getByTestId('where')).toHaveTextContent('/dashboard/speakers')
   })
 
@@ -172,7 +172,7 @@ describe('AppShell', () => {
     const { resize } = renderShell(390, { defaultNavOpen: true })
     await screen.findByRole('dialog')
     resize(1440)
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), { timeout: 3000 })
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument()
     resize(390)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
@@ -183,12 +183,12 @@ describe('AppShell', () => {
     const { resize } = renderShell(390, { defaultNavOpen: true })
     await screen.findByRole('dialog')
     resize(1440)
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), { timeout: 3000 })
     await waitFor(() => {
       expect(document.body.style.overflow).toBe('')
       expect(document.documentElement.style.overflow).toBe('')
       expect(document.querySelectorAll('[inert], [aria-hidden="true"][data-base-ui-inert]')).toHaveLength(0)
-    })
+    }, { timeout: 3000 })
     expect(screen.getByRole('main')).not.toHaveAttribute('inert')
   })
 

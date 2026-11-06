@@ -87,6 +87,12 @@ export function AppTopBar({
   const count = Number(notifications?.count) > 0 ? Number(notifications.count) : 0
   const wideSearch = useMediaQuery('(min-width: 48rem)')
   const [searchOpen, setSearchOpen] = useState(false)
+  // Widening to the inline search closes the popover, so it doesn't reopen on the way back.
+  const [wasWide, setWasWide] = useState(wideSearch)
+  if (wasWide !== wideSearch) {
+    setWasWide(wideSearch)
+    if (wideSearch) setSearchOpen(false)
+  }
   const searchBoxRef = useRef(null)
   const mobileSearchRef = useRef(null)
   const hasSearch = Boolean(search)

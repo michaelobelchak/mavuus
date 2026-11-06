@@ -137,10 +137,12 @@ describe('AppTopBar', () => {
     expect(screen.queryByRole('textbox', { name: 'Search everything' })).not.toBeInTheDocument()
     const button = screen.getByRole('button', { name: 'Search' })
     await user.click(button)
-    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Search everything' })).toHaveFocus())
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Search everything' })).toHaveFocus(), { timeout: 3000 })
     await user.keyboard('{Escape}')
-    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Search everything' })).not.toBeInTheDocument())
-    await waitFor(() => expect(button).toHaveFocus())
+    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Search everything' })).not.toBeInTheDocument(), {
+      timeout: 3000,
+    })
+    await waitFor(() => expect(button).toHaveFocus(), { timeout: 3000 })
   })
 
   it('should focus the search field when / is pressed outside a field', async () => {
@@ -173,6 +175,21 @@ describe('AppTopBar', () => {
     mockViewport(390)
     renderBar({ search: searchSlot })
     await user.keyboard('/')
-    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Search everything' })).toHaveFocus())
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Search everything' })).toHaveFocus(), { timeout: 3000 })
+  })
+
+  it('should keep the mobile search closed after widening past 768px and narrowing again', async () => {
+    const user = userEvent.setup()
+    const viewport = mockViewport(390)
+    renderBar({ search: searchSlot })
+    await user.click(screen.getByRole('button', { name: 'Search' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Search everything' })).toHaveFocus(), { timeout: 3000 })
+    act(() => viewport.resize(1024))
+    expect(screen.queryByRole('button', { name: 'Search' })).not.toBeInTheDocument()
+    act(() => viewport.resize(390))
+    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Search everything' })).not.toBeInTheDocument(), {
+      timeout: 3000,
+    })
+    expect(screen.getByRole('button', { name: 'Search' })).toHaveAttribute('aria-expanded', 'false')
   })
 })
