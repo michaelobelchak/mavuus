@@ -73,7 +73,7 @@ export default function AdminDashboardPage() {
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
                   <span className="text-[10px] text-neutral-400">{w.count}</span>
                   <div className="w-full bg-brand-pink/80 rounded-t" style={{ height: `${Math.max(height, 4)}%` }} />
-                  <span className="text-[9px] text-neutral-400 truncate w-full text-center">{w.week?.slice(5)}</span>
+                  <span className="text-[9px] text-neutral-400 truncate w-full text-center">{w.start?.slice(5)}</span>
                 </div>
               )
             })}
