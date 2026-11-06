@@ -1,4 +1,5 @@
-// Fails when a design-system component folder has no Storybook story.
+// Fails when a design-system component folder has no Storybook story, or when an organism
+// component sits loose in its domain folder instead of in its own folder.
 // Component folders are the direct children of primitives/ and patterns/ that have an index.js,
 // and for organisms/<domain>/ each subfolder of the domain that has an index.js. A component
 // folder passes when it (or a folder inside it) holds at least one *.stories.jsx file, the same
@@ -14,7 +15,7 @@ function hasStory(dir) {
   })
 }
 
-/** Returns the component folders (relative to `root`, with forward slashes) that have no story. */
+/** Returns the names of the direct subfolders of `dir` that have an index.js (component folders). */
 function componentFolders(dir) {
   if (!fs.existsSync(dir)) return []
   return fs
@@ -41,14 +42,39 @@ export function findMissingStories(root) {
   return folders.filter((folder) => !hasStory(path.join(root, folder))).sort()
 }
 
+/**
+ * Returns the .jsx files (relative to `root`, with forward slashes) that sit directly in an
+ * organisms/<domain>/ folder. Components must live in their own folder; tests and plain .js
+ * modules (barrels, nav config, helpers) may sit in the domain folder.
+ */
+export function findLooseOrganismFiles(root) {
+  const organisms = path.join(root, 'organisms')
+  if (!fs.existsSync(organisms)) return []
+  const loose = []
+  for (const domain of fs.readdirSync(organisms, { withFileTypes: true })) {
+    if (!domain.isDirectory()) continue
+    for (const entry of fs.readdirSync(path.join(organisms, domain.name), { withFileTypes: true })) {
+      if (entry.isFile() && entry.name.endsWith('.jsx') && !entry.name.endsWith('.test.jsx')) {
+        loose.push(`organisms/${domain.name}/${entry.name}`)
+      }
+    }
+  }
+  return loose.sort()
+}
+
 function main() {
   const root = fileURLToPath(new URL('../src/design-system/', import.meta.url))
   const missing = findMissingStories(root)
+  const loose = findLooseOrganismFiles(root)
   if (missing.length > 0) {
     console.error(`Missing stories in ${missing.length} component folder(s):`)
     for (const folder of missing) console.error(`  src/design-system/${folder}`)
-    process.exit(1)
   }
+  if (loose.length > 0) {
+    console.error(`Components must live in their own folder (${loose.length} loose file(s)):`)
+    for (const file of loose) console.error(`  src/design-system/${file}`)
+  }
+  if (missing.length > 0 || loose.length > 0) process.exit(1)
   console.log('Every design-system component folder has a story.')
 }
 

@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { findMissingStories } from './check-story-coverage.mjs'
+import { findLooseOrganismFiles, findMissingStories } from './check-story-coverage.mjs'
 
 let root
 
@@ -71,5 +71,29 @@ describe('findMissingStories', () => {
     file('primitives/Badge/index.js')
     file('primitives/Badge/Badge.stories.js')
     expect(findMissingStories(root)).toEqual(['primitives/Badge'])
+  })
+})
+
+describe('findLooseOrganismFiles', () => {
+  it('should flag a component file sitting directly in an organism domain folder', () => {
+    file('organisms/site/index.js')
+    file('organisms/site/index.test.js')
+    file('organisms/site/Header.jsx')
+    file('organisms/app-shell/nav.js')
+    file('organisms/app-shell/TopBar/TopBar.jsx')
+    expect(findLooseOrganismFiles(root)).toEqual(['organisms/site/Header.jsx'])
+  })
+
+  it('should allow barrels, tests and plain helper modules in a domain folder', () => {
+    file('organisms/app-shell/index.js')
+    file('organisms/app-shell/nav.js')
+    file('organisms/app-shell/nav.test.js')
+    file('organisms/index.js')
+    expect(findLooseOrganismFiles(root)).toEqual([])
+  })
+
+  it('should return nothing when there is no organisms folder', () => {
+    file('primitives/Button/index.js')
+    expect(findLooseOrganismFiles(root)).toEqual([])
   })
 })

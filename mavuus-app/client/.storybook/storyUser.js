@@ -1,10 +1,13 @@
-// The signed-in user withAuth() provides by default (matches the seeded demo admin).
+// The signed-in user withAuth() provides by default: the seeded demo admin (server/db/seed.js),
+// in the shape GET /api/auth/me returns. It is the 7th seeded user, so its id is 7.
 export const storyUser = {
-  id: 1,
-  name: 'Demo Member',
+  id: 7,
   email: 'demo@mavuus.com',
-  avatar_url: null,
-  membership_tier: 'pro',
-  email_verified: true,
+  name: 'Demo User',
+  title: 'Marketing Director',
+  company: 'Mavuus',
+  avatar_url: 'https://i.pravatar.cc/150?u=demo@mavuus.com',
   role: 'admin',
+  membership_tier: 'pro',
+  email_verified: 1,
 }
