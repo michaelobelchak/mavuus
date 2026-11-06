@@ -1,11 +1,11 @@
 // Fails when a design-system component folder has no Storybook story.
-// A component folder is any direct child of primitives/, patterns/ or organisms/ with an index.js;
-// it passes when it (or a folder inside it) holds at least one *.stories.jsx file.
+// Component folders are the direct children of primitives/ and patterns/ that have an index.js,
+// and for organisms/<domain>/ each subfolder of the domain that has an index.js. A component
+// folder passes when it (or a folder inside it) holds at least one *.stories.jsx file, the same
+// pattern .storybook/main.js loads.
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-
-export const TIERS = ['primitives', 'patterns', 'organisms']
 
 function hasStory(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).some((entry) => {
@@ -15,19 +15,30 @@ function hasStory(dir) {
 }
 
 /** Returns the component folders (relative to `root`, with forward slashes) that have no story. */
+function componentFolders(dir) {
+  if (!fs.existsSync(dir)) return []
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(dir, entry.name, 'index.js')))
+    .map((entry) => entry.name)
+}
+
+/** Returns the component folders (relative to `root`, with forward slashes) that have no story. */
 export function findMissingStories(root) {
-  const missing = []
-  for (const tier of TIERS) {
-    const tierDir = path.join(root, tier)
-    if (!fs.existsSync(tierDir)) continue
-    for (const entry of fs.readdirSync(tierDir, { withFileTypes: true })) {
-      if (!entry.isDirectory()) continue
-      const dir = path.join(tierDir, entry.name)
-      if (!fs.existsSync(path.join(dir, 'index.js'))) continue
-      if (!hasStory(dir)) missing.push(`${tier}/${entry.name}`)
+  const folders = []
+  for (const tier of ['primitives', 'patterns']) {
+    for (const name of componentFolders(path.join(root, tier))) folders.push(`${tier}/${name}`)
+  }
+  const organisms = path.join(root, 'organisms')
+  if (fs.existsSync(organisms)) {
+    for (const domain of fs.readdirSync(organisms, { withFileTypes: true })) {
+      if (!domain.isDirectory()) continue
+      for (const name of componentFolders(path.join(organisms, domain.name))) {
+        folders.push(`organisms/${domain.name}/${name}`)
+      }
     }
   }
-  return missing.sort()
+  return folders.filter((folder) => !hasStory(path.join(root, folder))).sort()
 }
 
 function main() {
