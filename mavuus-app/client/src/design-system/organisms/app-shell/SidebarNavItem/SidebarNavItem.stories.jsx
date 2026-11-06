@@ -15,8 +15,14 @@ export default {
   component: SidebarNavItem,
   tags: ['autodocs'],
   decorators: [
-    (Story) => (
-      <ul className="m-ds-none flex w-70 list-none flex-col gap-ds-xxs bg-surface-raised p-ds-md">
+    (Story, { args }) => (
+      <ul
+        className={
+          args.collapsed
+            ? 'm-ds-none flex w-20 list-none flex-col items-center gap-ds-xxs bg-surface-raised p-ds-md'
+            : 'm-ds-none flex w-70 list-none flex-col gap-ds-xxs bg-surface-raised p-ds-md'
+        }
+      >
         <Story />
       </ul>
     ),
@@ -45,13 +51,6 @@ export const GroupActiveChild = {
 export const Rail = {
   args: { item: jobs, collapsed: true, badges: { messages: 3 } },
   parameters: { router: { initialEntries: ['/dashboard/my-jobs'] } },
-  decorators: [
-    (Story) => (
-      <div className="w-20">
-        <Story />
-      </div>
-    ),
-  ],
 }
 
 export const RailWithBadge = {
