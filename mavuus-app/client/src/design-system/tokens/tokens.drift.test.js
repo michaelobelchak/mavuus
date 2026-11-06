@@ -16,7 +16,7 @@ describe('design tokens', () => {
     expect(read('tokens.js')).toBe(built.js)
   })
 
-  it('should not emit CSS variables that override Tailwind default theme keys', () => {
+  it('should not override Tailwind default theme keys except allow-listed ones', () => {
     // Tailwind's default theme, e.g. --radius-lg, --text-xs, --shadow-md, --ease-out, --font-sans.
     const require = createRequire(import.meta.url)
     const tailwindTheme = readFileSync(require.resolve('tailwindcss/theme.css'), 'utf8')
@@ -28,5 +28,14 @@ describe('design tokens', () => {
     const emitted = [...variables.matchAll(/^\s*(--[\w-]+)\s*:/gm)].map((m) => m[1])
     expect(emitted.length).toBeGreaterThan(0)
     expect(emitted.filter((name) => tailwindKeys.has(name) || name.startsWith('--container-'))).toEqual([])
+
+    // @theme inline keys become Tailwind theme keys, so one that matches a default replaces it
+    // everywhere. Only the allow-listed ones do that on purpose.
+    const allowedOverrides = ['--font-sans']
+    expect(tailwindKeys).toContain('--font-sans')
+    const themeKeys = [...built.css.slice(built.css.indexOf('@theme inline')).matchAll(/^\s*(--[\w-]+)\s*:/gm)].map((m) => m[1])
+    expect(themeKeys.length).toBeGreaterThan(0)
+    expect(themeKeys.filter((name) => tailwindKeys.has(name) && !allowedOverrides.includes(name))).toEqual([])
+    expect(themeKeys.filter((name) => name.startsWith('--container-'))).toEqual([])
   })
 })
