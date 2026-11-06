@@ -1,8 +1,8 @@
-import { Loader2 } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { controlIconSizes, DEFAULT_CONTROL_SIZE, resolveControlSize } from '../../lib/controlSizes'
 import { ExternalHint } from '../../lib/ExternalHint'
 import { linkProps } from '../../lib/linkProps'
+import { Spinner } from '../Spinner'
 import { BUTTON_SIZES, buttonVariants } from './buttonVariants'
 
 function suppress(event) {
@@ -44,8 +44,7 @@ export function Button({
 
   const leading = loading ? (
     <>
-      <Loader2 aria-hidden="true" className={cn(iconClass, 'animate-spin motion-reduce:animate-none')} />
-      <span className="sr-only">Loading</span>{' '}
+      <Spinner announce={false} size={resolvedSize === 'sm' ? 'sm' : 'md'} className="shrink-0" />{' '}
     </>
   ) : (
     LeadingIcon && <LeadingIcon aria-hidden="true" className={iconClass} />

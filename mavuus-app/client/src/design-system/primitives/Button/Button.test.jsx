@@ -129,6 +129,13 @@ describe('Button', () => {
     }
   })
 
+  it('should render the Spinner primitive without a second status when loading', () => {
+    render(<Button loading>Save</Button>)
+    const button = screen.getByRole('button', { name: 'Loading Save' })
+    expect(button.querySelector('[data-spinner]')).not.toBeNull()
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
   it('should replace the leading icon with the spinner when loading', () => {
     render(
       <Button leadingIcon={Plus} loading>

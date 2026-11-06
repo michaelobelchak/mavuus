@@ -28,4 +28,10 @@ describe('Spinner', () => {
     render(<Spinner size={size} />)
     expect(screen.getByRole('status').querySelector('svg')).toHaveClass(cls)
   })
+
+  it('should drop role status but keep the sr-only label when announce is false', () => {
+    render(<Spinner announce={false} />)
+    expect(screen.queryByRole('status')).toBeNull()
+    expect(screen.getByText('Loading')).toHaveClass('sr-only')
+  })
 })
