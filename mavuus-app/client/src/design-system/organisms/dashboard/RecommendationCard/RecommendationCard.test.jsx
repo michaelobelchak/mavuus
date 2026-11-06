@@ -7,7 +7,8 @@ const recommendation = {
   fromTitle: 'CMO, Fabrikam',
   message: 'Priya rebuilt our lifecycle program in a quarter. I would hire her again tomorrow.',
   subject: 'Lumen Creative',
-  date: '2026-09-14T12:00:00Z',
+  dateLabel: 'Sep 14, 2026',
+  dateTime: '2026-09-14',
 }
 
 describe('RecommendationCard', () => {
@@ -29,5 +30,18 @@ describe('RecommendationCard', () => {
   it('should render a busy skeleton', () => {
     render(<RecommendationCardSkeleton data-testid="skeleton" />)
     expect(screen.getByTestId('skeleton')).toHaveAttribute('aria-busy', 'true')
+  })
+
+  it('should leave the skeleton silent with announce false, for grids that set aria-busy on the list', () => {
+    render(<RecommendationCardSkeleton data-testid="quiet" announce={false} />)
+    const quiet = screen.getByTestId('quiet')
+    expect(quiet).toHaveAttribute('aria-hidden', 'true')
+    expect(quiet).not.toHaveAttribute('aria-busy')
+    expect(screen.queryByText('Loading recommendation')).toBeNull()
+  })
+
+  it('should use the skeleton label prop', () => {
+    render(<RecommendationCardSkeleton label="Loading more" />)
+    expect(screen.getByText('Loading more')).toHaveClass('sr-only')
   })
 })

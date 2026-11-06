@@ -1,10 +1,28 @@
+import { useId } from 'react'
 import { Clock, MessageCircle, UserCheck, UserPlus } from 'lucide-react'
 import { cn } from '../../../lib/cn'
 import { resolveHeadingLevel, resolveOption } from '../../../lib/resolveOption'
 import { Card, CardAction, CardLink } from '../../../patterns'
 import { Avatar, Badge, Button, Heading, Skeleton, Text } from '../../../primitives'
+import { skeletonA11y } from '../skeletonA11y'
 
 const CONNECTIONS = ['none', 'outgoing', 'incoming', 'connected']
+
+const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1)
+
+// Pro gets the brand badge, free gets none, any other tier a neutral one.
+function tierBadge(tier) {
+  const key = typeof tier === 'string' ? tier.trim().toLowerCase() : ''
+  if (!key || key === 'free') return null
+  return { label: `${capitalize(key)} member`, tone: key === 'pro' ? 'brand' : 'neutral' }
+}
+
+function hasConnectionAction({ connection, onConnect, onAccept, isSelf }) {
+  if (isSelf) return false
+  if (connection === 'connected' || connection === 'outgoing') return true
+  if (connection === 'incoming') return typeof onAccept === 'function'
+  return typeof onConnect === 'function'
+}
 
 function ConnectionAction({ connection, name, onConnect, onAccept, connecting, messageTo }) {
   if (connection === 'connected') {
@@ -26,14 +44,12 @@ function ConnectionAction({ connection, name, onConnect, onAccept, connecting, m
     )
   }
   if (connection === 'incoming') {
-    if (!onAccept) return null
     return (
       <Button size="sm" block leadingIcon={UserPlus} onClick={onAccept} aria-label={`Accept request from ${name}`}>
         Accept request
       </Button>
     )
   }
-  if (!onConnect) return null
   return (
     <Button
       variant="outline"
@@ -51,8 +67,8 @@ function ConnectionAction({ connection, name, onConnect, onAccept, connecting, m
 
 /**
  * A member in the directory grid (MembersPage) and member lists on profiles.
- * - `name` (required), `title`, `company`, `avatarSrc` (initials when missing), `tier` ("Pro"
- *   shows a "Pro member" badge).
+ * - `name` (required), `title`, `company`, `avatarSrc` (initials when missing), `tier` ("pro"
+ *   shows a brand "Pro member" badge, other paid tiers a neutral one, free none; no avatar ring).
  * - `connection`: none (default), outgoing (request sent), incoming (they asked you) or connected.
  *   `onConnect`, `onAccept`, `connecting` (busy Connect button) and `messageTo` (the Message link
  *   once connected) drive the action at the bottom. `isSelf` hides it. A Pending or Connected
@@ -80,9 +96,12 @@ export function MemberCard({
   ...props
 }) {
   const level = resolveHeadingLevel(headingLevel, [2, 3, 4], 3, 'MemberCard')
+  const titleId = useId()
   const resolvedConnection = resolveOption(connection, CONNECTIONS, 'none', 'MemberCard', 'connection')
   const linked = to !== undefined || href !== undefined
-  const action = !isSelf && (
+  const showAction = hasConnectionAction({ connection: resolvedConnection, onConnect, onAccept, isSelf })
+  const badge = tierBadge(tier)
+  const action = showAction && (
     <ConnectionAction
       connection={resolvedConnection}
       name={name}
@@ -96,6 +115,7 @@ export function MemberCard({
 
   return (
     <Card
+      aria-labelledby={titleId}
       as={as}
       interactive={linked}
       className={cn('flex h-full flex-col items-center gap-ds-md text-center', className)}
@@ -103,7 +123,7 @@ export function MemberCard({
     >
       <Avatar name={name} src={avatarSrc} size="lg" />
       <div className="flex w-full min-w-0 flex-col gap-ds-xxs">
-        <Heading level={level} size="h4" className="truncate">
+        <Heading id={titleId} level={level} size="h4" className="truncate">
           {linked ? (
             <CardLink to={to} href={href}>
               {name}
@@ -123,11 +143,11 @@ export function MemberCard({
           </Text>
         )}
       </div>
-      {(tier || pending || resolvedConnection === 'connected') && (
+      {(badge || pending || resolvedConnection === 'connected') && (
         <div className="flex flex-wrap items-center justify-center gap-ds-xs">
-          {tier && (
-            <Badge size="sm" tone="brand">
-              {`${tier} member`}
+          {badge && (
+            <Badge size="sm" tone={badge.tone}>
+              {badge.label}
             </Badge>
           )}
           {pending && (
@@ -142,22 +162,25 @@ export function MemberCard({
           )}
         </div>
       )}
-      {action && <CardAction className="mt-auto w-full">{action}</CardAction>}
+      {showAction && <CardAction className="mt-auto w-full">{action}</CardAction>}
     </Card>
   )
 }
 
-/** Loading placeholder with the MemberCard layout. */
-export function MemberCardSkeleton({ className, ...props }) {
+/**
+ * Loading placeholder with the MemberCard layout. Busy with a hidden `label`; pass `announce={false}` inside a grid that sets
+ * aria-busy on the list, so each placeholder isn't read out.
+ */
+export function MemberCardSkeleton({ announce = true, label = 'Loading member', className, ...props }) {
   return (
-    <Card aria-busy="true" className={cn('flex h-full flex-col items-center gap-ds-md', className)} {...props}>
+    <Card {...skeletonA11y(announce)} className={cn('flex h-full flex-col items-center gap-ds-md', className)} {...props}>
       <Skeleton shape="circle" className="size-14" />
       <div className="flex w-full flex-col items-center gap-ds-xs">
         <Skeleton className="w-1/2" />
         <Skeleton className="w-2/3" />
       </div>
       <Skeleton shape="rect" className="mt-auto h-10 rounded-control" />
-      <span className="sr-only">Loading member</span>
+      {announce && <span className="sr-only">{label}</span>}
     </Card>
   )
 }

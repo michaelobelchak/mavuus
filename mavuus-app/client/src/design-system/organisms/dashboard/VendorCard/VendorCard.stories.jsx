@@ -72,7 +72,7 @@ export const Grid = {
         </li>
       ))}
       <li>
-        <VendorCardSkeleton />
+        <VendorCardSkeleton announce={false} />
       </li>
     </ul>
   ),

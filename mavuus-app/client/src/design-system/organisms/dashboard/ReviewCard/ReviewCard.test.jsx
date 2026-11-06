@@ -7,7 +7,8 @@ const review = {
   reviewerTitle: 'VP Marketing, Contoso',
   rating: 5,
   text: 'Ran our ABM program end to end and doubled pipeline in two quarters.',
-  date: '2026-10-28T12:00:00Z',
+  dateLabel: 'Oct 28, 2026',
+  dateTime: '2026-10-28',
   subject: 'Northwind Growth',
 }
 
@@ -27,9 +28,16 @@ describe('ReviewCard', () => {
     expect(screen.getByRole('article', { name: 'Review by Priya Nair' })).toBeInTheDocument()
   })
 
-  it('should show a date string that does not parse as is and skip missing fields', () => {
-    render(<ReviewCard reviewerName="Sam Carter" rating={3} date="Last week" />)
-    expect(screen.getByText('Last week')).toBeInTheDocument()
+  it('should put the date label in a time element with dateTime', () => {
+    render(<ReviewCard {...review} />)
+    const time = screen.getByText('Oct 28, 2026')
+    expect(time.tagName).toBe('TIME')
+    expect(time).toHaveAttribute('datetime', '2026-10-28')
+  })
+
+  it('should skip missing fields', () => {
+    const { container } = render(<ReviewCard reviewerName="Sam Carter" rating={3} />)
+    expect(container.querySelector('time')).toBeNull()
     expect(screen.getByText('SC')).toBeInTheDocument()
     expect(screen.queryByText(/^Re:/)).toBeNull()
   })
@@ -42,5 +50,18 @@ describe('ReviewCard', () => {
   it('should render a busy skeleton', () => {
     render(<ReviewCardSkeleton data-testid="skeleton" />)
     expect(screen.getByTestId('skeleton')).toHaveAttribute('aria-busy', 'true')
+  })
+
+  it('should leave the skeleton silent with announce false, for grids that set aria-busy on the list', () => {
+    render(<ReviewCardSkeleton data-testid="quiet" announce={false} />)
+    const quiet = screen.getByTestId('quiet')
+    expect(quiet).toHaveAttribute('aria-hidden', 'true')
+    expect(quiet).not.toHaveAttribute('aria-busy')
+    expect(screen.queryByText('Loading review')).toBeNull()
+  })
+
+  it('should use the skeleton label prop', () => {
+    render(<ReviewCardSkeleton label="Loading more" />)
+    expect(screen.getByText('Loading more')).toHaveClass('sr-only')
   })
 })

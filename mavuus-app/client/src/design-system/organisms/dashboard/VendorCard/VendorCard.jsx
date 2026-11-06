@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { MapPin, Star } from 'lucide-react'
 import { cn } from '../../../lib/cn'
 import { resolveHeadingLevel } from '../../../lib/resolveOption'
@@ -5,18 +6,20 @@ import { Card, CardAction, CardLink } from '../../../patterns'
 import { Badge, Caption, Heading, Icon, Skeleton, Text } from '../../../primitives'
 import { CompanyLogo } from '../CompanyLogo'
 import { MetaList } from '../MetaList'
+import { skeletonA11y } from '../skeletonA11y'
 
 const MAX_CATEGORIES = 3
 
 function Rating({ rating, reviewCount }) {
-  if (rating === undefined || rating === null || Number.isNaN(Number(rating))) {
+  const noReviews = reviewCount !== undefined && reviewCount !== null && Number(reviewCount) === 0
+  if (rating === undefined || rating === null || Number.isNaN(Number(rating)) || noReviews) {
     return <Caption className="whitespace-nowrap">No reviews yet</Caption>
   }
   const value = Number(rating).toFixed(1)
   const count = Number(reviewCount) || 0
   return (
     <span data-rating="" className="inline-flex shrink-0 items-center gap-ds-xxs text-body-sm">
-      <Icon icon={Star} size="sm" className="fill-current text-status-warning" />
+      <Icon icon={Star} size="sm" className="fill-current text-status-rating" />
       <span className="font-semibold text-text-primary">
         {value}
         <span className="sr-only"> out of 5</span>
@@ -32,8 +35,8 @@ function Rating({ rating, reviewCount }) {
 /**
  * A vendor or agency in the directory (VendorsPage) and on related lists.
  * - `name` (required), `logoSrc` (initials when missing), `description` (three lines).
- * - `rating` (0 to 5) and `reviewCount`, read as "4.8 out of 5 (32 reviews)"; no rating shows
- *   "No reviews yet".
+ * - `rating` (0 to 5) and `reviewCount`, read as "4.8 out of 5 (32 reviews)"; no rating or no
+ *   reviews shows "No reviews yet".
  * - `categories`: the first three show as badges, the rest as "+2 more". `location`.
  * - `to` / `href`: the name is the card's stretched link. `actions`: buttons above it.
  * - `headingLevel` (default 3), `as` (default article). Other props go to the Card.
@@ -55,16 +58,17 @@ export function VendorCard({
   ...props
 }) {
   const level = resolveHeadingLevel(headingLevel, [2, 3, 4], 3, 'VendorCard')
+  const titleId = useId()
   const linked = to !== undefined || href !== undefined
   const shown = categories.slice(0, MAX_CATEGORIES)
   const rest = categories.length - shown.length
 
   return (
-    <Card as={as} padding="md" interactive={linked} className={cn('flex h-full flex-col gap-ds-sm', className)} {...props}>
+    <Card aria-labelledby={titleId} as={as} padding="md" interactive={linked} className={cn('flex h-full flex-col gap-ds-sm', className)} {...props}>
       <div className="flex items-start gap-ds-sm">
         <CompanyLogo name={name} src={logoSrc} />
         <div className="flex min-w-0 grow flex-col gap-ds-xxs">
-          <Heading level={level} size="h4" className="line-clamp-2 break-words">
+          <Heading id={titleId} level={level} size="h4" className="line-clamp-2 break-words">
             {linked ? (
               <CardLink to={to} href={href}>
                 {name}
@@ -83,8 +87,8 @@ export function VendorCard({
       )}
       {shown.length > 0 && (
         <ul className="flex flex-wrap gap-ds-xxs">
-          {shown.map((category) => (
-            <li key={category}>
+          {shown.map((category, index) => (
+            <li key={`${index}-${category}`}>
               <Badge size="sm" tone="info">
                 {category}
               </Badge>
@@ -105,10 +109,13 @@ export function VendorCard({
   )
 }
 
-/** Loading placeholder with the VendorCard layout. */
-export function VendorCardSkeleton({ className, ...props }) {
+/**
+ * Loading placeholder with the VendorCard layout. Busy with a hidden `label`; pass `announce={false}` inside a grid that sets
+ * aria-busy on the list, so each placeholder isn't read out.
+ */
+export function VendorCardSkeleton({ announce = true, label = 'Loading vendor', className, ...props }) {
   return (
-    <Card padding="md" aria-busy="true" className={cn('flex h-full flex-col gap-ds-sm', className)} {...props}>
+    <Card padding="md" {...skeletonA11y(announce)} className={cn('flex h-full flex-col gap-ds-sm', className)} {...props}>
       <div className="flex items-start gap-ds-sm">
         <Skeleton shape="rect" className="size-10 rounded-control" />
         <div className="flex grow flex-col gap-ds-xs">
@@ -118,7 +125,7 @@ export function VendorCardSkeleton({ className, ...props }) {
       </div>
       <Skeleton lines={3} />
       <Skeleton className="mt-auto w-1/3" />
-      <span className="sr-only">Loading vendor</span>
+      {announce && <span className="sr-only">{label}</span>}
     </Card>
   )
 }

@@ -1,4 +1,5 @@
 import { RecommendationCard, RecommendationCardSkeleton } from './RecommendationCard'
+import { formatDate, toDateTime } from '../../../lib/formatDate'
 
 const recommendations = [
   {
@@ -7,7 +8,8 @@ const recommendations = [
     fromTitle: 'CMO, Fabrikam',
     message: 'Priya rebuilt our lifecycle program in a quarter. I would hire her again tomorrow.',
     subject: 'Lumen Creative',
-    date: '2026-09-14T12:00:00Z',
+    dateLabel: formatDate('2026-09-14 12:00:00'),
+    dateTime: toDateTime('2026-09-14 12:00:00'),
   },
   {
     id: 2,
@@ -15,7 +17,8 @@ const recommendations = [
     fromTitle: 'Director of Demand Gen, Adatum',
     message: 'The best HubSpot partner we have worked with. Fast, honest about tradeoffs and great at training our team.',
     subject: 'Northwind Growth',
-    date: '2026-08-02T12:00:00Z',
+    dateLabel: formatDate('2026-08-02 12:00:00'),
+    dateTime: toDateTime('2026-08-02 12:00:00'),
   },
 ]
 
@@ -29,7 +32,7 @@ export default {
 
 export const Default = {}
 
-export const MissingFields = { args: { fromTitle: undefined, subject: undefined, date: undefined } }
+export const MissingFields = { args: { fromTitle: undefined, subject: undefined, dateLabel: undefined, dateTime: undefined } }
 
 export const LongContent = {
   args: {
@@ -52,7 +55,7 @@ export const Grid = {
         </li>
       ))}
       <li>
-        <RecommendationCardSkeleton />
+        <RecommendationCardSkeleton announce={false} />
       </li>
     </ul>
   ),

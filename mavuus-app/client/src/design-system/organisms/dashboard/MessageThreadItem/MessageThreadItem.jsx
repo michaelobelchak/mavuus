@@ -1,6 +1,7 @@
 import { cn } from '../../../lib/cn'
 import { linkProps } from '../../../lib/linkProps'
 import { Avatar, Caption, Skeleton } from '../../../primitives'
+import { skeletonA11y } from '../skeletonA11y'
 
 const shortCount = (count) => (count > 99 ? '99+' : String(count))
 
@@ -76,16 +77,19 @@ export function MessageThreadItem({
   )
 }
 
-/** Loading placeholder row with the MessageThreadItem layout. */
-export function MessageThreadItemSkeleton({ className, ...props }) {
+/**
+ * Loading placeholder row with the MessageThreadItem layout. Busy with a hidden `label`; pass `announce={false}` inside a grid that sets
+ * aria-busy on the list, so each placeholder isn't read out.
+ */
+export function MessageThreadItemSkeleton({ announce = true, label = 'Loading conversation', className, ...props }) {
   return (
-    <div aria-busy="true" className={cn('flex items-center gap-ds-sm px-ds-md py-ds-sm', className)} {...props}>
+    <div {...skeletonA11y(announce)} className={cn('flex items-center gap-ds-sm px-ds-md py-ds-sm', className)} {...props}>
       <Skeleton shape="circle" />
       <div className="flex grow flex-col gap-ds-xs">
         <Skeleton className="w-1/3" />
         <Skeleton className="w-3/4" />
       </div>
-      <span className="sr-only">Loading conversation</span>
+      {announce && <span className="sr-only">{label}</span>}
     </div>
   )
 }

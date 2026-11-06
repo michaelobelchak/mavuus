@@ -98,4 +98,27 @@ describe('JobCard', () => {
     expect(screen.getByTestId('skeleton')).toHaveAttribute('aria-busy', 'true')
     expect(screen.getByText('Loading job')).toHaveClass('sr-only')
   })
+
+  it('should name the article by its title', () => {
+    renderCard()
+    expect(screen.getByRole('article', { name: 'VP of Demand Generation' })).toBeInTheDocument()
+  })
+
+  it('should use removeLabel for the remove button', () => {
+    renderCard({ onRemove: () => {}, removeLabel: 'Withdraw application' })
+    expect(screen.getByRole('button', { name: 'Withdraw application' })).toBeInTheDocument()
+  })
+
+  it('should leave the skeleton silent with announce false, for grids that set aria-busy on the list', () => {
+    render(<JobCardSkeleton data-testid="quiet" announce={false} />)
+    const quiet = screen.getByTestId('quiet')
+    expect(quiet).toHaveAttribute('aria-hidden', 'true')
+    expect(quiet).not.toHaveAttribute('aria-busy')
+    expect(screen.queryByText('Loading job')).toBeNull()
+  })
+
+  it('should use the skeleton label prop', () => {
+    render(<JobCardSkeleton label="Loading more" />)
+    expect(screen.getByText('Loading more')).toHaveClass('sr-only')
+  })
 })

@@ -61,4 +61,33 @@ describe('ResourceCard', () => {
     render(<ResourceCardSkeleton data-testid="skeleton" />)
     expect(screen.getByTestId('skeleton')).toHaveAttribute('aria-busy', 'true')
   })
+
+  it('should name the article by its title', () => {
+    renderCard()
+    expect(screen.getByRole('article', { name: resource.title })).toBeInTheDocument()
+  })
+
+  it('should toggle save with the built-in bookmark like JobCard', async () => {
+    const user = userEvent.setup()
+    const onSavedChange = vi.fn()
+    renderCard({ saved: true, onSavedChange })
+    const save = screen.getByRole('button', { name: `Save ${resource.title}` })
+    expect(save).toHaveAttribute('aria-pressed', 'true')
+    expect(save.closest('a')).toBeNull()
+    await user.click(save)
+    expect(onSavedChange).toHaveBeenCalledWith(false)
+  })
+
+  it('should leave the skeleton silent with announce false, for grids that set aria-busy on the list', () => {
+    render(<ResourceCardSkeleton data-testid="quiet" announce={false} />)
+    const quiet = screen.getByTestId('quiet')
+    expect(quiet).toHaveAttribute('aria-hidden', 'true')
+    expect(quiet).not.toHaveAttribute('aria-busy')
+    expect(screen.queryByText('Loading resource')).toBeNull()
+  })
+
+  it('should use the skeleton label prop', () => {
+    render(<ResourceCardSkeleton label="Loading more" />)
+    expect(screen.getByText('Loading more')).toHaveClass('sr-only')
+  })
 })

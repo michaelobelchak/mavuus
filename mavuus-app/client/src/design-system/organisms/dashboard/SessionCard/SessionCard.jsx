@@ -1,9 +1,11 @@
+import { useId } from 'react'
 import { Calendar, Clock, Eye, PlayCircle } from 'lucide-react'
 import { cn } from '../../../lib/cn'
 import { resolveHeadingLevel, resolveOption } from '../../../lib/resolveOption'
 import { Card, CardAction, CardLink, MediaFrame } from '../../../patterns'
 import { Avatar, Badge, Caption, Heading, Icon, Skeleton, Text } from '../../../primitives'
 import { MetaList } from '../MetaList'
+import { skeletonA11y } from '../skeletonA11y'
 
 const KINDS = ['live', 'recording']
 
@@ -61,16 +63,18 @@ export function SessionCard({
   ...props
 }) {
   const level = resolveHeadingLevel(headingLevel, [2, 3, 4], 3, 'SessionCard')
+  const titleId = useId()
   const resolvedKind = resolveOption(kind, KINDS, 'live', 'SessionCard', 'kind')
   const linked = to !== undefined || href !== undefined
   const viewsLabel = typeof views === 'number' ? `${views.toLocaleString('en-US')} views` : null
 
   return (
     <Card
+      aria-labelledby={titleId}
       as={as}
       padding="md"
       interactive={linked}
-      className={cn('group flex h-full flex-col gap-ds-sm', className)}
+      className={cn(linked && 'group', 'flex h-full flex-col gap-ds-sm', className)}
       {...props}
     >
       <SessionMedia src={thumbnailSrc} kind={resolvedKind} />
@@ -79,7 +83,7 @@ export function SessionCard({
           {category}
         </Badge>
       )}
-      <Heading level={level} size="h4" className="line-clamp-2">
+      <Heading id={titleId} level={level} size="h4" className="line-clamp-2">
         {linked ? (
           <CardLink to={to} href={href}>
             {title}
@@ -111,10 +115,13 @@ export function SessionCard({
   )
 }
 
-/** Loading placeholder with the SessionCard layout. */
-export function SessionCardSkeleton({ className, ...props }) {
+/**
+ * Loading placeholder with the SessionCard layout. Busy with a hidden `label`; pass `announce={false}` inside a grid that sets
+ * aria-busy on the list, so each placeholder isn't read out.
+ */
+export function SessionCardSkeleton({ announce = true, label = 'Loading session', className, ...props }) {
   return (
-    <Card padding="md" aria-busy="true" className={cn('flex h-full flex-col gap-ds-sm', className)} {...props}>
+    <Card padding="md" {...skeletonA11y(announce)} className={cn('flex h-full flex-col gap-ds-sm', className)} {...props}>
       <Skeleton shape="rect" className="aspect-video h-auto" />
       <Skeleton className="w-1/4" />
       <Skeleton lines={2} />
@@ -122,7 +129,7 @@ export function SessionCardSkeleton({ className, ...props }) {
         <Skeleton shape="circle" className="size-8" />
         <Skeleton className="w-1/2" />
       </div>
-      <span className="sr-only">Loading session</span>
+      {announce && <span className="sr-only">{label}</span>}
     </Card>
   )
 }

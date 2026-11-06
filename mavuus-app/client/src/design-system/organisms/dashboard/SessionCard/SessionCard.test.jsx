@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { SessionCard, SessionCardSkeleton } from './SessionCard'
@@ -61,5 +62,41 @@ describe('SessionCard', () => {
   it('should render a busy skeleton', () => {
     render(<SessionCardSkeleton data-testid="skeleton" />)
     expect(screen.getByTestId('skeleton')).toHaveAttribute('aria-busy', 'true')
+  })
+
+  it('should name the article by its title', () => {
+    renderCard()
+    expect(screen.getByRole('article', { name: session.title })).toBeInTheDocument()
+  })
+
+  it('should keep actions clickable outside the card link', async () => {
+    const user = userEvent.setup()
+    const onRegister = vi.fn()
+    renderCard({ actions: <button type="button" onClick={onRegister}>Register</button> })
+    const button = screen.getByRole('button', { name: 'Register' })
+    expect(button.closest('a')).toBeNull()
+    await user.click(button)
+    expect(onRegister).toHaveBeenCalledTimes(1)
+  })
+
+  it('should only zoom the image on hover when the card is a link', () => {
+    const { unmount } = renderCard()
+    expect(screen.getByRole('article')).toHaveClass('group')
+    unmount()
+    render(<SessionCard {...session} />)
+    expect(screen.getByRole('article')).not.toHaveClass('group')
+  })
+
+  it('should leave the skeleton silent with announce false, for grids that set aria-busy on the list', () => {
+    render(<SessionCardSkeleton data-testid="quiet" announce={false} />)
+    const quiet = screen.getByTestId('quiet')
+    expect(quiet).toHaveAttribute('aria-hidden', 'true')
+    expect(quiet).not.toHaveAttribute('aria-busy')
+    expect(screen.queryByText('Loading session')).toBeNull()
+  })
+
+  it('should use the skeleton label prop', () => {
+    render(<SessionCardSkeleton label="Loading more" />)
+    expect(screen.getByText('Loading more')).toHaveClass('sr-only')
   })
 })

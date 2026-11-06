@@ -1,6 +1,7 @@
 import { Flag } from 'lucide-react'
 import { Button } from '../../../primitives'
 import { ReviewCard, ReviewCardSkeleton } from './ReviewCard'
+import { formatDate, toDateTime } from '../../../lib/formatDate'
 
 const reviews = [
   {
@@ -9,7 +10,8 @@ const reviews = [
     reviewerTitle: 'VP Marketing, Contoso',
     rating: 5,
     text: 'Ran our ABM program end to end and doubled pipeline in two quarters. Weekly reporting we could take straight to the board.',
-    date: '2026-10-28T12:00:00Z',
+    dateLabel: formatDate('2026-10-28 12:00:00'),
+    dateTime: toDateTime('2026-10-28 12:00:00'),
     subject: 'Northwind Growth',
   },
   {
@@ -18,7 +20,8 @@ const reviews = [
     reviewerTitle: 'CMO, Fabrikam',
     rating: 3,
     text: 'Good creative, average strategy.',
-    date: '2026-10-12T12:00:00Z',
+    dateLabel: formatDate('2026-10-12 12:00:00'),
+    dateTime: toDateTime('2026-10-12 12:00:00'),
     subject: 'Brightpath Media',
   },
   {
@@ -27,7 +30,8 @@ const reviews = [
     reviewerTitle: 'Head of Brand, Tailspin',
     rating: 4,
     text: 'Strong brand refresh, a little slow on revisions.',
-    date: '2026-09-30T12:00:00Z',
+    dateLabel: formatDate('2026-09-30 12:00:00'),
+    dateTime: toDateTime('2026-09-30 12:00:00'),
   },
 ]
 
@@ -51,7 +55,7 @@ export const WithActions = {
   },
 }
 
-export const MissingFields = { args: { reviewerTitle: undefined, subject: undefined, text: undefined, date: 'Last week' } }
+export const MissingFields = { args: { reviewerTitle: undefined, subject: undefined, text: undefined, dateLabel: 'Last week', dateTime: undefined } }
 
 const longText =
   'We hired them for a six month engagement to rebuild our lifecycle program. The first month was strong: a clear audit, a prioritized roadmap and quick wins in onboarding email. Months two to four slipped because the strategist we met in the pitch moved to another account, and the new lead needed time to ramp. They owned it, added a senior strategist at no cost and we finished on time with a 22 percent lift in activation.'
@@ -72,7 +76,7 @@ export const Grid = {
         </li>
       ))}
       <li>
-        <ReviewCardSkeleton />
+        <ReviewCardSkeleton announce={false} />
       </li>
     </ul>
   ),

@@ -72,4 +72,47 @@ describe('MemberCard', () => {
     render(<MemberCardSkeleton data-testid="skeleton" />)
     expect(screen.getByTestId('skeleton')).toHaveAttribute('aria-busy', 'true')
   })
+
+  it('should name the article by the member name', () => {
+    renderCard()
+    expect(screen.getByRole('article', { name: 'Priya Nair' })).toBeInTheDocument()
+  })
+
+  it('should not render an empty action wrapper when there is no action', () => {
+    const { container } = renderCard({ connection: 'none' })
+    expect(container.querySelector('.z-\\(--ds-z-raised\\)')).toBeNull()
+    expect(screen.queryByRole('button')).toBeNull()
+  })
+
+  it('should not render an action wrapper for an incoming request without onAccept or your own card', () => {
+    const { container, unmount } = renderCard({ connection: 'incoming' })
+    expect(container.querySelector('.z-\\(--ds-z-raised\\)')).toBeNull()
+    unmount()
+    const own = renderCard({ connection: 'none', onConnect: () => {}, isSelf: true })
+    expect(own.container.querySelector('.z-\\(--ds-z-raised\\)')).toBeNull()
+  })
+
+  it('should show a brand badge for Pro, a neutral badge for other paid tiers and none for free', () => {
+    const { unmount } = renderCard({ tier: 'pro' })
+    expect(screen.getByText('Pro member')).toHaveClass('text-text-brand-strong')
+    unmount()
+    const team = renderCard({ tier: 'team' })
+    expect(screen.getByText('Team member')).toHaveClass('text-text-secondary')
+    team.unmount()
+    renderCard({ tier: 'free' })
+    expect(screen.queryByText(/member$/)).toBeNull()
+  })
+
+  it('should leave the skeleton silent with announce false, for grids that set aria-busy on the list', () => {
+    render(<MemberCardSkeleton data-testid="quiet" announce={false} />)
+    const quiet = screen.getByTestId('quiet')
+    expect(quiet).toHaveAttribute('aria-hidden', 'true')
+    expect(quiet).not.toHaveAttribute('aria-busy')
+    expect(screen.queryByText('Loading member')).toBeNull()
+  })
+
+  it('should use the skeleton label prop', () => {
+    render(<MemberCardSkeleton label="Loading more" />)
+    expect(screen.getByText('Loading more')).toHaveClass('sr-only')
+  })
 })

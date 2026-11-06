@@ -116,7 +116,7 @@ export const List = {
         </li>
       ))}
       <li>
-        <JobCardSkeleton />
+        <JobCardSkeleton announce={false} />
       </li>
     </ul>
   ),

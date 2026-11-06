@@ -52,7 +52,7 @@ function ThreadList() {
         </li>
       ))}
       <li>
-        <MessageThreadItemSkeleton />
+        <MessageThreadItemSkeleton announce={false} />
       </li>
     </ul>
   )

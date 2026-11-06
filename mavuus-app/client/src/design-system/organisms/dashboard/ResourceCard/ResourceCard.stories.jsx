@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { Bookmark } from 'lucide-react'
-import { IconButton } from '../../../primitives'
 import { ResourceCard, ResourceCardSkeleton } from './ResourceCard'
 
 const resources = [
@@ -32,19 +30,9 @@ const resources = [
   },
 ]
 
-function SaveButton() {
-  const [saved, setSaved] = useState(false)
-  return (
-    <IconButton
-      icon={Bookmark}
-      variant="ghost"
-      size="sm"
-      aria-label="Save resource"
-      aria-pressed={saved}
-      onClick={() => setSaved(!saved)}
-      className={saved ? 'text-text-brand-strong [&>svg]:fill-current' : undefined}
-    />
-  )
+function SaveableResource(args) {
+  const [saved, setSaved] = useState(args.saved ?? false)
+  return <ResourceCard {...args} saved={saved} onSavedChange={setSaved} />
 }
 
 export default {
@@ -59,7 +47,7 @@ export const Default = {}
 
 export const External = { args: { to: undefined, href: 'https://hbr.org/topic/marketing' } }
 
-export const WithSave = { args: { actions: <SaveButton /> } }
+export const WithSave = { args: { saved: true }, render: (args) => <SaveableResource {...args} /> }
 
 export const MissingFields = { args: { category: undefined, type: undefined, description: undefined, author: undefined, readTime: undefined } }
 
@@ -80,11 +68,11 @@ export const Grid = {
     <ul className="grid grid-cols-1 gap-ds-md md:grid-cols-2 lg:grid-cols-3">
       {resources.map((resource) => (
         <li key={resource.id}>
-          <ResourceCard {...resource} to={`/dashboard/resources/${resource.id}`} actions={<SaveButton />} />
+          <SaveableResource {...resource} to={`/dashboard/resources/${resource.id}`} />
         </li>
       ))}
       <li>
-        <ResourceCardSkeleton />
+        <ResourceCardSkeleton announce={false} />
       </li>
     </ul>
   ),
