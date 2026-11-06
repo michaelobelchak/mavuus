@@ -34,7 +34,7 @@ Brand rules kept: pink `#F26D92` as is (owner decision; contrast note documented
 
 - **Primitives:** Button, IconButton, Link, Badge, TrendBadge, Chip/Tag, Avatar, AvatarStack, Input, Textarea, Select, Checkbox, Radio, Switch, Label, Spinner, Skeleton, Divider, Tooltip, ProgressBar, Heading, Text, Eyebrow, Caption.
 - **Patterns:** Card (feature, surface, panel, media), StatCard, Tabs, NumberedTabs, Dialog, Sheet, DropdownMenu, Popover, Toast, Accordion, Breadcrumbs, Pagination, Table, DataTable (sort, paginate, filter), FormField, SearchInput, FilterBar, EmptyState, Alert/Banner, PageHeader, SectionHeader, ChartCard with BarChart and LineChart, MediaFrame, CheckList, Reveal, CountUp.
-- **Organisms:** `app-shell` (sidebar, top bar, layout), `site` (header, footer, CTA band), `dashboard` (job, member, session, vendor, message), `admin` (tables, moderation panels).
+- **Organisms:** `app-shell` (sidebar, top bar, layout), `site` (header, footer, CTA band), `dashboard` (job, member, session, vendor, message), `admin` (tables, moderation panels). Changed during build, see MEMORY.md: admin got `AdminDataTable` with row and bulk actions and confirm dialogs instead of separate moderation panels.
 
 Rules (lint-enforced): primitives and patterns never import organisms; pages compose components, never raw styling; every component has a Storybook story; consistent props (`variant`, `size`, ref as a prop, `cn()` class merge).
 
@@ -47,7 +47,7 @@ Migration: `components/ui` (45 dashboard components) and `components/live/ui` me
 - Sidebar 280px, white: logo, nav items (icon, label, chevron for groups with sub-pages that expand in place). Active item: filled rounded pill with a brand blue to navy gradient and white text (readable; pink stays the accent).
 - Member nav: Home, Live Sessions, On-Demand, Resources, Speakers, Members, Vendors, Jobs (+ My Jobs), Messages, Connections, Profile, Invite. Admin uses the same shell with grouped nav: Overview, People, Content, Community, Settings.
 - Top bar: page title left; search, notifications, avatar menu right.
-- Main: tinted rounded panel with white cards (24px radius).
+- Main: tinted rounded panel with white cards (16px radius; changed during build from 24px, see MEMORY.md).
 - Responsive: full sidebar at 1280px and up, icon rail with tooltips at 1024 to 1279px, slide-in drawer below 1024px.
 
 ## 4. Docs, guards, testing, rollout

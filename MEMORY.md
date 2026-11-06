@@ -68,6 +68,8 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 
 **Approach B:** our own components, shadcn-style (in the repo, `cva` variants, `cn()` merge), on Base UI for focus, keyboard and layering, Recharts for charts, Sonner for toasts. **Rejected:** writing interactions in-house (menus, dialogs and focus traps are where accessibility bugs live) and adopting a themed library wholesale (agents learn someone else's rules and the brand fights its defaults). **Deviation from the design:** no shadcn component tokens (`--card`, `--primary`); one role scheme (`bg-surface-*`, `text-text-*`, `border-border-*`) is easier to lint and to learn.
 
+**Changed from the approved design during the build:** cards use the 16px `rounded-card` radius, not 24px (24px is `rounded-sheet`; the main panel corner is 32px). Admin got `AdminDataTable` with row and bulk actions and confirm dialogs instead of separate moderation panels. PR A also carries small page fixes (the `/admin` crash and two 390px overflows) and the Fixel switch for the dashboard and admin (Manrope removed from `index.html` and `--font-body`), so those pages change font in this PR even though their layouts wait for Phase 8.
+
 **Tokens:** three tiers in DTCG JSON, light now, dark-ready (dark is one `role.dark` block). Alias variables carry a `--ds-` prefix because Tailwind v4 reads `--spacing-*`, `--radius-*` and `--text-*` as theme keys: `--spacing-md` would have turned `max-w-md` into 16px. The drift test also rejects any key that overrides a Tailwind default.
 
 **Layers:** menus and selects (500) sit above dialogs (400) so a Select can open inside a Dialog; popovers 550, tooltips 600, toasts 700. `zOrder.test.js` guards it.
