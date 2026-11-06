@@ -13,6 +13,7 @@ export const themeScales = {
     "surface-brand-strong-hover",
     "surface-hover",
     "surface-selected",
+    "surface-control-off",
     "text-primary",
     "text-secondary",
     "text-muted",

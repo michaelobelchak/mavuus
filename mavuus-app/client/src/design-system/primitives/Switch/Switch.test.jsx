@@ -48,4 +48,16 @@ describe('Switch', () => {
     render(<Switch aria-label="Public profile" />)
     expect(screen.getByRole('switch', { name: 'Public profile' })).toHaveClass('w-11', 'h-6')
   })
+
+  it('should set aria-invalid and an error ring when invalid', () => {
+    render(<Switch label="Share my profile" invalid />)
+    const toggle = screen.getByRole('switch', { name: 'Share my profile' })
+    expect(toggle).toHaveAttribute('aria-invalid', 'true')
+    expect(toggle).toHaveClass('ring-2', 'ring-status-error')
+  })
+
+  it('should use the control-off surface for the off track', () => {
+    render(<Switch aria-label="Public profile" />)
+    expect(screen.getByRole('switch', { name: 'Public profile' })).toHaveClass('bg-surface-control-off')
+  })
 })

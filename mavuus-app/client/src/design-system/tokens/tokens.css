@@ -171,6 +171,7 @@
   --surface-brand-strong-hover: var(--mv-color-blue-600);
   --surface-hover: rgba(17, 24, 39, 0.04);
   --surface-selected: var(--mv-color-pink-50);
+  --surface-control-off: var(--mv-color-neutral-500);
   --text-primary: var(--mv-color-navy-900);
   --text-secondary: var(--mv-color-neutral-600);
   --text-muted: var(--mv-color-neutral-500);
@@ -218,6 +219,7 @@
   --color-surface-brand-strong-hover: var(--surface-brand-strong-hover);
   --color-surface-hover: var(--surface-hover);
   --color-surface-selected: var(--surface-selected);
+  --color-surface-control-off: var(--surface-control-off);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);

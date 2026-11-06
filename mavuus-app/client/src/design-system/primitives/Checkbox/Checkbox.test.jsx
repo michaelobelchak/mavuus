@@ -58,4 +58,30 @@ describe('Checkbox', () => {
     expect(box).toHaveClass('size-5', 'rounded-tag', 'data-[checked]:bg-surface-brand-strong')
     expect(box).toHaveAttribute('data-checked')
   })
+
+  it('should set aria-invalid and the error border when invalid', () => {
+    render(<Checkbox label="Accept the terms" invalid />)
+    const box = screen.getByRole('checkbox', { name: 'Accept the terms' })
+    expect(box).toHaveAttribute('aria-invalid', 'true')
+    expect(box).toHaveClass('border-status-error', 'data-[checked]:border-status-error')
+    expect(box).not.toHaveClass('data-[checked]:border-surface-brand-strong')
+  })
+
+  it('should treat a truthy aria-invalid like invalid', () => {
+    render(<Checkbox label="Accept the terms" aria-invalid="true" />)
+    expect(screen.getByRole('checkbox', { name: 'Accept the terms' })).toHaveClass('border-status-error')
+  })
+
+  it('should use explicit disabled styles when disabled and indeterminate', () => {
+    render(<Checkbox label="Select all" indeterminate disabled />)
+    const box = screen.getByRole('checkbox', { name: 'Select all' })
+    expect(box).toHaveAttribute('data-indeterminate')
+    expect(box).toHaveAttribute('data-disabled')
+    expect(box).toHaveClass(
+      'data-[disabled]:data-[indeterminate]:bg-surface-sunken',
+      'data-[disabled]:data-[indeterminate]:border-border-default',
+      'data-[disabled]:data-[indeterminate]:text-text-disabled',
+    )
+    expect(box.querySelector('svg')).toHaveClass('lucide-minus')
+  })
 })

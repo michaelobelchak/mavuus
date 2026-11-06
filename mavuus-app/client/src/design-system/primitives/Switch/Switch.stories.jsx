@@ -16,3 +16,5 @@ export const Disabled = { args: { disabled: true } }
 export const DisabledOn = { args: { disabled: true, defaultChecked: true } }
 
 export const WithoutVisibleLabel = { args: { label: undefined, 'aria-label': 'Public profile' } }
+
+export const Invalid = { args: { label: 'Share my profile with vendors', invalid: true } }

@@ -31,3 +31,5 @@ export const WithChildren = {
 }
 
 export const Disabled = { args: { disabled: true } }
+
+export const Invalid = { args: { invalid: true, defaultValue: undefined } }

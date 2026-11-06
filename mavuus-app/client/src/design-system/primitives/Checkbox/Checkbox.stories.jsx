@@ -26,3 +26,7 @@ export const Controlled = {
     return <Checkbox {...args} checked={checked} onCheckedChange={setChecked} label={checked ? 'Subscribed' : 'Subscribe to the digest'} />
   },
 }
+
+export const Invalid = { args: { label: 'Accept the community guidelines', invalid: true } }
+
+export const DisabledIndeterminate = { args: { label: 'Select all members', indeterminate: true, disabled: true } }

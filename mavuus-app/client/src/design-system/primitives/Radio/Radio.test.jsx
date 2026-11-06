@@ -64,4 +64,15 @@ describe('RadioGroup', () => {
     fireEvent.click(screen.getByText('Monthly'))
     expect(screen.getByRole('radio', { name: 'Monthly' })).toHaveAttribute('aria-checked', 'true')
   })
+
+  it('should set aria-invalid on the group and the error border on each radio when invalid', () => {
+    render(
+      <RadioGroup aria-label="Plan" invalid>
+        <Radio value="free" label="Free" />
+        <Radio value="pro" label="Pro" />
+      </RadioGroup>,
+    )
+    expect(screen.getByRole('radiogroup', { name: 'Plan' })).toHaveAttribute('aria-invalid', 'true')
+    for (const radio of screen.getAllByRole('radio')) expect(radio).toHaveClass('border-status-error')
+  })
 })

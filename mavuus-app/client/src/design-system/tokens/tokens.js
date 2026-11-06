@@ -171,6 +171,7 @@ export const tokens = {
   "surface-brand-strong-hover": "#184F70",
   "surface-hover": "rgba(17, 24, 39, 0.04)",
   "surface-selected": "#fdf0f4",
+  "surface-control-off": "#6b7280",
   "text-primary": "#1C2232",
   "text-secondary": "#5e697c",
   "text-muted": "#6b7280",

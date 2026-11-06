@@ -7,3 +7,8 @@ export const choiceLabelClass = [
 
 // Grows the hit area of a 20px box to 44px when it renders without a label row.
 export const choiceHitArea = 'relative after:absolute after:-inset-3 after:content-[""]'
+
+// Error border for Checkbox and Radio. Repeated under data-[checked] and data-[indeterminate]
+// so it wins over the selected border.
+export const choiceInvalidClass =
+  'border-status-error data-[checked]:border-status-error data-[indeterminate]:border-status-error'
