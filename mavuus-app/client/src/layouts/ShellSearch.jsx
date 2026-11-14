@@ -174,6 +174,9 @@ export function ShellSearch({ className }) {
         <div
           role="region"
           aria-label="Search results"
+          // Keeps focus in the field while a result is clicked. Safari doesn't focus links on
+          // click, so focus would leave the search and close this panel before the click lands.
+          onMouseDown={(event) => event.preventDefault()}
           className={cn(
             'flex max-h-96 flex-col gap-ds-xs overflow-y-auto bg-surface-raised py-ds-xs',
             wide

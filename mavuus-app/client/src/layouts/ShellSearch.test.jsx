@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -113,6 +113,21 @@ describe('ShellSearch', () => {
     expect(screen.queryByRole('region', { name: 'Search results' })).not.toBeInTheDocument()
     await user.click(field)
     expect(screen.getByRole('region', { name: 'Search results' })).toBeInTheDocument()
+  })
+
+  it('should keep focus in the field on mousedown so a click on a result lands (Safari)', async () => {
+    const user = userEvent.setup()
+    renderSearch()
+    const field = screen.getByRole('searchbox')
+    await user.type(field, 'growth')
+    const link = await screen.findByRole('link', { name: /Head of Growth/ })
+    // Safari doesn't focus a link on click, so focus would leave to <body> and close the panel
+    // before the click. Preventing mousedown's default keeps focus in the field.
+    expect(fireEvent.mouseDown(link)).toBe(false)
+    expect(field).toHaveFocus()
+    expect(screen.getByRole('region', { name: 'Search results' })).toBeInTheDocument()
+    fireEvent.click(link)
+    expect(screen.getByTestId('where')).toHaveTextContent('/dashboard/jobs/9')
   })
 
   it('should close the results when focus leaves the search', async () => {
