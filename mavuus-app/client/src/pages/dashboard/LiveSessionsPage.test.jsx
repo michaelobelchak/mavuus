@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router-dom'
 import { mockApi, reply } from '../../test/mockApi'
 import LiveSessionsPage from './LiveSessionsPage'
 
@@ -10,11 +10,17 @@ const live = [
   { id: 2, type: 'live', title: 'ABM at Scale', category: 'ABM', scheduled_date: '2026-04-02', duration: '45 min', speaker_name: 'Leah Andrew' },
 ]
 
-function renderPage(routes) {
+function Where() {
+  const { search } = useLocation()
+  return <p data-testid="where">{search}</p>
+}
+
+function renderPage(routes, { url = '/dashboard/live-sessions' } = {}) {
   const fetchMock = mockApi(routes ?? { 'GET /api/sessions': { data: live, totalPages: 2 } })
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[url]}>
       <LiveSessionsPage />
+      <Where />
     </MemoryRouter>,
   )
   return fetchMock
@@ -59,5 +65,40 @@ describe('LiveSessionsPage', () => {
     const calls = fetchMock.mock.calls.length
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     await waitFor(() => expect(fetchMock.mock.calls.length).toBe(calls + 1))
+  })
+
+  it('should keep search, category and page in the URL', async () => {
+    const user = userEvent.setup()
+    const fetchMock = renderPage()
+    await screen.findByRole('link', { name: 'ABM at Scale' })
+    await user.click(screen.getByRole('button', { name: 'ABM' }))
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('?category=ABM'))
+    await user.click(await screen.findByRole('button', { name: 'Next page' }))
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('?category=ABM&page=2'))
+    await user.type(screen.getByRole('searchbox', { name: 'Search sessions' }), 'scale')
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('?category=ABM&q=scale'))
+    expect(lastQuery(fetchMock).get('page')).toBe('1')
+  })
+
+  it('should start from the filters in a shared link', async () => {
+    const fetchMock = renderPage(undefined, { url: '/dashboard/live-sessions?category=ABM&page=2&q=scale' })
+    await screen.findByRole('link', { name: 'ABM at Scale' })
+    expect(Object.fromEntries(lastQuery(fetchMock))).toMatchObject({ category: 'ABM', page: '2', search: 'scale', type: 'live' })
+    expect(screen.getByRole('button', { name: 'ABM' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('searchbox', { name: 'Search sessions' })).toHaveValue('scale')
+  })
+
+  it('should treat a response that is not a list as empty', async () => {
+    renderPage({ 'GET /api/sessions': { data: { oops: true } } })
+    expect(await screen.findByRole('heading', { name: 'No sessions found' })).toBeInTheDocument()
+  })
+
+  it('should abort the old request when the filter changes', async () => {
+    const user = userEvent.setup()
+    const fetchMock = renderPage()
+    await screen.findByRole('link', { name: 'ABM at Scale' })
+    await user.click(screen.getByRole('button', { name: 'ABM' }))
+    await waitFor(() => expect(lastQuery(fetchMock).get('category')).toBe('ABM'))
+    for (const [, init] of fetchMock.mock.calls) expect(init.signal).toBeInstanceOf(AbortSignal)
   })
 })
