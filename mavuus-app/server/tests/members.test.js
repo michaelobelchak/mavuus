@@ -39,4 +39,27 @@ describe('GET /api/members', () => {
     const search = await request(app).get('/api/search?q=ContentPro')
     expect(search.body.members).toEqual([])
   })
+
+  it('should filter by tier and count only the matches', async () => {
+    const res = await request(app).get('/api/members?tier=free&limit=1').set('Authorization', `Bearer ${alice}`)
+    expect(res.status).toBe(200)
+    expect(names(res)).toEqual(['Cara Free'])
+    expect(res.body.total).toBe(1)
+    expect(res.body.totalPages).toBe(1)
+  })
+
+  it("should list only the current member's accepted connections with connections=1", async () => {
+    const res = await request(app).get('/api/members?connections=1').set('Authorization', `Bearer ${alice}`)
+    expect(res.status).toBe(200)
+    expect(names(res)).toEqual(['Bob Test', 'Cara Free'])
+    expect(res.body.total).toBe(2)
+    const pro = await request(app).get('/api/members?connections=1&tier=pro').set('Authorization', `Bearer ${alice}`)
+    expect(names(pro)).toEqual(['Bob Test'])
+  })
+
+  it('should refuse an unknown tier or connections value, and connections without a token', async () => {
+    expect((await request(app).get('/api/members?tier=gold')).status).toBe(400)
+    expect((await request(app).get('/api/members?connections=yes').set('Authorization', `Bearer ${alice}`)).status).toBe(400)
+    expect((await request(app).get('/api/members?connections=1')).status).toBe(401)
+  })
 })

@@ -27,9 +27,22 @@ function isConnected(db, userId1, userId2) {
   return !!conn
 }
 
+const TIERS = ['pro', 'free']
+
 router.get('/', optionalAuth, (req, res) => {
-  const { search, page = 1, limit = 20 } = req.query
+  const { search, tier, connections, page = 1, limit = 20 } = req.query
   const db = req.app.locals.db
+
+  if (tier !== undefined && !TIERS.includes(tier)) {
+    return res.status(400).json({ error: `tier must be one of: ${TIERS.join(', ')}` })
+  }
+  if (connections !== undefined && connections !== '1' && connections !== '0') {
+    return res.status(400).json({ error: 'connections must be 1 or 0' })
+  }
+  const onlyConnections = connections === '1'
+  if (onlyConnections && !req.user) {
+    return res.status(401).json({ error: 'Sign in to list your connections' })
+  }
 
   const conditions = [NOT_VENDOR_OWNER]
   const params = []
@@ -46,6 +59,20 @@ router.get('/', optionalAuth, (req, res) => {
     conditions.push('(u.name LIKE ? OR u.title LIKE ? OR u.company LIKE ?)')
     const term = `%${search}%`
     params.push(term, term, term)
+  }
+
+  if (tier) {
+    conditions.push('u.membership_tier = ?')
+    params.push(tier)
+  }
+
+  // Members with an accepted connection to the signed-in member, in either direction.
+  if (onlyConnections) {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM connections c WHERE c.status = 'accepted'
+        AND ((c.requester_id = ? AND c.receiver_id = u.id) OR (c.receiver_id = ? AND c.requester_id = u.id))
+    )`)
+    params.push(req.user.id, req.user.id)
   }
 
   const whereClause = conditions.length ? ' WHERE ' + conditions.join(' AND ') : ''
