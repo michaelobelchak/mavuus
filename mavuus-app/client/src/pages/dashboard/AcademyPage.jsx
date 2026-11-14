@@ -1,32 +1,110 @@
-import { useState } from 'react'
-import HoverCard from '../../components/ui/HoverCard'
-import StatusDot from '../../components/ui/StatusDot'
-import LazyImage from '../../components/ui/LazyImage'
-import Avatar from '../../components/ui/Avatar'
-import Badge from '../../components/ui/Badge'
-import Button from '../../components/ui/Button'
-import { CardSkeleton } from '../../components/ui/Skeleton'
+import { useEffect, useState } from 'react'
+import { ArrowRight, UserCircle } from 'lucide-react'
+import { Card, SectionHeader } from '@/design-system/patterns'
+import { ResourceCard, ResourceCardSkeleton, SessionCard, SessionCardSkeleton } from '@/design-system/organisms'
+import { Avatar, Button, Caption, Chip, Eyebrow, Heading, Icon, Link, ProgressBar, Text } from '@/design-system/primitives'
 import useApiData from '../../hooks/useApiData'
 import { liveSessions as fallbackLive, onDemandVideos as fallbackVideos, communityResources as fallbackResources } from '../../data/mockData'
-import { Calendar, Clock, PlayCircle, FileText, ArrowRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { profileCompletion } from './academy/profileCompletion'
+import { LIVE_PATH, ON_DEMAND_PATH, RESOURCES_PATH, resourceCardProps, sessionCardProps } from './academy/cardProps'
 
 const tabs = ['All', 'Live Sessions', 'On-Demand', 'Resources']
+const GRID = 'grid grid-cols-1 gap-ds-md sm:grid-cols-2 xl:grid-cols-4'
+
+function listPhrase(items) {
+  if (items.length <= 1) return items.join('')
+  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`
+}
+
+function useProfileCompletion(token) {
+  const [completion, setCompletion] = useState(null)
+  useEffect(() => {
+    if (!token) return
+    let active = true
+    fetch('/api/profile/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (active && data) setCompletion(profileCompletion(data))
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [token])
+  return completion
+}
+
+function ProfileNudge({ completion }) {
+  return (
+    <Card variant="panel" padding="md" className="flex flex-col gap-ds-md md:flex-row md:items-center">
+      <span className="hidden size-10 shrink-0 items-center justify-center rounded-chip bg-surface-raised text-text-brand-strong md:inline-flex">
+        <Icon icon={UserCircle} size="md" />
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-ds-xs">
+        <Heading level={2} size="h4">
+          Complete your profile
+        </Heading>
+        <Text size="body-sm" tone="secondary">
+          Add {listPhrase(completion.missing)} so members and recruiters can find you.
+        </Text>
+        <ProgressBar value={completion.percent} label={`Profile ${completion.percent}% complete`} size="sm" className="max-w-sm" />
+      </div>
+      <Button to="/dashboard/profile" variant="secondary" className="self-start md:self-center">
+        Complete profile
+      </Button>
+    </Card>
+  )
+}
+
+function ViewAll({ to, what }) {
+  return (
+    <Link variant="standalone" to={to} aria-label={`View all ${what}`} className="inline-flex items-center gap-ds-xxs">
+      View all <Icon icon={ArrowRight} size="sm" />
+    </Link>
+  )
+}
+
+function CardGrid({ loading, label, skeleton: Skeleton, children }) {
+  if (loading) {
+    return (
+      <ul aria-busy="true" aria-label={label} className={GRID}>
+        {[0, 1, 2, 3].map((i) => (
+          <li key={i}>
+            <Skeleton announce={false} />
+          </li>
+        ))}
+      </ul>
+    )
+  }
+  return (
+    <ul aria-label={label} className={GRID}>
+      {children}
+    </ul>
+  )
+}
+
+function uniqueSpeakers(sessions) {
+  const seen = new Set()
+  return sessions
+    .filter((s) => s.speaker_name && !seen.has(s.speaker_name) && seen.add(s.speaker_name))
+    .slice(0, 8)
+}
 
 export default function AcademyPage() {
   const [activeTab, setActiveTab] = useState('All')
-  const { user } = useAuth()
+  const { user, token } = useAuth()
+  const completion = useProfileCompletion(token)
 
   const { data: sessionsRaw, loading: loadingSessions } = useApiData('/api/sessions', [])
   const { data: resourcesRaw, loading: loadingResources } = useApiData('/api/resources', [])
 
   // Handle both paginated { data: [...] } and plain array responses
-  const sessions = Array.isArray(sessionsRaw) ? sessionsRaw : (sessionsRaw?.data || [])
-  const resources = Array.isArray(resourcesRaw) ? resourcesRaw : (resourcesRaw?.data || [])
+  const sessions = Array.isArray(sessionsRaw) ? sessionsRaw : sessionsRaw?.data || []
+  const resources = Array.isArray(resourcesRaw) ? resourcesRaw : resourcesRaw?.data || []
 
-  const liveSessions = sessions.filter(s => s.type === 'live').slice(0, 4)
-  const onDemandVideos = sessions.filter(s => s.type === 'on-demand').slice(0, 4)
+  const liveSessions = sessions.filter((s) => s.type === 'live').slice(0, 4)
+  const onDemandVideos = sessions.filter((s) => s.type === 'on-demand').slice(0, 4)
   const communityResources = resources.slice(0, 4)
 
   // Use fallbacks if API returns empty
@@ -34,217 +112,85 @@ export default function AcademyPage() {
   const displayVideos = onDemandVideos.length > 0 ? onDemandVideos : fallbackVideos
   const displayResources = communityResources.length > 0 ? communityResources : fallbackResources
 
+  const show = (tab) => activeTab === 'All' || activeTab === tab
+  const firstName = user?.name ? `, ${user.name.split(' ')[0]}` : ''
+  const speakers = uniqueSpeakers(sessions)
+
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-[28px] md:text-[32px] font-semibold text-dark-blue leading-tight mb-1">
-          Mavuus academy
-        </h1>
-        <p className="text-neutral-500">
-          Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''} — here&apos;s what&apos;s new in the community.
-        </p>
+    <div className="flex flex-col gap-ds-xl">
+      <div className="flex flex-col gap-ds-xxs">
+        <Eyebrow tone="brand">Mavuus academy</Eyebrow>
+        <Text tone="secondary">Welcome back{firstName}. Here&apos;s what&apos;s new in the community.</Text>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 mb-8">
-        {tabs.map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
-              activeTab === tab
-                ? 'bg-brand-pink text-white'
-                : 'bg-white text-neutral-500 hover:bg-neutral-100'
-            }`}
-          >
+      {completion && completion.percent < 100 && <ProfileNudge completion={completion} />}
+
+      <div role="group" aria-label="Show" className="flex flex-wrap gap-ds-xs">
+        {tabs.map((tab) => (
+          <Chip key={tab} selected={activeTab === tab} onClick={() => setActiveTab(tab)}>
             {tab}
-          </button>
+          </Chip>
         ))}
       </div>
 
-      {/* Upcoming Live Sessions */}
-      {(activeTab === 'All' || activeTab === 'Live Sessions') && (
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-dark-blue">Upcoming Live Sessions</h2>
-            <Link to="/dashboard/live-sessions" className="text-sm text-brand-pink hover:underline flex items-center gap-1">
-              View all <ArrowRight size={14} />
-            </Link>
-          </div>
-          {loadingSessions ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
-              {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
-              {displayLive.map(session => (
-                <Link key={session.id} to={`/dashboard/live-sessions/${session.id}`}>
-                  <HoverCard className="h-full">
-                    <div className="relative h-36 rounded-xl mb-4 overflow-hidden">
-                      <LazyImage
-                        src={session.thumbnail_url}
-                        alt={session.title}
-                        className="absolute inset-0"
-                        imgClassName="transition-transform duration-500 group-hover:scale-105"
-                        fallback={
-                          <div className="w-full h-full bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 flex items-center justify-center">
-                            <Calendar size={32} className="text-brand-blue/40" />
-                          </div>
-                        }
-                      />
-                      <span className="absolute top-2 right-2 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
-                        <StatusDot status="live" size="sm" />
-                        <span className="text-[10px] font-bold tracking-wide text-dark-blue">LIVE</span>
-                      </span>
-                    </div>
-                    <Badge variant="blue">{session.category}</Badge>
-                    <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{session.title}</h3>
-                    <div className="flex items-center gap-2 text-xs text-neutral-500 mb-3">
-                      <Calendar size={12} />
-                      <span>{session.scheduled_date ? new Date(session.scheduled_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}</span>
-                      <Clock size={12} className="ml-2" />
-                      <span>{session.duration}</span>
-                    </div>
-                    <div className="flex items-center gap-2 pt-3 border-t border-neutral-100">
-                      <Avatar name={session.speaker_name} src={session.speaker_avatar} size="sm" />
-                      <div>
-                        <p className="text-xs font-medium text-dark-blue">{session.speaker_name}</p>
-                        <p className="text-[11px] text-neutral-500">{session.speaker_title}</p>
-                      </div>
-                    </div>
-                  </HoverCard>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* On-Demand Videos */}
-      {(activeTab === 'All' || activeTab === 'On-Demand') && (
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-dark-blue">On-Demand Videos</h2>
-            <Link to="/dashboard/on-demand" className="text-sm text-brand-pink hover:underline flex items-center gap-1">
-              View all <ArrowRight size={14} />
-            </Link>
-          </div>
-          {loadingSessions ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
-              {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
-              {displayVideos.map(video => (
-                <Link key={video.id} to={`/dashboard/on-demand/${video.id}`}>
-                  <HoverCard className="h-full">
-                    <div className="h-36 rounded-xl mb-4 overflow-hidden relative">
-                      <LazyImage
-                        src={video.thumbnail_url}
-                        alt={video.title}
-                        className="absolute inset-0"
-                        imgClassName="transition-transform duration-500 group-hover:scale-105"
-                        fallback={
-                          <div className="w-full h-full bg-gradient-to-br from-brand-pink/10 to-purple-100 flex items-center justify-center">
-                            <PlayCircle size={32} className="text-brand-pink/40" />
-                          </div>
-                        }
-                      />
-                      {video.thumbnail_url && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/10 pointer-events-none">
-                          <PlayCircle size={40} className="text-white/80" />
-                        </div>
-                      )}
-                    </div>
-                    <Badge>{video.category}</Badge>
-                    <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{video.title}</h3>
-                    <div className="flex items-center gap-3 text-xs text-neutral-500 mb-3">
-                      <span className="flex items-center gap-1"><Clock size={12} />{video.duration}</span>
-                      <span>{(video.views || 0).toLocaleString()} views</span>
-                    </div>
-                    <div className="flex items-center gap-2 pt-3 border-t border-neutral-100">
-                      <Avatar name={video.speaker_name} src={video.speaker_avatar} size="sm" />
-                      <p className="text-xs font-medium text-dark-blue">{video.speaker_name}</p>
-                    </div>
-                  </HoverCard>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Community Resources */}
-      {(activeTab === 'All' || activeTab === 'Resources') && (
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-dark-blue">Community Resources</h2>
-            <Link to="/dashboard/resources" className="text-sm text-brand-pink hover:underline flex items-center gap-1">
-              View all <ArrowRight size={14} />
-            </Link>
-          </div>
-          {loadingResources ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
-              {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-4">
-              {displayResources.map(resource => (
-                <Link key={resource.id} to={`/dashboard/resources/${resource.id}`}>
-                  <HoverCard className="h-full">
-                    <div className="h-36 rounded-xl mb-4 overflow-hidden relative">
-                      <LazyImage
-                        src={resource.thumbnail_url}
-                        alt={resource.title}
-                        className="absolute inset-0"
-                        imgClassName="transition-transform duration-500 group-hover:scale-105"
-                        fallback={
-                          <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
-                            <FileText size={32} className="text-brand-blue/40" />
-                          </div>
-                        }
-                      />
-                    </div>
-                    <Badge variant="gray">{resource.category}</Badge>
-                    <h3 className="text-base font-semibold text-dark-blue mt-3 mb-2">{resource.title}</h3>
-                    <p className="text-sm text-neutral-500 mb-3 line-clamp-2">{resource.description}</p>
-                    <div className="flex items-center justify-between pt-3 border-t border-neutral-100 text-xs text-neutral-500">
-                      <span>{resource.author}</span>
-                      <span>{resource.read_time}</span>
-                    </div>
-                  </HoverCard>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Past Speakers — derived from session speakers */}
-      {activeTab === 'All' && sessions.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold text-dark-blue mb-5">Past Speakers</h2>
-          <div className="flex gap-6 overflow-x-auto pb-2">
-            {sessions
-              .filter(s => s.speaker_name)
-              .reduce((unique, s) => {
-                if (!unique.find(u => u.speaker_name === s.speaker_name)) {
-                  unique.push(s)
-                }
-                return unique
-              }, [])
-              .slice(0, 8)
-              .map(s => (
-              <div key={s.speaker_name} className="flex-shrink-0 text-center group/speaker cursor-pointer">
-                <div className="mx-auto mb-2 inline-block transition-transform duration-300 group-hover/speaker:-translate-y-1">
-                  <Avatar name={s.speaker_name} src={s.speaker_avatar} size="xl" pro />
-                </div>
-                <p className="text-sm font-medium text-dark-blue">{s.speaker_name}</p>
-                <p className="text-xs text-neutral-500">{s.speaker_title?.split(',')[0]}</p>
-                <p className="text-xs text-brand-pink">{s.speaker_title?.split(',')[1]?.trim()}</p>
-              </div>
+      {show('Live Sessions') && (
+        <section className="flex flex-col gap-ds-md">
+          <SectionHeader size="h3" title="Upcoming Live Sessions" actions={<ViewAll to={LIVE_PATH} what="live sessions" />} />
+          <CardGrid loading={loadingSessions} label="Upcoming live sessions" skeleton={SessionCardSkeleton}>
+            {displayLive.map((session) => (
+              <li key={session.id}>
+                <SessionCard {...sessionCardProps({ ...session, type: 'live' })} />
+              </li>
             ))}
-          </div>
+          </CardGrid>
+        </section>
+      )}
+
+      {show('On-Demand') && (
+        <section className="flex flex-col gap-ds-md">
+          <SectionHeader size="h3" title="On-Demand Videos" actions={<ViewAll to={ON_DEMAND_PATH} what="on-demand videos" />} />
+          <CardGrid loading={loadingSessions} label="On-demand videos" skeleton={SessionCardSkeleton}>
+            {displayVideos.map((video) => (
+              <li key={video.id}>
+                <SessionCard {...sessionCardProps({ ...video, type: 'on-demand' })} />
+              </li>
+            ))}
+          </CardGrid>
+        </section>
+      )}
+
+      {show('Resources') && (
+        <section className="flex flex-col gap-ds-md">
+          <SectionHeader size="h3" title="Community Resources" actions={<ViewAll to={RESOURCES_PATH} what="community resources" />} />
+          <CardGrid loading={loadingResources} label="Community resources" skeleton={ResourceCardSkeleton}>
+            {displayResources.map((resource) => (
+              <li key={resource.id}>
+                <ResourceCard {...resourceCardProps(resource)} />
+              </li>
+            ))}
+          </CardGrid>
+        </section>
+      )}
+
+      {/* Past speakers, derived from the session speakers */}
+      {activeTab === 'All' && speakers.length > 0 && (
+        <section className="flex flex-col gap-ds-md">
+          <SectionHeader size="h3" title="Past Speakers" />
+          <ul className="grid grid-cols-2 gap-ds-lg sm:grid-cols-4 xl:grid-cols-8">
+            {speakers.map((s) => {
+              const [role, company] = (s.speaker_title || '').split(',').map((part) => part.trim())
+              return (
+                <li key={s.speaker_name} className="flex flex-col items-center gap-ds-xxs text-center">
+                  <Avatar name={s.speaker_name} src={s.speaker_avatar} size="lg" className="mb-ds-xxs" />
+                  <Text as="span" size="body-sm" className="font-semibold">
+                    {s.speaker_name}
+                  </Text>
+                  {role && <Caption>{role}</Caption>}
+                  {company && <Caption tone="brand">{company}</Caption>}
+                </li>
+              )
+            })}
+          </ul>
         </section>
       )}
     </div>
