@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Facebook, Linkedin, MessageCircle, Send, Twitter } from 'lucide-react'
 import { Button, Input } from '../../primitives'
 import { Dialog } from '../Dialog'
@@ -33,15 +33,36 @@ const NETWORKS = [
 export function ShareDialog({ title = 'Share', url, shareTitle = '', onOpenChange, ...props }) {
   const toast = useToast()
   const [invite, setInvite] = useState('')
+  const linkRef = useRef(null)
   const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '')
 
-  const copy = async () => {
+  // The Clipboard API first; without it (or when it's refused) select the read-only field and
+  // use execCommand('copy'). Success is only claimed when one of them worked.
+  const copyWithSelection = () => {
+    const input = linkRef.current
+    if (!input) return false
+    input.focus()
+    input.select()
     try {
-      await navigator.clipboard?.writeText(shareUrl)
-      toast.success('Link copied to clipboard')
+      return document.execCommand?.('copy') === true
     } catch {
-      toast.error("Couldn't copy the link. Select it and copy it instead.")
+      return false
     }
+  }
+
+  const copy = async () => {
+    let copied = false
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(shareUrl)
+        copied = true
+      } catch {
+        copied = false
+      }
+    }
+    if (!copied) copied = copyWithSelection()
+    if (copied) toast.success('Link copied to clipboard')
+    else toast.error("Couldn't copy the link. Select it and copy it instead.")
   }
 
   const sendInvite = (event) => {
@@ -76,6 +97,7 @@ export function ShareDialog({ title = 'Share', url, shareTitle = '', onOpenChang
         </ul>
         <FormField label="Or copy link">
           <Input
+            ref={linkRef}
             readOnly
             value={shareUrl}
             onFocus={(event) => event.target.select()}

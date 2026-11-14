@@ -47,4 +47,28 @@ describe('ShareDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Submit' }))
     expect(onOpenChange).not.toHaveBeenCalled()
   })
+
+  it('should fall back to selecting the field and execCommand when there is no clipboard API', async () => {
+    const user = userEvent.setup()
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })
+    document.execCommand = vi.fn(() => true)
+    const success = vi.spyOn(toast, 'success').mockImplementation(() => {})
+    render(<ShareDialog open onOpenChange={() => {}} url="https://mavuus.com/r/2" />)
+    await user.click(screen.getByRole('button', { name: 'Copy' }))
+    expect(document.execCommand).toHaveBeenCalledWith('copy')
+    expect(screen.getByLabelText('Or copy link')).toHaveFocus()
+    expect(success).toHaveBeenCalledWith('Link copied to clipboard', undefined)
+  })
+
+  it('should ask to copy by hand, without claiming success, when copying fails', async () => {
+    const user = userEvent.setup()
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) } })
+    document.execCommand = vi.fn(() => false)
+    const success = vi.spyOn(toast, 'success').mockImplementation(() => {})
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => {})
+    render(<ShareDialog open onOpenChange={() => {}} url="https://mavuus.com/r/2" />)
+    await user.click(screen.getByRole('button', { name: 'Copy' }))
+    expect(success).not.toHaveBeenCalled()
+    expect(error).toHaveBeenCalledWith("Couldn't copy the link. Select it and copy it instead.", undefined)
+  })
 })
