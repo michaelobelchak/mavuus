@@ -1,29 +1,51 @@
-import { expect } from '@playwright/test'
+import { test as base, expect } from '@playwright/test'
 
 export const DEMO_STATE = 'e2e/.auth/demo.json'
 export const WIDTHS = [1440, 1024, 768, 390]
 
-function isLocal(url) {
+// Hosts still allowed while their files are not localized. images.unsplash.com serves the
+// session and resource cover photos in server/db/seed.js, src/data/mockData.js and the auth pages;
+// downloading those was not part of Stage 1. The public pages load nothing from it, and the
+// offline project blocks it like any other host.
+const KNOWN_EXTERNAL = new Set(['images.unsplash.com'])
+
+export function isLocal(url) {
   try {
-    const { hostname } = new URL(url)
+    const { protocol, hostname } = new URL(url)
+    if (protocol === 'data:' || protocol === 'blob:') return true
     return hostname === 'localhost' || hostname === '127.0.0.1'
   } catch {
     return true
   }
 }
 
+/**
+ * The e2e `test`. With the `blockExternal` option (the offline project in playwright.config.js)
+ * every request to a host other than localhost is aborted at the network level, so the run
+ * proves the site renders with no outside network at all.
+ */
+export const test = base.extend({
+  blockExternal: [false, { option: true }],
+  // Playwright's fixture callback is not a React hook, so it is named `provide` here.
+  page: async ({ page, blockExternal }, provide) => {
+    if (blockExternal) await page.route((url) => !isLocal(url.href), (route) => route.abort('internetdisconnected'))
+    await provide(page)
+  },
+})
+
 const AUTH_ME = /^\/api\/auth\/me$/
 
 /**
  * Collects the problems a page should never have: uncaught errors, console errors from the app,
- * /api responses of 400 or more, and failed requests to the app's own origin. The only allowed
- * /api error is the 401 from /api/auth/me when logged out.
- *
- * Intentional deviation: failed loads from third-party hosts (live Webflow CDN images and fonts,
- * pravatar avatars) are ignored, so the suite passes offline and isn't flaky on external CDNs.
+ * /api responses of 400 or more, failed requests to the app's own origin, and any request to
+ * another host (except KNOWN_EXTERNAL). Fonts and site images are served from public/.
+ * The only allowed /api error is the 401 from /api/auth/me when logged out.
  */
 export function watchPage(page) {
   const problems = []
+  page.on('request', (request) => {
+    if (!isLocal(request.url()) && !KNOWN_EXTERNAL.has(new URL(request.url()).hostname)) problems.push(`third-party request: ${request.method()} ${request.url()}`)
+  })
   page.on('pageerror', (error) => problems.push(`page error: ${error.message}`))
   page.on('console', (message) => {
     if (message.type() !== 'error') return
@@ -101,7 +123,8 @@ export function findOverflow(page) {
 
 /**
  * Visits `path` at one width: checks the page's main content renders, takes a full-page
- * screenshot to e2e/screenshots/<name>-<width>.png, checks there is no horizontal overflow
+ * screenshot to e2e/screenshots/<name>-<width>.png (<name>-<width>-offline.png in the offline
+ * project), checks there is no horizontal overflow
  * (the document doesn't scroll sideways and no element sticks out past the viewport, even where
  * the layout clips it) and that the page logged no errors.
  */
@@ -111,7 +134,8 @@ export async function checkPage(page, { name, path, width, ready }) {
   await page.goto(path)
   await ready(page)
   await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
-  await page.screenshot({ path: `e2e/screenshots/${name}-${width}.png`, fullPage: true, animations: 'disabled' })
+  const suffix = base.info().project.name === 'offline' ? '-offline' : ''
+  await page.screenshot({ path: `e2e/screenshots/${name}-${width}${suffix}.png`, fullPage: true, animations: 'disabled' })
   const { scrollWidth, innerWidth } = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
     innerWidth: window.innerWidth,
