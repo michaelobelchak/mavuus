@@ -1,5 +1,5 @@
 import { ResourceCard, ResourceCardSkeleton } from '@/design-system/organisms'
-import { CatalogList } from './academy/CatalogList'
+import { CatalogList } from './shared/CatalogList'
 import { resourceCardProps } from './academy/cardProps'
 
 const types = ['All', 'Guide', 'Template', 'Report', 'Playbook']

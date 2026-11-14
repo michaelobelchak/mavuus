@@ -1,5 +1,5 @@
 import { SessionCard, SessionCardSkeleton } from '@/design-system/organisms'
-import { CatalogList } from './academy/CatalogList'
+import { CatalogList } from './shared/CatalogList'
 import { sessionCardProps } from './academy/cardProps'
 
 const categories = ['All', 'Growth', 'Brand', 'Content', 'Analytics', 'SEO', 'Paid Media', 'Branding', 'MarTech', 'Product Marketing']

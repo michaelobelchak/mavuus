@@ -27,7 +27,7 @@ describe('ResourcesPage', () => {
   })
 
   it('should send the filter under the filterParam it is given', async () => {
-    const { CatalogList } = await import('./academy/CatalogList')
+    const { CatalogList } = await import('./shared/CatalogList')
     const fetchMock = mockApi({ 'GET /api/things': { data: [], totalPages: 1 } })
     render(
       <MemoryRouter initialEntries={['/things?type=Guide']}>

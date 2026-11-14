@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useComments } from '../../hooks/useComments'
 import { useDetailResource } from '../../hooks/useDetailResource'
 import { RESOURCES_PATH, resourceCardProps } from './academy/cardProps'
-import { DetailError, DetailLayout, DetailNotFound, DetailSkeleton, DetailTopBar } from './academy/DetailChrome'
+import { DetailError, DetailLayout, DetailNotFound, DetailSkeleton, DetailTopBar } from './shared/DetailChrome'
 
 // **bold** spans inside a line of resource content.
 function inline(text) {

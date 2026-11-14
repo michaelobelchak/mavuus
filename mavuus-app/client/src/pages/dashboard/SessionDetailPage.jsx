@@ -10,7 +10,7 @@ import { useComments } from '../../hooks/useComments'
 import { useDetailResource } from '../../hooks/useDetailResource'
 import { fireConfetti } from '../../hooks/useConfetti'
 import { LIVE_PATH, ON_DEMAND_PATH, sessionCardProps } from './academy/cardProps'
-import { DetailError, DetailLayout, DetailNotFound, DetailSkeleton, DetailTopBar } from './academy/DetailChrome'
+import { DetailError, DetailLayout, DetailNotFound, DetailSkeleton, DetailTopBar } from './shared/DetailChrome'
 
 function useCountdown(targetDate) {
   const target = useMemo(() => (targetDate ? new Date(targetDate).getTime() : null), [targetDate])
