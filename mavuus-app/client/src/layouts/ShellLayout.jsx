@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useId, useRef, useState } from 'react'
+import { Suspense, useId, useRef, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 // eslint-disable-next-line no-unused-vars -- motion is referenced as <motion.div> in JSX
 import { AnimatePresence, motion } from 'motion/react'
@@ -8,6 +8,7 @@ import { Spinner } from '@/design-system/primitives'
 import { useAuth } from '../context/AuthContext'
 import { EmailVerificationBanner } from './EmailVerificationBanner'
 import { NotificationsSheet } from './NotificationsSheet'
+import { useShellMounted } from './shellPresence'
 import { shellTitle } from './shellTitle'
 import { useNotifications } from './useNotifications'
 
@@ -56,12 +57,8 @@ export function ShellLayout({ nav, navLabel, logoTo, sidebarFooter, badges, sear
   const bellRef = useRef(null)
   const notificationsId = useId()
   const title = shellTitle(nav, location)
-
-  // <main> scrolls, not the window, so each new page starts at its top.
-  useEffect(() => {
-    const main = document.getElementById('main-content')
-    if (main) main.scrollTop = 0
-  }, [location.pathname])
+  // AppShell brings its own skip link, so App.jsx's SiteSkipLink steps aside.
+  useShellMounted()
 
   function handleLogout() {
     logout()

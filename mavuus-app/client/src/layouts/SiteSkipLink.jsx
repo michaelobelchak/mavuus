@@ -1,12 +1,12 @@
-import { useLocation } from 'react-router-dom'
+import { useIsShellMounted } from './shellPresence'
 
-// The member area and the admin panel render AppShell, which has its own skip link.
-const SHELL_PATH = /^\/(dashboard|admin)(\/|$)/
-
-/** "Skip to main content" for pages outside the app shell (public site, auth pages, 404). */
+/**
+ * "Skip to main content" for pages outside the app shell (public site, auth pages and any 404,
+ * including one under /dashboard or /admin). Hidden while a shell is mounted, since AppShell
+ * renders its own.
+ */
 export function SiteSkipLink() {
-  const { pathname } = useLocation()
-  if (SHELL_PATH.test(pathname)) return null
+  if (useIsShellMounted()) return null
   return (
     <a href="#main-content" className="skip-to-main">
       Skip to main content
