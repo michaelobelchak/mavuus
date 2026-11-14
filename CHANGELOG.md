@@ -220,3 +220,18 @@ All notable changes to the Mavuus project are documented here, organized by phas
 - Also: MessagesPage computes its height from `--shell-topbar-h`, `--shell-main-pad` and `--shell-banner-h`, so it never scrolls the page at any width or with the banner; ScrollProgress sits above the sticky top bar; the notification chips count the loaded list; the page transition keeps its enter fade and drops the exit
 - Removed: `DashboardLayout.jsx`, `DashboardSidebar.jsx`, the old `AdminLayout.jsx`, `MobileFAB.jsx` and `SearchResultsDropdown.jsx`; the lint baseline dropped by 19 findings
 - Dropped on purpose: the sidebar profile-completion ring and referral card, MobileFAB, the top bar Messages icon, the admin sidebar user card and "Mavuus Admin" title (the account menu and the nav label cover them) and the staggered fade-in of notification rows
+
+## Dashboard Pages 1 on the Design System - 2026-11-14
+**Status:** Complete (branch `feat/member-pages-1`, Batch 3B of `FINISH-AND-LAUNCH-PLAN.md`, Phase 8 Tasks 8.2 to 8.7)
+
+- AcademyPage (member home), LiveSessionsPage, SessionDetailPage, OnDemandPage, ResourcesPage and ResourceDetailPage now use only design-system components and token classes, with no imports from `components/ui`. Same endpoints, params, filters, search, paging, registration, bookmarks, comments, share and toasts
+- No page h1 any more: the shell title is the h1. Sections are h2 (`SectionHeader size="h3"`), and on detail pages the item title is the h2 hero heading below the shell's "Live session", "On-demand video" or "Resource"
+- The three lists share `pages/dashboard/academy/CatalogList.jsx`: SearchInput (300ms debounce), Chip category filters, SessionCard or ResourceCard grids with skeletons (`aria-busy`, `announce={false}`), EmptyState, Pagination and a new error Alert with Try again (the old lists failed silently)
+- Member home: the profile completion nudge from the old sidebar is back as a card with a ProgressBar and a link to the profile, only while the profile is incomplete (photo, bio, three skills, experience, resume). No StatCard row: the page has no real numbers to show
+- Detail pages: back link to the list, MediaFrame hero, MetaList facts, DescriptionList details, skeleton loading and an EmptyState for a missing item. The session countdown and registration form use FormField and Input; "Watch Now" now jumps to the player
+- New in the design system (each with a story, tests and a barrel export): `ShareDialog`, `VideoEmbed`, `ScrollProgress`, `DescriptionList` (patterns), `CommentThread` (dashboard organism) and a `size` prop on `SectionHeader`. The app hook `useComments` loads and saves comments for CommentThread. `<Toaster />` is mounted in `main.jsx`
+- Fixed on the way: reply avatars in comments rendered at full size (an unsupported legacy size); a resource heading's paragraph rendered inside the heading
+- Tests: a smoke test per page (24 tests) with a shared `test/mockApi.js`; e2e smoke covers the six pages at four widths
+- Lint baseline: 632 errors in 93 files down to 619 in 89
+- Dropped on purpose: the "LIVE" pill on home cards and the "View Details" button inside each live session card (the whole card is the link); see MEMORY.md
+

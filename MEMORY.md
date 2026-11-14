@@ -143,3 +143,26 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - `html` has `scroll-behavior: smooth`, so focus scrolling animates; `e2e/shell.spec.js` waits for scrollY to settle before measuring.
 - Notification polls: a local change (mark read) bumps a version, and a poll that started before it is ignored. The list shows the newest 50 notifications (server LIMIT), so the chips count the loaded list while the sheet description keeps the overall unread total.
 - `/api/search` is public (no auth) and returns member names; logged for Stage 4.
+
+## Dashboard pages 1 - 2026-11-14 (feat/member-pages-1, Batch 3B)
+
+**Decision:** legacy feature components the pages needed (ShareModal, VideoPlayer, ScrollProgress, CommentSection) got design-system versions instead of staying as imports from `components/ui`. CommentThread is presentational (organisms never fetch); `src/hooks/useComments.js` owns the requests and maps API rows to its props. The legacy files stay for the pages not migrated yet (JobDetail, VendorDetail, MemberProfile, BlogDetail).
+
+**Decision:** `<Toaster />` is mounted in `main.jsx` beside the legacy `ToastProvider`, so migrated pages use the design-system `useToast` while legacy pages keep theirs until 3I removes the old provider.
+
+**Decision:** detail pages keep the shell's generic title ("Live session", "Resource") as the h1 and render the item title as the page's h2. A per-page title override would need the page to push its title up into the shell (context or a store) after its fetch; not worth it for this batch, and the generic h1 plus the h2 reads fine.
+
+**Decision:** the back link on detail pages goes to the list (`/dashboard/live-sessions` etc.) instead of `navigate(-1)`, so it works from a shared link or a new tab.
+
+**Rejected:**
+- A StatCard row on the member home: the page has no real member metrics to show and the plan says not to invent them.
+- Keeping the "LIVE" pill over every live session cover on the home page: all those sessions are scheduled, not live, so the pill was wrong; the section title already says what they are.
+- Keeping the "View Details" button inside each live session card: it was a second link to the same place inside a card that is already one link.
+- Adding `picsum.photos` to the global pending hosts: only the two lists show those seed covers, so the smoke test allows the host on those two pages only.
+
+**Non-obvious:**
+- SectionHeader's h2 defaults to the 36px h2 size, larger than the 22px top bar title, so app pages pass `size="h3"`.
+- Every seeded live session date is in the past, so the countdown and registration form never show with seed data; the unit test covers them with a future date.
+- The demo profile is complete, so the home nudge doesn't show for demo@mavuus.com; the unit test covers it.
+- Session and resource detail pages send `PUT /api/sessions/:id/view`, so the read-only smoke run bumps view counts in `db/e2e.db`; harmless, nothing asserts on them.
+
