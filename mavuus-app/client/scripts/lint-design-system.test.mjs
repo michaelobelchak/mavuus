@@ -371,6 +371,24 @@ describe('listFiles', () => {
     fs.rmSync(app, { recursive: true, force: true })
   })
 
+  it('should cover the server SQL and JSON and the text files in public/, not other assets', () => {
+    const app = fs.mkdtempSync(path.join(os.tmpdir(), 'lint-ds-app-'))
+    const files = ['client/public/llms.txt', 'client/public/robots.txt', 'client/public/data.json', 'client/public/x.html', 'client/public/images/a.webp', 'client/scripts/assets-manifest.json', 'server/db/schema.sql', 'server/package.json', 'server/node_modules/p/package.json']
+    for (const file of files) {
+      fs.mkdirSync(path.dirname(path.join(app, file)), { recursive: true })
+      fs.writeFileSync(path.join(app, file), '')
+    }
+    expect(listFiles(path.join(app, 'client'))).toEqual(['../server/db/schema.sql', '../server/package.json', 'public/data.json', 'public/llms.txt', 'public/robots.txt', 'public/x.html'])
+    fs.rmSync(app, { recursive: true, force: true })
+  })
+
+  it('should flag a remote asset host in llms.txt and in SQL', () => {
+    const logo = `https://${WEBFLOW_HOST}/6689664d9906e5efe6bbc54d/6689763240456e66e970e5aa_logo.svg`
+    expect(lintSource('public/llms.txt', `- Logo: ${logo}\n`).map((v) => v.rule)).toEqual(['no-remote-assets'])
+    expect(lintSource('../server/db/schema.sql', `INSERT INTO t VALUES ('${logo}');\n`).map((v) => v.rule)).toEqual(['no-remote-assets'])
+    expect(lintSource('../server/package.json', '{ "name": "server" }\n')).toEqual([])
+  })
+
   it('should flag a remote asset host in a server seed', () => {
     const avatar = `https://${PRAVATAR_HOST}/150?u=a@b.com`
     expect(lintSource('../server/db/seed.js', `const users = [['a@b.com', '${avatar}']]\n`).map((v) => v.rule)).toEqual(['no-remote-assets'])

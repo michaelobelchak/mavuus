@@ -3,8 +3,8 @@
 //
 // Scans src/**/*.{js,jsx,mjs,css} and the .md/.mdx files under src/design-system/, except the
 // generated src/design-system/tokens/ folder and the @theme and top-level :root blocks of
-// src/index.css. index.html, .storybook/, e2e/, scripts/ and ../server are scanned for
-// no-remote-assets only. JS and JSX go through @babel/parser so only real strings, JSX text and comments
+// src/index.css. index.html, .storybook/, e2e/, scripts/, ../server (with its .sql and .json
+// files) and the .txt, .html and .json files in public/ are scanned for no-remote-assets only. JS and JSX go through @babel/parser so only real strings, JSX text and comments
 // are checked; CSS uses a small comment-aware scanner. Test files (*.test.*) only get the dash,
 // layering and remote-asset rules, since they build styled fixtures on purpose.
 //
@@ -546,7 +546,7 @@ export function lintSource(file, source, { strict = false } = {}) {
   let comments = []
   if (ext === '.css') comments = lintCss(file, source, ctx)
   else if (ext === '.md' || ext === '.mdx') comments = lintMarkdown(file, source, ctx)
-  else if (ext !== '.html') comments = lintJs(file, source, ctx)
+  else if (!['.html', '.json', '.sql', '.txt'].includes(ext)) comments = lintJs(file, source, ctx)
 
   const overrideErrors = []
   const overrides = parseOverrides(comments, source, (rule, offset, detail) => {
@@ -579,11 +579,13 @@ export function listFiles(root) {
       if (entry.isDirectory()) {
         if (SKIP_DIRS.has(entry.name) || `${rel}/` === TOKENS_DIR) continue
         visit(rel)
-      } else if (/\.(jsx?|mjs|css|html)$/.test(entry.name)) out.push(rel)
+      } else if (/\.(jsx?|mjs|css|html)$/.test(entry.name) && !rel.startsWith('public/')) out.push(rel)
       else if (/\.mdx?$/.test(entry.name) && rel.startsWith(DS)) out.push(rel)
+      else if (/\.(sql|json)$/.test(entry.name) && rel.startsWith('../server/')) out.push(rel)
+      else if (/\.(txt|html|json)$/.test(entry.name) && rel.startsWith('public/')) out.push(rel)
     }
   }
-  for (const dir of ['src', ...EXTRA_DIRS]) if (fs.existsSync(path.join(root, dir))) visit(dir)
+  for (const dir of ['src', ...EXTRA_DIRS, 'public']) if (fs.existsSync(path.join(root, dir))) visit(dir)
   if (fs.existsSync(path.join(root, 'index.html'))) out.push('index.html')
   return out.sort()
 }
