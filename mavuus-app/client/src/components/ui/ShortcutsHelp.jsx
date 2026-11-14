@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 // eslint-disable-next-line no-unused-vars -- motion is referenced as <motion.div> in JSX
 import { motion, AnimatePresence } from 'motion/react'
 import { X, Keyboard } from 'lucide-react'
@@ -43,7 +43,10 @@ function Kbd({ children }) {
 
 export default function ShortcutsHelp() {
   const navigate = useNavigate()
-  const [open, setOpen] = useState(false)
+  const { pathname } = useLocation()
+  // Open for one page only: navigating (a g shortcut or any link) closes the overlay.
+  const [openOn, setOpenOn] = useState(null)
+  const open = openOn === pathname
 
   useEffect(() => {
     let gTimer = null
@@ -61,11 +64,11 @@ export default function ShortcutsHelp() {
       // ? opens the help overlay
       if (e.key === '?') {
         e.preventDefault()
-        setOpen((v) => !v)
+        setOpenOn((current) => (current === pathname ? null : pathname))
         return
       }
       if (e.key === 'Escape' && open) {
-        setOpen(false)
+        setOpenOn(null)
         return
       }
 
@@ -93,7 +96,7 @@ export default function ShortcutsHelp() {
       window.removeEventListener('keydown', onKey)
       clearTimeout(gTimer)
     }
-  }, [open, navigate])
+  }, [open, navigate, pathname])
 
   return (
     <AnimatePresence>
@@ -103,7 +106,7 @@ export default function ShortcutsHelp() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
-          onClick={() => setOpen(false)}
+          onClick={() => setOpenOn(null)}
         >
           <motion.div
             initial={{ scale: 0.95, y: 8 }}
@@ -115,7 +118,7 @@ export default function ShortcutsHelp() {
           >
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() => setOpenOn(null)}
               aria-label="Close shortcuts"
               className="absolute right-4 top-4 w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 hover:bg-neutral-200 hover:text-dark-blue transition-colors cursor-pointer"
             >
