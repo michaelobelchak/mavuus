@@ -8,20 +8,6 @@
   "src/components/index.js": {
     "no-em-dash": 1
   },
-  "src/components/layout/AdminLayout.jsx": {
-    "no-arbitrary-size": 1,
-    "no-raw-color": 1
-  },
-  "src/components/layout/DashboardLayout.jsx": {
-    "no-arbitrary-size": 5,
-    "no-em-dash": 2,
-    "no-inline-style": 1
-  },
-  "src/components/layout/DashboardSidebar.jsx": {
-    "no-arbitrary-size": 3,
-    "no-em-dash": 2,
-    "no-raw-color": 3
-  },
   "src/components/layout/Footer.jsx": {
     "no-arbitrary-size": 7
   },
@@ -180,9 +166,6 @@
   "src/components/ui/ScrollProgress.jsx": {
     "no-arbitrary-size": 1,
     "no-inline-style": 1
-  },
-  "src/components/ui/SearchResultsDropdown.jsx": {
-    "no-arbitrary-size": 1
   },
   "src/components/ui/ShareModal.jsx": {
     "no-arbitrary-size": 6,

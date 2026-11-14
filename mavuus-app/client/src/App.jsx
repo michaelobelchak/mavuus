@@ -3,10 +3,11 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 
 // Layouts
 import PublicLayout from './components/layout/PublicLayout'
-import DashboardLayout from './components/layout/DashboardLayout'
 import ProtectedRoute from './components/layout/ProtectedRoute'
-import AdminLayout from './components/layout/AdminLayout'
 import AdminRoute from './components/layout/AdminRoute'
+import MemberLayout from './layouts/MemberLayout'
+import AdminLayout from './layouts/AdminLayout'
+import { SiteSkipLink } from './layouts/SiteSkipLink'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 
 // Public Pages (eager — landing page performance)
@@ -95,9 +96,7 @@ export default function App() {
   return (
     <ErrorBoundary>
     <Suspense fallback={<LazyFallback />}>
-      <a href="#main-content" className="skip-to-main">
-        Skip to main content
-      </a>
+      <SiteSkipLink />
       <RouteTitles />
       <BackToTop />
       <ShortcutsHelp />
@@ -143,7 +142,7 @@ export default function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <DashboardLayout />
+              <MemberLayout />
             </ProtectedRoute>
           }
         >

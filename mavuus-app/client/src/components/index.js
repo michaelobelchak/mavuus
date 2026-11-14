@@ -130,12 +130,6 @@ export { default as FAQSection } from './sections/FAQSection'
 // PublicLayout - Header + Outlet + Footer wrapper for public pages
 export { default as PublicLayout } from './layout/PublicLayout'
 
-// DashboardLayout - Sidebar + Outlet for authenticated dashboard
-export { default as DashboardLayout } from './layout/DashboardLayout'
-
-// DashboardSidebar - Left sidebar navigation for dashboard
-export { default as DashboardSidebar } from './layout/DashboardSidebar'
-
 
 /**
  * ─────────────────────────────────────────────
