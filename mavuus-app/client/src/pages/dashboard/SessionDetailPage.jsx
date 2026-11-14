@@ -1,24 +1,15 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
+import { Calendar, CheckCircle, Clock, Eye, Radio, Video } from 'lucide-react'
+import { formatDate } from '@/design-system/lib/formatDate'
+import { Card, DescriptionList, FormField, MediaFrame, SectionHeader, ShareDialog, VideoEmbed, useToast } from '@/design-system/patterns'
+import { CommentThread, MetaList, SessionCard } from '@/design-system/organisms'
+import { Avatar, Badge, Button, Caption, Heading, Icon, Input, Text } from '@/design-system/primitives'
 import { useAuth } from '../../context/AuthContext'
-import { useToast } from '../../components/ui/Toast'
-import Avatar from '../../components/ui/Avatar'
-import Button from '../../components/ui/Button'
-import Badge from '../../components/ui/Badge'
-import Card from '../../components/ui/Card'
-import ShareModal from '../../components/ui/ShareModal'
-import StatusDot from '../../components/ui/StatusDot'
-import DetailPageHeader from '../../components/ui/DetailPageHeader'
-import CommentSection from '../../components/ui/CommentSection'
-import VideoPlayer from '../../components/ui/VideoPlayer'
+import { useComments } from '../../hooks/useComments'
 import { fireConfetti } from '../../hooks/useConfetti'
-import {
-  Calendar,
-  Clock,
-  CheckCircle,
-  Users,
-  Video,
-} from 'lucide-react'
+import { LIVE_PATH, ON_DEMAND_PATH, sessionCardProps } from './academy/cardProps'
+import { DetailNotFound, DetailSkeleton, DetailTopBar } from './academy/DetailChrome'
 
 function useCountdown(targetDate) {
   const target = useMemo(() => (targetDate ? new Date(targetDate).getTime() : null), [targetDate])
@@ -41,18 +32,41 @@ function useCountdown(targetDate) {
 
 function TimeTile({ value, label }) {
   return (
-    <div className="flex flex-col items-center">
-      <div className="flex gap-1">
-        {String(value).padStart(2, '0').split('').map((d, i) => (
-          <div
-            key={i}
-            className="w-9 h-12 md:w-11 md:h-14 rounded-md bg-white border border-neutral-200 flex items-center justify-center text-[20px] md:text-[24px] font-semibold text-dark-blue shadow-sm"
-          >
-            {d}
-          </div>
-        ))}
+    <div className="flex flex-col items-center gap-ds-xs">
+      <div className="flex gap-ds-xxs">
+        {String(value)
+          .padStart(2, '0')
+          .split('')
+          .map((digit, i) => (
+            <span
+              key={i}
+              className="flex h-12 w-9 items-center justify-center rounded-input border border-border-default bg-surface-raised text-h4 font-semibold shadow-card md:h-14 md:w-11 md:text-h3"
+            >
+              {digit}
+            </span>
+          ))}
       </div>
-      <p className="text-[11px] text-neutral-500 mt-1.5 capitalize">{label}</p>
+      <Caption>{label}</Caption>
+    </div>
+  )
+}
+
+function Countdown({ countdown }) {
+  return (
+    <div className="flex flex-col gap-ds-md">
+      <Text size="body-sm" tone="secondary" className="font-semibold">
+        Live session starts in
+      </Text>
+      {/* Read once per minute instead of every second. */}
+      <p className="sr-only">
+        {countdown.days} days, {countdown.hours} hours and {countdown.minutes} minutes
+      </p>
+      <div aria-hidden="true" className="flex flex-wrap gap-ds-sm md:gap-ds-lg">
+        <TimeTile value={countdown.days} label="Days" />
+        <TimeTile value={countdown.hours} label="Hours" />
+        <TimeTile value={countdown.minutes} label="Minutes" />
+        <TimeTile value={countdown.seconds} label="Seconds" />
+      </div>
     </div>
   )
 }
@@ -74,6 +88,7 @@ export default function SessionDetailPage() {
     jobTitle: '',
     company: '',
   })
+  const comments = useComments('session', parseInt(id))
 
   const countdown = useCountdown(session?.scheduled_date)
 
@@ -89,12 +104,19 @@ export default function SessionDetailPage() {
           const data = await rRes.json()
           setRegistered(!!data.registered)
         }
-      } catch { /* silent */ } finally { setLoading(false) }
+      } catch {
+        /* silent */
+      } finally {
+        setLoading(false)
+      }
     }
     fetchSession()
 
     // Fetch related
-    fetch(`/api/sessions/${id}/related`).then(r => r.ok ? r.json() : []).then(setRelatedSessions).catch(() => {})
+    fetch(`/api/sessions/${id}/related`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setRelatedSessions)
+      .catch(() => {})
 
     // Track view (once per page load)
     fetch(`/api/sessions/${id}/view`, { method: 'PUT' }).catch(() => {})
@@ -116,9 +138,9 @@ export default function SessionDetailPage() {
       }
       setRegistered(true)
       if (!data.alreadyRegistered) fireConfetti()
-      toast.success(data.alreadyRegistered
-        ? 'You were already registered for this session.'
-        : 'You\'re registered! Redirecting to confirmation…')
+      toast.success(
+        data.alreadyRegistered ? 'You were already registered for this session.' : "You're registered! Redirecting to confirmation…",
+      )
       setTimeout(() => navigate(`/events/${id}/confirmation`), 1200)
     } catch {
       toast.error('Network error. Please try again.')
@@ -127,234 +149,183 @@ export default function SessionDetailPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-brand-pink border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return <DetailSkeleton label="Loading session" />
 
   if (!session) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-neutral-500">Session not found</p>
-        <button onClick={() => navigate('/dashboard/live-sessions')}
-          className="text-brand-pink hover:underline mt-2 inline-block cursor-pointer">
-          Back to Live Sessions
-        </button>
-      </div>
-    )
+    return <DetailNotFound title="Session not found" backTo={LIVE_PATH} backLabel="Back to Live Sessions" />
   }
 
   const isLive = session.type === 'live'
-  const sessionDate = session.scheduled_date ? new Date(session.scheduled_date) : null
-  const showCountdown = isLive && sessionDate && !countdown.done
-  const basePath = isLive ? '/dashboard/live-sessions' : '/dashboard/on-demand'
+  const showCountdown = isLive && session.scheduled_date && !countdown.done
+  const field = (key) => ({ value: regForm[key], onChange: (e) => setRegForm({ ...regForm, [key]: e.target.value }) })
 
   return (
-    <div className="max-w-6xl">
-      <DetailPageHeader
-        onShare={() => setShareOpen(true)}
+    <div className="flex flex-col gap-ds-lg">
+      <DetailTopBar
+        backTo={isLive ? LIVE_PATH : ON_DEMAND_PATH}
         backLabel={isLive ? 'Back to Live Sessions' : 'Back to On-Demand'}
+        onShare={() => setShareOpen(true)}
       />
 
-      {/* Hero image */}
-      <div className="h-64 rounded-2xl overflow-hidden mb-6">
-        {session.thumbnail_url ? (
-          <img src={session.thumbnail_url} alt={session.title} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 flex items-center justify-center">
-            <Video size={48} className="text-brand-blue/40" />
-          </div>
-        )}
-      </div>
+      <div className="flex flex-col gap-ds-lg lg:flex-row lg:items-start">
+        <div className="flex min-w-0 flex-1 flex-col gap-ds-lg">
+          {session.thumbnail_url ? (
+            <MediaFrame src={session.thumbnail_url} alt={session.title} ratio="16/9" eager />
+          ) : (
+            <div className="flex aspect-video items-center justify-center rounded-card bg-surface-selected text-text-brand-strong">
+              <Icon icon={Video} size="lg" />
+            </div>
+          )}
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1">
-          <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Badge variant={isLive ? 'blue' : 'pink'}>{session.category}</Badge>
+          <Card as="article" aria-labelledby="session-title" padding="lg" className="flex flex-col gap-ds-md">
+            <div className="flex flex-wrap items-center gap-ds-xs">
+              <Badge size="sm" tone={isLive ? 'info' : 'brand'}>
+                {session.category}
+              </Badge>
               {isLive && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-200">
-                  <StatusDot status="live" size="sm" />
-                  <span className="text-[11px] font-bold tracking-wide text-green-700">LIVE</span>
-                </span>
+                <Badge size="sm" tone="success" leadingIcon={Radio}>
+                  Live
+                </Badge>
               )}
             </div>
-            <h1 className="text-2xl font-bold text-dark-blue mb-3">{session.title}</h1>
-            <div className="flex flex-wrap gap-4 text-sm text-neutral-500 mb-6">
-              {sessionDate && (
-                <span className="flex items-center gap-1"><Calendar size={14} />
-                  {sessionDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                </span>
-              )}
-              <span className="flex items-center gap-1"><Clock size={14} />{session.duration}</span>
-              {session.views > 0 && (
-                <span className="flex items-center gap-1"><Users size={14} />{session.views.toLocaleString()} views</span>
-              )}
+            <Heading id="session-title" level={2} size="h3">
+              {session.title}
+            </Heading>
+            <MetaList
+              items={[
+                {
+                  key: 'date',
+                  icon: Calendar,
+                  label: formatDate(session.scheduled_date, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+                },
+                { key: 'duration', icon: Clock, label: session.duration },
+                { key: 'views', icon: Eye, label: session.views > 0 ? `${session.views.toLocaleString()} views` : null },
+              ]}
+            />
+            <div className="flex flex-col gap-ds-xs">
+              <Heading level={3} size="h4">
+                About This Session
+              </Heading>
+              <Text tone="secondary" className="whitespace-pre-line">
+                {session.description}
+              </Text>
             </div>
-            <div className="prose prose-sm max-w-none">
-              <h3 className="text-lg font-semibold text-dark-blue mb-2">About This Session</h3>
-              <p className="text-neutral-600 leading-relaxed whitespace-pre-line">{session.description}</p>
-            </div>
-          </div>
+          </Card>
 
-          {/* Countdown + registration form (live only, not yet registered) */}
+          {/* Countdown and registration form (live only, not yet registered) */}
           {showCountdown && !registered && (
-            <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-6">
-              <p className="text-[13px] font-semibold text-neutral-500 mb-4">Live session starts in</p>
-              <div className="flex gap-3 md:gap-5 mb-8">
-                <TimeTile value={countdown.days} label="Days" />
-                <TimeTile value={countdown.hours} label="Hours" />
-                <TimeTile value={countdown.minutes} label="Minutes" />
-                <TimeTile value={countdown.seconds} label="Seconds" />
-              </div>
-
-              <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-neutral-500">First name</label>
-                  <input
-                    type="text"
-                    required
-                    value={regForm.firstName}
-                    onChange={(e) => setRegForm({ ...regForm, firstName: e.target.value })}
-                    placeholder="Enter your full name"
-                    className="px-4 py-3 bg-white border border-neutral-200 rounded-xl text-sm text-dark-blue placeholder:text-neutral-300 outline-none focus:border-brand-pink transition-colors"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-neutral-500">Email address</label>
-                  <input
-                    type="email"
-                    required
-                    value={regForm.email}
-                    onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
-                    placeholder="you@company.com"
-                    className="px-4 py-3 bg-white border border-neutral-200 rounded-xl text-sm text-dark-blue placeholder:text-neutral-300 outline-none focus:border-brand-pink transition-colors"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-neutral-500">Current job title</label>
-                  <input
-                    type="text"
-                    value={regForm.jobTitle}
-                    onChange={(e) => setRegForm({ ...regForm, jobTitle: e.target.value })}
-                    placeholder="e.g. VP Marketing"
-                    className="px-4 py-3 bg-white border border-neutral-200 rounded-xl text-sm text-dark-blue placeholder:text-neutral-300 outline-none focus:border-brand-pink transition-colors"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-neutral-500">Company name</label>
-                  <input
-                    type="text"
-                    value={regForm.company}
-                    onChange={(e) => setRegForm({ ...regForm, company: e.target.value })}
-                    placeholder="Company"
-                    className="px-4 py-3 bg-white border border-neutral-200 rounded-xl text-sm text-dark-blue placeholder:text-neutral-300 outline-none focus:border-brand-pink transition-colors"
-                  />
-                </div>
+            <Card padding="lg" className="flex flex-col gap-ds-xl">
+              <Countdown countdown={countdown} />
+              <form onSubmit={handleRegister} aria-label="Reserve your spot" className="grid grid-cols-1 gap-ds-md md:grid-cols-2">
+                <FormField label="First name" required>
+                  <Input {...field('firstName')} placeholder="Enter your full name" autoComplete="given-name" />
+                </FormField>
+                <FormField label="Email address" required>
+                  <Input type="email" {...field('email')} placeholder="you@company.com" autoComplete="email" />
+                </FormField>
+                <FormField label="Current job title">
+                  <Input {...field('jobTitle')} placeholder="e.g. VP Marketing" autoComplete="organization-title" />
+                </FormField>
+                <FormField label="Company name">
+                  <Input {...field('company')} placeholder="Company" autoComplete="organization" />
+                </FormField>
                 <div className="md:col-span-2">
-                  <Button type="submit" disabled={registering} className="w-full md:w-auto">
-                    {registering ? 'Registering…' : 'Reserve your spot'}
+                  <Button type="submit" loading={registering} className="w-full md:w-auto">
+                    Reserve your spot
                   </Button>
                 </div>
               </form>
-            </div>
+            </Card>
           )}
 
-          {/* Video embed for on-demand */}
+          {/* Video for on-demand */}
           {!isLive && (
-            <div className="bg-white rounded-2xl border border-neutral-100 p-6 mb-6">
-              <h3 className="text-lg font-semibold text-dark-blue mb-4">Watch</h3>
-              <VideoPlayer videoUrl={session.video_url} />
-            </div>
+            <Card as="section" id="watch" aria-labelledby="watch-title" padding="lg" className="flex flex-col gap-ds-md">
+              <Heading id="watch-title" level={2} size="h4">
+                Watch
+              </Heading>
+              <VideoEmbed src={session.video_url} title={session.title} />
+            </Card>
           )}
 
-          {/* Comments */}
-          <div className="mt-6">
-            <CommentSection entityType="session" entityId={parseInt(id)} />
-          </div>
+          <CommentThread {...comments} />
         </div>
 
         {/* Sidebar */}
-        <div className="w-full lg:w-80 space-y-4">
-          <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+        <aside aria-label="Session info" className="flex w-full flex-col gap-ds-md lg:w-80 lg:shrink-0">
+          <Card padding="lg">
             {isLive ? (
               registered ? (
-                <div className="text-center">
-                  <CheckCircle size={40} className="text-green-500 mx-auto mb-3" />
-                  <p className="font-semibold text-dark-blue mb-1">You&apos;re Registered!</p>
-                  <p className="text-sm text-neutral-500">We&apos;ll send you a reminder before the session starts.</p>
+                <div role="status" className="flex flex-col items-center gap-ds-xs text-center">
+                  <Icon icon={CheckCircle} size="lg" className="text-status-success" />
+                  <Text className="font-semibold">You&apos;re Registered!</Text>
+                  <Text size="body-sm" tone="secondary">
+                    We&apos;ll send you a reminder before the session starts.
+                  </Text>
                 </div>
               ) : (
-                <>
-                  <Button className="w-full mb-3" onClick={handleRegister} disabled={registering}>
-                    {registering ? 'Registering...' : 'Register for Session'}
+                <div className="flex flex-col items-center gap-ds-sm">
+                  <Button block onClick={handleRegister} loading={registering}>
+                    Register for Session
                   </Button>
-                  <p className="text-xs text-neutral-500 text-center">Free for Pro members</p>
-                </>
+                  <Caption>Free for Pro members</Caption>
+                </div>
               )
             ) : (
-              <Button className="w-full"><Video size={16} /> Watch Now</Button>
+              <Button block leadingIcon={Video} href="#watch">
+                Watch Now
+              </Button>
             )}
-          </div>
+          </Card>
 
-          <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-            <h3 className="text-sm font-semibold text-dark-blue mb-4">Speaker</h3>
-            <div className="flex items-center gap-3 mb-3">
-              <Avatar name={session.speaker_name} src={session.speaker_avatar} size="lg" />
-              <div>
-                <p className="font-semibold text-dark-blue">{session.speaker_name}</p>
-                <p className="text-sm text-neutral-500">{session.speaker_title}</p>
+          {session.speaker_name && (
+            <Card as="section" aria-labelledby="speaker-title" padding="lg" className="flex flex-col gap-ds-md">
+              <Heading id="speaker-title" level={2} size="h4">
+                Speaker
+              </Heading>
+              <div className="flex items-center gap-ds-sm">
+                <Avatar name={session.speaker_name} src={session.speaker_avatar} size="lg" />
+                <div className="flex min-w-0 flex-col">
+                  <Text className="font-semibold">{session.speaker_name}</Text>
+                  <Text size="body-sm" tone="secondary">
+                    {session.speaker_title}
+                  </Text>
+                </div>
               </div>
-            </div>
-          </div>
+            </Card>
+          )}
 
-          <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-            <h3 className="text-sm font-semibold text-dark-blue mb-3">Details</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-neutral-500">Type</span><span className="text-dark-blue font-medium capitalize">{session.type}</span></div>
-              <div className="flex justify-between"><span className="text-neutral-500">Category</span><span className="text-dark-blue font-medium">{session.category}</span></div>
-              <div className="flex justify-between"><span className="text-neutral-500">Duration</span><span className="text-dark-blue font-medium">{session.duration}</span></div>
-            </div>
-          </div>
-        </div>
+          <Card as="section" aria-labelledby="details-title" padding="lg" className="flex flex-col gap-ds-sm">
+            <Heading id="details-title" level={2} size="h4">
+              Details
+            </Heading>
+            <DescriptionList
+              items={[
+                { key: 'type', label: 'Type', value: isLive ? 'Live' : 'On-demand' },
+                { key: 'category', label: 'Category', value: session.category },
+                { key: 'duration', label: 'Duration', value: session.duration },
+              ]}
+            />
+          </Card>
+        </aside>
       </div>
 
-      {/* Related Sessions */}
       {relatedSessions.length > 0 && (
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold text-dark-blue mb-5">Related Sessions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {relatedSessions.map(s => (
-              <Link key={s.id} to={`${basePath}/${s.id}`} className="block no-underline">
-                <Card hover>
-                  <div className="h-32 rounded-xl mb-3 overflow-hidden">
-                    {s.thumbnail_url ? (
-                      <img src={s.thumbnail_url} alt={s.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 flex items-center justify-center">
-                        <Calendar size={24} className="text-brand-blue/40" />
-                      </div>
-                    )}
-                  </div>
-                  <Badge variant="blue">{s.category}</Badge>
-                  <h3 className="text-sm font-semibold text-dark-blue mt-2 line-clamp-2">{s.title}</h3>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Avatar name={s.speaker_name} src={s.speaker_avatar} size="sm" />
-                    <span className="text-xs text-neutral-500">{s.speaker_name}</span>
-                  </div>
-                </Card>
-              </Link>
+        <section className="flex flex-col gap-ds-md">
+          <SectionHeader size="h3" title="Related Sessions" />
+          <ul aria-label="Related sessions" className="grid grid-cols-1 gap-ds-md sm:grid-cols-2 xl:grid-cols-3">
+            {relatedSessions.map((s) => (
+              <li key={s.id}>
+                <SessionCard {...sessionCardProps({ ...s, type: s.type || session.type })} />
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       )}
 
-      <ShareModal
+      <ShareDialog
         open={shareOpen}
-        onClose={() => setShareOpen(false)}
+        onOpenChange={setShareOpen}
         title="Share Event With Your Friends"
         shareTitle={session.title}
       />

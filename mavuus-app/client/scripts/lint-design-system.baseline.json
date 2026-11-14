@@ -263,9 +263,6 @@
     "no-arbitrary-size": 1,
     "no-em-dash": 5
   },
-  "src/pages/dashboard/SessionDetailPage.jsx": {
-    "no-arbitrary-size": 5
-  },
   "src/pages/dashboard/VendorDetailPage.jsx": {
     "no-em-dash": 1
   },
