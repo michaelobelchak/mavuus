@@ -32,7 +32,7 @@ function Where() {
 function renderPage(id = 1, routes = {}) {
   const fetchMock = mockApi({
     'GET /api/vendors/1': vendor,
-    'GET /api/jobs': { data: [{ id: 5, title: 'Content Writer', posted_by: 3, location: 'Remote', type: 'contract', category: 'Content' }, { id: 6, title: 'Other', posted_by: 9 }] },
+    'GET /api/jobs?posted_by=3': { data: [{ id: 5, title: 'Content Writer', posted_by: 3, location: 'Remote', type: 'contract', category: 'Content' }] },
     'GET /api/reviews/vendor/1': [review],
     'GET /api/recommendations/vendor/1': [{ id: 2, from_name: 'Marcus Johnson', message: 'Highly recommend.' }],
     'GET /api/comments': [],
@@ -63,7 +63,6 @@ describe('VendorDetailPage', () => {
     expect(screen.getByRole('link', { name: 'Back to Vendors' })).toHaveAttribute('href', '/dashboard/vendors')
     expect(screen.getByRole('img', { name: '4.5 out of 5 stars' })).toBeInTheDocument()
     expect(await screen.findByRole('link', { name: 'Content Writer' })).toHaveAttribute('href', '/dashboard/jobs/5')
-    expect(screen.queryByRole('link', { name: 'Other' })).not.toBeInTheDocument()
     expect(screen.getByRole('article', { name: 'Review by Sarah Chen' })).toBeInTheDocument()
     expect(screen.getByRole('article', { name: 'Recommendation from Marcus Johnson' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Comments/ })).toBeInTheDocument()
@@ -104,10 +103,12 @@ describe('VendorDetailPage', () => {
     expect(JSON.parse(init.body)).toEqual({ userId: 3, message: "Hi ContentPro Agency, I'd like to connect about your services." })
   })
 
-  it('should disable Contact Vendor and say why when the vendor has no account', async () => {
-    renderPage(1, { 'GET /api/vendors/1': { ...vendor, user_id: null } })
+  it('should disable Contact Vendor, say why and skip the jobs request when the vendor has no account', async () => {
+    const fetchMock = renderPage(1, { 'GET /api/vendors/1': { ...vendor, user_id: null } })
     expect(await screen.findByRole('button', { name: 'Contact Vendor' })).toBeDisabled()
     expect(screen.getByText("Direct messages aren't set up for this vendor yet.")).toBeInTheDocument()
+    await screen.findByRole('article', { name: 'Review by Sarah Chen' })
+    expect(fetchMock.mock.calls.some(([url]) => url.startsWith('/api/jobs'))).toBe(false)
   })
 
   it('should open the share dialog', async () => {

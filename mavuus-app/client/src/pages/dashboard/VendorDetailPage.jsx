@@ -49,15 +49,12 @@ export default function VendorDetailPage() {
         .then((res) => (res.ok ? res.json() : []))
         .then(listOf)
         .catch(() => [])
-    Promise.all([get('/api/jobs'), get(`/api/reviews/vendor/${id}`), get(`/api/recommendations/vendor/${id}`)]).then(
-      ([allJobs, vendorReviews, recs]) => {
+    // Jobs come from the vendor's account; a vendor without one has none.
+    const jobsRequest = vendorUserId ? get(`/api/jobs?posted_by=${encodeURIComponent(vendorUserId)}`) : Promise.resolve([])
+    Promise.all([jobsRequest, get(`/api/reviews/vendor/${id}`), get(`/api/recommendations/vendor/${id}`)]).then(
+      ([vendorJobs, vendorReviews, recs]) => {
         if (controller.signal.aborted) return
-        setLists({
-          id,
-          jobs: allJobs.filter((job) => vendorUserId && job.posted_by === vendorUserId),
-          reviews: vendorReviews,
-          recommendations: recs,
-        })
+        setLists({ id, jobs: vendorJobs, reviews: vendorReviews, recommendations: recs })
       },
     )
     return () => controller.abort()
