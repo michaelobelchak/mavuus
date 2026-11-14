@@ -133,4 +133,11 @@ describe('SessionDetailPage', () => {
     renderPage('/dashboard/live-sessions/1', { 'GET /api/sessions/1': () => new TypeError('Failed to fetch') })
     expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't load this session")
   })
+
+  it('should put the action and info cards before the comments, so phones reach them first', async () => {
+    renderPage('/dashboard/live-sessions/1', liveRoutes())
+    const aside = await screen.findByRole('complementary', { name: 'Session info' })
+    const comments = screen.getByRole('region', { name: /^Comments/ })
+    expect(aside.compareDocumentPosition(comments) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
 })

@@ -171,7 +171,9 @@ export default function ResourceDetailPage() {
       <ScrollProgress />
       <DetailTopBar backTo={RESOURCES_PATH} backLabel="Back to Resources" onShare={() => setShareOpen(true)} />
 
-      <div className="flex flex-col gap-ds-lg lg:flex-row lg:items-start">
+      {/* Below lg one column in reading order: content, the action and info cards, then comments.
+          From lg a two-column grid: content and comments on the left, the cards beside them. */}
+      <div className="flex flex-col gap-ds-lg lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-ds-lg">
           {resource.thumbnail_url && <MediaFrame src={resource.thumbnail_url} alt={resource.title} ratio="16/9" eager />}
 
@@ -203,10 +205,9 @@ export default function ResourceDetailPage() {
             </div>
           </Card>
 
-          <CommentThread {...comments} />
         </div>
 
-        <aside aria-label="Resource info" className="flex w-full flex-col gap-ds-md lg:w-72 lg:shrink-0">
+        <aside aria-label="Resource info" className="flex w-full flex-col gap-ds-md lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:w-72">
           <Card padding="lg">
             {isDownloadable ? (
               <Button block leadingIcon={Download}>
@@ -240,6 +241,8 @@ export default function ResourceDetailPage() {
             />
           </Card>
         </aside>
+
+        <CommentThread {...comments} className="lg:col-start-1" />
       </div>
 
       {relatedResources.length > 0 && (

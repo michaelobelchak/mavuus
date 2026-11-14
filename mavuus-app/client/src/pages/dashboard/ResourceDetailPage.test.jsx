@@ -88,4 +88,11 @@ describe('ResourceDetailPage', () => {
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByRole('heading', { level: 2, name: 'State of B2B Marketing' })).toBeInTheDocument()
   })
+
+  it('should put the action and info cards before the comments, so phones reach them first', async () => {
+    renderPage(2, { 'GET /api/resources/2': guide })
+    const aside = await screen.findByRole('complementary', { name: 'Resource info' })
+    const comments = screen.getByRole('region', { name: /^Comments/ })
+    expect(aside.compareDocumentPosition(comments) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
 })
