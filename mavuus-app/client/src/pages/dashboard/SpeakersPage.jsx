@@ -1,8 +1,11 @@
+import { useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Linkedin } from 'lucide-react'
-import { Alert, Card, CardLink } from '@/design-system/patterns'
+import { Alert, Card, CardLink, Sheet } from '@/design-system/patterns'
 import { MemberCard, MemberCardSkeleton } from '@/design-system/organisms'
 import { Avatar, Badge, Button, Caption, Heading, Skeleton, Text } from '@/design-system/primitives'
+import { useMediaQuery } from '@/design-system/hooks'
+import { isHttpUrl } from '@/design-system/lib/safeUrl'
 import { useAuth } from '../../context/AuthContext'
 import { useDetailResource } from '../../hooks/useDetailResource'
 import { CatalogList } from './shared/CatalogList'
@@ -12,8 +15,14 @@ const GRID_WITH_PANEL = 'grid grid-cols-1 gap-ds-md sm:grid-cols-2 xl:grid-cols-
 
 const sessionPath = (session) => `/dashboard/${session.type === 'live' ? 'live-sessions' : 'on-demand'}/${session.id}`
 
-/** The picked speaker: bio, LinkedIn and their sessions, from /api/speakers/:id. */
-function SpeakerDetails({ id }) {
+// lg, where the details panel fits beside the grid; below it they open in a Sheet.
+const DESKTOP = '(min-width: 64rem)'
+
+/**
+ * The picked speaker: bio, LinkedIn and their sessions, from /api/speakers/:id. `level` is the
+ * name's heading level: 2 in the side panel, 3 under the Sheet's title.
+ */
+function SpeakerDetails({ id, level = 2 }) {
   const { token } = useAuth()
   const { data: speaker, loading, error, notFound, retry } = useDetailResource(`/api/speakers/${id}`, token)
 
@@ -48,7 +57,7 @@ function SpeakerDetails({ id }) {
     <div className="flex flex-col gap-ds-md">
       <div className="flex flex-col items-center gap-ds-xxs text-center">
         <Avatar name={speaker.name} src={speaker.avatar_url} size="lg" className="mb-ds-xs" />
-        <Heading level={2} size="h3">
+        <Heading level={level} size="h3">
           {speaker.name}
         </Heading>
         {speaker.title && (
@@ -63,14 +72,14 @@ function SpeakerDetails({ id }) {
           {speaker.bio}
         </Text>
       )}
-      {speaker.linkedin_url && (
+      {isHttpUrl(speaker.linkedin_url) && (
         <Button variant="outline" size="sm" block leadingIcon={Linkedin} href={speaker.linkedin_url}>
           LinkedIn Profile
         </Button>
       )}
       {sessions.length > 0 && (
         <section aria-labelledby="speaker-sessions-title" className="flex flex-col gap-ds-xs">
-          <Heading id="speaker-sessions-title" level={3} size="h4">
+          <Heading id="speaker-sessions-title" level={level + 1} size="h4">
             {`Sessions (${sessions.length})`}
           </Heading>
           <ul className="flex flex-col gap-ds-xs">
@@ -97,8 +106,24 @@ function SpeakerDetails({ id }) {
 }
 
 export default function SpeakersPage() {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const selected = searchParams.get('speaker')
+  const desktop = useMediaQuery(DESKTOP, true)
+  // The speaker the Sheet showed when it closed, so focus can go back to that card.
+  const lastSelected = useRef(null)
+  const closeSheet = () => {
+    lastSelected.current = selected
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('speaker')
+        return next
+      },
+      { replace: true },
+    )
+  }
+  const cardLinkOf = () =>
+    document.querySelector(`[data-speaker-id="${CSS.escape(String(lastSelected.current))}"] [data-card-link]`) ?? true
   // A card keeps the search in the link and only swaps the picked speaker.
   const linkFor = (id) => {
     const next = new URLSearchParams(searchParams)
@@ -119,7 +144,7 @@ export default function SpeakersPage() {
           emptyTitle="No speakers found"
           emptyDescription="Try a different name, title or company."
           errorTitle="We couldn't load the speakers"
-          gridClassName={selected ? GRID_WITH_PANEL : undefined}
+          gridClassName={selected && desktop ? GRID_WITH_PANEL : undefined}
           skeleton={MemberCardSkeleton}
           renderItem={(speaker) => (
             <MemberCard
@@ -128,12 +153,13 @@ export default function SpeakersPage() {
               company={speaker.company}
               avatarSrc={speaker.avatar_url}
               to={linkFor(speaker.id)}
+              data-speaker-id={speaker.id}
               className={String(speaker.id) === selected ? 'ring-2 ring-border-brand' : undefined}
             />
           )}
         />
       </div>
-      {selected && (
+      {selected && desktop && (
         <aside
           aria-label="Speaker details"
           className="w-full shrink-0 lg:sticky lg:top-[calc(var(--shell-topbar-h)+var(--ds-space-md))] lg:w-80"
@@ -142,6 +168,18 @@ export default function SpeakersPage() {
             <SpeakerDetails key={selected} id={selected} />
           </Card>
         </aside>
+      )}
+      {!desktop && (
+        <Sheet
+          open={Boolean(selected)}
+          onOpenChange={(open) => {
+            if (!open) closeSheet()
+          }}
+          title="Speaker details"
+          finalFocus={cardLinkOf}
+        >
+          {selected && <SpeakerDetails key={selected} id={selected} level={3} />}
+        </Sheet>
       )}
     </div>
   )
