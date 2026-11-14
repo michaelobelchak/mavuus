@@ -160,6 +160,26 @@ describe('MemberLayout', () => {
     expect(await screen.findByText('We sent a new link. Check your inbox.')).toBeInTheDocument()
   })
 
+  it('should link admins to the admin panel from the sidebar footer', async () => {
+    renderApp('/dashboard')
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    const footerLink = screen.getByRole('link', { name: 'Admin panel' })
+    expect(footerLink).toHaveAttribute('href', '/admin')
+    expect(nav).not.toContainElement(footerLink)
+    expect(footerLink).toHaveTextContent('Admin panel')
+  })
+
+  it('should keep the admin panel link icon-only in the rail', () => {
+    renderApp('/dashboard', 1100)
+    expect(screen.getByRole('link', { name: 'Admin panel' })).not.toHaveTextContent('Admin panel')
+  })
+
+  it('should not show the admin panel link to members', () => {
+    auth.value.user = { ...auth.value.user, role: 'member' }
+    renderApp('/dashboard')
+    expect(screen.queryByRole('link', { name: 'Admin panel' })).not.toBeInTheDocument()
+  })
+
   it('should put the search in the top bar', () => {
     renderApp('/dashboard')
     expect(screen.getByRole('searchbox', { name: 'Search sessions, resources, members' })).toBeInTheDocument()

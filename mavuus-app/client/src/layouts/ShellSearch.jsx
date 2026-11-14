@@ -58,7 +58,7 @@ const countResults = (results) => SECTIONS.reduce((sum, { key }) => sum + (resul
  * or more) and lists sessions, resources, members, vendors and jobs as links. From 768px the
  * results drop down under the field; below that they sit under it inside the top bar's popover.
  * Escape clears the field, an outside click hides the results (focus shows them again) and
- * picking a result clears the search. A polite status says how many results came back.
+ * picking a result clears the search. From 768px an empty field shows a `/` key hint. A polite status says how many results came back.
  */
 export function ShellSearch({ className }) {
   const wide = useMediaQuery('(min-width: 48rem)')
@@ -131,6 +131,14 @@ export function ShellSearch({ className }) {
           if (results) setOpen(true)
         }}
       />
+      {wide && !query && (
+        <kbd
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/2 right-ds-sm flex h-6 min-w-6 -translate-y-1/2 items-center justify-center rounded-tag border border-border-default bg-surface-raised px-ds-xxs text-caption font-semibold text-text-muted"
+        >
+          /
+        </kbd>
+      )}
       <p role="status" className="sr-only">
         {showPanel ? (total === 1 ? '1 result' : `${total} results`) : ''}
       </p>

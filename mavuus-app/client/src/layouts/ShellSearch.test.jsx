@@ -60,6 +60,18 @@ describe('ShellSearch', () => {
     expect(screen.getByRole('status')).toHaveTextContent('4 results')
   })
 
+  it('should hint the / shortcut in the empty field from 768px only', async () => {
+    const user = userEvent.setup()
+    const { unmount } = renderSearch()
+    expect(screen.getByText('/', { selector: 'kbd' })).toBeInTheDocument()
+    await user.type(screen.getByRole('searchbox'), 'g')
+    expect(screen.queryByText('/', { selector: 'kbd' })).not.toBeInTheDocument()
+    unmount()
+    mockViewport(390)
+    renderSearch()
+    expect(screen.queryByText('/', { selector: 'kbd' })).not.toBeInTheDocument()
+  })
+
   it('should not search for fewer than two characters', async () => {
     const user = userEvent.setup()
     renderSearch()

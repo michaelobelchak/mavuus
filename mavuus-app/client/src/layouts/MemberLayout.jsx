@@ -1,17 +1,30 @@
 import { useLocation } from 'react-router-dom'
+import { ShieldCheck } from 'lucide-react'
 import { MEMBER_NAV } from '@/design-system/organisms'
 import { useAuth } from '../context/AuthContext'
 import { ShellLayout } from './ShellLayout'
 import { ShellSearch } from './ShellSearch'
+import { sidebarFooterLink } from './sidebarFooterLink'
 import { usePolledCount } from './useNotifications'
 
+// Admins get a way into the admin panel under the member nav (an icon with a tooltip in the rail).
+const adminPanelFooter = sidebarFooterLink({ label: 'Admin panel', icon: ShieldCheck, to: '/admin' }, 'Admin')
+
 /**
- * The member dashboard frame (/dashboard): AppShell with MEMBER_NAV, the global search and the
- * unread messages count on the Messages item (refreshed on every navigation and every 30 seconds).
+ * The member dashboard frame (/dashboard): AppShell with MEMBER_NAV, the global search, the
+ * unread messages count on the Messages item (refreshed on every navigation and every 30
+ * seconds) and, for admins, an Admin panel link under the nav.
  */
 export default function MemberLayout() {
-  const { token } = useAuth()
+  const { user, token } = useAuth()
   const { pathname } = useLocation()
   const [messages] = usePolledCount('/api/messages/unread-count', token, pathname)
-  return <ShellLayout nav={MEMBER_NAV} badges={{ messages }} search={<ShellSearch />} />
+  return (
+    <ShellLayout
+      nav={MEMBER_NAV}
+      badges={{ messages }}
+      search={<ShellSearch />}
+      sidebarFooter={user?.role === 'admin' ? adminPanelFooter : undefined}
+    />
+  )
 }
