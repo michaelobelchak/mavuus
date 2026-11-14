@@ -1,168 +1,148 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
-import Avatar from '../../components/ui/Avatar'
-import Card from '../../components/ui/Card'
-import Badge from '../../components/ui/Badge'
-import { Search, Linkedin, Calendar } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { Linkedin } from 'lucide-react'
+import { Alert, Card, CardLink } from '@/design-system/patterns'
+import { MemberCard, MemberCardSkeleton } from '@/design-system/organisms'
+import { Avatar, Badge, Button, Caption, Heading, Skeleton, Text } from '@/design-system/primitives'
+import { useAuth } from '../../context/AuthContext'
+import { useDetailResource } from '../../hooks/useDetailResource'
+import { CatalogList } from './shared/CatalogList'
+
+// Two columns beside the details panel; the panel takes the room the third column had.
+const GRID_WITH_PANEL = 'grid grid-cols-1 gap-ds-md sm:grid-cols-2 xl:grid-cols-3'
+
+const sessionPath = (session) => `/dashboard/${session.type === 'live' ? 'live-sessions' : 'on-demand'}/${session.id}`
+
+/** The picked speaker: bio, LinkedIn and their sessions, from /api/speakers/:id. */
+function SpeakerDetails({ id }) {
+  const { token } = useAuth()
+  const { data: speaker, loading, error, notFound, retry } = useDetailResource(`/api/speakers/${id}`, token)
+
+  if (loading) {
+    return (
+      <div aria-busy="true" className="flex flex-col items-center gap-ds-sm">
+        <span className="sr-only">Loading speaker</span>
+        <Skeleton shape="circle" className="size-14" />
+        <Skeleton className="w-1/2" />
+        <Skeleton lines={3} />
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <Alert
+        tone="error"
+        title="We couldn't load this speaker"
+        description="Check your connection and try again."
+        actions={
+          <Button size="sm" variant="outline" onClick={retry}>
+            Try again
+          </Button>
+        }
+      />
+    )
+  }
+  if (notFound || !speaker) return <Text tone="secondary">Speaker not found.</Text>
+
+  const sessions = speaker.sessions || []
+  return (
+    <div className="flex flex-col gap-ds-md">
+      <div className="flex flex-col items-center gap-ds-xxs text-center">
+        <Avatar name={speaker.name} src={speaker.avatar_url} size="lg" className="mb-ds-xs" />
+        <Heading level={2} size="h3">
+          {speaker.name}
+        </Heading>
+        {speaker.title && (
+          <Text size="body-sm" tone="secondary">
+            {speaker.title}
+          </Text>
+        )}
+        {speaker.company && <Caption>{speaker.company}</Caption>}
+      </div>
+      {speaker.bio && (
+        <Text size="body-sm" tone="secondary">
+          {speaker.bio}
+        </Text>
+      )}
+      {speaker.linkedin_url && (
+        <Button variant="outline" size="sm" block leadingIcon={Linkedin} href={speaker.linkedin_url}>
+          LinkedIn Profile
+        </Button>
+      )}
+      {sessions.length > 0 && (
+        <section aria-labelledby="speaker-sessions-title" className="flex flex-col gap-ds-xs">
+          <Heading id="speaker-sessions-title" level={3} size="h4">
+            {`Sessions (${sessions.length})`}
+          </Heading>
+          <ul className="flex flex-col gap-ds-xs">
+            {sessions.map((session) => (
+              <li key={session.id}>
+                <Card variant="surface" padding="sm" interactive className="flex flex-col gap-ds-xxs">
+                  <Text as="span" size="body-sm" className="line-clamp-2 font-semibold">
+                    <CardLink to={sessionPath(session)}>{session.title}</CardLink>
+                  </Text>
+                  <div className="flex items-center gap-ds-xs">
+                    <Badge size="sm" tone={session.type === 'live' ? 'info' : 'brand'} className="capitalize">
+                      {session.type}
+                    </Badge>
+                    {session.duration && <Caption>{session.duration}</Caption>}
+                  </div>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  )
+}
 
 export default function SpeakersPage() {
-  const [speakers, setSpeakers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [selectedSpeaker, setSelectedSpeaker] = useState(null)
-  const [speakerDetail, setSpeakerDetail] = useState(null)
-  const [detailLoading, setDetailLoading] = useState(false)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300)
-    return () => clearTimeout(timer)
-  }, [search])
-
-  const fetchSpeakers = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params = debouncedSearch ? `?search=${encodeURIComponent(debouncedSearch)}` : ''
-      const res = await fetch(`/api/speakers${params}`)
-      if (res.ok) setSpeakers(await res.json())
-    } catch (err) {
-      console.error('Failed to load speakers', err)
-    } finally { setLoading(false) }
-  }, [debouncedSearch])
-
-  useEffect(() => { fetchSpeakers() }, [fetchSpeakers])
-
-  const handleSpeakerClick = async (speaker) => {
-    setSelectedSpeaker(speaker.id)
-    setDetailLoading(true)
-    try {
-      const res = await fetch(`/api/speakers/${speaker.id}`)
-      if (res.ok) setSpeakerDetail(await res.json())
-    } catch (err) {
-      console.error('Failed to load speaker details', err)
-    } finally { setDetailLoading(false) }
+  const [searchParams] = useSearchParams()
+  const selected = searchParams.get('speaker')
+  // A card keeps the search in the link and only swaps the picked speaker.
+  const linkFor = (id) => {
+    const next = new URLSearchParams(searchParams)
+    next.set('speaker', String(id))
+    return `?${next}`
   }
 
   return (
-    <div className="max-w-6xl">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-dark-blue">Speakers</h1>
-        <div className="relative w-full sm:w-72">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <input
-            type="text"
-            placeholder="Search speakers..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-pink/20 focus:border-brand-pink"
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Speaker Grid */}
-        <div className="flex-1">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="w-8 h-8 border-2 border-brand-pink border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : speakers.length === 0 ? (
-            <div className="text-center py-20 text-neutral-500">
-              <p>No speakers found.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {speakers.map(speaker => (
-                <button
-                  key={speaker.id}
-                  onClick={() => handleSpeakerClick(speaker)}
-                  className={`text-left cursor-pointer transition-all ${selectedSpeaker === speaker.id ? 'ring-2 ring-brand-pink rounded-2xl' : ''}`}
-                >
-                  <Card hover>
-                    <div className="flex flex-col items-center text-center p-2">
-                      <Avatar name={speaker.name} src={speaker.avatar_url} size="xl" />
-                      <h3 className="font-semibold text-dark-blue mt-3">{speaker.name}</h3>
-                      <p className="text-sm text-neutral-500 mt-0.5">{speaker.title}</p>
-                      <p className="text-xs text-neutral-400">{speaker.company}</p>
-                      {speaker.linkedin_url && (
-                        <a
-                          href={speaker.linkedin_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={e => e.stopPropagation()}
-                          className="mt-2 text-brand-blue hover:text-brand-blue/80"
-                        >
-                          <Linkedin size={16} />
-                        </a>
-                      )}
-                    </div>
-                  </Card>
-                </button>
-              ))}
-            </div>
+    <div className="flex flex-col gap-ds-lg lg:flex-row lg:items-start">
+      <div className="min-w-0 flex-1">
+        <CatalogList
+          endpoint="/api/speakers"
+          paged={false}
+          intro="The marketing leaders who teach our live sessions and on-demand videos."
+          searchLabel="Search speakers"
+          searchPlaceholder="Search speakers..."
+          listLabel="Speakers"
+          emptyTitle="No speakers found"
+          emptyDescription="Try a different name, title or company."
+          errorTitle="We couldn't load the speakers"
+          gridClassName={selected ? GRID_WITH_PANEL : undefined}
+          skeleton={MemberCardSkeleton}
+          renderItem={(speaker) => (
+            <MemberCard
+              name={speaker.name}
+              title={speaker.title}
+              company={speaker.company}
+              avatarSrc={speaker.avatar_url}
+              to={linkFor(speaker.id)}
+              className={String(speaker.id) === selected ? 'ring-2 ring-border-brand' : undefined}
+            />
           )}
-        </div>
-
-        {/* Speaker Detail Panel */}
-        {selectedSpeaker && (
-          <div className="w-full lg:w-80 shrink-0">
-            <div className="bg-white rounded-2xl border border-neutral-100 p-6 sticky top-6">
-              {detailLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="w-6 h-6 border-2 border-brand-pink border-t-transparent rounded-full animate-spin" />
-                </div>
-              ) : speakerDetail ? (
-                <>
-                  <div className="text-center mb-4">
-                    <Avatar name={speakerDetail.name} src={speakerDetail.avatar_url} size="xl" />
-                    <h2 className="text-lg font-bold text-dark-blue mt-3">{speakerDetail.name}</h2>
-                    <p className="text-sm text-neutral-500">{speakerDetail.title}</p>
-                    <p className="text-xs text-neutral-400">{speakerDetail.company}</p>
-                  </div>
-
-                  {speakerDetail.bio && (
-                    <p className="text-sm text-neutral-600 leading-relaxed mb-4">{speakerDetail.bio}</p>
-                  )}
-
-                  {speakerDetail.linkedin_url && (
-                    <a
-                      href={speakerDetail.linkedin_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full px-4 py-2.5 border border-neutral-200 rounded-xl text-sm font-medium text-neutral-600 hover:bg-neutral-50 transition-colors mb-4"
-                    >
-                      <Linkedin size={14} /> LinkedIn Profile
-                    </a>
-                  )}
-
-                  {speakerDetail.sessions?.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-dark-blue mb-3 flex items-center gap-1">
-                        <Calendar size={14} /> Sessions ({speakerDetail.sessions.length})
-                      </h3>
-                      <div className="space-y-2">
-                        {speakerDetail.sessions.map(s => (
-                          <Link
-                            key={s.id}
-                            to={`/dashboard/${s.type === 'live' ? 'live-sessions' : 'on-demand'}/${s.id}`}
-                            className="block p-3 rounded-xl border border-neutral-100 hover:border-brand-pink/30 hover:bg-brand-pink/5 transition-colors"
-                          >
-                            <h4 className="text-sm font-medium text-dark-blue line-clamp-2">{s.title}</h4>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant={s.type === 'live' ? 'blue' : 'pink'} className="text-xs">{s.type}</Badge>
-                              <span className="text-xs text-neutral-400">{s.duration}</span>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : null}
-            </div>
-          </div>
-        )}
+        />
       </div>
+      {selected && (
+        <aside
+          aria-label="Speaker details"
+          className="w-full shrink-0 lg:sticky lg:top-[calc(var(--shell-topbar-h)+var(--ds-space-md))] lg:w-80"
+        >
+          <Card padding="lg">
+            <SpeakerDetails key={selected} id={selected} />
+          </Card>
+        </aside>
+      )}
     </div>
   )
 }
