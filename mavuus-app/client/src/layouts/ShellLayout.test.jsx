@@ -15,8 +15,8 @@ const NOTIFICATIONS = [
   { id: 2, type: 'job', title: 'Application viewed', message: 'Acme', link: '/dashboard/my-jobs', is_read: 0, created_at: now },
 ]
 
-function json(body, ok = true) {
-  return { ok, status: ok ? 200 : 500, json: async () => body }
+function json(body, ok = true, status = ok ? 200 : 500) {
+  return { ok, status, json: async () => body }
 }
 
 let fetchMock
@@ -39,6 +39,7 @@ function renderApp(path, width = 1440) {
     <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path="/" element={<Page name="Public" />} />
+        <Route path="/login" element={<Page name="Login" />} />
         <Route path="/dashboard" element={<MemberLayout />}>
           <Route index element={<Page name="Home" />} />
           <Route path="jobs" element={<Page name="Jobs" />} />
@@ -59,7 +60,7 @@ beforeEach(() => {
   auth.value = {
     user: { id: 1, name: 'Demo User', email: 'demo@mavuus.com', role: 'admin', avatar_url: null, email_verified: 1 },
     token: 'token-123',
-    logout: vi.fn(),
+    logout: vi.fn(async () => {}),
   }
   fetchMock = vi.fn(async (url, init) => routeFetch(url, init))
   vi.stubGlobal('fetch', fetchMock)
@@ -117,6 +118,8 @@ describe('MemberLayout', () => {
     expect(await screen.findByRole('heading', { name: 'Messages page at /dashboard/messages' })).toBeInTheDocument()
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(await screen.findByRole('button', { name: 'Notifications, 1 unread' })).toBeInTheDocument()
+    // The link went somewhere, so focus lands on the new page's title, not back on the bell.
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Messages' })).toHaveFocus())
   })
 
   it('should mark all read from the sheet and drop the count', async () => {
@@ -136,9 +139,34 @@ describe('MemberLayout', () => {
     renderApp('/dashboard')
     await user.click(screen.getByRole('button', { name: 'Account menu' }))
     expect(await screen.findByRole('menuitem', { name: 'Admin panel' })).toBeInTheDocument()
+    let finishLogout
+    auth.value.logout.mockImplementation(() => new Promise((resolve) => (finishLogout = resolve)))
     await user.click(screen.getByRole('menuitem', { name: 'Log out' }))
     expect(auth.value.logout).toHaveBeenCalledOnce()
+    // Navigation waits for the logout request, so the guards never see a half-signed-out user.
+    expect(screen.queryByRole('heading', { name: 'Public page at /' })).not.toBeInTheDocument()
+    finishLogout()
     expect(await screen.findByRole('heading', { name: 'Public page at /' })).toBeInTheDocument()
+  })
+
+  it('should sign out and go to the login page when a poll finds the session gone', async () => {
+    fetchMock.mockImplementation(async (url, init) =>
+      url === '/api/notifications/unread-count' ? json({ error: 'Unauthorized' }, false, 401) : routeFetch(url, init),
+    )
+    renderApp('/dashboard')
+    expect(await screen.findByRole('heading', { name: 'Login page at /login' })).toBeInTheDocument()
+    expect(auth.value.logout).toHaveBeenCalled()
+  })
+
+  it('should refetch the unread messages count on navigation', async () => {
+    const user = userEvent.setup()
+    renderApp('/dashboard')
+    await screen.findByRole('link', { name: 'Messages, 4 new' })
+    const before = fetchMock.mock.calls.filter(([url]) => url === '/api/messages/unread-count').length
+    await user.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Jobs' }))
+    await waitFor(() =>
+      expect(fetchMock.mock.calls.filter(([url]) => url === '/api/messages/unread-count').length).toBe(before + 1),
+    )
   })
 
   it('should leave the admin panel out of the account menu for members', async () => {

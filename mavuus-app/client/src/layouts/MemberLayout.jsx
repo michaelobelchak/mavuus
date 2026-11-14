@@ -6,6 +6,7 @@ import { ShellLayout } from './ShellLayout'
 import { ShellSearch } from './ShellSearch'
 import { sidebarFooterLink } from './sidebarFooterLink'
 import { usePolledCount } from './useNotifications'
+import { useSignOut } from './useSignOut'
 
 // Admins get a way into the admin panel under the member nav (an icon with a tooltip in the rail).
 const adminPanelFooter = sidebarFooterLink({ label: 'Admin panel', icon: ShieldCheck, to: '/admin' }, 'Admin')
@@ -18,7 +19,11 @@ const adminPanelFooter = sidebarFooterLink({ label: 'Admin panel', icon: ShieldC
 export default function MemberLayout() {
   const { user, token } = useAuth()
   const { pathname } = useLocation()
-  const [messages] = usePolledCount('/api/messages/unread-count', token, pathname)
+  const { sessionExpired } = useSignOut()
+  const [messages] = usePolledCount('/api/messages/unread-count', token, {
+    refreshKey: pathname,
+    onUnauthorized: sessionExpired,
+  })
   return (
     <ShellLayout
       nav={MEMBER_NAV}

@@ -1,7 +1,7 @@
 import { Suspense, useId, useRef, useState } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 // eslint-disable-next-line no-unused-vars -- motion is referenced as <motion.div> in JSX
-import { AnimatePresence, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import { useReducedMotion } from '@/design-system/hooks'
 import { AppShell } from '@/design-system/organisms'
 import { Spinner } from '@/design-system/primitives'
@@ -11,6 +11,7 @@ import { NotificationsSheet } from './NotificationsSheet'
 import { useShellMounted } from './shellPresence'
 import { shellTitle } from './shellTitle'
 import { useNotifications } from './useNotifications'
+import { useSignOut } from './useSignOut'
 
 function PageFallback() {
   return (
@@ -20,24 +21,22 @@ function PageFallback() {
   )
 }
 
-// The page fades in on navigation; with reduced motion it just appears.
+// The page fades in on navigation (no exit animation, so the new page never waits for the old
+// one); with reduced motion it just appears.
 function ShellOutlet() {
   const { pathname } = useLocation()
   const reduced = useReducedMotion()
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={pathname}
-        initial={reduced ? false : { opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={reduced ? { opacity: 1 } : { opacity: 0, y: -8 }}
-        transition={{ duration: reduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }}
-      >
-        <Suspense fallback={<PageFallback />}>
-          <Outlet />
-        </Suspense>
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      key={pathname}
+      initial={reduced ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: reduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }}
+    >
+      <Suspense fallback={<PageFallback />}>
+        <Outlet />
+      </Suspense>
+    </motion.div>
   )
 }
 
@@ -49,21 +48,24 @@ function ShellOutlet() {
  * Route guards (ProtectedRoute, AdminRoute) stay in App.jsx around this layout.
  */
 export function ShellLayout({ nav, navLabel, logoTo, sidebarFooter, badges, search }) {
-  const { user, token, logout } = useAuth()
-  const navigate = useNavigate()
+  const { user, token } = useAuth()
+  const { signOut, sessionExpired } = useSignOut()
   const location = useLocation()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const notifications = useNotifications(token, notificationsOpen)
+  const notifications = useNotifications(token, notificationsOpen, { onUnauthorized: sessionExpired })
   const bellRef = useRef(null)
+  // Closing the sheet returns focus to the bell, unless a notification link was followed: then
+  // the new page's title gets it (AppShell focuses it after a navigation).
+  const followedLinkRef = useRef(false)
+  function notificationsFinalFocus() {
+    if (!followedLinkRef.current) return bellRef.current
+    return document.querySelector('[data-app-shell] header h1') ?? bellRef.current
+  }
   const notificationsId = useId()
   const title = shellTitle(nav, location)
   // AppShell brings its own skip link, so App.jsx's SiteSkipLink steps aside.
   useShellMounted()
 
-  function handleLogout() {
-    logout()
-    navigate('/')
-  }
 
   return (
     <AppShell
@@ -74,12 +76,15 @@ export function ShellLayout({ nav, navLabel, logoTo, sidebarFooter, badges, sear
       badges={badges}
       search={search}
       user={user}
-      onLogout={handleLogout}
+      onLogout={() => signOut('/')}
       title={title}
       notifications={{
         count: notifications.count,
         pulse: notifications.pulse,
-        onClick: () => setNotificationsOpen(true),
+        onClick: () => {
+          followedLinkRef.current = false
+          setNotificationsOpen(true)
+        },
         open: notificationsOpen,
         controlsId: notificationsId,
         buttonRef: bellRef,
@@ -91,7 +96,10 @@ export function ShellLayout({ nav, navLabel, logoTo, sidebarFooter, badges, sear
         id={notificationsId}
         open={notificationsOpen}
         onOpenChange={setNotificationsOpen}
-        finalFocus={bellRef}
+        finalFocus={notificationsFinalFocus}
+        onFollowLink={() => {
+          followedLinkRef.current = true
+        }}
         items={notifications.items}
         unreadCount={notifications.count}
         loading={notifications.loading}
