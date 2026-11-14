@@ -16,3 +16,6 @@ export const WithEyebrowAndActions = {
 }
 
 export const Level3 = { args: { headingLevel: 3, title: 'This week' } }
+
+/** App pages: an h2 at the h3 size, so sections don't outsize the top bar's title. */
+export const AppSection = { args: { size: 'h3', title: 'Upcoming Live Sessions' } }

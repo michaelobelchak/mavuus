@@ -40,4 +40,10 @@ describe('SectionHeader', () => {
     expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument()
     expect(error).toHaveBeenCalledWith(expect.stringMatching(/SectionHeader: headingLevel "6"/))
   })
+
+  it('should keep the level and change only the look when size is given', () => {
+    render(<SectionHeader title="On-Demand Videos" size="h3" />)
+    const heading = screen.getByRole('heading', { level: 2, name: 'On-Demand Videos' })
+    expect(heading).toHaveClass('text-h3')
+  })
 })

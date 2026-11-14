@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './components/ui/Toast'
+import { Toaster } from '@/design-system/patterns'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import ScrollToTop from './components/ScrollToTop'
 import './index.css'
@@ -18,6 +19,7 @@ createRoot(document.getElementById('root')).render(
             <BrowserRouter>
               <ScrollToTop />
               <App />
+              <Toaster />
             </BrowserRouter>
           </AuthProvider>
         </ToastProvider>
