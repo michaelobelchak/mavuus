@@ -82,7 +82,8 @@ function LoadingRows() {
 /**
  * The notifications drawer: a right Sheet, so it is unmounted (and nothing in it can take focus)
  * while closed. Lists `items` from /api/notifications with All and Unread filters.
- * - `open` / `onOpenChange`, `id` (the bell's aria-controls), `finalFocus` (where focus goes on close).
+ * - `open` / `onOpenChange`, `id` (the bell's aria-controls), `finalFocus` (where focus goes on close),
+ *   `onFollowLink(notification)` (a picked item with a link is about to navigate).
  * - `unreadCount`, `onMarkRead(id)` (a picked unread item), `onMarkAllRead()`.
  * - `loading`, `error`, `onRetry` for the list states.
  * Picking an item marks it read, closes the sheet and follows its link.
@@ -99,13 +100,17 @@ export function NotificationsSheet({
   onMarkRead,
   onMarkAllRead,
   finalFocus,
+  onFollowLink,
 }) {
   const [filter, setFilter] = useState('all')
   const visible = filter === 'unread' ? items.filter((item) => !item.is_read) : items
-  const counts = { all: items.length, unread: unreadCount }
+  // Both chips count the loaded list, so a chip never promises rows it can't show. The server
+  // sends the newest 50 notifications at most; the description keeps the overall unread total.
+  const counts = { all: items.length, unread: items.filter((item) => !item.is_read).length }
 
   function pick(notification) {
     if (!notification.is_read) onMarkRead?.(notification.id)
+    if (notification.link) onFollowLink?.(notification)
     onOpenChange?.(false)
   }
 

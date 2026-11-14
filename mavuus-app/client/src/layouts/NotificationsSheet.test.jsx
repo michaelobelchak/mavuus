@@ -91,6 +91,13 @@ describe('NotificationsSheet', () => {
     expect(screen.getByRole('heading', { name: 'All caught up' })).toBeInTheDocument()
   })
 
+  it('should count the unread chip from the loaded list, not the overall unread total', () => {
+    renderSheet({ unreadCount: 5 })
+    expect(screen.getByRole('button', { name: /^Unread/ })).toHaveTextContent('Unread1')
+    expect(screen.getByRole('button', { name: /^All/ })).toHaveTextContent('All2')
+    expect(screen.getByText('5 unread')).toBeInTheDocument()
+  })
+
   it('should show an empty state when there are no notifications', () => {
     renderSheet({ items: [], unreadCount: 0 })
     expect(screen.getByRole('heading', { name: 'No notifications yet' })).toBeInTheDocument()
