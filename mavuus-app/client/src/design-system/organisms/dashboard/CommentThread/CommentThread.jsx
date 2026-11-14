@@ -80,7 +80,7 @@ function CommentItem({ comment, canReply, onReply, onDelete }) {
           {comment.content}
         </Text>
         {(canReply || comment.own) && (
-          <div className="flex flex-wrap items-center gap-ds-xxs">
+          <div className="-ml-ds-md flex flex-wrap items-center gap-ds-xxs">
             {canReply && (
               <Button
                 variant="ghost"
@@ -121,7 +121,7 @@ function CommentItem({ comment, canReply, onReply, onDelete }) {
                     {reply.content}
                   </Text>
                   {reply.own && (
-                    <div>
+                    <div className="-ml-ds-md">
                       <DeleteButton comment={reply} onDelete={onDelete} />
                     </div>
                   )}
