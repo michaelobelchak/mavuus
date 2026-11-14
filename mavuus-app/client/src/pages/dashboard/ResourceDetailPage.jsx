@@ -6,8 +6,9 @@ import { CommentThread, MetaList, ResourceCard } from '@/design-system/organisms
 import { Badge, Button, Heading, Text } from '@/design-system/primitives'
 import { useAuth } from '../../context/AuthContext'
 import { useComments } from '../../hooks/useComments'
+import { useDetailResource } from '../../hooks/useDetailResource'
 import { RESOURCES_PATH, resourceCardProps } from './academy/cardProps'
-import { DetailError, DetailNotFound, DetailSkeleton, DetailTopBar } from './academy/DetailChrome'
+import { DetailError, DetailLayout, DetailNotFound, DetailSkeleton, DetailTopBar } from './academy/DetailChrome'
 
 // **bold** spans inside a line of resource content.
 function inline(text) {
@@ -78,66 +79,44 @@ export default function ResourceDetailPage() {
   const { id } = useParams()
   const { token } = useAuth()
   const toast = useToast()
-  const [resource, setResource] = useState(null)
-  const [loading, setLoading] = useState(true)
-  // A failed request (network or server error) can be retried; a 404 means not found.
-  const [loadError, setLoadError] = useState(false)
-  const [attempt, setAttempt] = useState(0)
+  const { data: resource, loading, error, retry } = useDetailResource(`/api/resources/${id}`, token)
   const [shareOpen, setShareOpen] = useState(false)
-  const [bookmarked, setBookmarked] = useState(false)
-  const [relatedResources, setRelatedResources] = useState([])
-  const comments = useComments('resource', parseInt(id))
+  // Per-resource state is stored with the id it belongs to, so following a related card never
+  // shows the previous resource's bookmark or related list.
+  const [bookmark, setBookmark] = useState({ id: null, on: false })
+  const [related, setRelated] = useState({ id: null, items: [] })
+  const comments = useComments('resource', parseInt(id, 10))
+  const bookmarked = bookmark.id === id && bookmark.on
+  const relatedResources = related.id === id ? related.items : []
+  const category = resource?.category
 
   useEffect(() => {
-    let ignore = false
-    const fetchResource = async () => {
-      try {
-        const res = await fetch(`/api/resources/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (ignore) return
-        if (res.ok) setResource(await res.json())
-        else if (res.status !== 404) setLoadError(true)
-      } catch (err) {
-        console.error('Failed to load resource', err)
-        if (!ignore) setLoadError(true)
-      } finally {
-        if (!ignore) setLoading(false)
-      }
-    }
-    fetchResource()
-    return () => {
-      ignore = true
-    }
-  }, [id, token, attempt])
-
-  useEffect(() => {
-    // Check bookmark status
-    if (token) {
-      fetch('/api/resources/bookmarked', { headers: { Authorization: `Bearer ${token}` } })
-        .then((r) => (r.ok ? r.json() : []))
-        .then((bookmarks) => setBookmarked(bookmarks.some((b) => b.id === parseInt(id))))
-        .catch(() => {})
-    }
-  }, [id, token])
-
-  const retry = () => {
-    setLoadError(false)
-    setLoading(true)
-    setAttempt((n) => n + 1)
-  }
-
-  // Fetch related resources once we have the resource
-  useEffect(() => {
-    if (!resource) return
-    fetch(`/api/resources?category=${encodeURIComponent(resource.category)}&limit=4`)
-      .then((r) => (r.ok ? r.json() : { data: [] }))
-      .then((json) => {
-        const items = (json.data || json).filter((r) => r.id !== parseInt(id)).slice(0, 3)
-        setRelatedResources(items)
+    if (!token) return
+    const controller = new AbortController()
+    fetch('/api/resources/bookmarked', { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((bookmarks) => {
+        if (controller.signal.aborted || !Array.isArray(bookmarks)) return
+        setBookmark({ id, on: bookmarks.some((b) => b.id === parseInt(id, 10)) })
       })
       .catch(() => {})
-  }, [resource, id])
+    return () => controller.abort()
+  }, [id, token])
+
+  // Related resources from the same category, once the resource is known.
+  useEffect(() => {
+    if (!category) return
+    const controller = new AbortController()
+    fetch(`/api/resources?category=${encodeURIComponent(category)}&limit=4`, { signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((json) => {
+        if (controller.signal.aborted) return
+        const list = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : []
+        setRelated({ id, items: list.filter((r) => r.id !== parseInt(id, 10)).slice(0, 3) })
+      })
+      .catch(() => {})
+    return () => controller.abort()
+  }, [category, id])
 
   const toggleBookmark = async () => {
     try {
@@ -147,7 +126,7 @@ export default function ResourceDetailPage() {
       })
       if (res.ok) {
         const data = await res.json()
-        setBookmarked(data.bookmarked)
+        setBookmark({ id, on: Boolean(data.bookmarked) })
       }
     } catch {
       toast.error("Couldn't update bookmark. Try again.")
@@ -156,7 +135,7 @@ export default function ResourceDetailPage() {
 
   if (loading) return <DetailSkeleton label="Loading resource" />
 
-  if (loadError) {
+  if (error) {
     return <DetailError title="We couldn't load this resource" onRetry={retry} backTo={RESOURCES_PATH} backLabel="Back to Resources" />
   }
 
@@ -164,17 +143,20 @@ export default function ResourceDetailPage() {
     return <DetailNotFound title="Resource not found" backTo={RESOURCES_PATH} backLabel="Back to Resources" />
   }
 
-  const isDownloadable = resource.type === 'template'
+  // Templates with a file get Download; everything else (and a template without a file) gets Bookmark.
+  const downloadHref = resource.type === 'template' && resource.url ? resource.url : null
 
   return (
     <div className="flex flex-col gap-ds-lg">
       <ScrollProgress />
       <DetailTopBar backTo={RESOURCES_PATH} backLabel="Back to Resources" onShare={() => setShareOpen(true)} />
 
-      {/* Below lg one column in reading order: content, the action and info cards, then comments.
-          From lg a two-column grid: content and comments on the left, the cards beside them. */}
-      <div className="flex flex-col gap-ds-lg lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-        <div className="flex min-w-0 flex-1 flex-col gap-ds-lg">
+      <DetailLayout
+        asideLabel="Resource info"
+        asideWidth="lg:w-72"
+        comments={<CommentThread {...comments} />}
+        main={
+          <>
           {resource.thumbnail_url && <MediaFrame src={resource.thumbnail_url} alt={resource.title} ratio="16/9" eager />}
 
           <Card as="article" aria-labelledby="resource-title" padding="lg" className="flex flex-col gap-ds-md">
@@ -205,12 +187,13 @@ export default function ResourceDetailPage() {
             </div>
           </Card>
 
-        </div>
-
-        <aside aria-label="Resource info" className="flex w-full flex-col gap-ds-md lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:w-72">
+          </>
+        }
+        aside={
+          <>
           <Card padding="lg">
-            {isDownloadable ? (
-              <Button block leadingIcon={Download}>
+            {downloadHref ? (
+              <Button block leadingIcon={Download} href={downloadHref} download>
                 Download Template
               </Button>
             ) : (
@@ -240,10 +223,9 @@ export default function ResourceDetailPage() {
               ]}
             />
           </Card>
-        </aside>
-
-        <CommentThread {...comments} className="lg:col-start-1" />
-      </div>
+          </>
+        }
+      />
 
       {relatedResources.length > 0 && (
         <section className="flex flex-col gap-ds-md">

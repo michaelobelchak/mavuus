@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Calendar, CheckCircle, Clock, Eye, Radio, Video } from 'lucide-react'
 import { formatDate } from '@/design-system/lib/formatDate'
@@ -7,9 +7,10 @@ import { CommentThread, MetaList, SessionCard } from '@/design-system/organisms'
 import { Avatar, Badge, Button, Caption, Heading, Icon, Input, Text } from '@/design-system/primitives'
 import { useAuth } from '../../context/AuthContext'
 import { useComments } from '../../hooks/useComments'
+import { useDetailResource } from '../../hooks/useDetailResource'
 import { fireConfetti } from '../../hooks/useConfetti'
 import { LIVE_PATH, ON_DEMAND_PATH, sessionCardProps } from './academy/cardProps'
-import { DetailError, DetailNotFound, DetailSkeleton, DetailTopBar } from './academy/DetailChrome'
+import { DetailError, DetailLayout, DetailNotFound, DetailSkeleton, DetailTopBar } from './academy/DetailChrome'
 
 function useCountdown(targetDate) {
   const target = useMemo(() => (targetDate ? new Date(targetDate).getTime() : null), [targetDate])
@@ -71,73 +72,82 @@ function Countdown({ countdown }) {
   )
 }
 
-export default function SessionDetailPage() {
-  const { id } = useParams()
-  const { token, user } = useAuth()
-  const navigate = useNavigate()
-  const toast = useToast()
-  const [session, setSession] = useState(null)
-  const [loading, setLoading] = useState(true)
-  // A failed request (network or server error) can be retried; a 404 means not found.
-  const [loadError, setLoadError] = useState(false)
-  const [attempt, setAttempt] = useState(0)
-  const [registered, setRegistered] = useState(false)
-  const [registering, setRegistering] = useState(false)
-  const [shareOpen, setShareOpen] = useState(false)
-  const [relatedSessions, setRelatedSessions] = useState([])
-  const [regForm, setRegForm] = useState({
+// The registration form asks for these, but POST /api/sessions/:id/register takes no body yet
+// (logged for Stage 4), so they are prefilled from the profile and kept on the page.
+function useRegistrationForm(user, token) {
+  const [form, setForm] = useState({
     firstName: user?.name?.split(' ')[0] || '',
     email: user?.email || '',
     jobTitle: '',
     company: '',
   })
-  const comments = useComments('session', parseInt(id))
-
-  const countdown = useCountdown(session?.scheduled_date)
-
   useEffect(() => {
-    let ignore = false
-    const fetchSession = async () => {
-      try {
-        const [sRes, rRes] = await Promise.all([
-          fetch(`/api/sessions/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`/api/sessions/${id}/registration-status`, { headers: { Authorization: `Bearer ${token}` } }),
-        ])
-        if (ignore) return
-        if (sRes.ok) setSession(await sRes.json())
-        else if (sRes.status !== 404) setLoadError(true)
-        if (rRes.ok) {
-          const data = await rRes.json()
-          if (!ignore) setRegistered(!!data.registered)
-        }
-      } catch {
-        if (!ignore) setLoadError(true)
-      } finally {
-        if (!ignore) setLoading(false)
-      }
-    }
-    fetchSession()
-    return () => {
-      ignore = true
-    }
-  }, [id, token, attempt])
-
-  useEffect(() => {
-    // Fetch related
-    fetch(`/api/sessions/${id}/related`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then(setRelatedSessions)
+    if (!token) return
+    const controller = new AbortController()
+    fetch('/api/profile/me', { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((profile) => {
+        if (!profile || controller.signal.aborted) return
+        setForm((f) => ({ ...f, jobTitle: f.jobTitle || profile.title || '', company: f.company || profile.company || '' }))
+      })
       .catch(() => {})
+    return () => controller.abort()
+  }, [token])
+  const field = (key) => ({ value: form[key], onChange: (e) => setForm((f) => ({ ...f, [key]: e.target.value })) })
+  return field
+}
 
-    // Track view (once per page load)
+export default function SessionDetailPage() {
+  const { id } = useParams()
+  const { token, user } = useAuth()
+  const navigate = useNavigate()
+  const toast = useToast()
+  const { data: session, loading, error, retry } = useDetailResource(`/api/sessions/${id}`, token)
+  // Per-session state is stored with the id it belongs to, so following a related card never
+  // shows the previous session's registration or related list.
+  const [registration, setRegistration] = useState({ id: null, registered: false })
+  const [related, setRelated] = useState({ id: null, items: [] })
+  const [registering, setRegistering] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
+  const field = useRegistrationForm(user, token)
+  const comments = useComments('session', parseInt(id, 10))
+  const countdown = useCountdown(session?.scheduled_date)
+  const viewed = useRef(null)
+  const redirectTimer = useRef(null)
+  const registered = registration.id === id && registration.registered
+  const relatedSessions = related.id === id ? related.items : []
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch(`/api/sessions/${id}/registration-status`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data && !controller.signal.aborted) setRegistration({ id, registered: !!data.registered })
+      })
+      .catch(() => {})
+    return () => controller.abort()
+  }, [id, token])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch(`/api/sessions/${id}/related`, { signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((items) => {
+        if (!controller.signal.aborted) setRelated({ id, items: Array.isArray(items) ? items : [] })
+      })
+      .catch(() => {})
+    return () => controller.abort()
+  }, [id])
+
+  // Track one view per session: the ref survives StrictMode's second effect run.
+  useEffect(() => {
+    if (viewed.current === id) return
+    viewed.current = id
     fetch(`/api/sessions/${id}/view`, { method: 'PUT' }).catch(() => {})
   }, [id])
 
-  const retry = () => {
-    setLoadError(false)
-    setLoading(true)
-    setAttempt((n) => n + 1)
-  }
+  // Leaving the page cancels the pending jump to the confirmation.
+  useEffect(() => () => clearTimeout(redirectTimer.current), [])
 
   const handleRegister = async (e) => {
     e?.preventDefault?.()
@@ -153,12 +163,12 @@ export default function SessionDetailPage() {
         toast.error(data.error || 'Could not register for this session.')
         return
       }
-      setRegistered(true)
+      setRegistration({ id, registered: true })
       if (!data.alreadyRegistered) fireConfetti()
       toast.success(
         data.alreadyRegistered ? 'You were already registered for this session.' : "You're registered! Redirecting to confirmation…",
       )
-      setTimeout(() => navigate(`/events/${id}/confirmation`), 1200)
+      redirectTimer.current = setTimeout(() => navigate(`/events/${id}/confirmation`), 1200)
     } catch {
       toast.error('Network error. Please try again.')
     } finally {
@@ -168,7 +178,7 @@ export default function SessionDetailPage() {
 
   if (loading) return <DetailSkeleton label="Loading session" />
 
-  if (loadError) {
+  if (error) {
     return <DetailError title="We couldn't load this session" onRetry={retry} backTo={LIVE_PATH} backLabel="Back to Live Sessions" />
   }
 
@@ -178,7 +188,6 @@ export default function SessionDetailPage() {
 
   const isLive = session.type === 'live'
   const showCountdown = isLive && session.scheduled_date && !countdown.done
-  const field = (key) => ({ value: regForm[key], onChange: (e) => setRegForm({ ...regForm, [key]: e.target.value }) })
 
   return (
     <div className="flex flex-col gap-ds-lg">
@@ -188,10 +197,11 @@ export default function SessionDetailPage() {
         onShare={() => setShareOpen(true)}
       />
 
-      {/* Below lg one column in reading order: content, the action and info cards, then comments.
-          From lg a two-column grid: content and comments on the left, the cards beside them. */}
-      <div className="flex flex-col gap-ds-lg lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-        <div className="flex min-w-0 flex-1 flex-col gap-ds-lg">
+      <DetailLayout
+        asideLabel="Session info"
+        comments={<CommentThread {...comments} />}
+        main={
+          <>
           {session.thumbnail_url ? (
             <MediaFrame src={session.thumbnail_url} alt={session.title} ratio="16/9" eager />
           ) : (
@@ -241,7 +251,7 @@ export default function SessionDetailPage() {
               <Countdown countdown={countdown} />
               <form onSubmit={handleRegister} aria-label="Reserve your spot" className="grid grid-cols-1 gap-ds-md md:grid-cols-2">
                 <FormField label="First name" required>
-                  <Input {...field('firstName')} placeholder="Enter your full name" autoComplete="given-name" />
+                  <Input {...field('firstName')} placeholder="Enter your first name" autoComplete="given-name" />
                 </FormField>
                 <FormField label="Email address" required>
                   <Input type="email" {...field('email')} placeholder="you@company.com" autoComplete="email" />
@@ -271,10 +281,10 @@ export default function SessionDetailPage() {
             </Card>
           )}
 
-        </div>
-
-        {/* Sidebar */}
-        <aside aria-label="Session info" className="flex w-full flex-col gap-ds-md lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:w-80">
+          </>
+        }
+        aside={
+          <>
           <Card padding="lg">
             {isLive ? (
               registered ? (
@@ -329,10 +339,9 @@ export default function SessionDetailPage() {
               ]}
             />
           </Card>
-        </aside>
-
-        <CommentThread {...comments} className="lg:col-start-1" />
-      </div>
+          </>
+        }
+      />
 
       {relatedSessions.length > 0 && (
         <section className="flex flex-col gap-ds-md">

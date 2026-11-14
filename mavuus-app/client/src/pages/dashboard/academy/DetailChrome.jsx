@@ -1,4 +1,5 @@
 import { ArrowLeft, SearchX, Share2 } from 'lucide-react'
+import { cn } from '@/design-system/lib/cn'
 import { Alert, Card, EmptyState } from '@/design-system/patterns'
 import { Button, Icon, Link, Skeleton } from '@/design-system/primitives'
 
@@ -73,6 +74,27 @@ export function DetailError({ title, onRetry, backTo, backLabel }) {
           </Button>
         }
       />
+    </div>
+  )
+}
+
+/**
+ * The body of a detail page. Below lg one column in reading order: `main`, the `aside` cards
+ * (actions and info), then `comments`, so phones reach the actions before the thread. From lg a
+ * two-column grid: main and comments on the left, the aside beside them at `asideWidth` (w-80 or
+ * w-72). DOM order matches what people see, so reading and tab order do too.
+ */
+export function DetailLayout({ main, aside, asideLabel, asideWidth = 'lg:w-80', comments }) {
+  return (
+    <div className="flex flex-col gap-ds-lg lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+      <div className="flex min-w-0 flex-col gap-ds-lg">{main}</div>
+      <aside
+        aria-label={asideLabel}
+        className={cn('flex w-full flex-col gap-ds-md lg:col-start-2 lg:row-span-2 lg:row-start-1', asideWidth)}
+      >
+        {aside}
+      </aside>
+      {comments && <div className="min-w-0 lg:col-start-1">{comments}</div>}
     </div>
   )
 }

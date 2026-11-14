@@ -67,10 +67,18 @@ describe('ResourceDetailPage', () => {
     expect(fetchMock.mock.calls.some(([url, init]) => url === '/api/resources/2/bookmark' && init?.method === 'POST')).toBe(true)
   })
 
-  it('should offer a download instead of a bookmark for templates', async () => {
-    renderPage(1, { 'GET /api/resources/1': template })
-    expect(await screen.findByRole('button', { name: 'Download Template' })).toBeInTheDocument()
+  it('should link Download Template to the file when the template has one', async () => {
+    renderPage(1, { 'GET /api/resources/1': { ...template, url: '/files/budget.xlsx' } })
+    expect(await screen.findByRole('link', { name: 'Download Template' })).toHaveAttribute('href', '/files/budget.xlsx')
     expect(screen.getByText('Plan spend.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Bookmark' })).not.toBeInTheDocument()
+  })
+
+  it('should leave Download Template out when the template has no file', async () => {
+    renderPage(1, { 'GET /api/resources/1': template })
+    expect(await screen.findByText('Plan spend.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Download Template' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Download Template' })).not.toBeInTheDocument()
   })
 
   it('should say when the resource is not found', async () => {
@@ -94,5 +102,28 @@ describe('ResourceDetailPage', () => {
     const aside = await screen.findByRole('complementary', { name: 'Resource info' })
     const comments = screen.getByRole('region', { name: /^Comments/ })
     expect(aside.compareDocumentPosition(comments) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('should show the skeleton, then the new resource with its own bookmark state, when a related card is followed', async () => {
+    const user = userEvent.setup()
+    let answer
+    renderPage(2, {
+      'GET /api/resources/2': guide,
+      'GET /api/resources/9': () => new Promise((resolve) => (answer = resolve)),
+      'GET /api/resources/bookmarked': [{ id: 2 }],
+    })
+    expect(await screen.findByRole('button', { name: 'Bookmarked' })).toBeInTheDocument()
+    await user.click(await screen.findByRole('link', { name: 'Another Report' }))
+    expect(screen.getByText('Loading resource')).toBeInTheDocument()
+    answer({ id: 9, title: 'Another Report', type: 'guide', category: 'Report', description: 'More data.' })
+    expect(await screen.findByRole('heading', { level: 2, name: 'Another Report' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Bookmark' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('should show not found when a followed related resource is missing', async () => {
+    const user = userEvent.setup()
+    renderPage(2, { 'GET /api/resources/2': guide })
+    await user.click(await screen.findByRole('link', { name: 'Another Report' }))
+    expect(await screen.findByRole('heading', { name: 'Resource not found' })).toBeInTheDocument()
   })
 })
