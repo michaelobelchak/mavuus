@@ -57,8 +57,10 @@ const countResults = (results) => SECTIONS.reduce((sum, { key }) => sum + (resul
  * The top bar search: a SearchInput that queries /api/search once typing pauses (two characters
  * or more) and lists sessions, resources, members, vendors and jobs as links. From 768px the
  * results drop down under the field; below that they sit under it inside the top bar's popover.
- * Escape clears the field, an outside click hides the results (focus shows them again) and
- * picking a result clears the search. From 768px an empty field shows a `/` key hint. A polite status says how many results came back.
+ * Escape clears the field (or, on a result, closes the list and returns to the field); an outside
+ * click or focus leaving the search hides the results (focus shows them again); picking a result
+ * clears the search; a failed request says search is unavailable. Result groups are labeled
+ * lists, not headings, so they stay out of the page outline. From 768px an empty field shows a `/` key hint. A polite status says how many results came back.
  */
 export function ShellSearch({ className }) {
   const wide = useMediaQuery('(min-width: 48rem)')
@@ -68,6 +70,9 @@ export function ShellSearch({ className }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
   const requestRef = useRef(null)
+  const inputRef = useRef(null)
+  // Set while Escape hands focus back to the field, so that focus doesn't reopen the list.
+  const returningFocusRef = useRef(false)
   const headingId = useId()
 
   useEffect(() => () => requestRef.current?.abort(), [])
@@ -98,13 +103,17 @@ export function ShellSearch({ className }) {
     requestRef.current = controller
     try {
       const response = await fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal: controller.signal })
-      if (!response.ok) return
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
       setResults(data)
       setSearched(term)
       setOpen(true)
     } catch (error) {
-      if (error.name !== 'AbortError') console.error('Search failed', error)
+      if (error.name === 'AbortError') return
+      // Old results would answer a different question, so show the failure instead.
+      setResults({ failed: true })
+      setSearched(term)
+      setOpen(true)
     }
   }
 
@@ -117,8 +126,27 @@ export function ShellSearch({ className }) {
   const showPanel = open && results
 
   return (
-    <div ref={rootRef} className={cn('relative w-full', className)}>
+    <div
+      ref={rootRef}
+      className={cn('relative w-full', className)}
+      onBlur={(event) => {
+        // Tabbing (or clicking) out of the field and its results hides them.
+        if (!rootRef.current?.contains(event.relatedTarget)) setOpen(false)
+      }}
+      onKeyDown={(event) => {
+        // Escape on a result closes the list and puts the person back in the field. In the field
+        // itself, SearchInput clears the text first (and stops the event).
+        if (event.key !== 'Escape' || !open) return
+        event.preventDefault()
+        event.stopPropagation()
+        setOpen(false)
+        returningFocusRef.current = true
+        inputRef.current?.focus()
+        returningFocusRef.current = false
+      }}
+    >
       <SearchInput
+        ref={inputRef}
         label="Search sessions, resources, members"
         placeholder="Search sessions, resources, members"
         value={query}
@@ -128,7 +156,7 @@ export function ShellSearch({ className }) {
         }}
         onSearch={search}
         onFocus={() => {
-          if (results) setOpen(true)
+          if (results && !returningFocusRef.current) setOpen(true)
         }}
       />
       {wide && !query && (
@@ -140,7 +168,7 @@ export function ShellSearch({ className }) {
         </kbd>
       )}
       <p role="status" className="sr-only">
-        {showPanel ? (total === 1 ? '1 result' : `${total} results`) : ''}
+        {showPanel && !results.failed ? (total === 1 ? '1 result' : `${total} results`) : ''}
       </p>
       {showPanel && (
         <div
@@ -153,20 +181,24 @@ export function ShellSearch({ className }) {
               : 'mt-ds-xs',
           )}
         >
-          {total === 0 ? (
+          {results.failed ? (
+            <Text size="body-sm" tone="secondary" className="m-ds-none px-ds-md py-ds-sm text-center">
+              Search isn't available right now. Try again in a moment.
+            </Text>
+          ) : total === 0 ? (
             <Text size="body-sm" tone="secondary" className="m-ds-none px-ds-md py-ds-sm text-center">
               {`No results for "${searched}"`}
             </Text>
           ) : (
             SECTIONS.filter(({ key }) => results[key]?.length > 0).map(({ key, label, icon: Icon, to, name, sub }) => (
-              <section key={key} aria-labelledby={`${headingId}-${key}`} className="flex flex-col">
-                <h2
+              <div key={key} role="group" aria-labelledby={`${headingId}-${key}`} className="flex flex-col">
+                <span
                   id={`${headingId}-${key}`}
-                  className="m-ds-none flex items-center gap-ds-xs px-ds-md py-ds-xxs text-caption font-semibold tracking-wide text-text-muted uppercase"
+                  className="flex items-center gap-ds-xs px-ds-md py-ds-xxs text-caption font-semibold tracking-wide text-text-muted uppercase"
                 >
                   <Icon aria-hidden="true" className="size-3" />
                   {label}
-                </h2>
+                </span>
                 <ul className="m-ds-none list-none p-ds-none">
                   {results[key].map((item) => (
                     <li key={item.id}>
@@ -185,7 +217,7 @@ export function ShellSearch({ className }) {
                     </li>
                   ))}
                 </ul>
-              </section>
+              </div>
             ))
           )}
         </div>

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -55,8 +55,11 @@ describe('ShellSearch', () => {
     expect(within(panel).getByRole('link', { name: /Growth recording/ })).toHaveAttribute('href', '/dashboard/on-demand/2')
     expect(within(panel).getByRole('link', { name: /Grace Hopper/ })).toHaveAttribute('href', '/dashboard/members/5')
     expect(within(panel).getByRole('link', { name: /Head of Growth/ })).toHaveAttribute('href', '/dashboard/jobs/9')
-    expect(within(panel).getByRole('heading', { name: 'Sessions' })).toBeInTheDocument()
-    expect(within(panel).queryByRole('heading', { name: 'Vendors' })).not.toBeInTheDocument()
+    expect(within(panel).queryByRole('heading')).not.toBeInTheDocument()
+    expect(within(panel).getByRole('group', { name: 'Sessions' })).toContainElement(
+      within(panel).getByRole('link', { name: /Growth loops/ }),
+    )
+    expect(within(panel).queryByRole('group', { name: 'Vendors' })).not.toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('4 results')
   })
 
@@ -110,6 +113,40 @@ describe('ShellSearch', () => {
     expect(screen.queryByRole('region', { name: 'Search results' })).not.toBeInTheDocument()
     await user.click(field)
     expect(screen.getByRole('region', { name: 'Search results' })).toBeInTheDocument()
+  })
+
+  it('should close the results when focus leaves the search', async () => {
+    const user = userEvent.setup()
+    renderSearch()
+    await user.type(screen.getByRole('searchbox'), 'growth')
+    const link = await screen.findByRole('link', { name: /Head of Growth/ })
+    act(() => link.focus())
+    expect(screen.getByRole('region', { name: 'Search results' })).toBeInTheDocument()
+    act(() => screen.getByRole('button', { name: 'Outside' }).focus())
+    expect(screen.queryByRole('region', { name: 'Search results' })).not.toBeInTheDocument()
+  })
+
+  it('should close the results with Escape from a result and put focus back in the field', async () => {
+    const user = userEvent.setup()
+    renderSearch()
+    const field = screen.getByRole('searchbox')
+    await user.type(field, 'growth')
+    const first = (await screen.findAllByRole('link'))[0]
+    act(() => first.focus())
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('region', { name: 'Search results' })).not.toBeInTheDocument()
+    expect(field).toHaveFocus()
+    expect(field).toHaveValue('growth')
+  })
+
+  it('should say search is unavailable when the request fails', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({}) })
+    const user = userEvent.setup()
+    renderSearch()
+    await user.type(screen.getByRole('searchbox'), 'growth')
+    const panel = await screen.findByRole('region', { name: 'Search results' })
+    expect(panel).toHaveTextContent("Search isn't available right now. Try again in a moment.")
+    expect(within(panel).queryByRole('link')).not.toBeInTheDocument()
   })
 
   it('should clear the results with Escape', async () => {
