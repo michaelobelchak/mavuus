@@ -40,8 +40,20 @@ const PUBLIC_PAGES = [
   { name: 'register', path: '/register', allowHosts: PENDING_HOSTS },
 ]
 
+// The six newer on-demand and resource covers in server/db/seed.js are picsum.photos placeholders.
+// Like the Unsplash covers they wait on the owner's OK before they become local files, so only the
+// two lists that show them may request that host.
+const LIST_COVER_HOSTS = [...PENDING_HOSTS, 'picsum.photos']
+
 const MEMBER_PAGES = [
   { name: 'dashboard', path: '/dashboard' },
+  // Seeded ids: session 1 is live, session 7 is on demand, resource 2 is a guide with content.
+  { name: 'dashboard-live-sessions', path: '/dashboard/live-sessions' },
+  { name: 'dashboard-session', path: '/dashboard/live-sessions/1' },
+  { name: 'dashboard-on-demand', path: '/dashboard/on-demand', allowHosts: LIST_COVER_HOSTS },
+  { name: 'dashboard-on-demand-video', path: '/dashboard/on-demand/7' },
+  { name: 'dashboard-resources', path: '/dashboard/resources', allowHosts: LIST_COVER_HOSTS },
+  { name: 'dashboard-resource', path: '/dashboard/resources/2' },
   { name: 'dashboard-messages', path: '/dashboard/messages' },
   { name: 'dashboard-jobs', path: '/dashboard/jobs' },
   { name: 'dashboard-vendors', path: '/dashboard/vendors' },
