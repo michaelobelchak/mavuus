@@ -1,7 +1,7 @@
 # Finish and launch plan
 
 **Date:** 2026-11-14
-**Status:** Stage 1 done on `feat/local-assets` (2026-11-14), waiting for the owner check. Batch 3A (app shell) done on `feat/app-shell-live` (2026-11-14), waiting for the owner check. Batch 3B (Academy, Live Sessions, Session detail, On-Demand, Resources, Resource detail) done on `feat/member-pages-1` (2026-11-14)
+**Status:** Stage 1 done on `feat/local-assets` (2026-11-14), waiting for the owner check. Batch 3A (app shell) done on `feat/app-shell-live` (2026-11-14), waiting for the owner check. Batch 3B (Academy, Live Sessions, Session detail, On-Demand, Resources, Resource detail) done on `feat/member-pages-1` (2026-11-14). Batch 3C (Speakers, Members, Member profile, Vendors, Vendor detail) done on `feat/member-pages-2` (2026-11-14)
 **Goal:** a complete Mavuus the founders can click through at a real URL: every page on the design system, no dependency on the Webflow site, and production settings ready for the host the owner provides.
 
 PR #5 (design system foundation) is merged. What's left falls into five stages. Each stage is its own branch and PR to `main`, runs the full gate, and ends with an owner check before the next one starts.
@@ -75,6 +75,13 @@ Rules for every page:
 - **Resources chips mix two fields:** Guide, Template, Report and Playbook are sent as `category`, but resources also have a `type` (guide, template, article). Pick one field for the filter (CatalogList's `filterParam` supports `type`) and align the seed.
 - **ShareDialog invite:** the email field isn't validated before the `mailto:` opens; use FormField's error for an invalid address.
 - **Two toast systems:** the legacy `ToastProvider` and the design-system `Toaster` are both mounted; 3I removes the legacy one once no page uses it.
+
+### Follow-ups from Batch 3C (not fixed yet)
+
+- **Vendor reviews fail for seeded vendors:** no seeded vendor has a `user_id`, so the review form sends the reviewer's own id as `reviewee_id` and the server answers "Cannot review yourself". Contact Vendor is disabled for the same reason. Link the seeded vendors to accounts, or let `POST /api/reviews` take a vendor review without a reviewee.
+- **Vendor jobs come from the first page of `/api/jobs`:** VendorDetailPage filters 20 jobs by `posted_by`; ask for `?posted_by=<vendor user id>` instead (the endpoint supports it).
+- **Members tier and connections filters are client side:** Pro, Free and My Connections filter the loaded page of 20, so a page can look empty while later pages have matches. `/api/members` needs `tier` (and a connections filter), or My Connections should read `/api/connections`.
+- **Speakers on phones:** the details panel opens below the list, out of sight after a tap. Consider a Sheet below lg.
 
 ## Stage 4: Launch readiness (everything except the host)
 

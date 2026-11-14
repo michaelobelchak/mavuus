@@ -239,3 +239,17 @@ All notable changes to the Mavuus project are documented here, organized by phas
 - E2E guard: `picsum.photos` (12 placeholder covers in the seed) joins `images.unsplash.com` in `PENDING_HOSTS`, pending the owner's OK
 - Dropped on purpose: the "LIVE" pill on home cards and the "View Details" button inside each live session card (the whole card is the link); see MEMORY.md
 
+
+## Dashboard Pages 2 on the Design System - 2026-11-14
+**Status:** Complete (branch `feat/member-pages-2`, Batch 3C of `FINISH-AND-LAUNCH-PLAN.md`, Phase 8 Tasks 8.8 to 8.12)
+
+- SpeakersPage, MembersPage, MemberProfilePage, VendorsPage and VendorDetailPage now use only design-system components and token classes, with no imports from `components/ui`. Same endpoints, params, connection actions, review form, contact, share, comments, privacy handling and toasts
+- No page h1 any more: the shell title is the h1. Card sections are h2, and on the detail pages the member or vendor name is the h2
+- Lists run on the shared `CatalogList` (moved with `DetailChrome` from `pages/dashboard/academy/` to `pages/dashboard/shared/`), which gained labeled filter options, client-side filters (`filterItems`), unpaged lists, filter-aware empty copy, a slot above the search and a grid override. Search, filter, page and the picked speaker live in the URL, and every list has an error with Try again
+- Speakers: MemberCard grid; the picked speaker (`?speaker=`) opens a details panel with LinkedIn and session links that sticks below the shell top bar instead of sliding under it
+- Members: MemberCard with Connect, Request sent, Pending, Connected and Message states; incoming requests are ConnectionRequest rows with busy Accept and Decline in a tinted panel; My Connections, Pro and Free chips (`?filter=connections|pro|free`)
+- Member profile and vendor detail: `useDetailResource` and `DetailLayout` (skeleton, not found for a 404, error with Try again, per-id state), shared `DetailSection` and `JobLinkList`, ReviewCard, RecommendationCard, StarRating, DescriptionList details. Vendor: CompanyLogo header, ShareDialog, CommentThread with `useComments`, and the review form as a Dialog with a StarRating input and a FormField Textarea
+- Fixed: jobs a member posted never showed on their profile (`/api/jobs?posted_by=` answers `{ data }`); em dashes in the experience dates and the vendor contact message
+- Seed: `seed-demo.js` gives Rachel Foster (not connected to the demo user) a connections-only profile, so the limited profile has seeded data
+- Tests: a smoke test per page (27 tests) plus CatalogList tests; e2e smoke adds Speakers, Members, member 1, the limited member 17 and vendor 1 at four widths
+- Lint baseline: 619 errors down to 615

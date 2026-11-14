@@ -171,3 +171,23 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - The session registration form isn't sent: `POST /api/sessions/:id/register` takes no body. The fields are prefilled from `/api/profile/me` and the server side is logged in Stage 4.
 - CatalogList keeps `q`, the filter and `page` in the URL; typing uses `replace` so the history isn't one entry per keystroke, while chips and pages push entries for back and forward.
 
+
+## Dashboard pages 2 - 2026-11-14 (feat/member-pages-2, Batch 3C)
+
+**Decision:** CatalogList grew props instead of being forked: options as `{ value, label }`, `filterItems` for filters the API doesn't take (Members' tier and My Connections stay client side, so no new API params), `paged={false}` for `/api/speakers` (no page or limit sent), filter-aware empty copy, a `children` slot for the pending requests and `gridClassName`. It and `DetailChrome` moved to `pages/dashboard/shared/` with `DetailSection`, `JobLinkList`, `reviewProps.js` and `paths.js`.
+
+**Decision:** the picked speaker is a URL param (`?speaker=1`) and each MemberCard links to it, instead of a button card: MemberCard is a link card, there is no SpeakerCard, and the URL makes the panel shareable and back-button friendly.
+
+**Decision:** Members chips write one `filter` param (`connections`, `pro`, `free`). Before, the tier lived in component state and `?filter=connections` in the URL, so a tier picked before My Connections kept filtering with no chip showing it.
+
+**Rejected:**
+- Accept on the member cards for incoming requests: the pending panel above already has Accept and Decline, and the old card only showed a disabled Pending.
+- ConnectionRequest's own status announcement: the rows leave the list after accept or decline (as before) and the toasts stay, so `announce={false}`.
+- A per-page share on the member profile: it never had one.
+- The LinkedIn icon on each speaker card: a second link inside a link card; the panel has it.
+
+**Non-obvious:**
+- No seeded vendor has a `user_id`, so Contact Vendor is always disabled (now with a line saying why) and a vendor review posts the reviewer as `reviewee_id`, which the server refuses ("Cannot review yourself"). Behavior kept, logged as a follow-up.
+- `useToast()` from the design system calls `toast.success(message, undefined)`, so tests spying on sonner assert `toHaveBeenCalledWith(message, undefined)`.
+- `Card` only renders div, article, section or li (`as="header"` falls back with a console error the capture caught).
+- Only MemberProfilePage and VendorDetailPage were in the lint baseline (em dashes); the list pages had only retired-import warnings.

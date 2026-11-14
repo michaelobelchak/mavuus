@@ -387,7 +387,7 @@ Fixed (Batch 3A, the panel is a Sheet unmounted while closed): the closed notifi
 
 ### Tasks 8.2 to 8.18: Dashboard pages (one task per page)
 
-**Status:** 8.2 to 8.7 (AcademyPage, LiveSessionsPage, SessionDetailPage, OnDemandPage, ResourcesPage, ResourceDetailPage) done on `feat/member-pages-1` (2026-11-14, Batch 3B).
+**Status:** 8.2 to 8.7 (AcademyPage, LiveSessionsPage, SessionDetailPage, OnDemandPage, ResourcesPage, ResourceDetailPage) done on `feat/member-pages-1` (2026-11-14, Batch 3B). 8.8 to 8.12 (SpeakersPage, MembersPage, MemberProfilePage, VendorsPage, VendorDetailPage) done on `feat/member-pages-2` (2026-11-14, Batch 3C).
 
 For each of `AcademyPage` (home), `LiveSessionsPage`, `SessionDetailPage`, `OnDemandPage`, `ResourcesPage`, `ResourceDetailPage`, `SpeakersPage`, `MembersPage`, `MemberProfilePage`, `VendorsPage`, `VendorDetailPage`, `JobsPage`, `JobDetailPage`, `MyJobsPage`, `MessagesPage`, `ProfilePage`, `InvitePage`:
 1. Capture before at 1440 and 390.
