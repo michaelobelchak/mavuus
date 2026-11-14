@@ -69,6 +69,13 @@ Rules for every page:
 | 3H Public site | Home, Services, Membership, Resources, Articles, Events, Posts, Videos, About, Contact, FAQ, Legal | `components/live` swaps to design-system equivalents. Before and after diffs must be intentional only. **Owner check:** public site. |
 | 3I Retire | Delete `components/ui`, `components/live` and old layout files | `lint:ds --strict` passes, the baseline is near zero, and leftovers are listed. |
 
+### Follow-ups from Batch 3B (not fixed yet)
+
+- **AcademyPage data:** the live sessions row is filtered from the first page of `/api/sessions` (20 mixed live and on-demand items), so live sessions past the first 20 never show; ask for `?type=live&limit=4` and `?type=on-demand&limit=4` instead. The `mockData` fallback shows fake sessions whenever the API returns none; drop it once the seed always has data.
+- **Resources chips mix two fields:** Guide, Template, Report and Playbook are sent as `category`, but resources also have a `type` (guide, template, article). Pick one field for the filter (CatalogList's `filterParam` supports `type`) and align the seed.
+- **ShareDialog invite:** the email field isn't validated before the `mailto:` opens; use FormField's error for an invalid address.
+- **Two toast systems:** the legacy `ToastProvider` and the design-system `Toaster` are both mounted; 3I removes the legacy one once no page uses it.
+
 ## Stage 4: Launch readiness (everything except the host)
 
 **Branch:** `feat/launch-readiness`.
@@ -88,15 +95,16 @@ Rules for every page:
    - a one-time `npm run setup:prod` (schema, seed, demo account)
 6. **Health check:** `GET /api/health` for the host's monitor.
 7. **SEO and sharing:** title and description per public page, Open Graph image, `sitemap.xml`, and a `robots.txt` that blocks staging.
-8. **Search privacy:** `/api/search` is mounted without auth (server/index.js) and returns member names to anyone: require auth or limit public results.
-9. **Final quality pass:** an accessibility, responsive and performance audit with the impeccable audit, with results filed in `plans/audits/`. Fix anything critical.
-10. **Founders' checklist** (DEMO-SCRIPT.md update): a demo path and the content to confirm:
+8. **Session registration fields:** the live session form asks for first name, email, job title and company, but `POST /api/sessions/:id/register` takes no body, so they are only prefilled from the profile and never stored. Accept and store them (or drop the form fields).
+9. **Search privacy:** `/api/search` is mounted without auth (server/index.js) and returns member names to anyone: require auth or limit public results.
+10. **Final quality pass:** an accessibility, responsive and performance audit with the impeccable audit, with results filed in `plans/audits/`. Fix anything critical.
+11. **Founders' checklist** (DEMO-SCRIPT.md update): a demo path and the content to confirm:
    - member counts
    - the 30-day trial line
    - status colors
    - the Pro member tag
    - the pink contrast decision
-11. **E2E against any URL:** a `BASE_URL` option, so the same smoke test runs against staging.
+12. **E2E against any URL:** a `BASE_URL` option, so the same smoke test runs against staging.
 
 ## Stage 5: Hosting (owner provides it, last)
 

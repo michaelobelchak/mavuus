@@ -167,4 +167,7 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - Session and resource detail pages send `PUT /api/sessions/:id/view`, so the read-only smoke run bumps view counts in `db/e2e.db`; harmless, nothing asserts on them.
 - Detail pages put the side cards before the comments in the DOM and use a two-column grid from lg (`grid-cols-[minmax(0,1fr)_auto]`, aside `row-span-2`), instead of `order-*` utilities, so reading and tab order match what phones show.
 - The top bar title wrapped on phones although it had `truncate`: the Heading's `text-balance` set `text-wrap` after `white-space: nowrap`. `text-nowrap` replaces it through tailwind-merge.
+- Detail pages are reused by react-router when only `:id` changes (a related card), so every per-item state is stored with the id it belongs to (`{ id, value }`) and derived as empty for any other id, instead of resetting state in effects. `useDetailResource` does the same with a request key.
+- The session registration form isn't sent: `POST /api/sessions/:id/register` takes no body. The fields are prefilled from `/api/profile/me` and the server side is logged in Stage 4.
+- CatalogList keeps `q`, the filter and `page` in the URL; typing uses `replace` so the history isn't one entry per keystroke, while chips and pages push entries for back and forward.
 
