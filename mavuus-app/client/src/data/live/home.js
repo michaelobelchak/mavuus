@@ -60,7 +60,7 @@ export const EXPERIENCE_STATS = [
 ]
 
 // Only logos that stay readable as small grey marks. The Pizza Hut roundel, the Arizona Cardinals bird and the
-// Constellation Software lockup were dropped. 'scale' evens out optical size inside the shared logo box.
+// Constellation Software lockup were dropped. `scale` evens out optical size inside the shared logo box.
 export const COMPANY_LOGOS = [
   { src: '/images/logos/image-202.webp', alt: 'Scotiabank', width: 214, height: 65, scale: 0.95 },
   { src: '/images/logos/image-197.webp', alt: 'Ceridian', width: 191, height: 61, scale: 1 },
