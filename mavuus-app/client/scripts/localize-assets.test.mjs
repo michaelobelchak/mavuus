@@ -174,6 +174,22 @@ describe('buildManifest', () => {
     ])
   })
 
+  it('should expand variants for a new remote image in a rewritten file whose table uses local-path keys', () => {
+    const tables = [{ file: 'client/src/data/live/posts.js', name: 'IMAGE_WIDTHS', key: 'assetId' }]
+    const before = `"thumbnail": "${CMS}/6a593ab6479ea97de36e8425_old.png"\nconst IMAGE_WIDTHS = {\n  '6a593ab6479ea97de36e8425': [500, 1408],\n}\n`
+    const first = buildManifest({ files: { 'client/src/data/live/posts.js': before }, tables })
+    // After --rewrite the table is keyed by local path; then someone adds a new remote image.
+    const after = `"thumbnail": "/images/posts/old.webp"\n"thumbnail": "${CMS}/6b000000000000000000000a_new-thumb.png"\nconst IMAGE_WIDTHS = {\n  '/images/posts/old': [500, 1408],\n  '/images/posts/new-thumb': [500, 800, 1200],\n}\n`
+    const second = buildManifest({ files: { 'client/src/data/live/posts.js': after }, previous: first, tables })
+    expect(second.assets.map((a) => a.localPath)).toEqual([
+      '/images/posts/new-thumb-p-500.webp',
+      '/images/posts/new-thumb-p-800.webp',
+      '/images/posts/new-thumb.webp',
+      '/images/posts/old-p-500.webp',
+      '/images/posts/old.webp',
+    ])
+  })
+
   it('should be idempotent: a rebuild after the rewrite keeps every entry and path', () => {
     const first = buildManifest({ files })
     const rewritten = Object.fromEntries(Object.entries(files).map(([f, t]) => [f, rewriteSource(t, first).text]))

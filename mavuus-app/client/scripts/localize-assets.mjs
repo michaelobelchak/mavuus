@@ -73,8 +73,9 @@ const FOLDERS = [
 
 // Width tables that src/data/live uses to build srcsets at runtime as `${base}-p-${w}${ext}`
 // (the last width is the original). Those variant URLs never appear in source, so the scan
-// expands them here. key 'assetId' tables are keyed by the Webflow asset id; key 'slug' tables
-// by a video slug, looked up in the `slugs` file.
+// expands them here. key 'assetId' tables are keyed by the Webflow asset id or, once rewritten,
+// by the local path without its extension; key 'slug' tables by a video slug, looked up in the
+// `slugs` file.
 export const VARIANT_TABLES = [
   { file: 'client/src/data/live/posts.js', name: 'IMAGE_WIDTHS', key: 'assetId' },
   { file: 'client/src/data/live/home.js', name: 'VIDEO_THUMB_WIDTHS', key: 'slug', slugs: 'client/src/data/live/videos.js' },
@@ -231,13 +232,29 @@ export function buildManifest({ files, previous = { assets: [] }, tables = VARIA
     for (const s of uses.get(url)) uses.get(original).add(s)
     variantOf.set(url, original)
   }
+  // Where a Webflow family's files go (folder/stem): from the last manifest, or as it will be
+  // named. After --rewrite the assetId tables are keyed by this path instead of the asset id.
+  const previousBase = new Map()
+  for (const a of previous.assets) {
+    if (!numberedHost(a.url)) previousBase.set(localNameFor(a.url).family, a.localPath.replace(/\.[^./]+$/, '').replace(/-p-\d+$/, ''))
+  }
+  const stemPathOf = (url) => {
+    const name = localNameFor(url)
+    if (previousBase.has(name.family)) return previousBase.get(name.family)
+    const sites = [...uses].filter(([u]) => !numberedHost(u) && localNameFor(u).family === name.family).flatMap(([, s]) => [...s])
+    return `/${folderFor(sites, name.ext)}/${name.stem}`
+  }
   for (const table of tables) {
     const text = expanded[table.file]
     if (!text) continue
     const widths = parseTable(text, table.name)
     let candidates = []
     if (table.key === 'assetId') {
-      candidates = [...uses.keys()].filter((u) => !numberedHost(u) && localNameFor(u).variant === null && widths[localNameFor(u).family]).map((u) => [u, widths[localNameFor(u).family]])
+      for (const u of uses.keys()) {
+        if (numberedHost(u) || localNameFor(u).variant !== null) continue
+        const list = widths[localNameFor(u).family] ?? widths[stemPathOf(u)]
+        if (list) candidates.push([u, list])
+      }
     } else {
       const slugText = expanded[table.slugs] || ''
       for (const m of slugText.matchAll(/"slug":\s*"([^"]+)"[^{}]*?"thumbnail":\s*"([^"]+)"/g)) {
@@ -258,11 +275,13 @@ export function buildManifest({ files, previous = { assets: [] }, tables = VARIA
     if (!uses.has(a.url)) uses.set(a.url, new Set())
     if (a.variantOf && !variantOf.has(a.url)) variantOf.set(a.url, a.variantOf)
   }
-  // Local paths in source count as uses too, so usedIn stays right after the rewrite.
+  // Local paths in source count as uses too, so usedIn stays right after the rewrite. Tests that
+  // name a local file as an example are not uses.
   for (const [url, sites] of uses) {
     const known = prev.get(url)
     if (!known) continue
     for (const [file, text] of Object.entries(expanded)) {
+      if (/\.test\.[cm]?jsx?$/.test(file)) continue
       const i = text.indexOf(known.localPath)
       if (i < 0) continue
       const block = blockAt(text, i)
