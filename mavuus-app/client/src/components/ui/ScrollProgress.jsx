@@ -15,7 +15,7 @@ export default function ScrollProgress() {
   }, [])
 
   return (
-    <div className="fixed top-0 left-0 right-0 h-[3px] z-[60] pointer-events-none">
+    <div className="fixed top-0 left-0 right-0 h-[3px] z-(--ds-z-overlay) pointer-events-none">
       <div
         className="h-full bg-gradient-to-r from-brand-pink to-brand-pink-dark transition-[width] duration-100 ease-out"
         style={{ width: `${progress}%` }}

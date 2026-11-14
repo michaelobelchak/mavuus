@@ -169,7 +169,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm flex h-[calc(100vh-140px)] overflow-hidden">
+    <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm flex h-[calc(100dvh-144px)] overflow-hidden">
       {/* Left Panel - Conversation List */}
       <div className={`w-full md:w-80 lg:w-96 border-r border-neutral-100 flex flex-col ${selectedConv ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-neutral-100">
