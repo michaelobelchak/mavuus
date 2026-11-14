@@ -12,8 +12,11 @@ export default defineConfig({
   },
   server: {
     host: true,
+    // The API also serves uploaded avatars and resumes from /uploads (in production the same
+    // Express app serves the client, so both paths share one origin).
     proxy: {
       '/api': process.env.VITE_API_TARGET || 'http://localhost:3001',
+      '/uploads': process.env.VITE_API_TARGET || 'http://localhost:3001',
     },
   },
   build: {
