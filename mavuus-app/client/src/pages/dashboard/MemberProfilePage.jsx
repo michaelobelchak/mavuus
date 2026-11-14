@@ -16,8 +16,23 @@ import { listOf, recommendationCardProps, reviewCardProps } from './shared/revie
 const BACK = { backTo: MEMBERS_PATH, backLabel: 'Back to Members' }
 const NO_EXTRAS = { postedJobs: [], completedJobs: [], reviews: [], recommendations: [] }
 
-/** The connect, accept or message actions for the profile header. */
-function ConnectionActions({ status, connecting, onConnect, onAccept, onMessage }) {
+/**
+ * The connect, accept or message actions for the profile header. Nothing while the status loads;
+ * a short note with Try again when it failed, so Connect never shows for a member you may
+ * already know.
+ */
+function ConnectionActions({ status, connecting, accepting, onConnect, onAccept, onMessage, onRetry }) {
+  if (status === null) return null
+  if (status === 'error') {
+    return (
+      <>
+        <Caption>Connection status unavailable.</Caption>
+        <Button variant="ghost" size="sm" onClick={onRetry}>
+          Try again
+        </Button>
+      </>
+    )
+  }
   if (status.status === 'accepted') {
     return (
       <>
@@ -39,7 +54,7 @@ function ConnectionActions({ status, connecting, onConnect, onAccept, onMessage 
   }
   if (status.status === 'pending' && status.direction === 'incoming') {
     return (
-      <Button size="sm" leadingIcon={UserPlus} onClick={onAccept}>
+      <Button size="sm" leadingIcon={UserPlus} loading={accepting} onClick={onAccept}>
         Accept request
       </Button>
     )
@@ -58,12 +73,14 @@ export default function MemberProfilePage() {
   const toast = useToast()
   const isSelf = Boolean(user) && String(id) === String(user.id)
   const { data: member, loading, error, notFound, retry } = useDetailResource(`/api/members/${id}/profile`, token)
-  // Per-member state is stored with the id it belongs to, so another :id never shows it.
-  const [status, setStatus] = useState({ id: null, value: { status: 'none' } })
-  const [extras, setExtras] = useState({ id: null, ...NO_EXTRAS })
+  // The route remounts this page for another :id (KeyedById), so state belongs to one member.
+  // Connection status: null while it loads, 'error' when it failed, else the API's answer.
+  const [connection, setConnection] = useState(null)
+  const [statusAttempt, setStatusAttempt] = useState(0)
+  const [extras, setExtras] = useState(NO_EXTRAS)
   const [connecting, setConnecting] = useState(false)
-  const connection = status.id === id ? status.value : { status: 'none' }
-  const { postedJobs, completedJobs, reviews, recommendations } = extras.id === id ? extras : NO_EXTRAS
+  const [accepting, setAccepting] = useState(false)
+  const { postedJobs, completedJobs, reviews, recommendations } = extras
   const limited = member?.limited
 
   // Your own profile lives on the Profile page.
@@ -74,13 +91,23 @@ export default function MemberProfilePage() {
   useEffect(() => {
     const controller = new AbortController()
     fetch(`/api/connections/status/${id}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((value) => {
-        if (value && !controller.signal.aborted) setStatus({ id, value })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json()
       })
-      .catch(() => {})
+      .then((value) => {
+        if (!controller.signal.aborted) setConnection(value)
+      })
+      .catch((err) => {
+        if (err?.name !== 'AbortError' && !controller.signal.aborted) setConnection('error')
+      })
     return () => controller.abort()
-  }, [id, token])
+  }, [id, token, statusAttempt])
+
+  const retryStatus = () => {
+    setConnection(null)
+    setStatusAttempt((n) => n + 1)
+  }
 
   // Jobs, reviews and recommendations only for a full (not limited) profile.
   useEffect(() => {
@@ -98,12 +125,13 @@ export default function MemberProfilePage() {
       get(`/api/recommendations/user/${id}`),
     ]).then(([posted, completed, memberReviews, recs]) => {
       if (controller.signal.aborted) return
-      setExtras({ id, postedJobs: posted, completedJobs: completed, reviews: memberReviews, recommendations: recs })
+      setExtras({ postedJobs: posted, completedJobs: completed, reviews: memberReviews, recommendations: recs })
     })
     return () => controller.abort()
   }, [member, limited, id, token])
 
   const handleConnect = async () => {
+    if (connecting) return
     setConnecting(true)
     try {
       const res = await fetch('/api/connections/request', {
@@ -112,7 +140,7 @@ export default function MemberProfilePage() {
         body: JSON.stringify({ userId: parseInt(id, 10) }),
       })
       if (res.ok) {
-        setStatus({ id, value: { status: 'pending', direction: 'outgoing' } })
+        setConnection({ status: 'pending', direction: 'outgoing' })
         toast.success('Connection request sent!')
       } else {
         const data = await res.json().catch(() => ({}))
@@ -126,16 +154,22 @@ export default function MemberProfilePage() {
   }
 
   const handleAccept = async () => {
+    if (accepting) return
+    setAccepting(true)
     try {
       const res = await fetch(`/api/connections/${connection.id}/accept`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      setStatus({ id, value: { ...connection, status: 'accepted' } })
+      setConnection({ ...connection, status: 'accepted' })
       toast.success('Connection accepted!')
+      // A connections-only profile opens up once you are connected.
+      if (limited) retry()
     } catch {
       toast.error('Failed to accept connection')
+    } finally {
+      setAccepting(false)
     }
   }
 
@@ -164,8 +198,10 @@ export default function MemberProfilePage() {
         <ConnectionActions
           status={connection}
           connecting={connecting}
+          accepting={accepting}
           onConnect={handleConnect}
           onAccept={handleAccept}
+          onRetry={retryStatus}
           onMessage={() => navigate(`${MESSAGES_PATH}?user=${id}`)}
         />
       </div>

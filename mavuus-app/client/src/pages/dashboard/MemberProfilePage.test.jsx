@@ -103,6 +103,64 @@ describe('MemberProfilePage', () => {
     expect(screen.getByTestId('where')).toHaveTextContent('/dashboard/messages?user=1')
   })
 
+  it('should send one accept request however often Accept is clicked', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(toast, 'success').mockImplementation(() => {})
+    let answer
+    const fetchMock = renderPage(1, { 'GET /api/connections/status/1': { id: 12, status: 'pending', direction: 'incoming' } })
+    // The accept request stays open until answer() runs.
+    const routes = fetchMock.getMockImplementation()
+    fetchMock.mockImplementation((url, init) =>
+      url === '/api/connections/12/accept'
+        ? new Promise((resolve) => (answer = () => resolve({ ok: true, status: 200, json: async () => ({}) })))
+        : routes(url, init),
+    )
+    const accept = await screen.findByRole('button', { name: 'Accept request' })
+    await user.click(accept)
+    await user.click(accept)
+    await user.dblClick(accept)
+    const puts = () => fetchMock.mock.calls.filter(([url, init]) => url === '/api/connections/12/accept' && init.method === 'PUT')
+    expect(puts()).toHaveLength(1)
+    answer()
+    expect(await screen.findByRole('button', { name: 'Message' })).toBeInTheDocument()
+    expect(puts()).toHaveLength(1)
+  })
+
+  it('should load the full profile after accepting a request on a limited profile', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(toast, 'success').mockImplementation(() => {})
+    let connected = false
+    renderPage(17, {
+      'GET /api/members/17/profile': () =>
+        connected
+          ? { ...sarah, id: 17, name: 'Rachel Foster', bio: 'Content leader at Asana.', limited: false }
+          : { id: 17, name: 'Rachel Foster', profile_visibility: 'connections', limited: true },
+      'GET /api/connections/status/17': { id: 30, status: 'pending', direction: 'incoming' },
+      'PUT /api/connections/30/accept': () => {
+        connected = true
+        return { ok: true }
+      },
+      'GET /api/jobs/completed-by/17': [],
+      'GET /api/reviews/user/17': [],
+      'GET /api/recommendations/user/17': [],
+    })
+    expect(await screen.findByText('Limited profile')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Accept request' }))
+    expect(await screen.findByText('Content leader at Asana.')).toBeInTheDocument()
+    expect(screen.queryByText('Limited profile')).not.toBeInTheDocument()
+  })
+
+  it('should not offer Connect when the connection status fails to load, and retry it', async () => {
+    const user = userEvent.setup()
+    let fail = true
+    renderPage(1, { 'GET /api/connections/status/1': () => (fail ? reply(500, { error: 'boom' }) : { status: 'none' }) })
+    expect(await screen.findByText('Connection status unavailable.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Connect' })).not.toBeInTheDocument()
+    fail = false
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(await screen.findByRole('button', { name: 'Connect' })).toBeInTheDocument()
+  })
+
   it('should show a limited profile without loading jobs, reviews or recommendations', async () => {
     const fetchMock = renderPage(17, {
       'GET /api/members/17/profile': { id: 17, name: 'Rachel Foster', title: 'Head of Content', company: 'Asana', profile_visibility: 'connections', limited: true },
