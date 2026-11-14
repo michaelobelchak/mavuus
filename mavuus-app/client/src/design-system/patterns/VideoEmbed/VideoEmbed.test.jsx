@@ -9,11 +9,17 @@ describe('VideoEmbed', () => {
     expect(screen.getByText('Video coming soon')).toBeInTheDocument()
   })
 
-  it('should embed YouTube and Vimeo page URLs in a named iframe', () => {
-    const { container, rerender } = render(<VideoEmbed src="https://www.youtube.com/watch?v=abc123" title="Brand talk" />)
-    expect(screen.getByTitle('Brand talk')).toHaveAttribute('src', 'https://www.youtube.com/embed/abc123')
-    rerender(<VideoEmbed src="https://vimeo.com/42" title="Brand talk" />)
-    expect(container.querySelector('iframe')).toHaveAttribute('src', 'https://player.vimeo.com/video/42')
+  it('should embed YouTube without cookies in a named, locked down iframe', () => {
+    render(<VideoEmbed src="https://www.youtube.com/watch?v=abc123" title="Brand talk" />)
+    const frame = screen.getByTitle('Brand talk')
+    expect(frame).toHaveAttribute('src', 'https://www.youtube-nocookie.com/embed/abc123')
+    expect(frame).toHaveAttribute('allow', 'accelerometer; encrypted-media; picture-in-picture; fullscreen')
+    expect(frame).toHaveAttribute('referrerpolicy', 'strict-origin-when-cross-origin')
+  })
+
+  it('should embed Vimeo page URLs', () => {
+    render(<VideoEmbed src="https://vimeo.com/42" title="Talk" />)
+    expect(screen.getByTitle('Talk')).toHaveAttribute('src', 'https://player.vimeo.com/video/42')
   })
 
   it('should play a direct file in a native video with controls', () => {
@@ -24,8 +30,26 @@ describe('VideoEmbed', () => {
     expect(container.querySelector('source')).toHaveAttribute('src', '/videos/talk.mp4')
   })
 
-  it('should return null from videoEmbedSrc when the URL is a file', () => {
-    expect(videoEmbedSrc('https://youtu.be/xyz')).toBe('https://www.youtube.com/embed/xyz')
-    expect(videoEmbedSrc('/a.webm')).toBeNull()
+  it('should link out instead of a broken player when the URL is not a video', () => {
+    const { container } = render(<VideoEmbed src="https://example.com/watch-page" title="Talk" />)
+    expect(container.querySelector('video')).toBeNull()
+    expect(container.querySelector('iframe')).toBeNull()
+    expect(screen.getByRole('link', { name: /Watch the video/ })).toHaveAttribute('href', 'https://example.com/watch-page')
+  })
+})
+
+describe('videoEmbedSrc', () => {
+  it('should read YouTube ids from every common URL shape', () => {
+    const embed = 'https://www.youtube-nocookie.com/embed/xyz'
+    expect(videoEmbedSrc('https://youtu.be/xyz')).toEqual({ kind: 'embed', src: embed })
+    expect(videoEmbedSrc('https://www.youtube.com/watch?feature=share&v=xyz&t=10')).toEqual({ kind: 'embed', src: embed })
+    expect(videoEmbedSrc('https://www.youtube.com/shorts/xyz')).toEqual({ kind: 'embed', src: embed })
+    expect(videoEmbedSrc('https://www.youtube.com/embed/xyz')).toEqual({ kind: 'embed', src: embed })
+  })
+
+  it('should tell files from other pages', () => {
+    expect(videoEmbedSrc('/a.webm')).toEqual({ kind: 'file', src: '/a.webm' })
+    expect(videoEmbedSrc('https://cdn.example.com/talk.MP4?sig=1')).toEqual({ kind: 'file', src: 'https://cdn.example.com/talk.MP4?sig=1' })
+    expect(videoEmbedSrc('https://example.com/page')).toEqual({ kind: 'link', src: 'https://example.com/page' })
   })
 })

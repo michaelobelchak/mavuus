@@ -101,7 +101,7 @@ describe('SessionDetailPage', () => {
       'GET /api/sessions/7/related': [],
     })
     expect(await screen.findByRole('heading', { level: 2, name: 'Watch' })).toBeInTheDocument()
-    expect(screen.getByTitle('Mastering LinkedIn Ads')).toHaveAttribute('src', 'https://www.youtube.com/embed/abc')
+    expect(screen.getByTitle('Mastering LinkedIn Ads')).toHaveAttribute('src', 'https://www.youtube-nocookie.com/embed/abc')
     expect(screen.getByRole('link', { name: 'Back to On-Demand' })).toHaveAttribute('href', '/dashboard/on-demand')
     expect(screen.getByRole('link', { name: 'Watch Now' })).toHaveAttribute('href', '#watch')
   })

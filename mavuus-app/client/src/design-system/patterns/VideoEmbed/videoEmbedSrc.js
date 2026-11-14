@@ -1,14 +1,29 @@
-const YOUTUBE = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/
-const VIMEO = /vimeo\.com\/(\d+)/
+const VIDEO_FILE = /\.(mp4|webm|ogg|ogv|mov|m4v)$/i
+
+function youtubeId(url) {
+  if (/^(www\.|m\.)?youtu\.be$/.test(url.hostname)) return url.pathname.split('/')[1] || null
+  if (!/(^|\.)youtube(-nocookie)?\.com$/.test(url.hostname)) return null
+  if (url.pathname === '/watch') return url.searchParams.get('v')
+  const match = url.pathname.match(/^\/(?:embed|shorts|live)\/([^/?#]+)/)
+  return match ? match[1] : null
+}
 
 /**
- * Where a video URL plays: a YouTube or Vimeo embed URL, or null for a direct file (.mp4, .webm).
- * Exported for tests.
+ * How a video URL plays: `{ kind: 'embed', src }` for YouTube (privacy-enhanced
+ * youtube-nocookie.com; watch?v=, youtu.be, /embed/ and /shorts/ URLs) and Vimeo,
+ * `{ kind: 'file', src }` for a direct video file, or `{ kind: 'link', src }` for any other page.
  */
-export function videoEmbedSrc(url) {
-  const youtube = url.match(YOUTUBE)
-  if (youtube) return `https://www.youtube.com/embed/${youtube[1]}`
-  const vimeo = url.match(VIMEO)
-  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`
-  return null
+export function videoEmbedSrc(src) {
+  let url
+  try {
+    url = new URL(src, 'http://local.invalid')
+  } catch {
+    return { kind: 'link', src }
+  }
+  const id = youtubeId(url)
+  if (id) return { kind: 'embed', src: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}` }
+  const vimeo = /(^|\.)vimeo\.com$/.test(url.hostname) && url.pathname.match(/^\/(?:video\/)?(\d+)/)
+  if (vimeo) return { kind: 'embed', src: `https://player.vimeo.com/video/${vimeo[1]}` }
+  if (VIDEO_FILE.test(url.pathname)) return { kind: 'file', src }
+  return { kind: 'link', src }
 }
