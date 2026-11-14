@@ -80,8 +80,7 @@ Rules for every page:
 
 Fixed in the batch: vendor reviews and Contact Vendor (seeded owner accounts), a vendor's jobs (`/api/jobs?posted_by=`), the Members filters (server side `tier` and `connections=1`) and the speaker details on phones (a Sheet). Still open:
 
-- **Seeded vendor ratings:** vendors are seeded with a rating and review count (PipelineHQ 4.9 from 18) but few or no review rows, and the first new review recalculates both from the real rows (PipelineHQ drops to one review). Seed matching review rows, or stop recalculating until then.
-- **Owner accounts and roles:** `users.role` only allows member and admin, so vendor owner accounts are told apart by `vendors.user_id` (left out of `/api/members` and `/api/search`). A real `vendor` role needs a users table rebuild on existing databases; decide before vendors can sign up.
+- **Owner accounts and roles:** `users.role` only allows member and admin, so vendor owner accounts are full member accounts told apart by `vendors.user_id` (left out of `/api/members` and `/api/search`). A `vendor` role needs a users table rebuild on existing databases; when owners get their own dashboard, add a role (with that migration) or an `is_vendor_account` column (a safe `ALTER TABLE ADD COLUMN`).
 
 ## Stage 4: Launch readiness (everything except the host)
 
@@ -112,7 +111,8 @@ Fixed in the batch: vendor reviews and Contact Vendor (seeded owner accounts), a
    - the Pro member tag
    - the pink contrast decision
    - Rachel Foster's profile is connections-only in the demo data (`seed-demo.js`), so her profile shows the limited view to the demo account; keep it, or pick another member to show privacy
-   - the vendor owner accounts (`hello@<vendor>.example`, password `demo123`) that receive vendor reviews and Contact Vendor messages
+   - the vendor owner accounts (`hello@<vendor>.example`, demo-only password `demo123`) that receive vendor reviews and Contact Vendor messages
+   - vendor ratings now come from 30 seeded review rows (one per member and vendor) instead of made-up totals: ContentPro Agency 4.8 (4 reviews), PipelineHQ 4.8 (5), BrandSpark Studio 4.3 (3), GrowthLab Analytics 4.5 (4), Elevate PR 4.3 (3), PixelCraft Creative 4.8 (4), Lifecycle Labs 4.7 (3), NorthStar Events 4.8 (4). The old seed showed 4.0 to 5.0 from 1 to 27 reviews. The demo account has reviewed none of them, so Write a Review works on every vendor
 12. **E2E against any URL:** a `BASE_URL` option, so the same smoke test runs against staging.
 
 ## Stage 5: Hosting (owner provides it, last)

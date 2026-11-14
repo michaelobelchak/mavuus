@@ -178,9 +178,15 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 
 **Decision (follow-up):** vendor owner accounts are told apart by `vendors.user_id`, not by a role. `users.role` has `CHECK(role IN ('member', 'admin'))`, and SQLite can't change a CHECK without rebuilding the users table, which existing databases (and their foreign keys) would need a migration for. `NOT_VENDOR_OWNER` in `server/db/vendorOwners.js` keeps them out of `/api/members` and `/api/search`. No route sets `vendors.user_id` today, so only seeded owners match.
 
+**Decision (review):** vendor owner accounts are full member accounts (role member) that the `vendors.user_id` link marks as owners; nothing else about them differs. When owners get their own dashboard, add a `vendor` role (needs a users table rebuild migration, because of the role CHECK) or an `is_vendor_account` column (a safe `ALTER TABLE ADD COLUMN`). The seeded owner password (`demo123`) is demo-only, like every seeded account.
+
+**Decision (review):** one vendor review per member is enforced by a partial unique index (`idx_reviews_vendor_once`). `dedupeVendorReviews` runs before `db.exec(schema)` in the server start, `seed.js` and `seed-demo.js`, because the server applies schema.sql on every start and an older database with repeat rows would otherwise refuse the index and stop the server. It keeps the lowest id and is a no-op once the index exists.
+
+**Decision (review):** the server, not the client, picks a vendor review's reviewee (the vendor's owner). The old client sent its own id as a fallback, which is why seeded vendors couldn't be reviewed.
+
 **Decision (follow-up):** the Members chips are server filters (`tier`, `connections=1` with an EXISTS on accepted connections) so paging and counts follow them. CatalogList's `filterItems` became `filterQuery` (a value as API params).
 
-**Decision (follow-up):** below lg the speaker details are a Sheet driven by the same `?speaker=` param; closing it clears the param (replace) and `finalFocus` finds the card through `data-speaker-id`, because the Sheet opens from a link navigation, not a trigger, so Base UI has no trigger to return to.
+**Decision (follow-up):** below lg the speaker details are a Sheet driven by the same `?speaker=` param; closing it goes back when it was opened in the app (`location.key !== 'default'`) and otherwise clears the param in place and `finalFocus` finds the card through `data-speaker-id`, because the Sheet opens from a link navigation, not a trigger, so Base UI has no trigger to return to.
 
 **Decision:** the picked speaker is a URL param (`?speaker=1`) and each MemberCard links to it, instead of a button card: MemberCard is a link card, there is no SpeakerCard, and the URL makes the panel shareable and back-button friendly.
 
@@ -198,5 +204,5 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - `Card` only renders div, article, section or li (`as="header"` falls back with a console error the capture caught).
 - Only MemberProfilePage and VendorDetailPage were in the lint baseline (em dashes); the list pages had only retired-import warnings.
 - Undeclared in the first pass, kept on purpose: free members get no tier badge (MemberCard shows paid tiers only); an incoming request's card shows only the Pending badge; the member profile facts moved to a Details aside and the resume became a download button; back links go to fixed list paths instead of `navigate(-1)`; some labels went to sentence case.
-- Vendors are seeded with ratings and counts that have no review rows behind them, so the first new review recalculates them from the real rows (logged in the plan).
+- Vendor ratings used to be seeded totals with no review rows behind them; now `seedVendorReviews` writes 30 rows and recalculates every vendor from them.
 - `mockApi` prefers an exact URL match (query included) over a path-only one, so tests can answer `?tier=free` differently from the default list.
