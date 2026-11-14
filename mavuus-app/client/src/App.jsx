@@ -155,23 +155,9 @@ export default function App() {
           <Route path="resources" element={<ResourcesPage />} />
           <Route path="resources/:id" element={<ResourceDetailPage />} />
           <Route path="members" element={<MembersPage />} />
-          <Route
-            path="members/:id"
-            element={
-              <KeyedById>
-                <MemberProfilePage />
-              </KeyedById>
-            }
-          />
+          <Route path="members/:id" element={<KeyedById><MemberProfilePage /></KeyedById>} />
           <Route path="vendors" element={<VendorsPage />} />
-          <Route
-            path="vendors/:id"
-            element={
-              <KeyedById>
-                <VendorDetailPage />
-              </KeyedById>
-            }
-          />
+          <Route path="vendors/:id" element={<KeyedById><VendorDetailPage /></KeyedById>} />
           <Route path="jobs" element={<JobsPage />} />
           <Route path="jobs/:id" element={<JobDetailPage />} />
           <Route path="my-jobs" element={<MyJobsPage />} />
