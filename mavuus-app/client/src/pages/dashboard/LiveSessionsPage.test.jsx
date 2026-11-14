@@ -26,6 +26,9 @@ function renderPage(routes, { url = '/dashboard/live-sessions' } = {}) {
   return fetchMock
 }
 
+// Searches wait for SearchInput's 300ms debounce; leave room for a busy test run.
+const DEBOUNCED = { timeout: 3000 }
+
 const lastQuery = (fetchMock) => new URL(fetchMock.mock.calls.at(-1)[0], 'http://x').searchParams
 
 afterEach(() => vi.unstubAllGlobals())
@@ -49,7 +52,7 @@ describe('LiveSessionsPage', () => {
     await waitFor(() => expect(lastQuery(fetchMock).get('category')).toBe('ABM'))
     expect(lastQuery(fetchMock).get('page')).toBe('1')
     await user.type(screen.getByRole('searchbox', { name: 'Search sessions' }), 'scale')
-    await waitFor(() => expect(lastQuery(fetchMock).get('search')).toBe('scale'))
+    await waitFor(() => expect(lastQuery(fetchMock).get('search')).toBe('scale'), DEBOUNCED)
   })
 
   it('should show the empty state when nothing matches', async () => {
@@ -76,7 +79,9 @@ describe('LiveSessionsPage', () => {
     await user.click(await screen.findByRole('button', { name: 'Next page' }))
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('?category=ABM&page=2'))
     await user.type(screen.getByRole('searchbox', { name: 'Search sessions' }), 'scale')
-    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('?category=ABM&q=scale'))
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('?category=ABM&q=scale'), DEBOUNCED)
+    // The request for the new query goes out in the effect after the URL changes.
+    await waitFor(() => expect(lastQuery(fetchMock).get('search')).toBe('scale'))
     expect(lastQuery(fetchMock).get('page')).toBe('1')
   })
 
@@ -117,7 +122,7 @@ describe('LiveSessionsPage', () => {
     await screen.findByRole('link', { name: 'ABM at Scale' })
     const field = screen.getByRole('searchbox', { name: 'Search sessions' })
     await user.type(field, 'growth ')
-    await waitFor(() => expect(lastQuery(fetchMock).get('search')).toBe('growth'))
+    await waitFor(() => expect(lastQuery(fetchMock).get('search')).toBe('growth'), DEBOUNCED)
     await new Promise((resolve) => setTimeout(resolve, 400))
     expect(field).toHaveValue('growth ')
   })
@@ -132,7 +137,7 @@ describe('LiveSessionsPage', () => {
     await screen.findByRole('link', { name: 'ABM at Scale' })
 
     await user.type(screen.getByRole('searchbox', { name: 'Search sessions' }), 'abm')
-    await waitFor(() => expect(router.state.location.search).toBe('?q=abm'))
+    await waitFor(() => expect(router.state.location.search).toBe('?q=abm'), DEBOUNCED)
     expect(router.state.historyAction).toBe('REPLACE')
 
     await user.click(screen.getByRole('button', { name: 'ABM' }))
