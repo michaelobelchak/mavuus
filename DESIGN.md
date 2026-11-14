@@ -170,6 +170,8 @@ The document scrolls, not a panel. The sidebar is `sticky top-0 h-dvh` and its n
 
 Pages render into `<main id="main-content">` in normal flow: `bg-surface-sunken`, `p-ds-md` (`lg:p-ds-xl`), `lg:rounded-tl-panel`. A "Skip to main content" link comes first.
 
+The root carries `data-app-shell`. While it is on the page, `styles/app-shell.css` sets `scroll-padding-top` on `html` so keyboard focus and anchors land below the top bar (WCAG 2.4.11), and defines `--shell-topbar-h` (80px) and `--shell-main-pad` (16px, 32px from 1024px) for pages that fill the screen; `ShellLayout` adds `--shell-banner-h` while the email verification banner shows. After a navigation (not on first load) focus moves to the page title, an h1 with `tabIndex={-1}`, also when the link was followed from the mobile sheet or the notifications sheet.
+
 ### Public site
 
 Public sections use the site tokens:

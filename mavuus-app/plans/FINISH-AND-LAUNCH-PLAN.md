@@ -88,14 +88,15 @@ Rules for every page:
    - a one-time `npm run setup:prod` (schema, seed, demo account)
 6. **Health check:** `GET /api/health` for the host's monitor.
 7. **SEO and sharing:** title and description per public page, Open Graph image, `sitemap.xml`, and a `robots.txt` that blocks staging.
-8. **Final quality pass:** an accessibility, responsive and performance audit with the impeccable audit, with results filed in `plans/audits/`. Fix anything critical.
-9. **Founders' checklist** (DEMO-SCRIPT.md update): a demo path and the content to confirm:
+8. **Search privacy:** `/api/search` is mounted without auth (server/index.js) and returns member names to anyone: require auth or limit public results.
+9. **Final quality pass:** an accessibility, responsive and performance audit with the impeccable audit, with results filed in `plans/audits/`. Fix anything critical.
+10. **Founders' checklist** (DEMO-SCRIPT.md update): a demo path and the content to confirm:
    - member counts
    - the 30-day trial line
    - status colors
    - the Pro member tag
    - the pink contrast decision
-10. **E2E against any URL:** a `BASE_URL` option, so the same smoke test runs against staging.
+11. **E2E against any URL:** a `BASE_URL` option, so the same smoke test runs against staging.
 
 ## Stage 5: Hosting (owner provides it, last)
 

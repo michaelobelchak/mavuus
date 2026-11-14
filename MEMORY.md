@@ -139,3 +139,7 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - Pulse rule kept from the old bell: the first load never pulses, only a rise from a count above zero.
 - `Cmd/Ctrl+K` (`CommandPalette`), `?` (`ShortcutsHelp`), `BackToTop` and `ConnectionStatus` stay mounted in `App.jsx` and work under the shell. `ScrollProgress` (only on ResourceDetailPage) now uses `z-(--ds-z-overlay)` so it shows above the sticky top bar.
 - Legacy `sticky top-6` on SpeakersPage now slides under the 80px top bar; fix it when the page migrates (3C).
+- Focus after navigation goes to the top bar h1 (`tabIndex -1`). The mobile nav and notifications sheets return focus on close, so their `finalFocus` picks the title when a link in them was followed; otherwise their focus trap and return would pull focus back to the menu button or the bell. Titles still live in the nav config and RouteTitles only sets `document.title`; focusing the h1 is what announces the new page.
+- `html` has `scroll-behavior: smooth`, so focus scrolling animates; `e2e/shell.spec.js` waits for scrollY to settle before measuring.
+- Notification polls: a local change (mark read) bumps a version, and a poll that started before it is ignored. The list shows the newest 50 notifications (server LIMIT), so the chips count the loaded list while the sheet description keeps the overall unread total.
+- `/api/search` is public (no auth) and returns member names; logged for Stage 4.
