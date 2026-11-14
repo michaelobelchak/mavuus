@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, useLocation } from 'react-router-dom'
+import { MemoryRouter, RouterProvider, createMemoryRouter, useLocation } from 'react-router-dom'
 import { mockApi, reply } from '../../test/mockApi'
 import LiveSessionsPage from './LiveSessionsPage'
 
@@ -120,5 +120,34 @@ describe('LiveSessionsPage', () => {
     await waitFor(() => expect(lastQuery(fetchMock).get('search')).toBe('growth'))
     await new Promise((resolve) => setTimeout(resolve, 400))
     expect(field).toHaveValue('growth ')
+  })
+
+  it('should replace the history entry while typing and push one for chips and pages', async () => {
+    const user = userEvent.setup()
+    mockApi({ 'GET /api/sessions': { data: live, totalPages: 2 } })
+    const router = createMemoryRouter([{ path: '/dashboard/live-sessions', element: <LiveSessionsPage /> }], {
+      initialEntries: ['/dashboard/live-sessions'],
+    })
+    render(<RouterProvider router={router} />)
+    await screen.findByRole('link', { name: 'ABM at Scale' })
+
+    await user.type(screen.getByRole('searchbox', { name: 'Search sessions' }), 'abm')
+    await waitFor(() => expect(router.state.location.search).toBe('?q=abm'))
+    expect(router.state.historyAction).toBe('REPLACE')
+
+    await user.click(screen.getByRole('button', { name: 'ABM' }))
+    await waitFor(() => expect(router.state.location.search).toBe('?q=abm&category=ABM'))
+    expect(router.state.historyAction).toBe('PUSH')
+
+    await user.click(await screen.findByRole('button', { name: 'Next page' }))
+    await waitFor(() => expect(router.state.location.search).toBe('?q=abm&category=ABM&page=2'))
+    expect(router.state.historyAction).toBe('PUSH')
+
+    await act(() => router.navigate(-1))
+    expect(router.state.location.search).toBe('?q=abm&category=ABM')
+    await act(() => router.navigate(-1))
+    // The typed search replaced the first entry, so back lands on it, not on each keystroke.
+    expect(router.state.location.search).toBe('?q=abm')
+    expect(screen.getByRole('button', { name: 'ABM' })).toHaveAttribute('aria-pressed', 'false')
   })
 })
