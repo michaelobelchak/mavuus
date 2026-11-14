@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, useLocation } from 'react-router-dom'
+import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom'
 import { mockViewport } from '@/design-system/test/browserMocks'
 import { mockApi, reply } from '../../test/mockApi'
 import SpeakersPage from './SpeakersPage'
@@ -28,13 +28,22 @@ afterEach(() => vi.unstubAllGlobals())
 
 function Where() {
   const location = useLocation()
-  return <output data-testid="where">{location.search}</output>
+  const navigate = useNavigate()
+  return (
+    <>
+      <output data-testid="where">{location.search}</output>
+      <output data-testid="path">{location.pathname}</output>
+      <button type="button" onClick={() => navigate(-1)}>
+        Browser back
+      </button>
+    </>
+  )
 }
 
-function renderPage(url = '/dashboard/speakers', routes = {}) {
+function renderPage(url = '/dashboard/speakers', routes = {}, { before = [] } = {}) {
   const fetchMock = mockApi({ 'GET /api/speakers': speakers, 'GET /api/speakers/1': sarah, ...routes })
   render(
-    <MemoryRouter initialEntries={[url]}>
+    <MemoryRouter initialEntries={[...before, url]} initialIndex={before.length}>
       <SpeakersPage />
       <Where />
     </MemoryRouter>,
@@ -89,6 +98,38 @@ describe('SpeakersPage', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(screen.getByTestId('where')).toHaveTextContent(/^$/)
     await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('link', { name: 'Sarah Chen' })))
+  })
+
+  it('should close an in-app sheet by going back, so Back leaves the list', async () => {
+    const user = userEvent.setup()
+    mockViewport(390)
+    renderPage('/dashboard/speakers', {}, { before: ['/dashboard'] })
+    await user.click(await screen.findByRole('link', { name: 'Sarah Chen' }))
+    await screen.findByRole('dialog', { name: 'Speaker details' })
+    await user.click(screen.getByRole('button', { name: 'Close' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.getByTestId('where')).toHaveTextContent(/^$/)
+    await user.click(screen.getByRole('button', { name: 'Browser back' }))
+    expect(screen.getByTestId('path')).toHaveTextContent('/dashboard')
+    expect(screen.getByTestId('path')).not.toHaveTextContent('/dashboard/speakers')
+  })
+
+  it('should close the sheet on Back and return focus to the card', async () => {
+    const user = userEvent.setup()
+    mockViewport(390)
+    renderPage()
+    await user.click(await screen.findByRole('link', { name: 'Sarah Chen' }))
+    await screen.findByRole('dialog', { name: 'Speaker details' })
+    fireEvent.click(screen.getByRole('button', { name: 'Browser back', hidden: true }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('link', { name: 'Sarah Chen' })))
+  })
+
+  it('should use the sheet, not the side panel, when the screen size is unknown', async () => {
+    vi.stubGlobal('matchMedia', undefined)
+    renderPage('/dashboard/speakers?speaker=1')
+    expect(await screen.findByRole('dialog', { name: 'Speaker details' })).toBeInTheDocument()
+    expect(screen.queryByRole('complementary', { name: 'Speaker details' })).not.toBeInTheDocument()
   })
 
   it('should open the sheet from a shared ?speaker= link on phones', async () => {

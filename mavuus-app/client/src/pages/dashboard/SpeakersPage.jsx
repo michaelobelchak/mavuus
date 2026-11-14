@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Linkedin } from 'lucide-react'
 import { Alert, Card, CardLink, Sheet } from '@/design-system/patterns'
 import { MemberCard, MemberCardSkeleton } from '@/design-system/organisms'
@@ -108,11 +108,22 @@ function SpeakerDetails({ id, level = 2 }) {
 export default function SpeakersPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const selected = searchParams.get('speaker')
-  const desktop = useMediaQuery(DESKTOP, true)
-  // The speaker the Sheet showed when it closed, so focus can go back to that card.
+  // False until the query answers, so phones never flash the side panel.
+  const desktop = useMediaQuery(DESKTOP, false)
+  const location = useLocation()
+  const navigate = useNavigate()
+  // The speaker shown last, so closing the Sheet (Close, Escape or Back) can return focus to that card.
   const lastSelected = useRef(null)
+  useEffect(() => {
+    if (selected) lastSelected.current = selected
+  }, [selected])
+  // Opened from a card in the app: go back, so Back afterwards leaves the list. Opened from a
+  // shared link (the first history entry): drop ?speaker= in place.
   const closeSheet = () => {
-    lastSelected.current = selected
+    if (location.key !== 'default') {
+      navigate(-1)
+      return
+    }
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev)
