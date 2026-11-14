@@ -8,7 +8,7 @@ import Reveal from '../../components/live/ui/Reveal'
 import { cardClass } from '../../components/live/ui/cardStyles'
 import { Eyebrow, H_CARD } from '../../components/live/ui/Typography'
 
-const PHOTOS = 'https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/669f0e0e2a657f4c5e1c90d0_img-contacts.png'
+const PHOTOS = '/images/contact/img-contacts.png'
 
 // The live image is one PNG holding two photos side by side. Each frame crops one of them.
 const FRAMES = [

@@ -1,5 +1,4 @@
 // Copied from the live mavuus.com/about page.
-const CDN = 'https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d'
 
 export const ABOUT_HERO = {
   title: 'Empowering Marketing Leaders to Network, Learn, and Advance Their Careers Together',
@@ -24,12 +23,12 @@ export const WHO_WE_ARE = {
     'Our mission is simple: to foster an environment where senior marketing professionals can leverage the power of collaboration, share experiences, and grow together.',
   ],
   image: {
-    src: `${CDN}/6699b58945922c66688e3a22_sisters-p-800.jpg`,
+    src: '/images/shared/sisters-p-800.jpg',
     srcSet: [
-      `${CDN}/6699b58945922c66688e3a22_sisters-p-500.jpg 500w`,
-      `${CDN}/6699b58945922c66688e3a22_sisters-p-800.jpg 800w`,
-      `${CDN}/6699b58945922c66688e3a22_sisters-p-1080.jpg 1080w`,
-      `${CDN}/6699b58945922c66688e3a22_sisters.jpg 1120w`,
+      '/images/shared/sisters-p-500.jpg 500w',
+      '/images/shared/sisters-p-800.jpg 800w',
+      '/images/shared/sisters-p-1080.jpg 1080w',
+      '/images/shared/sisters.jpg 1120w',
     ].join(', '),
     sizes: '(max-width: 479px) 48vw, (max-width: 991px) 49vw, 442px',
     alt: 'Mavuus founders Dilya and Elmira Abushayeva',
@@ -40,13 +39,13 @@ export const ORIGIN = {
   eyebrow: 'THE ORIGIN OF MAVUUS',
   heading: 'What Does the Name Mean?',
   image: {
-    src: `${CDN}/6699bafbbc4abfb2767db752_img-how-we-got-p-1600.webp`,
+    src: '/images/about/img-how-we-got-p-1600.webp',
     srcSet: [
-      `${CDN}/6699bafbbc4abfb2767db752_img-how-we-got-p-500.webp 500w`,
-      `${CDN}/6699bafbbc4abfb2767db752_img-how-we-got-p-800.webp 800w`,
-      `${CDN}/6699bafbbc4abfb2767db752_img-how-we-got-p-1080.webp 1080w`,
-      `${CDN}/6699bafbbc4abfb2767db752_img-how-we-got-p-1600.webp 1600w`,
-      `${CDN}/6699bafbbc4abfb2767db752_img-how-we-got.webp 1920w`,
+      '/images/about/img-how-we-got-p-500.webp 500w',
+      '/images/about/img-how-we-got-p-800.webp 800w',
+      '/images/about/img-how-we-got-p-1080.webp 1080w',
+      '/images/about/img-how-we-got-p-1600.webp 1600w',
+      '/images/about/img-how-we-got.webp 1920w',
     ].join(', '),
     alt: 'Marketing leaders talking around a desk in a bright office',
   },

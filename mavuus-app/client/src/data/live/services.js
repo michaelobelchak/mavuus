@@ -1,17 +1,16 @@
-const CDN = 'https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d'
 
 export const HERO = {
-  image: `${CDN}/668f46214842f23691d72111_Rectangle%207.webp`,
+  image: '/images/shared/rectangle-7.webp',
   steps: ['Clarity & priorities', 'Positioning & messaging', 'Pipeline & demand', 'Execution & results'],
 }
 
 export const WHO_IMAGE = {
-  src: `${CDN}/668f4ef17e1ac5e4d40cd793_Group%203276.webp`,
+  src: '/images/shared/group-3276.webp',
   srcSet: [
-    `${CDN}/668f4ef17e1ac5e4d40cd793_Group%203276-p-500.webp 500w`,
-    `${CDN}/668f4ef17e1ac5e4d40cd793_Group%203276-p-800.webp 800w`,
-    `${CDN}/668f4ef17e1ac5e4d40cd793_Group%203276-p-1080.webp 1080w`,
-    `${CDN}/668f4ef17e1ac5e4d40cd793_Group%203276.webp 1542w`,
+    '/images/shared/group-3276-p-500.webp 500w',
+    '/images/shared/group-3276-p-800.webp 800w',
+    '/images/shared/group-3276-p-1080.webp 1080w',
+    '/images/shared/group-3276.webp 1542w',
   ].join(', '),
 }
 
@@ -140,12 +139,12 @@ export const ENGAGEMENT_MODELS = [
 ]
 
 export const WHY = {
-  image: `${CDN}/6699b58945922c66688e3a22_sisters.jpg`,
+  image: '/images/shared/sisters.jpg',
   srcSet: [
-    `${CDN}/6699b58945922c66688e3a22_sisters-p-500.jpg 500w`,
-    `${CDN}/6699b58945922c66688e3a22_sisters-p-800.jpg 800w`,
-    `${CDN}/6699b58945922c66688e3a22_sisters-p-1080.jpg 1080w`,
-    `${CDN}/6699b58945922c66688e3a22_sisters.jpg 1120w`,
+    '/images/shared/sisters-p-500.jpg 500w',
+    '/images/shared/sisters-p-800.jpg 800w',
+    '/images/shared/sisters-p-1080.jpg 1080w',
+    '/images/shared/sisters.jpg 1120w',
   ].join(', '),
   intro: [
     'Mavuus is a B2B marketing strategy and consulting firm helping technology companies turn market and customer intelligence into focused growth strategies.',

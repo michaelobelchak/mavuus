@@ -3,7 +3,7 @@ import Section from './ui/Section'
 import Reveal from './ui/Reveal'
 import { H_SECTION, LEAD } from './ui/Typography'
 
-const CTA_BG = 'https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6699cbb6206dc486ff34f56f_bg.svg'
+const CTA_BG = '/images/shared/bg.svg'
 
 /**
  * The closing call to action on every public page. `wide` is the larger services version.
