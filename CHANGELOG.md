@@ -202,3 +202,14 @@ All notable changes to the Mavuus project are documented here, organized by phas
 - Largest files: `videos/li-event-banners-1600-900-px-8-2.webp` 340 KB, `videos/li-event-banners-1600-900-px-11.webp` 327 KB, `posts/li-event-banners-1600-900-px-2.webp` 327 KB, `videos/li-event-banners-1600-900-px-13.webp` 215 KB, `posts/li-event-banners-1600-900-px-34.webp` 215 KB; nothing over 500 KB
 - E2E: the smoke suite also covers `/articles`, `/events`, `/login` and `/register`; `guard.spec.js` checks the third-party guard. Fixed: the article and event lists overflowed at 1024px
 - Pixel diff before and after at 1440, 1024, 768 and 390: every page keeps its exact height; visibly different pixels stay under 0.05% on every page except `/resources` (up to 0.86%, the lazy carousel images the CDN-era captures did not paint consistently)
+
+## App Shell Live - 2026-11-14
+**Status:** Complete (branch `feat/app-shell-live`, Batch 3A of `FINISH-AND-LAUNCH-PLAN.md`, Phase 8 Task 8.1)
+
+- `/dashboard` and `/admin` now render in the design-system `AppShell` (`src/layouts/MemberLayout.jsx`, `AdminLayout.jsx`, sharing `ShellLayout.jsx`). Routes, `ProtectedRoute` and `AdminRoute` are unchanged
+- Top bar: page title from the nav (detail pages get their own, like "Job details"), global search (`ShellSearch`, `/api/search`, `/` focuses it, a popover below 768px), the notifications bell with the unread count (polled every 30 seconds, pulses when it goes up) and the account menu (Profile, Settings, Admin panel for admins, Log out)
+- Notifications open in a right `Sheet` with All and Unread filters, mark one or all read, loading, empty and error states. Closed, it is unmounted, which fixes the closed drawer that was still focusable (and it now closes on Escape)
+- The Messages nav item shows the unread messages count; the admin sidebar ends with "Back to dashboard" (an icon in the rail); the email verification banner is a design-system `Banner` with Resend
+- One "Skip to main content" per page: `AppShell` owns it under the shell, `SiteSkipLink` renders the old one everywhere else
+- Organisms: `AppSidebar` `footer` can be a function of `{ collapsed }`; `AppTopBar` closes the mobile search popover on navigation and tightens its gaps below 640px
+- Removed: `DashboardLayout.jsx`, `DashboardSidebar.jsx`, the old `AdminLayout.jsx`, `MobileFAB.jsx` and `SearchResultsDropdown.jsx`; the lint baseline dropped by 17 findings

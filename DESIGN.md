@@ -321,7 +321,7 @@ Organisms take data as props and never fetch.
 | Component | Domain | When to use | Key props |
 |---|---|---|---|
 | `AppShell` | app-shell | The signed-in layout | `nav` (`MEMBER_NAV` or `ADMIN_NAV`), `navLabel`, `badges`, `title`, `breadcrumbs`, `actions`, `search`, `notifications`, `user`, `userMenuItems`, `onLogout` |
-| `AppSidebar` | app-shell | The sidebar (AppShell renders it) | `nav`, `collapsed`, `badges`, `footer`, `onCollapsedChange` |
+| `AppSidebar` | app-shell | The sidebar (AppShell renders it) | `nav`, `collapsed`, `badges`, `footer` (a node, or `({ collapsed }) => node` to switch to icons in the rail), `onCollapsedChange` |
 | `AppTopBar` | app-shell | The top bar (AppShell renders it) | `title`, `breadcrumbs`, `search`, `actions`, `notifications`, `user`, `onOpenNav` |
 | `SidebarNavItem` | app-shell | One nav row | `item`, `activeTo`, `collapsed`, `badges` |
 | `nav.js` | app-shell | Nav config | `MEMBER_NAV`, `ADMIN_NAV`, `findActiveItem`, `flattenNav`, `buildUserMenuItems` |
@@ -477,9 +477,9 @@ Inside the design system, files import each other with relative paths (`../../pr
 
 - **Dark theme.** Not built. Adding `role.dark` to `tokens.json` emits a `[data-theme="dark"]` block; the Storybook theme toolbar's dark option is a placeholder that falls back to light until then.
 - **Remote images left: Unsplash.** Fixel Text, the wordmark, every public site image and the demo avatars are local files in `client/public/` since Stage 1 (`public/fonts/fixel/`, `public/images/<page>/`, listed in `scripts/assets-manifest.json`), and `no-remote-assets` keeps the Webflow and pravatar hosts out. The session and resource cover photos in the seeds, mock data and auth pages still load from `images.unsplash.com`; the e2e guard allows that one host on those pages only until the owner approves localizing them.
-- **Pages not migrated.** Phase 8 moves the dashboard, admin, auth and public pages onto the system. Until then legacy pages keep their own styling and `components/ui/` and `components/live/` still exist. The app shell isn't wired in yet and `<Toaster />` isn't mounted in the app.
+- **Pages not migrated.** Phase 8 moves the dashboard, admin, auth and public pages onto the system. Until then legacy pages keep their own styling and `components/ui/` and `components/live/` still exist. The app shell is live for `/dashboard` and `/admin` (`src/layouts/`); `<Toaster />` isn't mounted in the app yet.
 - **Legacy lint baseline.** `scripts/lint-design-system.baseline.json` holds 651 legacy errors in 97 files outside the design system (477 `no-arbitrary-size`, 75 `no-raw-color`, 72 `no-em-dash`, 27 `no-inline-style`). A run fails when a count goes up or a new file has errors; when counts drop, run `npm run lint:ds -- --update-baseline`. `src/design-system/` has no baseline.
-- **Legacy bugs logged for Phase 8:** the closed notifications drawer in `DashboardLayout.jsx` is likely still focusable, and the weekly signups bars on `AdminDashboardPage` render empty.
+- **Legacy bugs logged for Phase 8:** the weekly signups bars on `AdminDashboardPage` render empty. (The focusable closed notifications drawer went away with the app shell in Batch 3A: the new panel is a Sheet, unmounted while closed.)
 
 ## 19. Agent prompt guide
 

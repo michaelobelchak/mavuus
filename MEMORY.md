@@ -116,3 +116,20 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - `about/img-how-we-got.webp` (and the capped originals behind `posts/career-compass-jacob-warwick-p-1600.webp` and `posts/the-2026-cmo-role-p-1600.webp`) is byte-identical to its `-p-1600` copy, about 67 KB each. It stays: the page only names the variants, but `--variants` builds them from the original, and deleting it would make the next `--download` fetch it from the CDN again. Removing the copy instead would mean pointing those srcsets at the original; not worth it for 200 KB.
 - The Unsplash photos are allowed per page in the e2e guard (`PENDING_HOSTS`): member and admin pages, `/login` and `/register`. Any other page fails on them, offline too.
 - Full-page screenshots in headless Chromium can leave a lazy, async-decoded image in a horizontal carousel unpainted. The parity captures set `decoding = 'sync'` and wait for `img.decode()` on every image.
+
+## App shell live - 2026-11-14 (feat/app-shell-live, Batch 3A)
+
+**Decision:** the member and admin areas share one `ShellLayout` in `src/layouts/` around the design-system `AppShell`. The shell glue lives outside `design-system/` because it reads `AuthContext` and fetches, which organisms may not do. Titles come from the nav (`findActiveItem`) plus a short list of detail-page titles, so a new list route only needs its nav item.
+
+**Rejected:**
+- Breadcrumbs on detail pages: on a phone the crumb wrapped and repeated the title, and every detail page already has its own "Back to ..." link.
+- Keeping the sidebar profile-completion ring and referral card: the rail has no room for them, the Invite page already copies the referral link, and the completion nudge belongs on the home or profile page (Batch 3B or 3D).
+- Keeping `MobileFAB`: it repeated three nav links and covered page content at 390px; the mobile nav sheet has them.
+- Keeping the Messages icon in the top bar: the Messages nav item now carries the unread count.
+
+**Non-obvious:**
+- `<main>` scrolls, not the window. `ShellLayout` resets `main.scrollTop` on navigation, `BackToTop` (window scroll) never shows under the shell, and `ScrollProgress` on the resource and member detail pages reads `window.scrollY`, so it stays at zero until those pages migrate.
+- The top bar title is an h1 and most legacy pages still render their own h1 (two per page) until their batch moves them to `PageHeader`.
+- Pulse rule kept from the old bell: the first load never pulses, only a rise from a count above zero.
+- `Cmd/Ctrl+K` (`CommandPalette`), `?` (`ShortcutsHelp`) and `ConnectionStatus` stay mounted in `App.jsx` and work under the shell.
+
