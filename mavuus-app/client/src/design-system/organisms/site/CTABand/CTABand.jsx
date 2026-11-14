@@ -2,7 +2,7 @@ import { cn } from '../../../lib/cn'
 import { Reveal } from '../../../patterns'
 import { Button } from '../../../primitives'
 
-const CTA_BG = 'https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6699cbb6206dc486ff34f56f_bg.svg'
+const CTA_BG = '/images/shared/bg.svg'
 
 /**
  * The closing call to action on public pages: a tinted, patterned band with a title, a line of

@@ -4,8 +4,8 @@ import Reveal from '../ui/Reveal'
 import { Label } from '../ui/Typography'
 import { LEADERS } from '../../../data/live/home'
 
-// Leader photos come in two frame heights on the CDN (592x658 and 592x714).
-const photoHeight = (src) => (src.includes('Frame%203310') ? 714 : 658)
+// Leader photos come in two frame heights (592x658 for frame-3308-*, 592x714 for frame-3310-*).
+const photoHeight = (src) => (src.includes('frame-3310') ? 714 : 658)
 
 function LeaderCard({ leader, decorative }) {
   return (

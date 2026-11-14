@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import LiveButton from '../live/LiveButton'
 
-export const LIVE_LOGO = 'https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6689763240456e66e970e5aa_logo.svg'
+export const LIVE_LOGO = '/images/logos/logo.svg'
 
 const NAV_LINKS = [
   { label: 'Membership', to: '/membership' },

@@ -23,6 +23,6 @@ Read `DESIGN.md` at the repo root for the catalog and `README.md` here for the f
 
 - `npx vitest run` - unit tests, barrel tests, token drift test
 - `npx eslint . --max-warnings 0`
-- `npm run guard` - `lint:ds` (tokens, dashes, layering) and `check:stories`
+- `npm run guard` - `lint:ds` (tokens, dashes, layering, no remote asset hosts) and `check:stories`
 - `npm run build-storybook`
 - `npm run e2e` - Playwright smoke, required when a page changes

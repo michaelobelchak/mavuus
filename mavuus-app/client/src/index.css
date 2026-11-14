@@ -9,38 +9,40 @@
 @import "./design-system/tokens/tokens.css";
 @import "./design-system/styles/motion.css";
 
-/* Fixel Text, the font used on the live mavuus.com site (served from its Webflow CDN) */
+/* Fixel Text by MacPaw, the font of the live mavuus.com site, served from public/fonts/fixel/
+   (SIL Open Font License 1.1, see OFL.txt there). index.html preloads Medium (hero heading,
+   lead and nav) and SemiBold (hero buttons). */
 @font-face {
   font-family: Fixeltext;
-  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a8542d420b9568cbbc_FixelText-Light.woff2") format("woff2");
+  src: url("/fonts/fixel/fixeltext-light.woff2") format("woff2");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: Fixeltext;
-  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a89906e5efe6bc7f35_FixelText-Regular.woff2") format("woff2");
+  src: url("/fonts/fixel/fixeltext-regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: Fixeltext;
-  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a80f53689e46a53cbe_FixelText-Medium.woff2") format("woff2");
+  src: url("/fonts/fixel/fixeltext-medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: Fixeltext;
-  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a81353e3635b91fc47_FixelText-SemiBold.woff2") format("woff2");
+  src: url("/fonts/fixel/fixeltext-semibold.woff2") format("woff2");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: Fixeltext;
-  src: url("https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a8e1f09926e879d24a_FixelText-Bold.woff2") format("woff2");
+  src: url("/fonts/fixel/fixeltext-bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;

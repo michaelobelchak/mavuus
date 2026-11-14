@@ -1,5 +1,5 @@
 // Copied from the live mavuus.com FAQ page and its category pages.
-export const FAQ_ICON = "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/66afe8fe2c0f83efef64a862_icon_adv_1.png"
+export const FAQ_ICON = "/images/faq/icon-adv-1.webp"
 
 export const FAQ_CARD_ORDER = [
   "about-mavuus",

@@ -42,7 +42,7 @@ if (!demo) {
     'Demo User',
     'Marketing Director',
     'Mavuus',
-    'https://i.pravatar.cc/150?u=demo@mavuus.com',
+    '/images/avatars/avatar-06.webp',
     'admin',
     'pro'
   )
@@ -55,7 +55,7 @@ if (!demo) {
      name = COALESCE(NULLIF(name,''), 'Demo User'),
      title = COALESCE(NULLIF(title,''), 'Marketing Director'),
      company = COALESCE(NULLIF(company,''), 'Mavuus'),
-     avatar_url = COALESCE(NULLIF(avatar_url,''), 'https://i.pravatar.cc/150?u=demo@mavuus.com')
+     avatar_url = COALESCE(NULLIF(avatar_url,''), '/images/avatars/avatar-06.webp')
      WHERE id = ?`
   ).run(demo.id)
   console.log('  ✓ Updated demo user id', demo.id)
