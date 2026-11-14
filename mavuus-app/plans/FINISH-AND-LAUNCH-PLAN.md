@@ -18,18 +18,22 @@ PR #5 (design system foundation) is merged. What's left falls into five stages. 
 
 Before this stage the site loaded 143 files from the live Webflow site's CDN: 5 Fixel Text font files and the images and video thumbnails. 56 avatar URLs came from a remote avatar service in the seed data, mock data and auth pages. If the Webflow site goes away, the font and every public image go blank.
 
-1. **Inventory script** `scripts/localize-assets.mjs` (with tests): find every remote asset URL in `src/`, `index.html` and the server seed files, including `srcset` variants, and write `scripts/assets-manifest.json` (URL, local path, size, where it's used).
-2. **Fonts:** download the 5 Fixel Text weights to `public/fonts/fixel/`. Point `@font-face` at them with `font-display: swap`, preload the two weights the first screen uses, and ship the font's license file next to it. Fixel is published by MacPaw under the SIL Open Font License; confirm that from the license file before committing.
-3. **Images:** download to `public/images/` in folders by page (`home/`, `about/`, `services/`, `resources/`, `posts/`, `videos/`, `logos/`) with readable file names. Keep originals, and add a WebP copy where it saves more than 30%.
-4. **Avatars:** replace the remote avatar URLs with local demo avatars in `public/images/avatars/`, used by both the client mock data and the server seeds.
-5. **Rewrite references** through the manifest, so nothing points at a remote host.
+1. **Inventory script** `scripts/localize-assets.mjs` (with tests): finds every remote asset URL in `client/src/`, `index.html`, `.storybook/` and the server seeds, including `srcset` lists, CSS `url()`, CDN prefix constants and the size variants `posts.js` and `home.js` build at runtime, and writes `scripts/assets-manifest.json` (URL, local path, size, type, width, where it's used). Modes: `--scan`, `--download`, `--variants`, `--rewrite`, each safe to run again.
+2. **Fonts:** the 5 Fixel Text weights in `public/fonts/fixel/`, `@font-face` with `font-display: swap`, and `index.html` preloads Medium and SemiBold (the hero heading, lead and nav use Medium, the buttons SemiBold). License confirmed: SIL Open Font License 1.1, `OFL.txt` from github.com/macpaw/fixel next to the fonts.
+3. **Images, decided:** WebP only, no originals kept. Photos and thumbnails are lossy quality 82 with alpha kept; logos and PNGs under 10 KB are lossless; Webflow files that were already WebP are kept as they are. Nothing is stored wider than 1600px (no page renders an image wider than about 1300 CSS pixels), and the srcset width tables are capped to match. The Webflow srcset variants are not stored: `--variants` resizes the local original to each width the srcset builders ask for. Folders by page: `home/`, `about/`, `services/`, `resources/`, `posts/`, `videos/`, `faq/`, `logos/`, `contact/`, `shared/` (used on more than one page).
+4. **Avatars:** the 24 demo avatars are `public/images/avatars/avatar-NN.webp`, used by the client mock data, Storybook and the server seeds.
+5. **Rewrite references** through the manifest, so nothing points at the Webflow CDN or the avatar service.
 6. **Guards:**
-   - A `no-remote-assets` rule in `lint:ds` that bans the Webflow CDN and remote avatar hosts everywhere.
-   - The e2e smoke test fails on any third-party request instead of ignoring it.
-   - One e2e run with the network blocked to prove the site works offline.
-7. **Check:** pixel diff of public pages before and after at 4 widths, which must be identical apart from font loading timing. Also a size report: total image weight and the largest files.
+   - `no-remote-assets` in `lint:ds` bans the Webflow CDN, other Webflow asset hosts and the avatar service in the client (tests and stories included) and the server.
+   - The e2e smoke test fails on any third-party request. Only the member and admin pages and `/login` and `/register` may still request `images.unsplash.com` (see below); every other page fails on it.
+   - The `offline` e2e project reruns the public pages with every outside request aborted, and still fails if a page asks for one.
+7. **Check:** pixel diff of the public pages before and after at 4 widths. Every page keeps its exact height; visibly different pixels stay under 0.05% per page except `/resources` (up to 0.86%, from lazy carousel images that the CDN-era captures did not paint consistently).
 
-**Done when:** zero remote asset URLs in the repo, e2e passes with outside requests blocked, and the screenshots match.
+**Deferred, pending the owner's OK:** the 20 Unsplash photos (14 session and resource covers in the seeds and mock data, 6 testimonial faces on `/login` and `/register`). Downloading them needs the owner's approval; until then the e2e guard allows that one host on those pages only.
+
+**Size report:** 16.4 MB in 363 files plus the license (the Webflow originals and their variants were 140.5 MB). Largest files: `videos/li-event-banners-1600-900-px-8-2.webp` 340 KB, `videos/li-event-banners-1600-900-px-11.webp` 327 KB, `posts/li-event-banners-1600-900-px-2.webp` 327 KB, `videos/li-event-banners-1600-900-px-13.webp` 215 KB, `posts/li-event-banners-1600-900-px-34.webp` 215 KB. Nothing is over 500 KB.
+
+**Done when:** no Webflow CDN or avatar-service URL is left in the repo (only the localize script names those hosts, plus the original URLs in the manifest), e2e passes with outside requests blocked on the public pages, the screenshots match within the noise above, and the owner has decided on the Unsplash photos.
 
 ## Stage 2: Your section updates
 
