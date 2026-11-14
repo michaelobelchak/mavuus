@@ -14,7 +14,7 @@ export function reply(status, body = {}) {
 /**
  * Stubs global fetch for page tests. `routes` maps "METHOD /path" to a response:
  * `{ 'GET /api/sessions': body, 'POST /api/sessions/1/register': reply(400, { error }) }`.
- * The query string is ignored unless the matcher has one. A route value may also be a function
+ * The query string is ignored unless the matcher has one; an exact match wins over a path-only one. A route value may also be a function
  * `(url, init) => body | reply(...) | Error`; an Error makes fetch reject with it (a network
  * failure). Unmatched requests answer 404. Returns the vi.fn, so tests can read
  * `fetch.mock.calls`.
@@ -29,13 +29,18 @@ export function mockApi(routes = {}) {
     const url = typeof input === 'string' ? input : input.url
     const method = (init.method || 'GET').toUpperCase()
     const [pathOnly] = url.split('?')
-    for (const [matcher, value] of entries) {
-      const [m, p] = matcher.split(' ')
-      if (m !== method) continue
-      if (p === url || (!p.includes('?') && p === pathOnly)) {
-        const result = typeof value === 'function' ? value(url, init) : value
-        return result instanceof Error ? Promise.reject(result) : respond(result)
-      }
+    // An exact match (query string included) wins over a path-only one, whatever the order.
+    const routesFor = entries.filter(([matcher]) => matcher.split(' ')[0] === method)
+    const match =
+      routesFor.find(([matcher]) => matcher.split(' ')[1] === url) ??
+      routesFor.find(([matcher]) => {
+        const p = matcher.split(' ')[1]
+        return !p.includes('?') && p === pathOnly
+      })
+    if (match) {
+      const value = match[1]
+      const result = typeof value === 'function' ? value(url, init) : value
+      return result instanceof Error ? Promise.reject(result) : respond(result)
     }
     return respond(reply(404, { error: 'Not found' }))
   })

@@ -9,7 +9,8 @@ import { MEMBERS_PATH, MESSAGES_PATH } from './shared/paths'
 
 const FILTERS = [{ value: 'connections', label: 'My Connections' }, 'All', { value: 'pro', label: 'Pro' }, { value: 'free', label: 'Free' }]
 
-const tierOf = (member) => (member.tier || member.membership_tier || '').toLowerCase()
+// The chips as /api/members params: your connections, or a membership tier.
+const filterQuery = (value) => (value === 'connections' ? { connections: '1' } : { tier: value })
 
 // MemberCard's connection for an entry of the connections map.
 function connectionOf(conn) {
@@ -130,18 +131,13 @@ export default function MembersPage() {
     }
   }
 
-  const filterItems = (items, value) =>
-    value === 'connections'
-      ? items.filter((m) => connections[m.id]?.status === 'accepted')
-      : items.filter((m) => tierOf(m) === value)
-
   return (
     <CatalogList
       endpoint="/api/members"
       filterParam="filter"
       filterLabel="Filter members"
       categories={FILTERS}
-      filterItems={filterItems}
+      filterQuery={filterQuery}
       intro="Connect with marketing leaders in the community."
       searchLabel="Search members"
       searchPlaceholder="Search members..."

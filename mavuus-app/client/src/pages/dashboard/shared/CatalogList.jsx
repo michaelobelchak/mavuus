@@ -17,12 +17,12 @@ const forFilter = (copy, value) => (typeof copy === 'function' ? copy(value) : c
  * Loads one page of a catalog list (`/api/sessions?type=live`, `/api/resources`) with search, a
  * filter and paging, all kept in the page URL (`?q=`, `?<filterParam>=`, `?page=`) so back,
  * forward and shared links restore them. The filter goes to the API as `filterParam` (left out
- * for "All"; never with `clientFilter`, when the page filters the loaded items itself). Changing the
- * search or the filter goes back to page 1; typing replaces the history entry instead of adding
- * one. Without `paged`, no page or limit goes to the API. Accepts `{ data, totalPages }` or a plain
+ * for "All"), or as the params `filterQuery(value)` returns when the API names it differently.
+ * Changing the search or the filter goes back to page 1; typing replaces the history entry
+ * instead of adding one. Without `paged`, no page or limit goes to the API. Accepts `{ data, totalPages }` or a plain
  * array; anything else is an empty list. A new query aborts the request before it.
  */
-function useCatalog(endpoint, baseParams, filterParam, { paged, clientFilter }) {
+function useCatalog(endpoint, baseParams, filterParam, { paged, filterQuery }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const search = searchParams.get('q') || ''
   const category = searchParams.get(filterParam) || 'All'
@@ -30,16 +30,22 @@ function useCatalog(endpoint, baseParams, filterParam, { paged, clientFilter }) 
   const [result, setResult] = useState({ key: null, items: [], totalPages: 1, error: false })
   const [attempt, setAttempt] = useState(0)
   const params = JSON.stringify(baseParams)
-  const apiCategory = clientFilter ? 'All' : category
+  // The filter as API params, as a string so a new filterQuery function doesn't refetch.
+  const apiFilter = JSON.stringify(
+    category === 'All' ? {} : typeof filterQuery === 'function' ? filterQuery(category) : { [filterParam]: category },
+  )
   const apiPage = paged ? page : 1
-  const queryKey = JSON.stringify([endpoint, params, filterParam, search, apiCategory, apiPage, paged, attempt])
+  const queryKey = JSON.stringify([endpoint, params, apiFilter, search, apiPage, paged, attempt])
   const loading = result.key !== queryKey
 
   useEffect(() => {
     const controller = new AbortController()
-    const query = new URLSearchParams({ ...JSON.parse(params), ...(paged ? { page: apiPage, limit: 20 } : {}) })
+    const query = new URLSearchParams({
+      ...JSON.parse(params),
+      ...(paged ? { page: apiPage, limit: 20 } : {}),
+      ...JSON.parse(apiFilter),
+    })
     if (search) query.set('search', search)
-    if (apiCategory !== 'All') query.set(filterParam, apiCategory)
     const qs = query.toString()
     fetch(qs ? `${endpoint}?${qs}` : endpoint, {
       headers: { Authorization: `Bearer ${localStorage.getItem('mavuus_token')}` },
@@ -57,7 +63,7 @@ function useCatalog(endpoint, baseParams, filterParam, { paged, clientFilter }) 
         setResult({ key: queryKey, items: [], totalPages: 1, error: true })
       })
     return () => controller.abort()
-  }, [endpoint, params, filterParam, search, apiCategory, apiPage, paged, queryKey])
+  }, [endpoint, params, apiFilter, search, apiPage, paged, queryKey])
 
   const update = useCallback(
     (changes, options) =>
@@ -87,8 +93,8 @@ function useCatalog(endpoint, baseParams, filterParam, { paged, clientFilter }) 
  *   param the filter goes in, in the page URL and the API, default `category`).
  * - `categories`: the filter chips, strings or { value, label }; "All" is the no-filter default.
  *   None (or one) hides the chips. `filterLabel` names the chip group (default "Category").
- * - `filterItems(items, value)`: filter the loaded page on the client instead of sending the
- *   filter to the API (not called for "All").
+ * - `filterQuery(value)`: the API params for a filter value when they differ from
+ *   `filterParam=value` (Members: `connections` becomes `connections=1`). Not called for "All".
  * - `paged` (default true): send page and limit and show Pagination. False for unpaged APIs.
  * - `intro`, `searchLabel`, `searchPlaceholder`, `listLabel`, `errorTitle`; `emptyTitle` and
  *   `emptyDescription` may be functions of the filter value.
@@ -109,20 +115,19 @@ export function CatalogList({
   emptyDescription = DEFAULT_EMPTY,
   errorTitle,
   filterLabel = 'Category',
-  filterItems,
+  filterQuery,
   paged = true,
   gridClassName = GRID,
   children,
   renderItem,
   skeleton: Skeleton,
 }) {
-  const { items: loaded, loading, error, retry, page, setPage, totalPages, search, category, changeCategory, changeSearch } = useCatalog(
+  const { items, loading, error, retry, page, setPage, totalPages, search, category, changeCategory, changeSearch } = useCatalog(
     endpoint,
     params,
     filterParam,
-    { paged, clientFilter: typeof filterItems === 'function' },
+    { paged, filterQuery },
   )
-  const items = filterItems && category !== 'All' ? filterItems(loaded, category) : loaded
   const options = (categories || []).map(optionOf)
   // The field follows the URL (back, forward, a shared link) and the member's typing.
   const [text, setText] = useState(search)

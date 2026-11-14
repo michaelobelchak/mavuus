@@ -54,22 +54,21 @@ describe('CatalogList', () => {
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
   })
 
-  it('should filter on the client with filterItems and never send the filter to the API', async () => {
+  it('should send the API params filterQuery returns for a filter value', async () => {
     const user = userEvent.setup()
     const fetchMock = renderList({
       filterParam: 'filter',
       filterLabel: 'Filter things',
-      categories: ['All', { value: 'pro', label: 'Pro' }],
-      filterItems: (items, value) => items.filter((item) => item.kind === value),
+      categories: ['All', { value: 'mine', label: 'Mine' }],
+      filterQuery: (value) => (value === 'mine' ? { mine: '1' } : { kind: value }),
     })
     await screen.findByText('Beta')
-    const calls = fetchMock.mock.calls.length
-    await user.click(screen.getByRole('button', { name: 'Pro' }))
-    expect(screen.getByRole('button', { name: 'Pro' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.queryByText('Beta')).not.toBeInTheDocument()
-    expect(screen.getByText('Alpha')).toBeInTheDocument()
-    expect(fetchMock.mock.calls).toHaveLength(calls)
+    expect(lastQuery(fetchMock).has('mine')).toBe(false)
+    await user.click(screen.getByRole('button', { name: 'Mine' }))
+    expect(screen.getByRole('button', { name: 'Mine' })).toHaveAttribute('aria-pressed', 'true')
+    await waitFor(() => expect(lastQuery(fetchMock).get('mine')).toBe('1'))
     expect(lastQuery(fetchMock).has('filter')).toBe(false)
+    expect(lastQuery(fetchMock).get('page')).toBe('1')
     expect(screen.getByRole('group', { name: 'Filter things' })).toBeInTheDocument()
   })
 
@@ -78,11 +77,11 @@ describe('CatalogList', () => {
       {
         filterParam: 'filter',
         categories: ['All', { value: 'pro', label: 'Pro' }],
-        filterItems: () => [],
+        filterQuery: () => ({ kind: 'pro' }),
         emptyTitle: (value) => (value === 'pro' ? 'No pros' : 'No things'),
         emptyDescription: (value) => (value === 'pro' ? 'Nobody went pro yet.' : 'Try again.'),
       },
-      { url: '/things?filter=pro' },
+      { url: '/things?filter=pro', routes: { 'GET /api/things': { data: [], totalPages: 1 } } },
     )
     expect(await screen.findByRole('heading', { name: 'No pros' })).toBeInTheDocument()
     expect(screen.getByText('Nobody went pro yet.')).toBeInTheDocument()

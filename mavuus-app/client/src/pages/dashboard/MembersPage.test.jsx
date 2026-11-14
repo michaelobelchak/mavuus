@@ -92,8 +92,10 @@ describe('MembersPage', () => {
     expect(within(card('Priya Patel')).getByRole('button', { name: 'Connect with Priya Patel' })).toBeInTheDocument()
   })
 
-  it('should show only connections under ?filter=connections, filtered on the client', async () => {
-    const fetchMock = renderPage('/dashboard/members?filter=connections')
+  it('should ask the API for your connections under ?filter=connections and hide the pending requests', async () => {
+    const fetchMock = renderPage('/dashboard/members?filter=connections', {
+      'GET /api/members?page=1&limit=20&connections=1': { data: [members[0]], totalPages: 1 },
+    })
     expect(await screen.findByRole('link', { name: 'Sarah Chen' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Lisa Park' })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: /Pending connection requests/ })).not.toBeInTheDocument()
@@ -102,13 +104,17 @@ describe('MembersPage', () => {
     expect(memberCalls.every(([url]) => !new URL(url, 'http://x').searchParams.has('filter'))).toBe(true)
   })
 
-  it('should filter by tier and say when there are no connections', async () => {
+  it('should send the tier to the API and say when there are no connections', async () => {
     const user = userEvent.setup()
-    renderPage('/dashboard/members', { 'GET /api/connections': [] })
-    await screen.findByRole('link', { name: 'Lisa Park' })
+    const fetchMock = renderPage('/dashboard/members', {
+      'GET /api/members?page=1&limit=20&tier=free': { data: [members[1]], totalPages: 1 },
+      'GET /api/members?page=1&limit=20&connections=1': { data: [], totalPages: 1 },
+    })
+    await screen.findByRole('link', { name: 'Sarah Chen' })
     await user.click(screen.getByRole('button', { name: 'Free' }))
+    await waitFor(() => expect(screen.queryByRole('link', { name: 'Sarah Chen' })).not.toBeInTheDocument())
     expect(screen.getByRole('link', { name: 'Lisa Park' })).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Sarah Chen' })).not.toBeInTheDocument()
+    expect(new URL(fetchMock.mock.calls.filter(([url]) => url.startsWith('/api/members')).at(-1)[0], 'http://x').searchParams.get('tier')).toBe('free')
     await user.click(screen.getByRole('button', { name: 'My Connections' }))
     expect(await screen.findByRole('heading', { name: 'No connections yet' })).toBeInTheDocument()
     expect(screen.getByText('Connect with members to see them here.')).toBeInTheDocument()
