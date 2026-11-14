@@ -53,7 +53,7 @@ Tier 1 primitives (`var(--mv-...)`) never appear outside `tokens/`; CSS in `styl
 
 ## Guards
 
-`npm run guard` runs `npm run lint:ds` and then `npm run check:stories`; CI and `/verify` run it. `lint:ds` (`scripts/lint-design-system.mjs`) scans `src/**/*.{js,jsx,mjs,css}` and the docs under `src/design-system/`, skipping the generated `tokens/` folder and the `@theme` and `:root` blocks of `src/index.css`. Test files only get the dash, layering and remote-asset rules. `index.html`, `.storybook/`, `e2e/` and `scripts/` are scanned for `no-remote-assets` only.
+`npm run guard` runs `npm run lint:ds` and then `npm run check:stories`; CI and `/verify` run it. `lint:ds` (`scripts/lint-design-system.mjs`) scans `src/**/*.{js,jsx,mjs,css}` and the docs under `src/design-system/`, skipping the generated `tokens/` folder and the `@theme` and `:root` blocks of `src/index.css`. Test files only get the dash, layering and remote-asset rules. `index.html`, `.storybook/`, `e2e/`, `scripts/` and the server (`../server`, without `node_modules` and `uploads`) are scanned for `no-remote-assets` only.
 
 | Rule | Severity | Catches |
 |---|---|---|

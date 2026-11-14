@@ -360,6 +360,23 @@ describe('no-remote-assets', () => {
 })
 
 describe('listFiles', () => {
+  it('should also cover the server next to the client, but not its node_modules or uploads', () => {
+    const app = fs.mkdtempSync(path.join(os.tmpdir(), 'lint-ds-app-'))
+    const files = ['client/src/a.jsx', 'server/index.js', 'server/db/seed.js', 'server/routes/auth.js', 'server/tests/auth.test.js', 'server/node_modules/p/a.js', 'server/uploads/avatars/x.js']
+    for (const file of files) {
+      fs.mkdirSync(path.dirname(path.join(app, file)), { recursive: true })
+      fs.writeFileSync(path.join(app, file), '')
+    }
+    expect(listFiles(path.join(app, 'client'))).toEqual(['../server/db/seed.js', '../server/index.js', '../server/routes/auth.js', '../server/tests/auth.test.js', 'src/a.jsx'])
+    fs.rmSync(app, { recursive: true, force: true })
+  })
+
+  it('should flag a remote asset host in a server seed', () => {
+    const avatar = `https://${PRAVATAR_HOST}/150?u=a@b.com`
+    expect(lintSource('../server/db/seed.js', `const users = [['a@b.com', '${avatar}']]\n`).map((v) => v.rule)).toEqual(['no-remote-assets'])
+    expect(lintSource('../server/db/seed.js', "const c = { className: 'bg-[#fff]' }\n")).toEqual([])
+  })
+
   it('should cover src/, index.html, .storybook/, e2e/ and scripts/, but not fixtures, screenshots or node_modules', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'lint-ds-files-'))
     const files = ['src/a.jsx', 'index.html', '.storybook/preview.js', 'e2e/helpers.js', 'e2e/screenshots/x.html', 'scripts/a.mjs', 'scripts/__fixtures__/lint-ds/x.jsx', 'node_modules/p/a.js', 'public/x.js']

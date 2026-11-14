@@ -3,7 +3,8 @@
 //
 // Scans src/**/*.{js,jsx,mjs,css} and the .md/.mdx files under src/design-system/, except the
 // generated src/design-system/tokens/ folder and the @theme and top-level :root blocks of
-// src/index.css. index.html, .storybook/, e2e/ and scripts/ are scanned for no-remote-assets only. JS and JSX go through @babel/parser so only real strings, JSX text and comments
+// src/index.css. index.html, .storybook/, e2e/, scripts/ and ../server are scanned for
+// no-remote-assets only. JS and JSX go through @babel/parser so only real strings, JSX text and comments
 // are checked; CSS uses a small comment-aware scanner. Test files (*.test.*) only get the dash,
 // layering and remote-asset rules, since they build styled fixtures on purpose.
 //
@@ -53,9 +54,10 @@ const TEST_RULES = new Set(['no-em-dash', 'ds-layering', 'no-remote-assets'])
 const REMOTE_HOST = new RegExp(`\\b(?:[a-z0-9-]+\\.)*(?:${BANNED_HOST_SUFFIXES.map((h) => h.replace(/\./g, '\\.')).join('|')})\\b`, 'gi')
 // Outside src/ (index.html, .storybook/, e2e/, scripts/) only the remote-asset rule applies.
 const remoteOnly = (file) => !file.startsWith('src/') || file.endsWith('.html')
-// Folders outside src/ that are scanned for remote assets, and what to skip inside them.
-const EXTRA_DIRS = ['.storybook', 'e2e', 'scripts']
-const SKIP_DIRS = new Set(['node_modules', 'screenshots', '.auth', '__fixtures__'])
+// Folders outside src/ that are scanned for remote assets (../server is the API next to the
+// client: seeds, routes and tests), and what to skip inside them.
+const EXTRA_DIRS = ['.storybook', 'e2e', 'scripts', '../server']
+const SKIP_DIRS = new Set(['node_modules', 'screenshots', '.auth', '__fixtures__', 'uploads'])
 const LONG_CLASS = 120
 const LONG_CLASS_LIMIT = 3
 
