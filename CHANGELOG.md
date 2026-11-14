@@ -233,6 +233,8 @@ All notable changes to the Mavuus project are documented here, organized by phas
 - Fixed on the way: reply avatars in comments rendered at full size (an unsupported legacy size); a resource heading's paragraph rendered inside the heading
 - Tests: a smoke test per page (24 tests) with a shared `test/mockApi.js`; e2e smoke covers the six pages at four widths
 - Lint baseline: 632 errors in 93 files down to 619 in 89
+- Review fixes: the detail pages tell a failed load (error Alert with Try again) from a 404 (not found); below 1024px the Register or Watch Now and info cards come before the comments; past speakers keep a "Pro member" badge; ShareDialog links say they open a new tab; `useComments` has its own tests
+- Top bar (all shell pages): the title stays on one line with an ellipsis and a hover title (it wrapped on phones because the heading's text-balance beat truncate), 18px below 640px, with tighter gaps there and a 256px search box until 1024px
 - E2E guard: `picsum.photos` (12 placeholder covers in the seed) joins `images.unsplash.com` in `PENDING_HOSTS`, pending the owner's OK
 - Dropped on purpose: the "LIVE" pill on home cards and the "View Details" button inside each live session card (the whole card is the link); see MEMORY.md
 

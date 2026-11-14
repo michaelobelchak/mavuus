@@ -165,4 +165,6 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - Every seeded live session date is in the past, so the countdown and registration form never show with seed data; the unit test covers them with a future date.
 - The demo profile is complete, so the home nudge doesn't show for demo@mavuus.com; the unit test covers it.
 - Session and resource detail pages send `PUT /api/sessions/:id/view`, so the read-only smoke run bumps view counts in `db/e2e.db`; harmless, nothing asserts on them.
+- Detail pages put the side cards before the comments in the DOM and use a two-column grid from lg (`grid-cols-[minmax(0,1fr)_auto]`, aside `row-span-2`), instead of `order-*` utilities, so reading and tab order match what phones show.
+- The top bar title wrapped on phones although it had `truncate`: the Heading's `text-balance` set `text-wrap` after `white-space: nowrap`. `text-nowrap` replaces it through tailwind-merge.
 

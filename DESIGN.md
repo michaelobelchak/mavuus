@@ -164,7 +164,7 @@ Headings get `text-balance`. Base `h1` to `h6` rules sit in `@layer base` so uti
 | 1024 to 1279px | 80px icon rail (`w-20`) with tooltips; a toggle expands it, saved in localStorage under `mv.sidebar.collapsed` (only applies in this band) |
 | Below 1024px | Hidden; the top bar's menu button opens it in a left `Sheet` with focus on the active link. Escape or navigation closes it |
 
-The top bar (`AppTopBar`) holds the page title (an h1) or breadcrumbs on the left and search, actions, notifications and the account menu on the right. From 768px the search sits in the bar; below that a Search button opens it in a popover. `/` focuses search.
+The top bar (`AppTopBar`) holds the page title (an h1, one line with an ellipsis and the full text as its `title`, 18px below 640px) or breadcrumbs on the left and search, actions, notifications and the account menu on the right. From 768px the search sits in the bar; below that a Search button opens it in a popover. `/` focuses search.
 
 The document scrolls, not a panel. The sidebar is `sticky top-0 h-dvh` and its nav scrolls on its own when it is longer than the screen (the admin nav); the top bar is sticky at the top of the content column (`z-(--ds-z-sticky)`, white behind it). So phone address bars collapse, tapping the iOS status bar scrolls to the top, Space and Page Down scroll after a sidebar click, and window scroll listeners (BackToTop, ScrollProgress, scroll locks) keep working.
 
