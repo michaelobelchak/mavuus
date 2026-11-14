@@ -1,0 +1,5 @@
+/* Storybook styles: the app CSS plus the classes used only in stories and docs, which
+   src/index.css leaves out of the app's class scan. */
+@import "../src/index.css";
+@source "../src/design-system/**/*.stories.jsx";
+@source "../src/design-system/**/*.mdx";

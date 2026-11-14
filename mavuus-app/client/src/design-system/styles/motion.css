@@ -1,0 +1,75 @@
+/* Design system motion. Imported once from src/index.css and scoped to the whole app.
+   Used by patterns/Reveal (and the older components/live/ui/Reveal, which sets --reveal-delay inline). */
+
+/* Reveal: content is hidden while data-armed is set without data-in, from the first render until it
+   scrolls into view. */
+[data-reveal] {
+  transition-property: opacity, transform, clip-path, filter;
+  transition-duration: var(--ds-duration-reveal);
+  transition-timing-function: var(--ds-easing-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+[data-reveal='rise'][data-armed]:not([data-in]) { opacity: 0; transform: translateY(18px); }
+[data-reveal='fade'][data-armed]:not([data-in]) { opacity: 0; }
+[data-reveal='clip'] { transition-duration: calc(var(--ds-duration-slow) * 2); }
+[data-reveal='clip'][data-armed]:not([data-in]) {
+  clip-path: inset(10% 10% 10% 10% round var(--ds-radius-xl));
+  opacity: 0.4;
+  filter: saturate(0.6);
+}
+
+/* Capped stagger for patterns/Reveal `index`: 70ms per step, 420ms max. One rule per step from 0 to
+   MAX_REVEAL_STEP in patterns/Reveal/revealOptions.js; styles/motion.test.js fails when they drift apart. */
+[data-reveal-step='0'] { --reveal-delay: 0ms; }
+[data-reveal-step='1'] { --reveal-delay: 70ms; }
+[data-reveal-step='2'] { --reveal-delay: 140ms; }
+[data-reveal-step='3'] { --reveal-delay: 210ms; }
+[data-reveal-step='4'] { --reveal-delay: 280ms; }
+[data-reveal-step='5'] { --reveal-delay: 350ms; }
+[data-reveal-step='6'] { --reveal-delay: 420ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    transition-property: opacity;
+    transition-duration: var(--ds-duration-standard);
+    transform: none !important;
+    clip-path: none !important;
+    filter: none !important;
+  }
+}
+
+/* Gentle float for decorative hero art. .live-float is an alias for the public site until it migrates. */
+@keyframes ds-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.ds-float,
+.live-float { animation: ds-float 6s ease-in-out infinite; }
+
+/* Panel fade for tab content (NumberedTabs). */
+@keyframes ds-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ds-animate-fade-in { animation: ds-fade-in var(--ds-duration-slow) var(--ds-easing-out) both; }
+
+/* A short attention pulse (the notifications bell when the count goes up). */
+@keyframes ds-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+.ds-animate-pulse { animation: ds-pulse var(--ds-duration-slow) var(--ds-easing-in-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-float,
+  .live-float,
+  .ds-animate-fade-in,
+  .ds-animate-pulse { animation: none; }
+}
+
+/* Decorative outlined numerals (NumberedTabs big number). Kept here so every design-system CSS rule
+   has one home; aria-hidden content only. */
+@utility text-outline-brand {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--border-brand-subtle);
+}

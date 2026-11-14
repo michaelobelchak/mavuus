@@ -13,14 +13,19 @@ Custom React rebuild of mavuus.com, a B2B community platform for marketing leade
 | Task | Command |
 |---|---|
 | Server dev (port 3001) | `cd mavuus-app/server && npm run dev` |
-| Client dev (port 5173) | `cd mavuus-app/client && npm run dev` |
+| Client dev (port 5173; 5180 in launch.json) | `cd mavuus-app/client && npm run dev` |
 | Client build | `cd mavuus-app/client && npx vite build` |
 | Server tests | `cd mavuus-app/server && npm test` |
 | Client lint | `cd mavuus-app/client && npx eslint . --max-warnings 0` |
+| Client unit tests | `cd mavuus-app/client && npx vitest run` |
+| Design-system guards | `cd mavuus-app/client && npm run guard` (`lint:ds` + `check:stories`) |
+| Regenerate tokens | `cd mavuus-app/client && npm run tokens` (after editing `tokens.json`) |
+| Storybook (port 6006) | `cd mavuus-app/client && npm run storybook` |
+| E2E smoke | `cd mavuus-app/client && npm run e2e` (own API on 3101, Vite on 5181, fresh `db/e2e.db`) |
 | Reset the DB | `cd mavuus-app/server && rm -f db/mavuus.db && node db/seed.js` |
 | Top up demo data only | `cd mavuus-app/server && node db/seed-demo.js` |
 
-Both dev servers are also in `.claude/launch.json` for the preview browser: `mavuus-server` on 3001 and `mavuus-client` pinned to 5180, because other local projects use 5173.
+Both dev servers are also in `.claude/launch.json` for the preview browser: `mavuus-server` on 3001 and `mavuus-client` pinned to 5180, because other local projects use 5173. `storybook` runs on 6006.
 
 Demo login: `demo@mavuus.com` / `demo123` (seeded, admin role, pro plan).
 
@@ -30,13 +35,15 @@ Env: copy `mavuus-app/server/.env.example` to `.env`. Never commit `.env` or rea
 
 ```
 CLAUDE.md, CHANGELOG.md     - this file, and the project changelog
+DESIGN.md                   - the design system map (tokens, components, rules, agent prompts)
 .claude/                    - skills, commands, agents, hooks, settings (settings.local.json is personal and ignored)
 docs/                       - older project plans (historical)
 mavuus-app/
   plans/                    - phase plans and paste-ready prompts (README.md is the index)
   client/src/
     pages/{public,auth,dashboard,admin}/
-    components/{ui,layout,sections}/   - shared UI, exported through components/index.js
+    design-system/          - tokens, primitives, patterns, organisms (AGENTS.md has the rules)
+    components/{ui,layout,sections}/   - legacy shared UI, retired page by page in Phase 8
     context/AuthContext.jsx
     hooks/                  - useApiData, useDocumentTitle, ...
     data/mockData.js
@@ -64,6 +71,7 @@ The process skills live in `.claude/skills/`.
 | Task | Skill |
 |---|---|
 | New feature or behavior change | `brainstorming`, then `writing-plans` |
+| Any UI work (pages, components, styles, UI copy) | `mavuus-design-system` |
 | Running a written plan | `executing-plans` or `subagent-driven-development` |
 | Bug or broken behavior | `systematic-debugging` |
 | Writing tests first | `test-driven-development` |
@@ -75,18 +83,20 @@ The process skills live in `.claude/skills/`.
 ## Definition of done
 
 - [ ] `npx vite build` passes in client and `npm test` passes in server
-- [ ] `npx eslint . --max-warnings 0` passes in client (CI runs lint, build, and server tests on every PR)
+- [ ] `npx eslint . --max-warnings 0`, `npx vitest run` and `npm run guard` pass in client (CI runs these, the build, server tests and e2e on every PR)
+- [ ] New design-system components have a story, a test and a barrel export; `npm run build-storybook` passes
+- [ ] Page changes pass `npm run e2e`
 - [ ] UI changes checked in the browser, including mobile width
 - [ ] Schema changes reflected in `seed.js` and `seed-demo.js`, and the DB reset still works
 - [ ] `CHANGELOG.md` and `MEMORY.md` entries added, plan status updated
 
 ## Conventions
 
-- Brand: pink `#F26D92`, blue `#1F648D`, dark blue `#1C2232`. Use the `@theme` tokens in `client/src/index.css` (`bg-brand-pink`, `text-dark-blue`, `text-live-grey`, ...), not raw hex values.
-- Public website (`pages/public/`, inside `PublicLayout`) keeps live mavuus.com's content, brand and structure but follows one design system: Fixel Text, `.live-site` typography in `index.css`, and the shared cards, buttons, labels, headings, sections and motion in `components/live/` (see `mavuus-app/plans/PUBLIC-DESIGN-SYSTEM.md`). Reuse those parts instead of styling one-offs. Static content lives in `data/live/`; images still load from the live Webflow CDN. The dashboard and admin use Manrope.
+- One design system for the site, dashboard and admin, with Fixel Text everywhere: `client/src/design-system/` (map in `DESIGN.md`, rules in its `AGENTS.md`). New UI uses it: components from `@/design-system/<tier>` and role token classes (`bg-surface-raised`, `text-text-secondary`, `p-ds-lg`, `rounded-card`), never raw hex or arbitrary px.
+- Until Phase 8 migrates them, legacy pages keep their current styling: the public site (`pages/public/`) uses `components/live/` and `.live-site` typography, the dashboard and admin use `components/ui/` and the `@theme` aliases in `index.css`. Don't restyle a legacy page piecemeal; move it onto the system. Static content lives in `data/live/`; images still load from the live Webflow CDN.
+- Brand: pink `#F26D92`, blue `#1F648D`, dark blue `#1C2232`, all as tokens in `design-system/tokens/tokens.json`.
 - Brand pink `#F26D92` stays as is (owner decision, see MEMORY.md), so never put essential small text in pink on its own; focus rings are navy.
-- Buttons: 16px radius for CTAs, `rounded-full` for filter pills.
-- Reuse components in `components/ui` before building new ones.
+- Buttons and filter pills come from the design system (`Button`, `Chip`). Check `DESIGN.md` section 10 before building anything new.
 - Server: validate input with `middleware/validate.js`, use parameterized SQL only, and guard member routes with `middleware/auth.js` and admin routes with `middleware/admin.js`.
 - Writing: American English, no em or en dashes (use a hyphen), plain and direct copy.
 - Git: feature branches only (`feat/`, `fix/`, `chore/`, `docs/`), conventional commits (`<type>(<scope>): <summary>`), one logical change per commit. Never force push, reset --hard, or push to `main`.

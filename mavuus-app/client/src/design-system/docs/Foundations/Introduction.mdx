@@ -1,0 +1,42 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="Foundations/Introduction" />
+
+# Mavuus design system
+
+One system for the whole product: the public site, the member dashboard and the admin panel. It lives in `mavuus-app/client/src/design-system/` and every page builds on it instead of styling things from scratch.
+
+## Tiers
+
+Tokens come in three tiers. Components only use tier 3.
+
+| Tier | Holds | Example |
+|---|---|---|
+| 1 Primitives | Raw values: color ramps, sizes, the font family | `--mv-color-pink-500` |
+| 2 Aliases | Scales: space, radius, type, shadow, motion, z-index | `--ds-space-lg` |
+| 3 Roles | What a value is for: surfaces, text, borders, status, chart | `--surface-raised` |
+
+Components come in tiers too:
+
+- **Primitives** (`primitives/`): single controls and text, like Button, Input, Badge, Avatar and Typography.
+- **Patterns** (`patterns/`): compositions of primitives, like Card, Dialog, DataTable, FormField and ChartCard. Patterns never import organisms.
+- **Organisms** (`organisms/<domain>/`): product sections such as the app shell and site header, built from patterns.
+
+## How to use it
+
+Import components from the tier barrels:
+
+```jsx
+import { Button, Heading, Text } from '@/design-system/primitives'
+import { Card, PageHeader } from '@/design-system/patterns'
+```
+
+Style with token classes only: `bg-surface-raised`, `text-text-secondary`, `p-ds-lg`, `rounded-card`, `text-body`, `shadow-card`. No hex values and no arbitrary px values. Charts and other JS read values from `tokens/tokens.js`.
+
+Tokens are defined in `tokens/tokens.json`. Run `npm run tokens` after editing it; the drift test fails when the generated files are stale.
+
+## Rules
+
+The full conventions (variants and tones, sizes, icons, links, fields, overlays, motion, tables and charts) are in `mavuus-app/client/src/design-system/README.md`. Read it before adding or changing a component. Every component folder needs a story; `npm run check:stories` checks that.
+
+The pages under Foundations render straight from `tokens.js`, so they always match the code.

@@ -113,7 +113,7 @@ export default function RegisterPage() {
   const next = () => setSlide((s) => (s + 1) % testimonialSlides.length)
 
   return (
-    <div className="min-h-screen flex bg-bg-light font-[Manrope]">
+    <div className="min-h-screen flex bg-bg-light font-sans">
       {/* ─── Left Panel ─────────────────────────────────────────── */}
       <aside
         className="hidden lg:flex lg:w-[55%] bg-[#79A2BB] text-white flex-col relative overflow-hidden"

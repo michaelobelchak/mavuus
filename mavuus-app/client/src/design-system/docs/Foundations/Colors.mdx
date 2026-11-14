@@ -1,0 +1,40 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import { ColorGroup } from '../components/FoundationBlocks'
+
+<Meta title="Foundations/Colors" />
+
+# Colors
+
+Use role tokens, never the raw ramps. Each role has a Tailwind class: `bg-surface-*`, `text-text-*`, `border-border-*`, `bg-status-*` and `text-status-*`, `*-chart-*`.
+
+## Surface
+
+Backgrounds for the page, cards, overlays and brand areas.
+
+<ColorGroup prefix="surface-" />
+
+## Text
+
+The ratio is against white. Body text needs AA (4.5:1). `text-brand` is decorative (Eyebrow accent only), so the heading next to it must carry the meaning. `text-on-brand` is for brand and inverse surfaces, so its ratio on white does not apply. `text-faint` and `text-disabled` are for placeholder and disabled states only.
+
+<ColorGroup prefix="text-" showContrast />
+
+## Border
+
+<ColorGroup prefix="border-" />
+
+## Status
+
+Solid status colors are for text and icons; the `-subtle` colors are their backgrounds.
+
+<ColorGroup prefix="status-" showContrast />
+
+## Chart
+
+Series 1 to 6 in order, plus grid, axis and tooltip colors. Charts read these from `chartColors` and `tokens` in `tokens.js`.
+
+<ColorGroup prefix="chart-" />
+
+## Gradient
+
+<ColorGroup prefix="gradient-" />

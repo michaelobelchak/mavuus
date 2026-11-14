@@ -64,7 +64,7 @@ export function SignUpLink({ count, noun }) {
   return (
     <Link
       to="/register"
-      className="group inline-flex min-h-11 shrink-0 items-center gap-2 text-base leading-6 font-medium whitespace-nowrap text-dark-blue no-underline transition-colors duration-300 hover:text-brand-pink"
+      className="group inline-flex min-h-11 shrink-0 items-center gap-2 text-base leading-6 font-medium sm:whitespace-nowrap text-dark-blue no-underline transition-colors duration-300 hover:text-brand-pink"
     >
       <span>
         Sign Up to get access to all <span className="text-brand-pink">{count}</span> {noun}

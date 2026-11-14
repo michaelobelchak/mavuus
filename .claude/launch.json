@@ -15,6 +15,14 @@
       "runtimeArgs": ["run", "dev"],
       "port": 3001,
       "cwd": "mavuus-app/server"
+    },
+    {
+      "name": "storybook",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "storybook", "--", "--no-open"],
+      "port": 6006,
+      "autoPort": false,
+      "cwd": "mavuus-app/client"
     }
   ]
 }

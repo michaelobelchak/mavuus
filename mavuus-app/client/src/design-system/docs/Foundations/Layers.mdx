@@ -1,0 +1,10 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import { LayerList } from '../components/FoundationBlocks'
+
+<Meta title="Foundations/Layers" />
+
+# Layers
+
+Layered UI uses the z-index tokens through `z-(--ds-z-*)`, never literal numbers. Menus and selects sit above dialogs so they can open inside one; tooltips sit above popovers; toasts are on top. `tokens/zOrder.test.js` guards the order.
+
+<LayerList />

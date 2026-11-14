@@ -1,0 +1,17 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import { MotionTokens } from '../components/FoundationBlocks'
+
+<Meta title="Foundations/Motion" />
+
+# Motion
+
+Motion explains a change; it never decorates. Use the duration and easing tokens instead of literal values: `ease-enter` for things arriving, `ease-exit` for things leaving, `ease-move` for things moving on screen.
+
+<MotionTokens />
+
+## Reduced motion
+
+- Every animation or transition that moves things gets `motion-reduce:` handling.
+- Scroll reveals use `patterns/Reveal`. With reduced motion, the `[data-reveal]` rules in `styles/motion.css` fall back to a short opacity fade with no transform, clip or filter.
+- JS that depends on the preference reads `useReducedMotion()` from `hooks/`. Charts and CountUp turn their animation off with it.
+- Stagger is capped: 70ms per step, 420ms at most.
