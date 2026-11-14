@@ -82,6 +82,34 @@ describe('MembersPage', () => {
     expect(within(card('Priya Patel')).getByRole('link', { name: 'Message Priya Patel' })).toBeInTheDocument()
   })
 
+  it('should keep each pending request busy on its own while several are answered', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(toast, 'success').mockImplementation(() => {})
+    const fetchMock = renderPage('/dashboard/members', {
+      'GET /api/connections/pending': {
+        incoming: [...pending.incoming, { id: 23, user_id: 2, name: 'Lisa Park', title: 'VP Demand Gen', company: 'Notion' }],
+        outgoing: pending.outgoing,
+      },
+    })
+    const answers = {}
+    const routes = fetchMock.getMockImplementation()
+    fetchMock.mockImplementation((url, init) => {
+      const held = /^\/api\/connections\/(\d+)\/(accept|decline)$/.exec(url)
+      if (!held) return routes(url, init)
+      return new Promise((resolve) => (answers[held[1]] = () => resolve({ ok: true, status: 200, json: async () => ({}) })))
+    })
+    const requests = await screen.findByRole('region', { name: 'Pending connection requests (2)' })
+    await user.click(within(requests).getByRole('button', { name: 'Accept Priya Patel' }))
+    await user.click(within(requests).getByRole('button', { name: 'Decline Lisa Park' }))
+    expect(within(requests).getByRole('button', { name: 'Accept Priya Patel' })).toHaveAttribute('aria-busy', 'true')
+    expect(within(requests).getByRole('button', { name: 'Decline Lisa Park' })).toHaveAttribute('aria-busy', 'true')
+    await user.click(within(requests).getByRole('button', { name: 'Accept Priya Patel' }))
+    expect(fetchMock.mock.calls.filter(([url]) => url === '/api/connections/21/accept')).toHaveLength(1)
+    answers[21]()
+    await waitFor(() => expect(within(requests).queryByRole('button', { name: 'Accept Priya Patel' })).not.toBeInTheDocument())
+    expect(within(requests).getByRole('button', { name: 'Decline Lisa Park' })).toHaveAttribute('aria-busy', 'true')
+  })
+
   it('should decline a pending request', async () => {
     const user = userEvent.setup()
     const info = vi.spyOn(toast, 'info').mockImplementation(() => {})

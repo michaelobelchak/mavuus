@@ -9,6 +9,12 @@ import { MEMBERS_PATH, MESSAGES_PATH } from './shared/paths'
 
 const FILTERS = [{ value: 'connections', label: 'My Connections' }, 'All', { value: 'pro', label: 'Pro' }, { value: 'free', label: 'Free' }]
 
+// Headers for the connection requests: the token, and a JSON body type when there is a body.
+const authHeaders = (token, { json = false } = {}) => ({
+  Authorization: `Bearer ${token}`,
+  ...(json ? { 'Content-Type': 'application/json' } : {}),
+})
+
 // The chips as /api/members params: your connections, or a membership tier.
 const filterQuery = (value) => (value === 'connections' ? { connections: '1' } : { tier: value })
 
@@ -30,7 +36,7 @@ function useConnections(token) {
   useEffect(() => {
     if (!token) return
     const controller = new AbortController()
-    const headers = { Authorization: `Bearer ${token}` }
+    const headers = authHeaders(token)
     Promise.all([
       fetch('/api/connections', { headers, signal: controller.signal }),
       fetch('/api/connections/pending', { headers, signal: controller.signal }),
@@ -73,10 +79,8 @@ export default function MembersPage() {
   const filter = searchParams.get('filter') || 'All'
   const { connections, setConnections, pendingIncoming, setPendingIncoming } = useConnections(token)
   const [connectingIds, setConnectingIds] = useState(() => new Set())
-  // The pending request being accepted or declined: { id, action }.
-  const [answering, setAnswering] = useState(null)
-
-  const json = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+  // Pending requests being answered: request id -> 'accept' or 'decline'.
+  const [answering, setAnswering] = useState(() => new Map())
 
   const handleConnect = useCallback(
     async (memberId) => {
@@ -84,7 +88,7 @@ export default function MembersPage() {
       try {
         const res = await fetch('/api/connections/request', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          headers: authHeaders(token, { json: true }),
           body: JSON.stringify({ userId: memberId }),
         })
         if (res.ok) {
@@ -108,9 +112,10 @@ export default function MembersPage() {
   )
 
   const answer = async (request, action) => {
-    setAnswering({ id: request.id, action })
+    if (answering.has(request.id)) return
+    setAnswering((prev) => new Map(prev).set(request.id, action))
     try {
-      const res = await fetch(`/api/connections/${request.id}/${action}`, { method: 'PUT', headers: json })
+      const res = await fetch(`/api/connections/${request.id}/${action}`, { method: 'PUT', headers: authHeaders(token, { json: true }) })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       setPendingIncoming((prev) => prev.filter((p) => p.id !== request.id))
       if (action === 'accept') {
@@ -127,7 +132,11 @@ export default function MembersPage() {
     } catch {
       toast.error(action === 'accept' ? 'Failed to accept' : 'Failed to decline')
     } finally {
-      setAnswering(null)
+      setAnswering((prev) => {
+        const next = new Map(prev)
+        next.delete(request.id)
+        return next
+      })
     }
   }
 
@@ -180,8 +189,8 @@ export default function MembersPage() {
                   to={`${MEMBERS_PATH}/${request.user_id}`}
                   onAccept={() => answer(request, 'accept')}
                   onDecline={() => answer(request, 'decline')}
-                  accepting={answering?.id === request.id && answering.action === 'accept'}
-                  declining={answering?.id === request.id && answering.action === 'decline'}
+                  accepting={answering.get(request.id) === 'accept'}
+                  declining={answering.get(request.id) === 'decline'}
                   announce={false}
                 />
               </li>
