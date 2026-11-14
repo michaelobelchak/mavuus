@@ -10,12 +10,14 @@ async function requestImage(page, src) {
   // The test never needs the real file: answer outside requests here (the offline project has
   // already aborted them by then).
   await page.route((url) => url.hostname !== 'localhost', (route) => route.abort('blockedbyclient').catch(() => {}))
+  const requested = page.waitForRequest(src)
   await page.evaluate((url) => {
     const img = document.createElement('img')
     img.src = url
     document.body.append(img)
   }, src)
-  await page.waitForTimeout(300)
+  // watchPage's listener was added first, so it has seen the request by the time this resolves.
+  await requested
 }
 
 test.describe('public pages: third-party guard', () => {
