@@ -140,7 +140,7 @@ export function AppTopBar({
   return (
     <header
       ref={ref}
-      className={cn('flex min-h-20 shrink-0 items-center gap-ds-xs px-ds-md py-ds-sm sm:gap-ds-md lg:px-ds-xl', className)}
+      className={cn('flex min-h-20 shrink-0 items-center gap-ds-xxs px-ds-sm py-ds-sm sm:gap-ds-md sm:px-ds-md lg:px-ds-xl', className)}
       {...props}
     >
       {onOpenNav && (
@@ -158,13 +158,22 @@ export function AppTopBar({
       <div className="flex min-w-0 grow flex-col gap-ds-xxs">
         {breadcrumbs?.length > 0 && <Breadcrumbs items={breadcrumbs} />}
         {title && (
-          <Heading ref={titleRef} tabIndex={-1} level={1} size="h3" className="m-ds-none truncate">
+          // One line with an ellipsis (text-nowrap beats the heading's text-balance); the full title
+          // stays in the text for screen readers and in `title` for a hover. A step smaller below sm.
+          <Heading
+            ref={titleRef}
+            tabIndex={-1}
+            level={1}
+            size="h3"
+            title={typeof title === 'string' ? title : undefined}
+            className="m-ds-none truncate text-nowrap max-sm:text-h4"
+          >
             {title}
           </Heading>
         )}
       </div>
       {search && wideSearch && (
-        <div ref={searchBoxRef} className="w-full max-w-sm">
+        <div ref={searchBoxRef} className="w-full max-w-64 lg:max-w-sm">
           {search}
         </div>
       )}

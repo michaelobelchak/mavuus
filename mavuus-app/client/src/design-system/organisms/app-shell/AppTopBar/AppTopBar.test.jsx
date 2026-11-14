@@ -29,6 +29,14 @@ describe('AppTopBar', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Jobs' })).toBeInTheDocument()
   })
 
+  it('should keep a long title on one line with an ellipsis, the full text in its name and title', () => {
+    renderBar({ title: 'Recommendations and referrals' })
+    const heading = screen.getByRole('heading', { level: 1, name: 'Recommendations and referrals' })
+    expect(heading).toHaveClass('truncate', 'text-nowrap')
+    expect(heading).not.toHaveClass('text-balance')
+    expect(heading).toHaveAttribute('title', 'Recommendations and referrals')
+  })
+
   it('should render breadcrumbs above the title when given', () => {
     renderBar({ breadcrumbs: [{ label: 'Users', to: '/admin/users' }, { label: 'Ada Lovelace' }] })
     expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument()
