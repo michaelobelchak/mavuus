@@ -42,6 +42,13 @@ describe('CatalogList', () => {
     expect(lastQuery(fetchMock).get('type')).toBe('Guide')
   })
 
+  it('should treat a filter value it does not offer as All', async () => {
+    const fetchMock = renderList({}, { url: '/things?category=Bogus' })
+    await screen.findByText('Alpha')
+    expect(lastQuery(fetchMock).has('category')).toBe(false)
+    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('should leave out page, limit and the pagination when paged is false', async () => {
     const fetchMock = renderList(
       { paged: false, categories: undefined },

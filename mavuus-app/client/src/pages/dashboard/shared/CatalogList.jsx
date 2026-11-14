@@ -22,10 +22,12 @@ const forFilter = (copy, value) => (typeof copy === 'function' ? copy(value) : c
  * instead of adding one. Without `paged`, no page or limit goes to the API. Accepts `{ data, totalPages }` or a plain
  * array; anything else is an empty list. A new query aborts the request before it.
  */
-function useCatalog(endpoint, baseParams, filterParam, { paged, filterQuery }) {
+function useCatalog(endpoint, baseParams, filterParam, { paged, filterQuery, filterValues }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const search = searchParams.get('q') || ''
-  const category = searchParams.get(filterParam) || 'All'
+  // A value the chips don't offer (an old or edited link) counts as All.
+  const requested = searchParams.get(filterParam) || 'All'
+  const category = filterValues.includes(requested) ? requested : 'All'
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
   const [result, setResult] = useState({ key: null, items: [], totalPages: 1, error: false })
   const [attempt, setAttempt] = useState(0)
@@ -122,13 +124,13 @@ export function CatalogList({
   renderItem,
   skeleton: Skeleton,
 }) {
+  const options = (categories || []).map(optionOf)
   const { items, loading, error, retry, page, setPage, totalPages, search, category, changeCategory, changeSearch } = useCatalog(
     endpoint,
     params,
     filterParam,
-    { paged, filterQuery },
+    { paged, filterQuery, filterValues: options.map((option) => option.value) },
   )
-  const options = (categories || []).map(optionOf)
   // The field follows the URL (back, forward, a shared link) and the member's typing.
   const [text, setText] = useState(search)
   const [shownSearch, setShownSearch] = useState(search)
