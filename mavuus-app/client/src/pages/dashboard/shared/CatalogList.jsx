@@ -6,16 +6,23 @@ import { Button, Chip, Text } from '@/design-system/primitives'
 
 const NO_PARAMS = {}
 const GRID = 'grid grid-cols-1 gap-ds-md sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4'
+const DEFAULT_EMPTY = 'Try adjusting your search or filters.'
+
+// A filter option is "All" (the default, no filter) or { value, label }; a plain string is both.
+const optionOf = (option) => (typeof option === 'string' ? { value: option, label: option } : option)
+// Copy that may depend on the filter: a string, or a function of the filter value.
+const forFilter = (copy, value) => (typeof copy === 'function' ? copy(value) : copy)
 
 /**
  * Loads one page of a catalog list (`/api/sessions?type=live`, `/api/resources`) with search, a
  * filter and paging, all kept in the page URL (`?q=`, `?<filterParam>=`, `?page=`) so back,
  * forward and shared links restore them. The filter goes to the API as `filterParam` (left out
- * for "All"). Changing the search or the filter goes back to page 1; typing replaces the history
- * entry instead of adding one. Accepts `{ data, totalPages }` or a plain array; anything else is
- * an empty list. A new query aborts the request before it.
+ * for "All"; never with `clientFilter`, when the page filters the loaded items itself). Changing the
+ * search or the filter goes back to page 1; typing replaces the history entry instead of adding
+ * one. Without `paged`, no page or limit goes to the API. Accepts `{ data, totalPages }` or a plain
+ * array; anything else is an empty list. A new query aborts the request before it.
  */
-function useCatalog(endpoint, baseParams, filterParam) {
+function useCatalog(endpoint, baseParams, filterParam, { paged, clientFilter }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const search = searchParams.get('q') || ''
   const category = searchParams.get(filterParam) || 'All'
@@ -23,15 +30,18 @@ function useCatalog(endpoint, baseParams, filterParam) {
   const [result, setResult] = useState({ key: null, items: [], totalPages: 1, error: false })
   const [attempt, setAttempt] = useState(0)
   const params = JSON.stringify(baseParams)
-  const queryKey = JSON.stringify([endpoint, params, filterParam, search, category, page, attempt])
+  const apiCategory = clientFilter ? 'All' : category
+  const apiPage = paged ? page : 1
+  const queryKey = JSON.stringify([endpoint, params, filterParam, search, apiCategory, apiPage, paged, attempt])
   const loading = result.key !== queryKey
 
   useEffect(() => {
     const controller = new AbortController()
-    const query = new URLSearchParams({ ...JSON.parse(params), page, limit: 20 })
+    const query = new URLSearchParams({ ...JSON.parse(params), ...(paged ? { page: apiPage, limit: 20 } : {}) })
     if (search) query.set('search', search)
-    if (category !== 'All') query.set(filterParam, category)
-    fetch(`${endpoint}?${query}`, {
+    if (apiCategory !== 'All') query.set(filterParam, apiCategory)
+    const qs = query.toString()
+    fetch(qs ? `${endpoint}?${qs}` : endpoint, {
       headers: { Authorization: `Bearer ${localStorage.getItem('mavuus_token')}` },
       signal: controller.signal,
     })
@@ -47,7 +57,7 @@ function useCatalog(endpoint, baseParams, filterParam) {
         setResult({ key: queryKey, items: [], totalPages: 1, error: true })
       })
     return () => controller.abort()
-  }, [endpoint, params, filterParam, search, category, page, queryKey])
+  }, [endpoint, params, filterParam, search, apiCategory, apiPage, paged, queryKey])
 
   const update = useCallback(
     (changes, options) =>
@@ -70,12 +80,20 @@ function useCatalog(endpoint, baseParams, filterParam) {
 }
 
 /**
- * The shared body of the Live Sessions, On-Demand and Resources pages: an intro line, a search
- * field and category chips, then a grid of cards with skeletons, an empty state, an error with
- * Try again and pagination.
- * - `endpoint`, `params` (fixed query params, like { type: 'live' }), `categories` (the first is
- *   "All"), `filterParam` (the query param the filter goes in, default `category`).
- * - `intro`, `searchLabel`, `searchPlaceholder`, `listLabel`, `emptyTitle`.
+ * The shared body of the dashboard lists (Live Sessions, On-Demand, Resources, Speakers, Members,
+ * Vendors): an intro line, a search field and filter chips, then a grid of cards with skeletons,
+ * an empty state, an error with Try again and pagination.
+ * - `endpoint`, `params` (fixed query params, like { type: 'live' }), `filterParam` (the query
+ *   param the filter goes in, in the page URL and the API, default `category`).
+ * - `categories`: the filter chips, strings or { value, label }; "All" is the no-filter default.
+ *   None (or one) hides the chips. `filterLabel` names the chip group (default "Category").
+ * - `filterItems(items, value)`: filter the loaded page on the client instead of sending the
+ *   filter to the API (not called for "All").
+ * - `paged` (default true): send page and limit and show Pagination. False for unpaged APIs.
+ * - `intro`, `searchLabel`, `searchPlaceholder`, `listLabel`, `errorTitle`; `emptyTitle` and
+ *   `emptyDescription` may be functions of the filter value.
+ * - `children`: shown between the intro and the search (a pending requests list).
+ * - `gridClassName` replaces the grid columns (a page with a side panel needs fewer).
  * - `renderItem(item)` returns the card; `skeleton` is the card's Skeleton component.
  */
 export function CatalogList({
@@ -88,15 +106,24 @@ export function CatalogList({
   searchPlaceholder,
   listLabel,
   emptyTitle,
+  emptyDescription = DEFAULT_EMPTY,
   errorTitle,
+  filterLabel = 'Category',
+  filterItems,
+  paged = true,
+  gridClassName = GRID,
+  children,
   renderItem,
   skeleton: Skeleton,
 }) {
-  const { items, loading, error, retry, page, setPage, totalPages, search, category, changeCategory, changeSearch } = useCatalog(
+  const { items: loaded, loading, error, retry, page, setPage, totalPages, search, category, changeCategory, changeSearch } = useCatalog(
     endpoint,
     params,
     filterParam,
+    { paged, clientFilter: typeof filterItems === 'function' },
   )
+  const items = filterItems && category !== 'All' ? filterItems(loaded, category) : loaded
+  const options = (categories || []).map(optionOf)
   // The field follows the URL (back, forward, a shared link) and the member's typing.
   const [text, setText] = useState(search)
   const [shownSearch, setShownSearch] = useState(search)
@@ -116,7 +143,7 @@ export function CatalogList({
   let body
   if (loading) {
     body = (
-      <ul aria-busy="true" aria-label={listLabel} className={GRID}>
+      <ul aria-busy="true" aria-label={listLabel} className={gridClassName}>
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <li key={i}>
             <Skeleton announce={false} />
@@ -138,16 +165,23 @@ export function CatalogList({
       />
     )
   } else if (items.length === 0) {
-    body = <EmptyState icon={SearchX} title={emptyTitle} description="Try adjusting your search or filters." headingLevel={2} />
+    body = (
+      <EmptyState
+        icon={SearchX}
+        title={forFilter(emptyTitle, category)}
+        description={forFilter(emptyDescription, category)}
+        headingLevel={2}
+      />
+    )
   } else {
     body = (
       <>
-        <ul aria-label={listLabel} className={GRID}>
+        <ul aria-label={listLabel} className={gridClassName}>
           {items.map((item) => (
             <li key={item.id}>{renderItem(item)}</li>
           ))}
         </ul>
-        <Pagination page={page} pageCount={totalPages} onPageChange={goToPage} className="self-center" />
+        {paged && <Pagination page={page} pageCount={totalPages} onPageChange={goToPage} className="self-center" />}
       </>
     )
   }
@@ -155,6 +189,7 @@ export function CatalogList({
   return (
     <div ref={topRef} className="flex flex-col gap-ds-lg">
       <Text tone="secondary">{intro}</Text>
+      {children}
       <div className="flex flex-col gap-ds-md lg:flex-row lg:items-center">
         <div className="w-full lg:max-w-sm lg:shrink-0">
           <SearchInput
@@ -165,13 +200,15 @@ export function CatalogList({
             onSearch={changeSearch}
           />
         </div>
-        <div role="group" aria-label="Category" className="flex flex-wrap gap-ds-xs">
-          {categories.map((name) => (
-            <Chip key={name} selected={category === name} onClick={() => changeCategory(name)}>
-              {name}
-            </Chip>
-          ))}
-        </div>
+        {options.length > 1 && (
+          <div role="group" aria-label={filterLabel} className="flex flex-wrap gap-ds-xs">
+            {options.map(({ value, label }) => (
+              <Chip key={value} selected={category === value} onClick={() => changeCategory(value)}>
+                {label}
+              </Chip>
+            ))}
+          </div>
+        )}
       </div>
       {body}
     </div>

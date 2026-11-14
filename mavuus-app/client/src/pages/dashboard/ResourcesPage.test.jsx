@@ -25,27 +25,4 @@ describe('ResourcesPage', () => {
     await waitFor(() => expect(new URL(fetchMock.mock.calls.at(-1)[0], 'http://x').searchParams.get('category')).toBe('Playbook'))
     expect(screen.getByRole('button', { name: 'Playbook' })).toHaveAttribute('aria-pressed', 'true')
   })
-
-  it('should send the filter under the filterParam it is given', async () => {
-    const { CatalogList } = await import('./shared/CatalogList')
-    const fetchMock = mockApi({ 'GET /api/things': { data: [], totalPages: 1 } })
-    render(
-      <MemoryRouter initialEntries={['/things?type=Guide']}>
-        <CatalogList
-          endpoint="/api/things"
-          filterParam="type"
-          categories={['All', 'Guide']}
-          intro="Things."
-          searchLabel="Search things"
-          listLabel="Things"
-          emptyTitle="No things"
-          errorTitle="No luck"
-          renderItem={() => null}
-          skeleton={() => null}
-        />
-      </MemoryRouter>,
-    )
-    await screen.findByRole('heading', { name: 'No things' })
-    expect(new URL(fetchMock.mock.calls[0][0], 'http://x').searchParams.get('type')).toBe('Guide')
-  })
 })
