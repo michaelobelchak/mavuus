@@ -148,6 +148,21 @@ const connTotal = db.prepare(
 ).get(demoId, demoId).c
 console.log(`  ✓ Connections ensured (${connTotal} total: ~${connAccepted} accepted, ~${connPending} pending)`)
 
+// One member who shows their profile to connections only and isn't connected to demo, so the
+// limited profile view (privacy rules on /api/members/:id/profile) has seeded data.
+const limitedMember = db.prepare('SELECT id FROM users WHERE email = ?').get('rachel@asana.com')
+const limitedConnected =
+  limitedMember &&
+  db.prepare('SELECT 1 FROM connections WHERE (requester_id = ? AND receiver_id = ?) OR (requester_id = ? AND receiver_id = ?)')
+    .get(demoId, limitedMember.id, limitedMember.id, demoId)
+if (limitedMember && !limitedConnected) {
+  db.prepare(
+    `INSERT INTO user_profiles (user_id, profile_visibility) VALUES (?, 'connections')
+     ON CONFLICT(user_id) DO UPDATE SET profile_visibility = 'connections'`
+  ).run(limitedMember.id)
+  console.log(`  ✓ Profile visibility set to connections for user ${limitedMember.id}`)
+}
+
 // ─── 6. Conversations + messages ─────────────────────────────
 // Create a handful of conversations if demo has none. Idempotent by checking existing.
 const existingConvs = db.prepare(
