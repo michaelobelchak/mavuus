@@ -17,7 +17,7 @@ import { dbPath } from '../config.js'
 import { readFileSync } from 'fs'
 import { healRemoteAvatars } from './healAvatars.js'
 import { ensureVendorOwners } from './vendorOwners.js'
-import { dedupeVendorReviews } from './vendorReviews.js'
+import { dedupeVendorReviews, seedVendorReviews } from './vendorReviews.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // DB_PATH is relative to the server folder (e2e uses db/e2e.db); the default is db/mavuus.db.
@@ -171,6 +171,9 @@ if (limitedMember && !limitedConnected) {
 // Vendor owner accounts (older databases seeded their vendors without one).
 const vendorsLinked = ensureVendorOwners(db, bcrypt.hashSync(DEMO_PASSWORD, 10))
 if (vendorsLinked > 0) console.log(`  ✓ Linked ${vendorsLinked} vendor(s) to owner accounts`)
+// Real review rows for every vendor, written to the owners, and ratings recalculated from them.
+const vendorReviewsAdded = seedVendorReviews(db)
+console.log(`  ✓ Vendor reviews ensured (${vendorReviewsAdded} added), ratings recalculated`)
 
 // ─── 6. Conversations + messages ─────────────────────────────
 // Create a handful of conversations if demo has none. Idempotent by checking existing.

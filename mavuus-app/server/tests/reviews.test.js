@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import request from 'supertest'
 import { createTestApp, generateTestToken } from './setup.js'
 import { ensureVendorOwners } from '../db/vendorOwners.js'
-import { dedupeVendorReviews } from '../db/vendorReviews.js'
+import { dedupeVendorReviews, seedVendorReviews } from '../db/vendorReviews.js'
 
 let app, db, alice, bob, ownerId, ownerToken
 
@@ -87,6 +87,25 @@ describe('seeded vendor reviews', () => {
     expect(dedupeVendorReviews(fresh)).toBe(1)
     expect(fresh.prepare('SELECT id FROM reviews').all()).toEqual([{ id: 10 }])
     expect(dedupeVendorReviews(fresh)).toBe(0)
+    fresh.close()
+  })
+
+  it('should seed review rows for the owners, repoint old ones and recompute ratings from rows', () => {
+    const fresh = createTestApp().db
+    const users = fresh.prepare('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)')
+    for (const email of ['sarah@techflow.com', 'lisa@notion.com', 'tom@datadog.com', 'rachel@asana.com']) users.run(email, 'x', email)
+    fresh.prepare("INSERT INTO vendors (id, company_name, rating, reviews_count) VALUES (1, 'ContentPro Agency', 4.9, 18)").run()
+    ensureVendorOwners(fresh, 'x')
+    const owner = fresh.prepare('SELECT user_id FROM vendors WHERE id = 1').get().user_id
+    // An old seeded vendor review written to someone else (the demo user).
+    fresh.prepare('INSERT INTO reviews (reviewer_id, reviewee_id, vendor_id, rating) VALUES (3, 2, 1, 4)').run()
+    expect(seedVendorReviews(fresh)).toBe(3)
+    expect(seedVendorReviews(fresh)).toBe(0)
+    const rows = fresh.prepare('SELECT reviewee_id, rating FROM reviews WHERE vendor_id = 1').all()
+    expect(rows).toHaveLength(4)
+    expect(rows.every((r) => r.reviewee_id === owner)).toBe(true)
+    const avg = Math.round((rows.reduce((sum, r) => sum + r.rating, 0) / rows.length) * 10) / 10
+    expect(fresh.prepare('SELECT rating, reviews_count FROM vendors WHERE id = 1').get()).toEqual({ rating: avg, reviews_count: 4 })
     fresh.close()
   })
 })

@@ -5,7 +5,7 @@ import { dirname, join } from 'path'
 import { dbPath } from '../config.js'
 import bcrypt from 'bcryptjs'
 import { ensureVendorOwners } from './vendorOwners.js'
-import { dedupeVendorReviews } from './vendorReviews.js'
+import { dedupeVendorReviews, seedVendorReviews } from './vendorReviews.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // DB_PATH is relative to the server folder (e2e uses db/e2e.db); the default is db/mavuus.db.
@@ -1059,7 +1059,7 @@ const notificationData = [
 ]
 notificationData.forEach(n => insertNotification.run(...n))
 
-// Seed reviews (member-to-member for completed jobs + member-to-vendor)
+// Seed reviews (member-to-member for completed jobs; vendor reviews come from vendorReviews.js)
 const insertReview = db.prepare(`
   INSERT OR IGNORE INTO reviews (reviewer_id, reviewee_id, vendor_id, job_id, rating, text, created_at)
   VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -1072,19 +1072,11 @@ const reviewData = [
   // Job 2 completed: Marcus (poster) reviews David (hired), and David reviews Marcus
   [2, 5, null, 2, 4, 'David brought strong strategic thinking to our growth marketing efforts. His paid media expertise helped us exceed pipeline targets by 20%.', '2026-03-08T09:00:00Z'],
   [5, 2, null, 2, 5, 'Marcus is an outstanding leader. The GrowthBase team is well-organized and the growth marketing role was exactly as described. Highly recommend working here.', '2026-03-08T12:00:00Z'],
-  // Vendor reviews
-  [1, 7, 1, null, 5, 'ContentPro Agency transformed our content pipeline. Their team understood our B2B audience perfectly and delivered consistent, high-quality work.', '2026-02-15T10:00:00Z'],
-  [4, 7, 3, null, 4, 'BrandSpark Studio delivered a stunning rebrand for us. Creative, professional, and great at meeting deadlines. Would definitely work with them again.', '2026-02-20T14:00:00Z'],
 ]
 reviewData.forEach(r => insertReview.run(...r))
 
-// Update vendor ratings based on reviews
-db.prepare(`
-  UPDATE vendors SET
-    rating = (SELECT ROUND(AVG(rating), 1) FROM reviews WHERE vendor_id = vendors.id),
-    reviews_count = (SELECT COUNT(*) FROM reviews WHERE vendor_id = vendors.id)
-  WHERE id IN (SELECT DISTINCT vendor_id FROM reviews WHERE vendor_id IS NOT NULL)
-`).run()
+// Vendor reviews from members, written to each vendor's owner, and ratings recalculated from them.
+seedVendorReviews(db)
 
 // Seed recommendations
 const insertRecommendation = db.prepare(`
