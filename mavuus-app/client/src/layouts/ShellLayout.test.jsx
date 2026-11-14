@@ -3,11 +3,28 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockViewport } from '@/design-system/test/browserMocks'
+import ProtectedRoute from '../components/layout/ProtectedRoute'
 import AdminLayout from './AdminLayout'
 import MemberLayout from './MemberLayout'
 
-const auth = vi.hoisted(() => ({ value: null }))
-vi.mock('../context/AuthContext', () => ({ useAuth: () => auth.value }))
+// A small stand-in for AuthContext that re-renders its readers when the session changes, so a
+// logout that clears the user reaches the route guard like the real provider does.
+const auth = vi.hoisted(() => ({
+  value: null,
+  listeners: new Set(),
+  set(next) {
+    this.value = next
+    for (const listener of this.listeners) listener()
+  },
+}))
+vi.mock('../context/AuthContext', async () => {
+  const { useSyncExternalStore } = await import('react')
+  const subscribe = (listener) => {
+    auth.listeners.add(listener)
+    return () => auth.listeners.delete(listener)
+  }
+  return { useAuth: () => useSyncExternalStore(subscribe, () => auth.value) }
+})
 
 const now = new Date().toISOString()
 const NOTIFICATIONS = [
@@ -40,7 +57,14 @@ function renderApp(path, width = 1440) {
       <Routes>
         <Route path="/" element={<Page name="Public" />} />
         <Route path="/login" element={<Page name="Login" />} />
-        <Route path="/dashboard" element={<MemberLayout />}>
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <MemberLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Page name="Home" />} />
           <Route path="jobs" element={<Page name="Jobs" />} />
           <Route path="jobs/:id" element={<Page name="Job" />} />
@@ -60,7 +84,12 @@ beforeEach(() => {
   auth.value = {
     user: { id: 1, name: 'Demo User', email: 'demo@mavuus.com', role: 'admin', avatar_url: null, email_verified: 1 },
     token: 'token-123',
-    logout: vi.fn(async () => {}),
+    isAuthenticated: true,
+    loading: false,
+    // Like the real logout: the request, then the session is cleared.
+    logout: vi.fn(async () => {
+      auth.set({ ...auth.value, user: null, token: null, isAuthenticated: false })
+    }),
   }
   fetchMock = vi.fn(async (url, init) => routeFetch(url, init))
   vi.stubGlobal('fetch', fetchMock)
@@ -139,23 +168,34 @@ describe('MemberLayout', () => {
     renderApp('/dashboard')
     await user.click(screen.getByRole('button', { name: 'Account menu' }))
     expect(await screen.findByRole('menuitem', { name: 'Admin panel' })).toBeInTheDocument()
-    let finishLogout
-    auth.value.logout.mockImplementation(() => new Promise((resolve) => (finishLogout = resolve)))
+    const { logout } = auth.value
+    let finishRequest
+    logout.mockImplementation(async () => {
+      await new Promise((resolve) => (finishRequest = resolve))
+      auth.set({ ...auth.value, user: null, token: null, isAuthenticated: false })
+    })
     await user.click(screen.getByRole('menuitem', { name: 'Log out' }))
-    expect(auth.value.logout).toHaveBeenCalledOnce()
-    // Navigation waits for the logout request, so the guards never see a half-signed-out user.
+    expect(logout).toHaveBeenCalledOnce()
+    // Navigation waits for the logout request.
     expect(screen.queryByRole('heading', { name: 'Public page at /' })).not.toBeInTheDocument()
-    finishLogout()
+    finishRequest()
     expect(await screen.findByRole('heading', { name: 'Public page at /' })).toBeInTheDocument()
+    // Clearing the session must not let the route guard bounce the person to /login after all.
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.getByRole('heading', { name: 'Public page at /' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /Login page/ })).not.toBeInTheDocument()
   })
 
   it('should sign out and go to the login page when a poll finds the session gone', async () => {
     fetchMock.mockImplementation(async (url, init) =>
-      url === '/api/notifications/unread-count' ? json({ error: 'Unauthorized' }, false, 401) : routeFetch(url, init),
+      url.endsWith('/unread-count') ? json({ error: 'Unauthorized' }, false, 401) : routeFetch(url, init),
     )
+    const { logout } = auth.value
     renderApp('/dashboard')
     expect(await screen.findByRole('heading', { name: 'Login page at /login' })).toBeInTheDocument()
-    expect(auth.value.logout).toHaveBeenCalled()
+    // The notifications and messages polls both get the 401; the session ends once.
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(logout).toHaveBeenCalledOnce()
   })
 
   it('should refetch the unread messages count on navigation', async () => {
