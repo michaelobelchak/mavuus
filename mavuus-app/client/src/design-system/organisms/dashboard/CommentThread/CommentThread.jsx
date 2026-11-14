@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { MessageSquare, Reply, Trash2 } from 'lucide-react'
 import { cn } from '../../../lib/cn'
 import { resolveHeadingLevel } from '../../../lib/resolveOption'
@@ -54,13 +54,16 @@ function CommentMeta({ comment, small }) {
   )
 }
 
-function DeleteButton({ comment, onDelete }) {
+function DeleteButton({ comment, onDelete, onDeleted }) {
   return (
     <Button
       variant="ghost"
       size="sm"
       leadingIcon={Trash2}
-      onClick={() => onDelete(comment.id)}
+      onClick={async () => {
+        const ok = await onDelete(comment.id)
+        if (ok !== false) onDeleted()
+      }}
       aria-label={`Delete comment by ${comment.authorName}`}
       className="text-text-muted"
     >
@@ -69,8 +72,9 @@ function DeleteButton({ comment, onDelete }) {
   )
 }
 
-function CommentItem({ comment, canReply, onReply, onDelete }) {
+function CommentItem({ comment, canReply, onReply, onDelete, onDeleted, announce }) {
   const [replying, setReplying] = useState(false)
+  const replyButtonRef = useRef(null)
   return (
     <li className="flex gap-ds-sm border-b border-border-subtle py-ds-md last:border-b-0">
       <Avatar name={comment.authorName} src={comment.authorAvatarSrc} size="sm" />
@@ -83,9 +87,11 @@ function CommentItem({ comment, canReply, onReply, onDelete }) {
           <div className="-ml-ds-md flex flex-wrap items-center gap-ds-xxs">
             {canReply && (
               <Button
+                ref={replyButtonRef}
                 variant="ghost"
                 size="sm"
                 leadingIcon={Reply}
+                aria-label={`Reply to ${comment.authorName}`}
                 aria-expanded={replying}
                 onClick={() => setReplying((open) => !open)}
                 className="text-text-muted"
@@ -93,7 +99,7 @@ function CommentItem({ comment, canReply, onReply, onDelete }) {
                 Reply
               </Button>
             )}
-            {comment.own && <DeleteButton comment={comment} onDelete={onDelete} />}
+            {comment.own && <DeleteButton comment={comment} onDelete={onDelete} onDeleted={onDeleted} />}
           </div>
         )}
         {replying && (
@@ -105,7 +111,12 @@ function CommentItem({ comment, canReply, onReply, onDelete }) {
             autoFocus
             onSubmit={async (content) => {
               const ok = await onReply(comment.id, content)
-              if (ok !== false) setReplying(false)
+              if (ok !== false) {
+                // Back to the Reply button the member started from, before the field unmounts.
+                replyButtonRef.current?.focus()
+                setReplying(false)
+                announce('Reply posted')
+              }
               return ok
             }}
           />
@@ -122,7 +133,7 @@ function CommentItem({ comment, canReply, onReply, onDelete }) {
                   </Text>
                   {reply.own && (
                     <div className="-ml-ds-md">
-                      <DeleteButton comment={reply} onDelete={onDelete} />
+                      <DeleteButton comment={reply} onDelete={onDelete} onDeleted={onDeleted} />
                     </div>
                   )}
                 </div>
@@ -144,6 +155,9 @@ function CommentItem({ comment, canReply, onReply, onDelete }) {
  *   "Log in to leave a comment." and has no Reply buttons.
  * - `onPost(content)`, `onReply(parentId, content)`: may return a promise; resolve to false to
  *   keep the text (the post failed). `onDelete(id)`.
+ * - Posting and deleting are announced in a polite status region ("Comment posted", "Reply
+ *   posted", "Comment deleted"). After a reply focus returns to its Reply button; after a delete
+ *   (when `onDelete` doesn't resolve to false) focus moves to the thread heading.
  * - `loading`: skeleton rows with aria-busy. `headingLevel` (default 2) for the "Comments (n)" title.
  * Organisms never fetch: the page loads and saves the comments. Other props go to the Card.
  */
@@ -160,18 +174,32 @@ export function CommentThread({
 }) {
   const level = resolveHeadingLevel(headingLevel, [2, 3, 4], 2, 'CommentThread')
   const titleId = useId()
+  const headingRef = useRef(null)
+  const [announcement, setAnnouncement] = useState('')
   const signedIn = Boolean(currentUser)
+  const onDeleted = () => {
+    headingRef.current?.focus()
+    setAnnouncement('Comment deleted')
+  }
+  const post = async (content) => {
+    const ok = await onPost(content)
+    if (ok !== false) setAnnouncement('Comment posted')
+    return ok
+  }
 
   return (
     <Card as="section" aria-labelledby={titleId} padding="lg" className={cn('flex flex-col gap-ds-md', className)} {...props}>
-      <Heading id={titleId} level={level} size="h4" className="flex items-center gap-ds-xs">
+      <Heading ref={headingRef} tabIndex={-1} id={titleId} level={level} size="h4" className="flex items-center gap-ds-xs">
         <Icon icon={MessageSquare} size="md" />
         Comments ({comments.length})
       </Heading>
+      <p role="status" className="sr-only">
+        {announcement}
+      </p>
       {signedIn ? (
         <div className="flex items-center gap-ds-sm">
           <Avatar name={currentUser.name} src={currentUser.avatarSrc} size="sm" />
-          <CommentForm label="Add a comment" placeholder="Add a comment..." submitLabel="Post" onSubmit={onPost} />
+          <CommentForm label="Add a comment" placeholder="Add a comment..." submitLabel="Post" onSubmit={post} />
         </div>
       ) : (
         <Text size="body-sm" tone="secondary">
@@ -193,7 +221,15 @@ export function CommentThread({
       ) : (
         <ul>
           {comments.map((comment) => (
-            <CommentItem key={comment.id} comment={comment} canReply={signedIn && Boolean(onReply)} onReply={onReply} onDelete={onDelete} />
+            <CommentItem
+              key={comment.id}
+              comment={comment}
+              canReply={signedIn && Boolean(onReply)}
+              onReply={onReply}
+              onDelete={onDelete}
+              onDeleted={onDeleted}
+              announce={setAnnouncement}
+            />
           ))}
         </ul>
       )}

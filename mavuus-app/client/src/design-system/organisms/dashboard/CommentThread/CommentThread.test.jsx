@@ -48,7 +48,7 @@ describe('CommentThread', () => {
     const user = userEvent.setup()
     const onReply = vi.fn().mockResolvedValue(true)
     render(<CommentThread comments={comments} currentUser={me} onPost={vi.fn()} onReply={onReply} onDelete={vi.fn()} />)
-    await user.click(screen.getByRole('button', { name: 'Reply' }))
+    await user.click(screen.getByRole('button', { name: 'Reply to Priya Patel' }))
     const field = screen.getByRole('textbox', { name: 'Reply to Priya Patel' })
     expect(field).toHaveFocus()
     await user.type(field, 'Thanks{Enter}')
@@ -69,7 +69,7 @@ describe('CommentThread', () => {
   it('should ask to log in and hide Reply when signed out', () => {
     render(<CommentThread comments={comments} />)
     expect(screen.getByText('Log in to leave a comment.')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Reply to/ })).not.toBeInTheDocument()
   })
 
   it('should show an empty state and a busy skeleton', () => {
@@ -78,5 +78,41 @@ describe('CommentThread', () => {
     rerender(<CommentThread loading currentUser={me} onPost={vi.fn()} />)
     const region = screen.getByRole('region')
     expect(within(region).getByText('Loading comments').parentElement).toHaveAttribute('aria-busy', 'true')
+  })
+
+  it('should return focus to the Reply button and announce the reply when it is posted', async () => {
+    const user = userEvent.setup()
+    render(<CommentThread comments={comments} currentUser={me} onPost={vi.fn()} onReply={vi.fn().mockResolvedValue(true)} onDelete={vi.fn()} />)
+    const replyButton = screen.getByRole('button', { name: 'Reply to Priya Patel' })
+    await user.click(replyButton)
+    await user.type(screen.getByRole('textbox', { name: 'Reply to Priya Patel' }), 'Thanks{Enter}')
+    expect(replyButton).toHaveFocus()
+    expect(screen.getByRole('status')).toHaveTextContent('Reply posted')
+  })
+
+  it('should announce a posted comment', async () => {
+    const user = userEvent.setup()
+    render(<CommentThread comments={[]} currentUser={me} onPost={vi.fn().mockResolvedValue(true)} />)
+    await user.type(screen.getByRole('textbox', { name: 'Add a comment' }), 'Hello{Enter}')
+    expect(screen.getByRole('status')).toHaveTextContent('Comment posted')
+  })
+
+  it('should move focus to the thread heading and announce it when a comment is deleted', async () => {
+    const user = userEvent.setup()
+    render(<CommentThread comments={comments} currentUser={me} onPost={vi.fn()} onReply={vi.fn()} onDelete={vi.fn().mockResolvedValue(true)} />)
+    await user.click(screen.getByRole('button', { name: /Delete comment by Demo User/ }))
+    const heading = screen.getByRole('heading', { name: /^Comments/ })
+    expect(heading).toHaveAttribute('tabindex', '-1')
+    expect(heading).toHaveFocus()
+    expect(screen.getByRole('status')).toHaveTextContent('Comment deleted')
+  })
+
+  it('should keep focus and stay quiet when the delete fails', async () => {
+    const user = userEvent.setup()
+    render(<CommentThread comments={comments} currentUser={me} onPost={vi.fn()} onReply={vi.fn()} onDelete={vi.fn().mockResolvedValue(false)} />)
+    const button = screen.getByRole('button', { name: /Delete comment by Demo User/ })
+    await user.click(button)
+    expect(button).toHaveFocus()
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
   })
 })
