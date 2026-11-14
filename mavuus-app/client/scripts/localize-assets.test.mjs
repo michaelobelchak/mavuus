@@ -36,6 +36,7 @@ try {
   execFileSync('cwebp', ['-version'], { stdio: 'ignore' })
 } catch {
   hasCwebp = false
+  console.warn('localize-assets tests: cwebp is not installed, so the cwebp resize tests are skipped (CI installs it).')
 }
 
 describe('extractUrls', () => {
