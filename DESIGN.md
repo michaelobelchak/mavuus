@@ -166,7 +166,9 @@ Headings get `text-balance`. Base `h1` to `h6` rules sit in `@layer base` so uti
 
 The top bar (`AppTopBar`) holds the page title (an h1) or breadcrumbs on the left and search, actions, notifications and the account menu on the right. From 768px the search sits in the bar; below that a Search button opens it in a popover. `/` focuses search.
 
-Pages render into `<main id="main-content">`: `bg-surface-sunken`, `p-ds-md` (`lg:p-ds-xl`), `lg:rounded-tl-panel`. A "Skip to main content" link comes first.
+The document scrolls, not a panel. The sidebar is `sticky top-0 h-dvh` and its nav scrolls on its own when it is longer than the screen (the admin nav); the top bar is sticky at the top of the content column (`z-(--ds-z-sticky)`, white behind it). So phone address bars collapse, tapping the iOS status bar scrolls to the top, Space and Page Down scroll after a sidebar click, and window scroll listeners (BackToTop, ScrollProgress, scroll locks) keep working.
+
+Pages render into `<main id="main-content">` in normal flow: `bg-surface-sunken`, `p-ds-md` (`lg:p-ds-xl`), `lg:rounded-tl-panel`. A "Skip to main content" link comes first.
 
 ### Public site
 
@@ -478,7 +480,7 @@ Inside the design system, files import each other with relative paths (`../../pr
 - **Dark theme.** Not built. Adding `role.dark` to `tokens.json` emits a `[data-theme="dark"]` block; the Storybook theme toolbar's dark option is a placeholder that falls back to light until then.
 - **Remote images left: Unsplash.** Fixel Text, the wordmark, every public site image and the demo avatars are local files in `client/public/` since Stage 1 (`public/fonts/fixel/`, `public/images/<page>/`, listed in `scripts/assets-manifest.json`), and `no-remote-assets` keeps the Webflow and pravatar hosts out. The session and resource cover photos in the seeds, mock data and auth pages still load from `images.unsplash.com`; the e2e guard allows that one host on those pages only until the owner approves localizing them.
 - **Pages not migrated.** Phase 8 moves the dashboard, admin, auth and public pages onto the system. Until then legacy pages keep their own styling and `components/ui/` and `components/live/` still exist. The app shell is live for `/dashboard` and `/admin` (`src/layouts/`); `<Toaster />` isn't mounted in the app yet.
-- **Legacy lint baseline.** `scripts/lint-design-system.baseline.json` holds 651 legacy errors in 97 files outside the design system (477 `no-arbitrary-size`, 75 `no-raw-color`, 72 `no-em-dash`, 27 `no-inline-style`). A run fails when a count goes up or a new file has errors; when counts drop, run `npm run lint:ds -- --update-baseline`. `src/design-system/` has no baseline.
+- **Legacy lint baseline.** `scripts/lint-design-system.baseline.json` holds 632 legacy errors in 93 files outside the design system (467 `no-arbitrary-size`, 71 `no-raw-color`, 68 `no-em-dash`, 26 `no-inline-style`). A run fails when a count goes up or a new file has errors; when counts drop, run `npm run lint:ds -- --update-baseline`. `src/design-system/` has no baseline.
 - **Legacy bugs logged for Phase 8:** the weekly signups bars on `AdminDashboardPage` render empty. (The focusable closed notifications drawer went away with the app shell in Batch 3A: the new panel is a Sheet, unmounted while closed.)
 
 ## 19. Agent prompt guide

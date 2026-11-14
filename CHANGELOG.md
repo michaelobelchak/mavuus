@@ -207,9 +207,13 @@ All notable changes to the Mavuus project are documented here, organized by phas
 **Status:** Complete (branch `feat/app-shell-live`, Batch 3A of `FINISH-AND-LAUNCH-PLAN.md`, Phase 8 Task 8.1)
 
 - `/dashboard` and `/admin` now render in the design-system `AppShell` (`src/layouts/MemberLayout.jsx`, `AdminLayout.jsx`, sharing `ShellLayout.jsx`). Routes, `ProtectedRoute` and `AdminRoute` are unchanged
-- Top bar: page title from the nav (detail pages get their own, like "Job details"), global search (`ShellSearch`, `/api/search`, `/` focuses it, a popover below 768px), the notifications bell with the unread count (polled every 30 seconds, pulses when it goes up) and the account menu (Profile, Settings, Admin panel for admins, Log out)
+- The document scrolls: the sidebar is sticky at full height (its nav scrolls on its own), the top bar sticks to the top of the content column and `<main>` is in normal flow, so BackToTop, ScrollProgress and the legacy Modal scroll lock work as before
+- Top bar: page title from the nav (detail pages get their own, like "Job details"), global search (`ShellSearch`, `/api/search`, a `/` key hint from 768px, `/` focuses it, a popover below 768px), the notifications bell with the unread count (polled every 30 seconds, pulses when it goes up) and the account menu (name and email, Profile, Settings, Admin panel for admins, Log out)
 - Notifications open in a right `Sheet` with All and Unread filters, mark one or all read, loading, empty and error states. Closed, it is unmounted, which fixes the closed drawer that was still focusable (and it now closes on Escape)
-- The Messages nav item shows the unread messages count; the admin sidebar ends with "Back to dashboard" (an icon in the rail); the email verification banner is a design-system `Banner` with Resend
-- One "Skip to main content" per page: `AppShell` owns it under the shell, `SiteSkipLink` renders the old one everywhere else
-- Organisms: `AppSidebar` `footer` can be a function of `{ collapsed }`; `AppTopBar` closes the mobile search popover on navigation and tightens its gaps below 640px
-- Removed: `DashboardLayout.jsx`, `DashboardSidebar.jsx`, the old `AdminLayout.jsx`, `MobileFAB.jsx` and `SearchResultsDropdown.jsx`; the lint baseline dropped by 17 findings
+- Sidebar: the Messages item shows the unread messages count; admins get an "Admin panel" link under the member nav and "Back to dashboard" under the admin nav (icons with tooltips in the rail); the email verification banner is a design-system `Banner` with Resend
+- One "Skip to main content" per page: `AppShell` owns it under the shell, and `SiteSkipLink` shows the old one whenever no shell is mounted (public pages, auth pages and any 404, also under `/dashboard` or `/admin`)
+- Organisms: `AppShell` scrolls the document; `AppSidebar` `footer` can be a function of `{ collapsed }` and its nav contains the rail's hidden labels (they stretched the page); `AppTopBar` puts the email under the name in the account menu, closes the mobile search popover on navigation and tightens its gaps below 640px
+- E2E: the overflow check also compares `#main-content`'s scrollWidth with its clientWidth
+- Also: MessagesPage height matches the new frame (`100dvh - 144px`, no page scroll), and ScrollProgress sits above the sticky top bar
+- Removed: `DashboardLayout.jsx`, `DashboardSidebar.jsx`, the old `AdminLayout.jsx`, `MobileFAB.jsx` and `SearchResultsDropdown.jsx`; the lint baseline dropped by 19 findings
+- Dropped on purpose: the sidebar profile-completion ring and referral card, MobileFAB, the top bar Messages icon, the admin sidebar user card and "Mavuus Admin" title (the account menu and the nav label cover them) and the staggered fade-in of notification rows

@@ -377,11 +377,13 @@ Full gate: `npx vitest run`, `npx eslint . --max-warnings 0`, `npm run lint:ds`,
 
 ### Task 8.1: App shell live
 
+**Status:** Done on `feat/app-shell-live` (2026-11-14, Batch 3A). The shell lives in `src/layouts/` (MemberLayout, AdminLayout, ShellLayout) and the document scrolls (see MEMORY.md).
+
 Replace `components/layout/DashboardLayout.jsx` and `AdminLayout.jsx` with `AppShell` (member and admin nav). Keep all routes, auth guards, notifications and search behavior (port from DashboardLayout). e2e smoke must pass.
 
-TODO: AppShell owns the "Skip to main content" link. Remove the skip link from `App.jsx` when the shell is wired in, so pages under the shell don't get two.
+Done: AppShell owns the "Skip to main content" link. Remove the skip link from `App.jsx` when the shell is wired in, so pages under the shell don't get two.
 
-Known bug to fix here (found by the Phase 6 smoke test): the closed notifications drawer in `DashboardLayout.jsx` is only moved off screen with `translate-x-full`, so its controls are likely still focusable. The AppShell replacement must render it closed with `inert` or unmounted.
+Fixed (Batch 3A, the panel is a Sheet unmounted while closed): the closed notifications drawer in `DashboardLayout.jsx` is only moved off screen with `translate-x-full`, so its controls are likely still focusable. The AppShell replacement must render it closed with `inert` or unmounted.
 
 ### Tasks 8.2 to 8.18: Dashboard pages (one task per page)
 

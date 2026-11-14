@@ -60,11 +60,11 @@ Rules for every page:
 | Batch | Pages | Notes |
 |---|---|---|
 | 3A App shell | `DashboardLayout`, `AdminLayout` move to `AppShell` | AppShell owns the skip link, so remove the one in `App.jsx`. The closed notifications drawer must be inert or unmounted. Notifications and search behavior are ported over. **Owner check:** the new shell with the dashboard home. |
-| 3B Dashboard 1 | Academy (home), Live Sessions, Session detail, On-Demand, Resources, Resource detail | Uses SessionCard, ResourceCard, PageHeader and StatCard. |
-| 3C Dashboard 2 | Speakers, Members, Member profile, Vendors, Vendor detail | Uses MemberCard, VendorCard, ReviewCard, RecommendationCard and StarRating. |
-| 3D Dashboard 3 | Jobs, Job detail, My Jobs, Messages, Profile, Invite | Uses JobCard, MessageThreadItem and ConnectionRequest. **Owner check:** the whole member area. |
-| 3E Admin 1 | Overview, Users, User detail, Jobs, Vendors, Reviews, Comments, Recommendations | The overview gets StatCard rows and ChartCard, which fixes the empty signups bars. Lists use AdminDataTable and StatusBadge. |
-| 3F Admin 2 | Sessions, Speakers, Resources, Categories, Brand logos, Testimonials, FAQ, Site content, Notifications, Connections, Referrals, Contact, Exports, Audit log, Settings | Same pattern. **Owner check:** admin. |
+| 3B Dashboard 1 | Academy (home), Live Sessions, Session detail, On-Demand, Resources, Resource detail | Uses SessionCard, ResourceCard, PageHeader and StatCard. Remove the page's own h1 (the shell title is the h1). |
+| 3C Dashboard 2 | Speakers, Members, Member profile, Vendors, Vendor detail | Uses MemberCard, VendorCard, ReviewCard, RecommendationCard and StarRating. Remove the page's own h1 (the shell title is the h1). |
+| 3D Dashboard 3 | Jobs, Job detail, My Jobs, Messages, Profile, Invite | Uses JobCard, MessageThreadItem and ConnectionRequest. **Owner check:** the whole member area. Remove the page's own h1 (the shell title is the h1). |
+| 3E Admin 1 | Overview, Users, User detail, Jobs, Vendors, Reviews, Comments, Recommendations | The overview gets StatCard rows and ChartCard, which fixes the empty signups bars. Lists use AdminDataTable and StatusBadge. Remove the page's own h1 (the shell title is the h1). Fix the user detail crash: the page reads `data.user` but `/api/admin/users/:id` returns the user flat. |
+| 3F Admin 2 | Sessions, Speakers, Resources, Categories, Brand logos, Testimonials, FAQ, Site content, Notifications, Connections, Referrals, Contact, Exports, Audit log, Settings | Same pattern. **Owner check:** admin. Remove the page's own h1 (the shell title is the h1). |
 | 3G Auth | Login, Register, Forgot and Reset password, Verify email, OAuth callback | Auth pages move to the shared form fields and buttons. |
 | 3H Public site | Home, Services, Membership, Resources, Articles, Events, Posts, Videos, About, Contact, FAQ, Legal | `components/live` swaps to design-system equivalents. Before and after diffs must be intentional only. **Owner check:** public site. |
 | 3I Retire | Delete `components/ui`, `components/live` and old layout files | `lint:ds --strict` passes, the baseline is near zero, and leftovers are listed. |

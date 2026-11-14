@@ -121,15 +121,21 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 
 **Decision:** the member and admin areas share one `ShellLayout` in `src/layouts/` around the design-system `AppShell`. The shell glue lives outside `design-system/` because it reads `AuthContext` and fetches, which organisms may not do. Titles come from the nav (`findActiveItem`) plus a short list of detail-page titles, so a new list route only needs its nav item.
 
+**Decision (coordinator):** the document scrolls, not `<main>`. The sidebar is `sticky top-0 h-dvh` with its own scrolling nav, the top bar is sticky in the content column and `<main>` is in normal flow. `ScrollToTop` (window) resets the scroll on navigation.
+
 **Rejected:**
+- `<main>` as the scroller (the first version of this batch): the phone address bar never collapses (50 to 100px lost), tapping the iOS status bar stops scrolling to the top, Space and Page Down do nothing after clicking a sidebar link, BackToTop, ScrollProgress and the legacy Modal scroll lock break, and the e2e overflow and full-page checks go blind.
 - Breadcrumbs on detail pages: on a phone the crumb wrapped and repeated the title, and every detail page already has its own "Back to ..." link.
 - Keeping the sidebar profile-completion ring and referral card: the rail has no room for them, the Invite page already copies the referral link, and the completion nudge belongs on the home or profile page (Batch 3B or 3D).
 - Keeping `MobileFAB`: it repeated three nav links and covered page content at 390px; the mobile nav sheet has them.
 - Keeping the Messages icon in the top bar: the Messages nav item now carries the unread count.
+- Keeping the admin sidebar user card and "Mavuus Admin" title: the account menu shows the user and the nav is labeled Admin.
+- Keeping the staggered fade-in of notification rows: an inline animation style per row for little value.
 
 **Non-obvious:**
-- `<main>` scrolls, not the window. `ShellLayout` resets `main.scrollTop` on navigation, `BackToTop` (window scroll) never shows under the shell, and `ScrollProgress` on the resource and member detail pages reads `window.scrollY`, so it stays at zero until those pages migrate.
+- `SiteSkipLink` (above the routes in App.jsx) can't read a context from the shell below it, so `shellPresence.js` is a tiny store: `ShellLayout` registers in a layout effect and the site link hides while a shell is mounted. A 404 under `/dashboard` keeps its skip link.
+- The rail nav needs `position: relative`: its visually hidden section labels and tooltip text are absolutely positioned, and without a positioned nav they hung below the sticky sidebar and made short admin pages scroll 175px.
 - The top bar title is an h1 and most legacy pages still render their own h1 (two per page) until their batch moves them to `PageHeader`.
 - Pulse rule kept from the old bell: the first load never pulses, only a rise from a count above zero.
-- `Cmd/Ctrl+K` (`CommandPalette`), `?` (`ShortcutsHelp`) and `ConnectionStatus` stay mounted in `App.jsx` and work under the shell.
-
+- `Cmd/Ctrl+K` (`CommandPalette`), `?` (`ShortcutsHelp`), `BackToTop` and `ConnectionStatus` stay mounted in `App.jsx` and work under the shell. `ScrollProgress` (only on ResourceDetailPage) now uses `z-(--ds-z-overlay)` so it shows above the sticky top bar.
+- Legacy `sticky top-6` on SpeakersPage now slides under the 80px top bar; fix it when the page migrates (3C).
