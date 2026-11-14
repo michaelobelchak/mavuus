@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { mockApi } from '../../test/mockApi'
+import { mockApi, reply } from '../../test/mockApi'
 import LiveSessionsPage from './LiveSessionsPage'
 
 const live = [
@@ -54,7 +54,7 @@ describe('LiveSessionsPage', () => {
   it('should show an error with Try again when the request fails', async () => {
     const user = userEvent.setup()
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    const fetchMock = renderPage({ 'GET /api/sessions': { status: 500, body: {} } })
+    const fetchMock = renderPage({ 'GET /api/sessions': reply(500, {}) })
     expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't load the live sessions")
     const calls = fetchMock.mock.calls.length
     await user.click(screen.getByRole('button', { name: 'Try again' }))

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { toast } from 'sonner'
-import { mockApi } from '../test/mockApi'
+import { mockApi, reply } from '../test/mockApi'
 import { useComments } from './useComments'
 
 vi.mock('../context/AuthContext', async () => {
@@ -67,7 +67,7 @@ describe('useComments', () => {
   })
 
   it('should keep the text when the server refuses the post', async () => {
-    const { result } = await loaded({ 'POST /api/comments': { status: 400, body: { error: 'Too long' } } })
+    const { result } = await loaded({ 'POST /api/comments': reply(400, { error: 'Too long' }) })
     let ok
     await act(async () => {
       ok = await result.current.onPost('x')

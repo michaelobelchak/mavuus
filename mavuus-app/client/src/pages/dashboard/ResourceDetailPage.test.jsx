@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { mockApi } from '../../test/mockApi'
+import { mockApi, reply } from '../../test/mockApi'
 import ResourceDetailPage from './ResourceDetailPage'
 
 vi.mock('../../context/AuthContext', async () => {
@@ -81,7 +81,7 @@ describe('ResourceDetailPage', () => {
   it('should show an error with Try again when the resource fails to load, then load it on retry', async () => {
     const user = userEvent.setup()
     let fail = true
-    renderPage(2, { 'GET /api/resources/2': () => (fail ? { status: 500, body: {} } : guide) })
+    renderPage(2, { 'GET /api/resources/2': () => (fail ? reply(500, {}) : guide) })
     expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't load this resource")
     expect(screen.queryByRole('heading', { name: 'Resource not found' })).not.toBeInTheDocument()
     fail = false

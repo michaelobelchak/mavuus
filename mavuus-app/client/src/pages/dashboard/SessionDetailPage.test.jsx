@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { toast } from 'sonner'
-import { mockApi } from '../../test/mockApi'
+import { mockApi, reply } from '../../test/mockApi'
 import SessionDetailPage from './SessionDetailPage'
 
 vi.mock('../../context/AuthContext', async () => {
@@ -85,7 +85,7 @@ describe('SessionDetailPage', () => {
   it('should show the error from the API in a toast when registering fails', async () => {
     const user = userEvent.setup()
     const error = vi.spyOn(toast, 'error').mockImplementation(() => {})
-    renderPage('/dashboard/live-sessions/1', { ...liveRoutes(), 'POST /api/sessions/1/register': { status: 400, body: { error: 'Session is full' } } })
+    renderPage('/dashboard/live-sessions/1', { ...liveRoutes(), 'POST /api/sessions/1/register': reply(400, { error: 'Session is full' }) })
     await user.click(await screen.findByRole('button', { name: 'Register for Session' }))
     await waitFor(() => expect(error).toHaveBeenCalledWith('Session is full', undefined))
   })
@@ -120,7 +120,7 @@ describe('SessionDetailPage', () => {
     let fail = true
     renderPage('/dashboard/live-sessions/1', {
       ...liveRoutes(),
-      'GET /api/sessions/1': () => (fail ? { status: 500, body: {} } : liveSession),
+      'GET /api/sessions/1': () => (fail ? reply(500, {}) : liveSession),
     })
     expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't load this session")
     expect(screen.queryByRole('heading', { name: 'Session not found' })).not.toBeInTheDocument()

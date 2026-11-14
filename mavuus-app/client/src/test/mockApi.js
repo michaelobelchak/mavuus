@@ -1,18 +1,29 @@
 import { vi } from 'vitest'
 
+const REPLY = Symbol('mockApi reply')
+
 /**
- * Stubs global fetch for page tests. `routes` maps a matcher to a response:
- * `{ 'GET /api/sessions': body, 'POST /api/sessions/1/register': { status: 400, body } }`.
- * A matcher is "METHOD /path" (the query string is ignored unless the matcher has one) or a
- * function `(url, init) => response`; a function that returns an Error makes fetch reject with it
- * (a network failure). Unmatched requests answer 404.
- * Returns the vi.fn, so tests can read `fetch.mock.calls`.
+ * A response with a status for a mockApi route: `reply(404, { error: 'Not found' })`. A route
+ * value that isn't a reply is the JSON body of a 200, so bodies may hold any fields (even
+ * `status`).
+ */
+export function reply(status, body = {}) {
+  return { [REPLY]: true, status, body }
+}
+
+/**
+ * Stubs global fetch for page tests. `routes` maps "METHOD /path" to a response:
+ * `{ 'GET /api/sessions': body, 'POST /api/sessions/1/register': reply(400, { error }) }`.
+ * The query string is ignored unless the matcher has one. A route value may also be a function
+ * `(url, init) => body | reply(...) | Error`; an Error makes fetch reject with it (a network
+ * failure). Unmatched requests answer 404. Returns the vi.fn, so tests can read
+ * `fetch.mock.calls`.
  */
 export function mockApi(routes = {}) {
   const entries = Object.entries(routes)
   const respond = (value) => {
-    const { status = 200, body } = value && typeof value === 'object' && 'status' in value ? value : { body: value }
-    return Promise.resolve({ ok: status < 400, status, json: () => Promise.resolve(body) })
+    const { status, body } = value && value[REPLY] ? value : { status: 200, body: value }
+    return Promise.resolve({ ok: status >= 200 && status < 300, status, json: () => Promise.resolve(body) })
   }
   const fetchMock = vi.fn((input, init = {}) => {
     const url = typeof input === 'string' ? input : input.url
@@ -26,7 +37,7 @@ export function mockApi(routes = {}) {
         return result instanceof Error ? Promise.reject(result) : respond(result)
       }
     }
-    return respond({ status: 404, body: { error: 'Not found' } })
+    return respond(reply(404, { error: 'Not found' }))
   })
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
