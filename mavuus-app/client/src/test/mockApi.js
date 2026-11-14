@@ -4,7 +4,8 @@ import { vi } from 'vitest'
  * Stubs global fetch for page tests. `routes` maps a matcher to a response:
  * `{ 'GET /api/sessions': body, 'POST /api/sessions/1/register': { status: 400, body } }`.
  * A matcher is "METHOD /path" (the query string is ignored unless the matcher has one) or a
- * function `(url, init) => response | undefined`. Unmatched requests answer 404.
+ * function `(url, init) => response`; a function that returns an Error makes fetch reject with it
+ * (a network failure). Unmatched requests answer 404.
  * Returns the vi.fn, so tests can read `fetch.mock.calls`.
  */
 export function mockApi(routes = {}) {
@@ -20,7 +21,10 @@ export function mockApi(routes = {}) {
     for (const [matcher, value] of entries) {
       const [m, p] = matcher.split(' ')
       if (m !== method) continue
-      if (p === url || (!p.includes('?') && p === pathOnly)) return respond(typeof value === 'function' ? value(url, init) : value)
+      if (p === url || (!p.includes('?') && p === pathOnly)) {
+        const result = typeof value === 'function' ? value(url, init) : value
+        return result instanceof Error ? Promise.reject(result) : respond(result)
+      }
     }
     return respond({ status: 404, body: { error: 'Not found' } })
   })

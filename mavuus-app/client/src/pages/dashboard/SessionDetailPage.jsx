@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useComments } from '../../hooks/useComments'
 import { fireConfetti } from '../../hooks/useConfetti'
 import { LIVE_PATH, ON_DEMAND_PATH, sessionCardProps } from './academy/cardProps'
-import { DetailNotFound, DetailSkeleton, DetailTopBar } from './academy/DetailChrome'
+import { DetailError, DetailNotFound, DetailSkeleton, DetailTopBar } from './academy/DetailChrome'
 
 function useCountdown(targetDate) {
   const target = useMemo(() => (targetDate ? new Date(targetDate).getTime() : null), [targetDate])
@@ -78,6 +78,9 @@ export default function SessionDetailPage() {
   const toast = useToast()
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
+  // A failed request (network or server error) can be retried; a 404 means not found.
+  const [loadError, setLoadError] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const [registered, setRegistered] = useState(false)
   const [registering, setRegistering] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
@@ -93,25 +96,33 @@ export default function SessionDetailPage() {
   const countdown = useCountdown(session?.scheduled_date)
 
   useEffect(() => {
+    let ignore = false
     const fetchSession = async () => {
       try {
         const [sRes, rRes] = await Promise.all([
           fetch(`/api/sessions/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
           fetch(`/api/sessions/${id}/registration-status`, { headers: { Authorization: `Bearer ${token}` } }),
         ])
+        if (ignore) return
         if (sRes.ok) setSession(await sRes.json())
+        else if (sRes.status !== 404) setLoadError(true)
         if (rRes.ok) {
           const data = await rRes.json()
-          setRegistered(!!data.registered)
+          if (!ignore) setRegistered(!!data.registered)
         }
       } catch {
-        /* silent */
+        if (!ignore) setLoadError(true)
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
     fetchSession()
+    return () => {
+      ignore = true
+    }
+  }, [id, token, attempt])
 
+  useEffect(() => {
     // Fetch related
     fetch(`/api/sessions/${id}/related`)
       .then((r) => (r.ok ? r.json() : []))
@@ -120,7 +131,13 @@ export default function SessionDetailPage() {
 
     // Track view (once per page load)
     fetch(`/api/sessions/${id}/view`, { method: 'PUT' }).catch(() => {})
-  }, [id, token])
+  }, [id])
+
+  const retry = () => {
+    setLoadError(false)
+    setLoading(true)
+    setAttempt((n) => n + 1)
+  }
 
   const handleRegister = async (e) => {
     e?.preventDefault?.()
@@ -150,6 +167,10 @@ export default function SessionDetailPage() {
   }
 
   if (loading) return <DetailSkeleton label="Loading session" />
+
+  if (loadError) {
+    return <DetailError title="We couldn't load this session" onRetry={retry} backTo={LIVE_PATH} backLabel="Back to Live Sessions" />
+  }
 
   if (!session) {
     return <DetailNotFound title="Session not found" backTo={LIVE_PATH} backLabel="Back to Live Sessions" />

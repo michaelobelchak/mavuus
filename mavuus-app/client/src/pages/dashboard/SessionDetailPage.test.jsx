@@ -114,4 +114,23 @@ describe('SessionDetailPage', () => {
     expect(await screen.findByRole('heading', { name: 'Session not found' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to Live Sessions' })).toHaveAttribute('href', '/dashboard/live-sessions')
   })
+
+  it('should show an error with Try again when the session fails to load, then load it on retry', async () => {
+    const user = userEvent.setup()
+    let fail = true
+    renderPage('/dashboard/live-sessions/1', {
+      ...liveRoutes(),
+      'GET /api/sessions/1': () => (fail ? { status: 500, body: {} } : liveSession),
+    })
+    expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't load this session")
+    expect(screen.queryByRole('heading', { name: 'Session not found' })).not.toBeInTheDocument()
+    fail = false
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(await screen.findByRole('heading', { level: 2, name: 'Building a Content Engine' })).toBeInTheDocument()
+  })
+
+  it('should show the error, not "not found", when the network fails', async () => {
+    renderPage('/dashboard/live-sessions/1', { 'GET /api/sessions/1': () => new TypeError('Failed to fetch') })
+    expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't load this session")
+  })
 })

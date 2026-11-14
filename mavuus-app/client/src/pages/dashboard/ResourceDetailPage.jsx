@@ -7,7 +7,7 @@ import { Badge, Button, Heading, Text } from '@/design-system/primitives'
 import { useAuth } from '../../context/AuthContext'
 import { useComments } from '../../hooks/useComments'
 import { RESOURCES_PATH, resourceCardProps } from './academy/cardProps'
-import { DetailNotFound, DetailSkeleton, DetailTopBar } from './academy/DetailChrome'
+import { DetailError, DetailNotFound, DetailSkeleton, DetailTopBar } from './academy/DetailChrome'
 
 // **bold** spans inside a line of resource content.
 function inline(text) {
@@ -80,26 +80,38 @@ export default function ResourceDetailPage() {
   const toast = useToast()
   const [resource, setResource] = useState(null)
   const [loading, setLoading] = useState(true)
+  // A failed request (network or server error) can be retried; a 404 means not found.
+  const [loadError, setLoadError] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const [shareOpen, setShareOpen] = useState(false)
   const [bookmarked, setBookmarked] = useState(false)
   const [relatedResources, setRelatedResources] = useState([])
   const comments = useComments('resource', parseInt(id))
 
   useEffect(() => {
+    let ignore = false
     const fetchResource = async () => {
       try {
         const res = await fetch(`/api/resources/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
+        if (ignore) return
         if (res.ok) setResource(await res.json())
+        else if (res.status !== 404) setLoadError(true)
       } catch (err) {
         console.error('Failed to load resource', err)
+        if (!ignore) setLoadError(true)
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
     fetchResource()
+    return () => {
+      ignore = true
+    }
+  }, [id, token, attempt])
 
+  useEffect(() => {
     // Check bookmark status
     if (token) {
       fetch('/api/resources/bookmarked', { headers: { Authorization: `Bearer ${token}` } })
@@ -108,6 +120,12 @@ export default function ResourceDetailPage() {
         .catch(() => {})
     }
   }, [id, token])
+
+  const retry = () => {
+    setLoadError(false)
+    setLoading(true)
+    setAttempt((n) => n + 1)
+  }
 
   // Fetch related resources once we have the resource
   useEffect(() => {
@@ -137,6 +155,10 @@ export default function ResourceDetailPage() {
   }
 
   if (loading) return <DetailSkeleton label="Loading resource" />
+
+  if (loadError) {
+    return <DetailError title="We couldn't load this resource" onRetry={retry} backTo={RESOURCES_PATH} backLabel="Back to Resources" />
+  }
 
   if (!resource) {
     return <DetailNotFound title="Resource not found" backTo={RESOURCES_PATH} backLabel="Back to Resources" />

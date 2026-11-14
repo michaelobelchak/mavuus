@@ -1,5 +1,5 @@
 import { ArrowLeft, SearchX, Share2 } from 'lucide-react'
-import { Card, EmptyState } from '@/design-system/patterns'
+import { Alert, Card, EmptyState } from '@/design-system/patterns'
 import { Button, Icon, Link, Skeleton } from '@/design-system/primitives'
 
 /** The row above a detail page: a back link to the list and, with `onShare`, a Share button. */
@@ -55,5 +55,24 @@ export function DetailNotFound({ title, backTo, backLabel }) {
         </Button>
       }
     />
+  )
+}
+
+/** A detail that failed to load (network or server error, not a 404): an error Alert with Try again and the back link. */
+export function DetailError({ title, onRetry, backTo, backLabel }) {
+  return (
+    <div className="flex flex-col gap-ds-lg">
+      <DetailTopBar backTo={backTo} backLabel={backLabel} />
+      <Alert
+        tone="error"
+        title={title}
+        description="Check your connection and try again."
+        actions={
+          <Button size="sm" variant="outline" onClick={onRetry}>
+            Try again
+          </Button>
+        }
+      />
+    </div>
   )
 }

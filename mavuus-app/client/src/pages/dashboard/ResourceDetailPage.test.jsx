@@ -77,4 +77,15 @@ describe('ResourceDetailPage', () => {
     renderPage(5, {})
     expect(await screen.findByRole('heading', { name: 'Resource not found' })).toBeInTheDocument()
   })
+
+  it('should show an error with Try again when the resource fails to load, then load it on retry', async () => {
+    const user = userEvent.setup()
+    let fail = true
+    renderPage(2, { 'GET /api/resources/2': () => (fail ? { status: 500, body: {} } : guide) })
+    expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't load this resource")
+    expect(screen.queryByRole('heading', { name: 'Resource not found' })).not.toBeInTheDocument()
+    fail = false
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(await screen.findByRole('heading', { level: 2, name: 'State of B2B Marketing' })).toBeInTheDocument()
+  })
 })
