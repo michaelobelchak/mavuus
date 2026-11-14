@@ -1,10 +1,12 @@
 // Smoke test: every main public, member and admin page renders without errors and without
-// horizontal overflow at 1440, 1024, 768 and 390px. Screenshots go to e2e/screenshots/.
+// horizontal overflow at 1440, 1024, 768 and 390px, and without any request to another host.
+// The offline project runs the public pages again with every outside request blocked.
+// Screenshots go to e2e/screenshots/.
 // These tests only read: they run fully parallel against one seeded database. A spec that
 // changes data (posting, applying, editing) must run serially (test.describe.configure({ mode:
 // 'serial' })) or reseed, so it can't change what these pages show mid-run.
-import { expect, test } from '@playwright/test'
-import { DEMO_STATE, WIDTHS, checkPage } from './helpers.js'
+import { expect } from '@playwright/test'
+import { DEMO_STATE, WIDTHS, checkPage, test } from './helpers.js'
 
 // First entries of POSTS in src/data/live/posts.js and VIDEOS in src/data/live/videos.js.
 const POST_SLUG = 'marketing-ideas-that-delivered-real-results-5-real-life-examples-from-cmos'
