@@ -18,8 +18,11 @@ import { readCollapsed, writeCollapsed } from './sidebarStorage'
  * - `nav`, `badges`, `logo`, `logoTo`, `sidebarFooter` go to AppSidebar, and `navLabel` names its
  *   nav landmark (default "Main", "Admin" for the admin shell); `title`, `breadcrumbs`,
  *   `actions`, `search`, `notifications`, `user`, `userMenuItems`, `onLogout` go to AppTopBar.
- * - `children` render in `<main id="main-content">`, a scrollable panel on `bg-surface-sunken`
- *   with a large top-left radius on desktop. A "Skip to main content" link comes first.
+ * - The document scrolls, not a panel: the sidebar is sticky at full viewport height (its nav
+ *   scrolls on its own when it is long) and the top bar sticks to the top of the content column,
+ *   so mobile address bars collapse, Space and Page Down work and window scroll listeners fire.
+ * - `children` render in `<main id="main-content">`, a tinted panel on `bg-surface-sunken` with a
+ *   large top-left radius on desktop, in normal flow. A "Skip to main content" link comes first.
  * - `defaultNavOpen`: open the mobile sheet on the first render (stories).
  * `className` and other props go to the root.
  */
@@ -80,7 +83,7 @@ export function AppShell({
   }
 
   return (
-    <div ref={ref} className={cn('flex h-dvh bg-surface-raised font-sans text-text-primary', className)} {...props}>
+    <div ref={ref} className={cn('flex min-h-dvh bg-surface-raised font-sans text-text-primary', className)} {...props}>
       <a
         href="#main-content"
         onClick={(event) => {
@@ -94,7 +97,7 @@ export function AppShell({
       {!mobile && (
         <div
           className={cn(
-            'flex shrink-0 flex-col transition-[width] duration-300 ease-move motion-reduce:transition-none',
+            'sticky top-ds-none flex h-dvh shrink-0 flex-col self-start transition-[width] duration-300 ease-move motion-reduce:transition-none',
             collapsed ? 'w-20' : 'w-70',
           )}
         >
@@ -135,12 +138,13 @@ export function AppShell({
           navOpen={navOpen}
           navId={navId}
           menuButtonRef={menuButtonRef}
+          className="sticky top-ds-none z-(--ds-z-sticky) bg-surface-raised"
         />
         <main
           ref={mainRef}
           id="main-content"
           tabIndex={-1}
-          className="min-h-0 grow overflow-y-auto bg-surface-sunken p-ds-md lg:rounded-tl-panel lg:p-ds-xl"
+          className="min-w-0 grow bg-surface-sunken p-ds-md lg:rounded-tl-panel lg:p-ds-xl"
         >
           {children}
         </main>

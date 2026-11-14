@@ -59,6 +59,23 @@ describe('AppShell', () => {
     expect(screen.getByRole('button', { name: 'Notifications, 2 unread' })).toBeInTheDocument()
   })
 
+  it('should let the document scroll, with a sticky sidebar and top bar, when the page is long', () => {
+    const { container } = renderShell(1440)
+    const root = container.firstElementChild
+    const main = screen.getByRole('main')
+    // jsdom has no layout, so this checks the classes that decide who scrolls: not <main>, not
+    // a fixed-height wrapper, but the window.
+    expect(root.className).not.toMatch(/(^|\s)h-dvh(\s|$)/)
+    expect(main.className).not.toMatch(/overflow-y-auto|overflow-auto/)
+    expect(screen.getByRole('banner').className).toMatch(/(^|\s)sticky(\s|$)/)
+    expect(screen.getByRole('navigation', { name: 'Main' }).closest('.sticky')).not.toBeNull()
+  })
+
+  it('should keep the rail nav the containing block of its hidden labels so they cannot stretch the page', () => {
+    renderShell(1100)
+    expect(screen.getByRole('navigation', { name: 'Main' })).toHaveClass('relative', 'overflow-y-auto')
+  })
+
   it('should show an icon rail with tooltip labels between 1024 and 1279px', () => {
     renderShell(1100)
     const link = within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Jobs' })

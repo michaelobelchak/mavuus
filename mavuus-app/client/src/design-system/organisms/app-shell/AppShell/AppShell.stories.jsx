@@ -79,6 +79,19 @@ export const AdminShell = {
   parameters: { router: { initialEntries: ['/admin/users'] } },
 }
 
+// The document scrolls: the sidebar and the top bar stay put while the page moves under them.
+export const LongPage = {
+  args: {
+    children: (
+      <div className="flex flex-col gap-ds-lg">
+        {Array.from({ length: 4 }, (_, index) => (
+          <SampleContent key={index} />
+        ))}
+      </div>
+    ),
+  },
+}
+
 export const Rail = { globals: { viewport: { value: 'rail', isRotated: false } } }
 
 export const Mobile = { globals: { viewport: { value: 'mobile', isRotated: false } } }

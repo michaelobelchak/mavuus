@@ -97,9 +97,11 @@ export function AppSidebar({
           {logo ?? <DefaultLogo collapsed={collapsed} />}
         </RouterLink>
       </div>
+      {/* relative: the rail's visually hidden labels and tooltip text are absolutely positioned, so
+          the nav must be their containing block or they hang below it and stretch the page. */}
       <nav
         aria-label={ariaLabel}
-        className={cn('flex min-h-0 grow flex-col gap-ds-sm overflow-y-auto py-ds-xs', collapsed ? 'px-ds-sm' : 'px-ds-md')}
+        className={cn('relative flex min-h-0 grow flex-col gap-ds-sm overflow-y-auto py-ds-xs', collapsed ? 'px-ds-sm' : 'px-ds-md')}
       >
         {nav.map((section, index) => (
           <Section
