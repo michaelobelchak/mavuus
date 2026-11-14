@@ -1,4 +1,4 @@
-import { Suspense, useId, useRef, useState } from 'react'
+import { Suspense, useCallback, useId, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 // eslint-disable-next-line no-unused-vars -- motion is referenced as <motion.div> in JSX
 import { motion } from 'motion/react'
@@ -12,6 +12,27 @@ import { useShellMounted } from './shellPresence'
 import { shellTitle } from './shellTitle'
 import { useNotifications } from './useNotifications'
 import { useSignOut } from './useSignOut'
+
+// Tracks an element's height (with its bottom padding), so the shell can publish the banner's
+// height as --shell-banner-h for pages that size themselves to the screen (MessagesPage).
+function useBlockHeight() {
+  const [height, setHeight] = useState(0)
+  const observerRef = useRef(null)
+  const ref = useCallback((element) => {
+    observerRef.current?.disconnect()
+    observerRef.current = null
+    if (!element) {
+      setHeight(0)
+      return
+    }
+    const measure = () => setHeight(Math.round(element.getBoundingClientRect().height))
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    observerRef.current = new ResizeObserver(measure)
+    observerRef.current.observe(element)
+  }, [])
+  return [ref, height]
+}
 
 function PageFallback() {
   return (
@@ -54,6 +75,7 @@ export function ShellLayout({ nav, navLabel, logoTo, sidebarFooter, badges, sear
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const notifications = useNotifications(token, notificationsOpen, { onUnauthorized: sessionExpired })
   const bellRef = useRef(null)
+  const [bannerRef, bannerHeight] = useBlockHeight()
   // Closing the sheet returns focus to the bell, unless a notification link was followed: then
   // the new page's title gets it (AppShell focuses it after a navigation).
   const followedLinkRef = useRef(false)
@@ -69,6 +91,7 @@ export function ShellLayout({ nav, navLabel, logoTo, sidebarFooter, badges, sear
 
   return (
     <AppShell
+      style={bannerHeight ? { '--shell-banner-h': `${bannerHeight}px` } : undefined}
       nav={nav}
       navLabel={navLabel}
       logoTo={logoTo}
@@ -90,7 +113,11 @@ export function ShellLayout({ nav, navLabel, logoTo, sidebarFooter, badges, sear
         buttonRef: bellRef,
       }}
     >
-      {user?.email_verified === 0 && <EmailVerificationBanner token={token} className="mb-ds-lg" />}
+      {user?.email_verified === 0 && (
+        <div ref={bannerRef} className="pb-ds-lg">
+          <EmailVerificationBanner token={token} />
+        </div>
+      )}
       <ShellOutlet />
       <NotificationsSheet
         id={notificationsId}

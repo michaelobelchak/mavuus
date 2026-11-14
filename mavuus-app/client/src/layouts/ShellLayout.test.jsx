@@ -208,6 +208,13 @@ describe('MemberLayout', () => {
     expect(screen.queryByRole('link', { name: 'Admin panel' })).not.toBeInTheDocument()
   })
 
+  it('should publish the banner height for pages that fill the screen', () => {
+    auth.value.user = { ...auth.value.user, email_verified: 0 }
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({ height: 96 })
+    const { container } = renderApp('/dashboard')
+    expect(container.querySelector('[data-app-shell]').style.getPropertyValue('--shell-banner-h')).toBe('96px')
+  })
+
   it('should put the search in the top bar', () => {
     renderApp('/dashboard')
     expect(screen.getByRole('searchbox', { name: 'Search sessions, resources, members' })).toBeInTheDocument()

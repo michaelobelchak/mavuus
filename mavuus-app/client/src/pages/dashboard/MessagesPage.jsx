@@ -168,8 +168,13 @@ export default function MessagesPage() {
     )
   }
 
+  // Fills the screen under the app shell: the viewport minus the sticky top bar
+  // (--shell-topbar-h), <main>'s padding above and below (--shell-main-pad: 16px below 1024px,
+  // 32px from 1024px) and the email verification banner when it shows (--shell-banner-h), so the
+  // page itself never scrolls. The properties come from design-system/styles/app-shell.css and
+  // ShellLayout.
   return (
-    <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm flex h-[calc(100dvh-144px)] overflow-hidden">
+    <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm flex h-[calc(100dvh-var(--shell-topbar-h)-2*var(--shell-main-pad)-var(--shell-banner-h,0px))] overflow-hidden">
       {/* Left Panel - Conversation List */}
       <div className={`w-full md:w-80 lg:w-96 border-r border-neutral-100 flex flex-col ${selectedConv ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-neutral-100">
