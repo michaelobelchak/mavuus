@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { Link, MemoryRouter } from 'react-router-dom'
 import { createRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mockViewport } from '../../../test/browserMocks'
@@ -191,5 +191,18 @@ describe('AppTopBar', () => {
       timeout: 3000,
     })
     expect(screen.getByRole('button', { name: 'Search' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('should close the mobile search when a link in it is followed', async () => {
+    const user = userEvent.setup()
+    mockViewport(390)
+    renderBar({ search: <Link to="/dashboard/jobs/9">Head of Growth</Link> })
+    const button = screen.getByRole('button', { name: 'Search' })
+    await user.click(button)
+    await user.click(await screen.findByRole('link', { name: 'Head of Growth' }))
+    await waitFor(() => expect(screen.queryByRole('link', { name: 'Head of Growth' })).not.toBeInTheDocument(), {
+      timeout: 3000,
+    })
+    expect(button).toHaveAttribute('aria-expanded', 'false')
   })
 })

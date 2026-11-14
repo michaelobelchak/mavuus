@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Bell, ChevronDown, Menu, Search } from 'lucide-react'
 import { useMediaQuery } from '../../../hooks'
 import { cn } from '../../../lib/cn'
@@ -56,7 +57,8 @@ function NotificationsButton({ count, onClick, open, controlsId, buttonRef, puls
  * - `title`, `breadcrumbs` (`[{ label, to }]`, the last is the current page).
  * - `search`: a SearchInput. From 768px it sits in the bar; below that a Search button opens it in
  *   a full-width popover with focus in the field (Escape closes it and focus returns). `/` focuses
- *   it (or opens it) unless the person is typing in a field. `actions`: page-level buttons.
+ *   it (or opens it) unless the person is typing in a field; navigating closes the popover.
+ *   `actions`: page-level buttons.
  * - `notifications`: `{ count, onClick, open?, controlsId?, buttonRef?, pulse? }`. The button is
  *   named "Notifications, 3 unread"; `open` sets aria-expanded (and `controlsId` aria-controls
  *   while open) for a drawer, `buttonRef` reaches the button for focus return, and `pulse` makes
@@ -93,6 +95,13 @@ export function AppTopBar({
     setWasWide(wideSearch)
     if (wideSearch) setSearchOpen(false)
   }
+  // Following a link (a search result) closes the mobile search popover.
+  const { pathname } = useLocation()
+  const [searchPath, setSearchPath] = useState(pathname)
+  if (searchPath !== pathname) {
+    setSearchPath(pathname)
+    setSearchOpen(false)
+  }
   const searchBoxRef = useRef(null)
   const mobileSearchRef = useRef(null)
   const hasSearch = Boolean(search)
@@ -123,7 +132,7 @@ export function AppTopBar({
   return (
     <header
       ref={ref}
-      className={cn('flex min-h-20 shrink-0 items-center gap-ds-md px-ds-md py-ds-sm lg:px-ds-xl', className)}
+      className={cn('flex min-h-20 shrink-0 items-center gap-ds-xs px-ds-md py-ds-sm sm:gap-ds-md lg:px-ds-xl', className)}
       {...props}
     >
       {onOpenNav && (

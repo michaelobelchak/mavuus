@@ -61,6 +61,18 @@ describe('AppSidebar', () => {
     expect(screen.getByRole('link', { name: 'Messages, 2 new' })).toBeInTheDocument()
   })
 
+  it('should call a footer function with the collapsed state when the footer is a function', () => {
+    const footer = ({ collapsed }) => <button type="button">{collapsed ? 'Icon footer' : 'Full footer'}</button>
+    const { rerender } = renderSidebar({ footer })
+    expect(screen.getByRole('button', { name: 'Full footer' })).toBeInTheDocument()
+    rerender(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <AppSidebar nav={MEMBER_NAV} footer={footer} collapsed />
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('button', { name: 'Icon footer' })).toBeInTheDocument()
+  })
+
   it('should offer a collapse toggle that reports the next state when onCollapsedChange is set', async () => {
     const user = userEvent.setup()
     const onCollapsedChange = vi.fn()
