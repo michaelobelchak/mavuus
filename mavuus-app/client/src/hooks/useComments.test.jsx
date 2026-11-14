@@ -66,14 +66,41 @@ describe('useComments', () => {
     expect(result.current.comments[0]).toMatchObject({ own: true, replies: [] })
   })
 
-  it('should keep the text when the server refuses the post', async () => {
-    const { result } = await loaded({ 'POST /api/comments': reply(400, { error: 'Too long' }) })
+  it("should keep the text and toast the server's error when the post is refused", async () => {
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => {})
+    const { result } = await loaded({ 'POST /api/comments': reply(400, { error: 'Comment is too long' }) })
     let ok
     await act(async () => {
       ok = await result.current.onPost('x')
     })
     expect(ok).toBe(false)
     expect(result.current.comments).toHaveLength(1)
+    expect(error).toHaveBeenCalledWith('Comment is too long', undefined)
+  })
+
+  it('should toast a fallback when a refused reply or delete has no error text', async () => {
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => {})
+    const { result } = await loaded({ 'POST /api/comments': reply(500), 'DELETE /api/comments/2': reply(403, { error: 'Not your comment' }) })
+    await act(async () => {
+      expect(await result.current.onReply(1, 'Hi')).toBe(false)
+      await result.current.onDelete(2)
+    })
+    expect(error.mock.calls.map(([message]) => message)).toEqual(["Couldn't post your reply. Try again.", 'Not your comment'])
+    expect(result.current.comments[0].replies).toHaveLength(1)
+  })
+
+  it('should clear the old comments while another item loads', async () => {
+    let answer
+    mockApi({
+      'GET /api/comments': (url) => (url.includes('entity_id=1') ? rows : new Promise((resolve) => (answer = resolve))),
+    })
+    const { result, rerender } = renderHook(({ id }) => useComments('session', id), { initialProps: { id: 1 } })
+    await waitFor(() => expect(result.current.comments).toHaveLength(1))
+    rerender({ id: 2 })
+    expect(result.current).toMatchObject({ loading: true, comments: [] })
+    await act(async () => answer([]))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.comments).toEqual([])
   })
 
   it('should add a reply under its parent with the parent id', async () => {
