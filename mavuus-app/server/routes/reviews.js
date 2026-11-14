@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { authenticateToken } from '../middleware/auth.js'
+import { recalcVendorRating } from '../db/vendorReviews.js'
 
 const router = Router()
 router.use(authenticateToken)
@@ -32,36 +33,43 @@ router.get('/vendor/:vendorId', (req, res) => {
   res.json(reviews)
 })
 
-// POST /api/reviews - Create a review
+// POST /api/reviews - Create a review. A vendor review (vendor_id) is written to the vendor's
+// owner account, whatever reviewee_id the body sends, and once per member and vendor.
 router.post('/', (req, res) => {
   const db = req.app.locals.db
-  const { reviewee_id, vendor_id, job_id, rating, text } = req.body
+  const { vendor_id, job_id, rating, text } = req.body
+  const userId = Number(req.user.id)
+  let revieweeId = req.body.reviewee_id
+  let vendorId = null
 
-  if (!reviewee_id || !rating) {
+  if (vendor_id !== undefined && vendor_id !== null && vendor_id !== '') {
+    vendorId = Number(vendor_id)
+    const vendor = Number.isInteger(vendorId) ? db.prepare('SELECT id, user_id FROM vendors WHERE id = ?').get(vendorId) : null
+    if (!vendor) return res.status(404).json({ error: 'Vendor not found' })
+    if (!vendor.user_id) return res.status(400).json({ error: "This vendor can't be reviewed yet" })
+    if (Number(vendor.user_id) === userId) return res.status(400).json({ error: "You can't review your own vendor" })
+    revieweeId = vendor.user_id
+  }
+
+  if (!revieweeId || !rating) {
     return res.status(400).json({ error: 'reviewee_id and rating are required' })
   }
-  if (rating < 1 || rating > 5) {
+  const ratingNum = Number(rating)
+  if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
     return res.status(400).json({ error: 'Rating must be between 1 and 5' })
   }
-  if (reviewee_id === req.user.id) {
+  if (Number(revieweeId) === userId) {
     return res.status(400).json({ error: 'Cannot review yourself' })
+  }
+  if (vendorId && db.prepare('SELECT 1 FROM reviews WHERE reviewer_id = ? AND vendor_id = ?').get(userId, vendorId)) {
+    return res.status(409).json({ error: 'You already reviewed this vendor' })
   }
 
   try {
     const result = db.prepare(
       'INSERT INTO reviews (reviewer_id, reviewee_id, vendor_id, job_id, rating, text) VALUES (?, ?, ?, ?, ?, ?)'
-    ).run(req.user.id, reviewee_id, vendor_id || null, job_id || null, rating, text || null)
-
-    // Recalculate vendor rating if vendor_id provided
-    if (vendor_id) {
-      db.prepare(`
-        UPDATE vendors SET
-          rating = (SELECT ROUND(AVG(rating), 1) FROM reviews WHERE vendor_id = ?),
-          reviews_count = (SELECT COUNT(*) FROM reviews WHERE vendor_id = ?)
-        WHERE id = ?
-      `).run(vendor_id, vendor_id, vendor_id)
-    }
-
+    ).run(userId, Number(revieweeId), vendorId, job_id || null, ratingNum, text || null)
+    if (vendorId) recalcVendorRating(db, vendorId)
     res.status(201).json({ id: result.lastInsertRowid })
   } catch {
     res.status(409).json({ error: 'Review already exists for this combination' })
@@ -75,13 +83,7 @@ router.delete('/:id', (req, res) => {
   if (!review) return res.status(404).json({ error: 'Review not found or not authorized' })
 
   db.prepare('DELETE FROM reviews WHERE id = ?').run(req.params.id)
-
-  // Recalculate vendor rating if it was a vendor review
-  if (review.vendor_id) {
-    const stats = db.prepare('SELECT COUNT(*) as cnt, AVG(rating) as avg FROM reviews WHERE vendor_id = ?').get(review.vendor_id)
-    db.prepare('UPDATE vendors SET rating = ?, reviews_count = ? WHERE id = ?')
-      .run(stats.avg ? Math.round(stats.avg * 10) / 10 : 0, stats.cnt, review.vendor_id)
-  }
+  if (review.vendor_id) recalcVendorRating(db, review.vendor_id)
 
   res.json({ success: true })
 })

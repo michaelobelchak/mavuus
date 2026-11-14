@@ -391,3 +391,10 @@ CREATE TABLE IF NOT EXISTS audit_log (
   ip_address TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- One review per member per vendor (repeat rows are removed by dedupeVendorReviews before this
+-- runs on an older database, see db/vendorReviews.js)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_reviews_vendor_once ON reviews(reviewer_id, vendor_id) WHERE vendor_id IS NOT NULL;
+
+-- Vendor owner lookups (the member directory leaves owner accounts out)
+CREATE INDEX IF NOT EXISTS idx_vendors_user_id ON vendors(user_id);
