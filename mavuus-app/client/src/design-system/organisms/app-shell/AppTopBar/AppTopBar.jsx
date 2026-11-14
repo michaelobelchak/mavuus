@@ -63,7 +63,7 @@ function NotificationsButton({ count, onClick, open, controlsId, buttonRef, puls
  *   named "Notifications, 3 unread"; `open` sets aria-expanded (and `controlsId` aria-controls
  *   while open) for a drawer, `buttonRef` reaches the button for focus return, and `pulse` makes
  *   it pulse briefly when the count goes up.
- * - `user` (`{ name, email, avatar_url, role }`), `userMenuItems` (DropdownMenu items; default
+ * - `user` (`{ name, email, avatar_url, role }`; the menu opens with the name and email), `userMenuItems` (DropdownMenu items; default
  *   Profile, Settings, Admin panel for admins and Log out, which calls `onLogout`).
  * - `onOpenNav`: shows the menu button (below 1024px) that opens the mobile nav; `navOpen` sets
  *   its aria-expanded and `menuButtonRef` reaches it (for focus return).
@@ -127,7 +127,13 @@ export function AppTopBar({
     return () => cancelAnimationFrame(frame)
   }, [searchOpen, wideSearch])
   const items = userMenuItems ?? buildUserMenuItems({ user, onLogout })
-  const menuItems = user?.name ? [{ type: 'label', label: user.name }, ...items] : items
+  const menuHeader = user?.name && (
+    <span className="flex min-w-0 flex-col">
+      <span className="truncate text-body-sm text-text-primary">{user.name}</span>
+      {user.email && <span className="truncate font-normal">{user.email}</span>}
+    </span>
+  )
+  const menuItems = menuHeader ? [{ type: 'label', label: menuHeader }, ...items] : items
 
   return (
     <header

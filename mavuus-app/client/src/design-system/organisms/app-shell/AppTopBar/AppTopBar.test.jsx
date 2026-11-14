@@ -59,6 +59,14 @@ describe('AppTopBar', () => {
     expect(onLogout).toHaveBeenCalledOnce()
   })
 
+  it('should head the account menu with the name and email', async () => {
+    const user = userEvent.setup()
+    renderBar()
+    await user.click(screen.getByRole('button', { name: 'Account menu' }))
+    const group = await screen.findByRole('group', { name: /Demo User/ })
+    expect(group).toHaveTextContent('demo@mavuus.com')
+  })
+
   it('should use the userMenuItems it is given', async () => {
     const user = userEvent.setup()
     renderBar({ userMenuItems: [{ label: 'Billing', to: '/billing' }] })
