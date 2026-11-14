@@ -1,0 +1,5 @@
+export const MEMBERS_PATH = '/dashboard/members'
+export const VENDORS_PATH = '/dashboard/vendors'
+export const SPEAKERS_PATH = '/dashboard/speakers'
+export const MESSAGES_PATH = '/dashboard/messages'
+export const JOBS_PATH = '/dashboard/jobs'
