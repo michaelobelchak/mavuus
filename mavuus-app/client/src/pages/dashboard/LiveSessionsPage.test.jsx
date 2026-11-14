@@ -101,4 +101,15 @@ describe('LiveSessionsPage', () => {
     await waitFor(() => expect(lastQuery(fetchMock).get('category')).toBe('ABM'))
     for (const [, init] of fetchMock.mock.calls) expect(init.signal).toBeInstanceOf(AbortSignal)
   })
+
+  it('should keep a typed trailing space after the search runs', async () => {
+    const user = userEvent.setup()
+    const fetchMock = renderPage()
+    await screen.findByRole('link', { name: 'ABM at Scale' })
+    const field = screen.getByRole('searchbox', { name: 'Search sessions' })
+    await user.type(field, 'growth ')
+    await waitFor(() => expect(lastQuery(fetchMock).get('search')).toBe('growth'))
+    await new Promise((resolve) => setTimeout(resolve, 400))
+    expect(field).toHaveValue('growth ')
+  })
 })

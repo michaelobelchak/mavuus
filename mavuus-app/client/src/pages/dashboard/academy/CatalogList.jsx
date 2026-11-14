@@ -102,7 +102,9 @@ export function CatalogList({
   const [shownSearch, setShownSearch] = useState(search)
   if (search !== shownSearch) {
     setShownSearch(search)
-    setText(search)
+    // Only when the URL says something else than the field (back, forward, a link), so the
+    // trailing space someone just typed survives the trimmed search.
+    if (search !== text.trim()) setText(search)
   }
   // A new page scrolls back to the top of the list (below the sticky top bar).
   const topRef = useRef(null)
