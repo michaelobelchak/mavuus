@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { createRef } from 'react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockViewport } from '../../../test/browserMocks'
 import { MEMBER_NAV } from '../nav'
@@ -187,6 +188,31 @@ describe('AppShell', () => {
     await user.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Speakers' }))
     expect(screen.getByTestId('where')).toHaveTextContent('/dashboard/speakers')
     await waitFor(() => expect(title).toHaveFocus())
+  })
+
+  it('should hand the page title to a titleRef', () => {
+    const titleRef = createRef()
+    renderShell(1440, { titleRef })
+    expect(titleRef.current).toBe(screen.getByRole('heading', { level: 1, name: 'Jobs' }))
+  })
+
+  it('should leave focus in an open dialog that navigates instead of pulling it to the title', async () => {
+    const user = userEvent.setup()
+    function DialogThatNavigates() {
+      const navigate = useNavigate()
+      return (
+        <div role="dialog" aria-label="Apply">
+          <button type="button" onClick={() => navigate('/dashboard/my-jobs')}>
+            Save and view my jobs
+          </button>
+        </div>
+      )
+    }
+    renderShell(1440, { actions: <DialogThatNavigates /> })
+    const button = screen.getByRole('button', { name: 'Save and view my jobs' })
+    await user.click(button)
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(button).toHaveFocus()
   })
 
   it('should leave focus on the page title, not the menu button, when a link in the mobile sheet is followed', async () => {

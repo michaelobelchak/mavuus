@@ -1,7 +1,8 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useMediaQuery } from '../../../hooks'
 import { cn } from '../../../lib/cn'
+import { mergeRefs } from '../../../lib/mergeRefs'
 import { Sheet } from '../../../patterns'
 import { AppSidebar } from '../AppSidebar'
 import { AppTopBar } from '../AppTopBar'
@@ -24,7 +25,9 @@ import { readCollapsed, writeCollapsed } from './sidebarStorage'
  *   The root carries `data-app-shell`; styles/app-shell.css then pads focus scrolling below the
  *   top bar and sets `--shell-topbar-h` and `--shell-main-pad` for pages that size to the screen.
  * - After a navigation (not on first load) focus moves to the page title (an h1 with
- *   tabIndex -1), including when the link was followed from the mobile sheet.
+ *   tabIndex -1), including when the link was followed from the mobile sheet, unless focus is in
+ *   a dialog that stays open. `titleRef` reaches that h1, for a sheet of the caller's that closes
+ *   on navigation and should return focus to it.
  * - `children` render in `<main id="main-content">`, a tinted panel on `bg-surface-sunken` with a
  *   large top-left radius on desktop, in normal flow. A "Skip to main content" link comes first.
  * - `defaultNavOpen`: open the mobile sheet on the first render (stories).
@@ -46,6 +49,7 @@ export function AppShell({
   userMenuItems,
   onLogout,
   defaultNavOpen = false,
+  titleRef: titleRefProp,
   children,
   className,
   ref,
@@ -73,6 +77,8 @@ export function AppShell({
   const mainRef = useRef(null)
   const sheetRef = useRef(null)
   const titleRef = useRef(null)
+  // Fills our own ref and the caller's `titleRef` with the h1.
+  const setTitle = useCallback((node) => mergeRefs(titleRef, titleRefProp)(node), [titleRefProp])
 
   // After a navigation (not on first load), focus moves to the new page's title so keyboard and
   // screen reader users start at the top of the new page and hear its name.
@@ -80,6 +86,10 @@ export function AppShell({
   useEffect(() => {
     if (lastPathRef.current === pathname) return
     lastPathRef.current = pathname
+    // A dialog that is still open (and not made inert by another one) keeps its focus; a sheet
+    // that closes on this navigation hands focus to the title itself (sheetFinalFocus).
+    const dialog = document.activeElement?.closest('[role="dialog"]')
+    if (dialog && !dialog.closest('[inert]')) return
     ;(titleRef.current ?? mainRef.current)?.focus({ preventScroll: true })
   }, [pathname])
 
@@ -177,7 +187,7 @@ export function AppShell({
           navOpen={navOpen}
           navId={navId}
           menuButtonRef={menuButtonRef}
-          titleRef={titleRef}
+          titleRef={setTitle}
           className="sticky top-ds-none z-(--ds-z-sticky) bg-surface-raised"
         />
         <main

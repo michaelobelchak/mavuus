@@ -75,13 +75,14 @@ export function ShellLayout({ nav, navLabel, logoTo, sidebarFooter, badges, sear
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const notifications = useNotifications(token, notificationsOpen, { onUnauthorized: sessionExpired })
   const bellRef = useRef(null)
+  const titleRef = useRef(null)
   const [bannerRef, bannerHeight] = useBlockHeight()
   // Closing the sheet returns focus to the bell, unless a notification link was followed: then
   // the new page's title gets it (AppShell focuses it after a navigation).
   const followedLinkRef = useRef(false)
   function notificationsFinalFocus() {
     if (!followedLinkRef.current) return bellRef.current
-    return document.querySelector('[data-app-shell] header h1') ?? bellRef.current
+    return titleRef.current ?? bellRef.current
   }
   const notificationsId = useId()
   const title = shellTitle(nav, location)
@@ -91,6 +92,7 @@ export function ShellLayout({ nav, navLabel, logoTo, sidebarFooter, badges, sear
 
   return (
     <AppShell
+      titleRef={titleRef}
       style={{ '--shell-banner-h': `${bannerHeight}px` }}
       nav={nav}
       navLabel={navLabel}
