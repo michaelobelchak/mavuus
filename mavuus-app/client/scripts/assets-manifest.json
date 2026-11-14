@@ -104,7 +104,6 @@
       "width": 150,
       "lossless": false,
       "usedIn": [
-        "client/src/data/live/posts.test.js",
         "client/src/data/mockData.js",
         "server/db/seed.js"
       ]
@@ -744,7 +743,6 @@
       "bytes": 4369,
       "contentType": "image/svg+xml",
       "usedIn": [
-        "client/scripts/lint-design-system.test.mjs",
         "client/src/components/layout/PublicHeader.jsx",
         "client/src/design-system/lib/brand.js"
       ]
@@ -1911,7 +1909,6 @@
       "width": 1080,
       "usedIn": [
         "client/src/data/live/posts.js",
-        "client/src/data/live/posts.test.js",
         "client/src/data/live/videos.js"
       ],
       "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a593ab6479ea97de36e8425_marketing-ideas-that-delivered-real-results.png"
@@ -1924,7 +1921,6 @@
       "width": 500,
       "usedIn": [
         "client/src/data/live/posts.js",
-        "client/src/data/live/posts.test.js",
         "client/src/data/live/videos.js"
       ],
       "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a593ab6479ea97de36e8425_marketing-ideas-that-delivered-real-results.png"
@@ -1937,7 +1933,6 @@
       "width": 800,
       "usedIn": [
         "client/src/data/live/posts.js",
-        "client/src/data/live/posts.test.js",
         "client/src/data/live/videos.js"
       ],
       "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a593ab6479ea97de36e8425_marketing-ideas-that-delivered-real-results.png"
@@ -1951,7 +1946,6 @@
       "lossless": false,
       "usedIn": [
         "client/src/data/live/posts.js",
-        "client/src/data/live/posts.test.js",
         "client/src/data/live/videos.js"
       ]
     },
