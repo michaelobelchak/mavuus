@@ -32,7 +32,12 @@ function Where() {
 function renderPage(id = 1, routes = {}) {
   const fetchMock = mockApi({
     'GET /api/vendors/1': vendor,
-    'GET /api/jobs?posted_by=3': { data: [{ id: 5, title: 'Content Writer', posted_by: 3, location: 'Remote', type: 'contract', category: 'Content' }] },
+    'GET /api/jobs?posted_by=3': {
+      data: [
+        { id: 5, title: 'Content Writer', posted_by: 3, location: 'Remote', type: 'contract', category: 'Content', status: 'open' },
+        { id: 6, title: 'Video Editor', posted_by: 3, status: 'closed' },
+      ],
+    },
     'GET /api/reviews/vendor/1': [review],
     'GET /api/recommendations/vendor/1': [{ id: 2, from_name: 'Marcus Johnson', message: 'Highly recommend.' }],
     'GET /api/comments': [],
@@ -69,6 +74,8 @@ describe('VendorDetailPage', () => {
     const info = screen.getByRole('complementary', { name: 'Vendor info' })
     expect(within(info).getByRole('link', { name: /Visit Website/ })).toHaveAttribute('href', 'https://contentpro.example')
     expect(within(info).getByText('New York, NY')).toBeInTheDocument()
+    // One of the two jobs is open.
+    expect(within(info).getByText('Open Jobs').nextElementSibling).toHaveTextContent('1')
   })
 
   it('should submit a review from the dialog and reload the reviews and the rating', async () => {
@@ -78,7 +85,7 @@ describe('VendorDetailPage', () => {
     const fetchMock = renderPage(1, {
       'GET /api/reviews/vendor/1': () => reviews,
       'POST /api/reviews': () => {
-        reviews = [{ id: 9, reviewer_name: 'Demo User', rating: 4, text: 'Solid work.' }, review]
+        reviews = [{ id: 9, reviewer_id: 7, reviewer_name: 'Demo User', rating: 4, text: 'Solid work.' }, review]
         return { id: 9 }
       },
     })
@@ -90,8 +97,35 @@ describe('VendorDetailPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Submit Review' }))
     expect(await screen.findByRole('article', { name: 'Review by Demo User' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Reviews (2)' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Write a Review' })).not.toBeInTheDocument()
+    expect(screen.getByText('You reviewed this vendor')).toBeInTheDocument()
     const [, init] = fetchMock.mock.calls.find(([url, options]) => url === '/api/reviews' && options?.method === 'POST')
-    expect(JSON.parse(init.body)).toEqual({ reviewee_id: 3, vendor_id: 1, rating: 4, text: 'Solid work.' })
+    expect(JSON.parse(init.body)).toEqual({ vendor_id: 1, rating: 4, text: 'Solid work.' })
+  })
+
+  it('should say you reviewed the vendor instead of offering a second review', async () => {
+    renderPage(1, { 'GET /api/reviews/vendor/1': [{ ...review, reviewer_id: 7 }] })
+    expect(await screen.findByText('You reviewed this vendor')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Write a Review' })).not.toBeInTheDocument()
+  })
+
+  it('should show the server error when a review is refused', async () => {
+    const user = userEvent.setup()
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => {})
+    renderPage(1, { 'POST /api/reviews': reply(409, { error: 'You already reviewed this vendor' }) })
+    await user.click(await screen.findByRole('button', { name: 'Write a Review' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Review ContentPro Agency' })
+    await user.click(within(dialog).getByRole('radio', { name: '5 stars' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Submit Review' }))
+    await waitFor(() => expect(error).toHaveBeenCalledWith('You already reviewed this vendor', undefined))
+  })
+
+  it('should hide Write a Review and Contact Vendor on your own vendor', async () => {
+    renderPage(1, { 'GET /api/vendors/1': { ...vendor, user_id: 7 } })
+    expect(await screen.findByRole('heading', { level: 2, name: 'ContentPro Agency' })).toBeInTheDocument()
+    await screen.findByRole('article', { name: 'Review by Sarah Chen' })
+    expect(screen.queryByRole('button', { name: 'Write a Review' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Contact Vendor' })).not.toBeInTheDocument()
   })
 
   it('should start a conversation with the vendor and open it', async () => {
@@ -107,6 +141,7 @@ describe('VendorDetailPage', () => {
     const fetchMock = renderPage(1, { 'GET /api/vendors/1': { ...vendor, user_id: null } })
     expect(await screen.findByRole('button', { name: 'Contact Vendor' })).toBeDisabled()
     expect(screen.getByText("Direct messages aren't set up for this vendor yet.")).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Write a Review' })).toBeDisabled()
     await screen.findByRole('article', { name: 'Review by Sarah Chen' })
     expect(fetchMock.mock.calls.some(([url]) => url.startsWith('/api/jobs'))).toBe(false)
   })

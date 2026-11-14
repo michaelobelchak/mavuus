@@ -25,12 +25,12 @@ export default function VendorDetailPage() {
   const toast = useToast()
   const auth = { Authorization: `Bearer ${token}` }
   const { data: loaded, loading, error, notFound, retry } = useDetailResource(`/api/vendors/${id}`, token)
-  // Per-vendor state is stored with the id it belongs to, so another :id never shows it. A review
-  // reloads the vendor (rating, count) into `fresh` instead of reloading the whole page.
-  const [fresh, setFresh] = useState({ id: null, vendor: null })
-  const [lists, setLists] = useState({ id: null, ...NO_LISTS })
-  const vendor = fresh.id === id && fresh.vendor ? fresh.vendor : loaded
-  const { jobs, reviews, recommendations } = lists.id === id ? lists : NO_LISTS
+  // The route remounts this page for another :id (KeyedById). A review reloads the vendor
+  // (rating, count) into `fresh` instead of reloading the whole page.
+  const [fresh, setFresh] = useState(null)
+  const [lists, setLists] = useState(NO_LISTS)
+  const vendor = fresh ?? loaded
+  const { jobs, reviews, recommendations } = lists
   const comments = useComments('vendor', parseInt(id, 10))
   const [shareOpen, setShareOpen] = useState(false)
   const [contacting, setContacting] = useState(false)
@@ -54,7 +54,7 @@ export default function VendorDetailPage() {
     Promise.all([jobsRequest, get(`/api/reviews/vendor/${id}`), get(`/api/recommendations/vendor/${id}`)]).then(
       ([vendorJobs, vendorReviews, recs]) => {
         if (controller.signal.aborted) return
-        setLists({ id, jobs: vendorJobs, reviews: vendorReviews, recommendations: recs })
+        setLists({ jobs: vendorJobs, reviews: vendorReviews, recommendations: recs })
       },
     )
     return () => controller.abort()
@@ -103,8 +103,8 @@ export default function VendorDetailPage() {
       const res = await fetch('/api/reviews', {
         method: 'POST',
         headers: { ...auth, 'Content-Type': 'application/json' },
+        // The server writes a vendor review to the vendor's owner account.
         body: JSON.stringify({
-          reviewee_id: vendor.user_id || user.id, // vendor reviews need a reviewee
           vendor_id: parseInt(id, 10),
           rating: reviewRating,
           text: reviewText,
@@ -125,9 +125,9 @@ export default function VendorDetailPage() {
       ])
       if (reviewsRes.ok) {
         const next = listOf(await reviewsRes.json())
-        setLists((prev) => (prev.id === id ? { ...prev, reviews: next } : prev))
+        setLists((prev) => ({ ...prev, reviews: next }))
       }
-      if (vendorRes.ok) setFresh({ id, vendor: await vendorRes.json() })
+      if (vendorRes.ok) setFresh(await vendorRes.json())
     } catch {
       toast.error('Network error')
     } finally {
@@ -142,6 +142,19 @@ export default function VendorDetailPage() {
   const websiteHref = isHttpUrl(vendor.website) ? vendor.website : null
   const categories = vendor.categories || []
   const reviewCount = Number(vendor.reviews_count) || 0
+  const isOwner = Boolean(user) && vendor.user_id != null && Number(vendor.user_id) === Number(user.id)
+  const reviewed = Boolean(user) && reviews.some((r) => Number(r.reviewer_id) === Number(user.id))
+  const openJobs = jobs.filter((job) => job.status === 'open').length
+  let reviewAction = null
+  if (reviewed) {
+    reviewAction = <Caption>You reviewed this vendor</Caption>
+  } else if (!isOwner) {
+    reviewAction = (
+      <Button size="sm" disabled={!vendor.user_id} onClick={() => setReviewOpen(true)}>
+        Write a Review
+      </Button>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-ds-lg">
@@ -198,11 +211,7 @@ export default function VendorDetailPage() {
 
             <DetailSection
               title={`Reviews (${reviews.length})`}
-              actions={
-                <Button size="sm" onClick={() => setReviewOpen(true)}>
-                  Write a Review
-                </Button>
-              }
+              actions={reviewAction}
             >
               {reviews.length === 0 ? (
                 <Text size="body-sm" tone="secondary">
@@ -234,30 +243,38 @@ export default function VendorDetailPage() {
         }
         aside={
           <>
-            <Card padding="lg" className="flex flex-col gap-ds-sm">
-              <Button
-                block
-                leadingIcon={MessageCircle}
-                loading={contacting}
-                disabled={!vendor.user_id}
-                onClick={handleContactVendor}
-              >
-                Contact Vendor
-              </Button>
-              {!vendor.user_id && <Caption className="text-center">Direct messages aren't set up for this vendor yet.</Caption>}
-              {websiteHref && (
-                <Button variant="outline" block leadingIcon={Globe} href={websiteHref}>
-                  Visit Website
-                </Button>
-              )}
-            </Card>
+            {(!isOwner || websiteHref) && (
+              <Card padding="lg" className="flex flex-col gap-ds-sm">
+                {!isOwner && (
+                  <>
+                    <Button
+                      block
+                      leadingIcon={MessageCircle}
+                      loading={contacting}
+                      disabled={!vendor.user_id}
+                      onClick={handleContactVendor}
+                    >
+                      Contact Vendor
+                    </Button>
+                    {!vendor.user_id && (
+                      <Caption className="text-center">Direct messages aren't set up for this vendor yet.</Caption>
+                    )}
+                  </>
+                )}
+                {websiteHref && (
+                  <Button variant="outline" block leadingIcon={Globe} href={websiteHref}>
+                    Visit Website
+                  </Button>
+                )}
+              </Card>
+            )}
             <DetailSection title="Details">
               <DescriptionList
                 items={[
                   { key: 'rating', label: 'Rating', value: String(vendor.rating ?? 0) },
                   { key: 'reviews', label: 'Reviews', value: String(reviewCount) },
                   { key: 'location', label: 'Location', value: vendor.location },
-                  { key: 'jobs', label: 'Open Jobs', value: String(jobs.length) },
+                  { key: 'jobs', label: 'Open Jobs', value: String(openJobs) },
                 ]}
               />
             </DetailSection>
