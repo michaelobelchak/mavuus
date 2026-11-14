@@ -91,7 +91,7 @@ export function ShellLayout({ nav, navLabel, logoTo, sidebarFooter, badges, sear
 
   return (
     <AppShell
-      style={bannerHeight ? { '--shell-banner-h': `${bannerHeight}px` } : undefined}
+      style={{ '--shell-banner-h': `${bannerHeight}px` }}
       nav={nav}
       navLabel={navLabel}
       logoTo={logoTo}
