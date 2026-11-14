@@ -26,6 +26,10 @@ describe('healRemoteAvatars', () => {
     expect(local).toMatch(/^\/images\/avatars\/avatar-\d\d\.webp$/)
   })
 
+  it('should return an empty map when the client manifest is missing', () => {
+    expect(remoteAvatarMap(join(SERVER_DIR, 'no-such-manifest.json')).size).toBe(0)
+  })
+
   it('should point old remote avatars at their local files and leave the rest alone', () => {
     expect(healRemoteAvatars(db)).toBe(2)
     expect(db.prepare('SELECT avatar_url FROM users WHERE email = ?').get('old@x.com').avatar_url).toBe(local)
