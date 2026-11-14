@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowRight, UserCircle } from 'lucide-react'
 import { Card, SectionHeader } from '@/design-system/patterns'
 import { ResourceCard, ResourceCardSkeleton, SessionCard, SessionCardSkeleton } from '@/design-system/organisms'
-import { Avatar, Button, Caption, Chip, Eyebrow, Heading, Icon, Link, ProgressBar, Text } from '@/design-system/primitives'
+import { Avatar, Badge, Button, Caption, Chip, Eyebrow, Heading, Icon, Link, ProgressBar, Text } from '@/design-system/primitives'
 import useApiData from '../../hooks/useApiData'
 import { liveSessions as fallbackLive, onDemandVideos as fallbackVideos, communityResources as fallbackResources } from '../../data/mockData'
 import { useAuth } from '../../context/AuthContext'
@@ -182,6 +182,10 @@ export default function AcademyPage() {
               return (
                 <li key={s.speaker_name} className="flex flex-col items-center gap-ds-xxs text-center">
                   <Avatar name={s.speaker_name} src={s.speaker_avatar} size="lg" className="mb-ds-xxs" />
+                  {/* The old avatar ring marked every speaker Pro; the system marks Pro with a badge (as on MemberCard). */}
+                  <Badge size="sm" tone="brand">
+                    Pro member
+                  </Badge>
                   <Text as="span" size="body-sm" className="font-semibold">
                     {s.speaker_name}
                   </Text>

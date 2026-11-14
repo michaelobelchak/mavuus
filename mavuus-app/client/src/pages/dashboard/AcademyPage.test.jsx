@@ -66,6 +66,8 @@ describe('AcademyPage', () => {
     const section = (await screen.findByRole('heading', { name: 'Past Speakers' })).closest('section')
     expect(within(section).getByText('Sarah Chen')).toBeInTheDocument()
     expect(within(section).getByText('TechFlow')).toBeInTheDocument()
+    // Speakers keep the Pro marker the old avatar ring gave them, as the MemberCard badge.
+    expect(within(section).getAllByText('Pro member')).toHaveLength(2)
   })
 
   it('should nudge an incomplete profile and stay quiet for a complete one', async () => {
