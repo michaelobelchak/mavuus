@@ -158,7 +158,7 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - A StatCard row on the member home: the page has no real member metrics to show and the plan says not to invent them.
 - Keeping the "LIVE" pill over every live session cover on the home page: all those sessions are scheduled, not live, so the pill was wrong; the section title already says what they are.
 - Keeping the "View Details" button inside each live session card: it was a second link to the same place inside a card that is already one link.
-- Adding `picsum.photos` to the global pending hosts: only the two lists show those seed covers, so the smoke test allows the host on those two pages only.
+- Allowing `picsum.photos` on the two list routes only (the first version of this batch): the same covers show on detail pages, related grids and the member home, so the guard would depend on which seeded ids the test happens to visit. It sits in `PENDING_HOSTS` next to Unsplash instead; public pages still allow nothing external.
 
 **Non-obvious:**
 - SectionHeader's h2 defaults to the 36px h2 size, larger than the 22px top bar title, so app pages pass `size="h3"`.

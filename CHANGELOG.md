@@ -233,5 +233,6 @@ All notable changes to the Mavuus project are documented here, organized by phas
 - Fixed on the way: reply avatars in comments rendered at full size (an unsupported legacy size); a resource heading's paragraph rendered inside the heading
 - Tests: a smoke test per page (24 tests) with a shared `test/mockApi.js`; e2e smoke covers the six pages at four widths
 - Lint baseline: 632 errors in 93 files down to 619 in 89
+- E2E guard: `picsum.photos` (12 placeholder covers in the seed) joins `images.unsplash.com` in `PENDING_HOSTS`, pending the owner's OK
 - Dropped on purpose: the "LIVE" pill on home cards and the "View Details" button inside each live session card (the whole card is the link); see MEMORY.md
 

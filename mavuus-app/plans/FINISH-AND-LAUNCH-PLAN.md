@@ -25,15 +25,15 @@ Before this stage the site loaded 143 files from the live Webflow site's CDN: 5 
 5. **Rewrite references** through the manifest, so nothing points at the Webflow CDN or the avatar service.
 6. **Guards:**
    - `no-remote-assets` in `lint:ds` bans the Webflow CDN, other Webflow asset hosts and the avatar service in the client (tests and stories included) and the server.
-   - The e2e smoke test fails on any third-party request. Only the member and admin pages and `/login` and `/register` may still request `images.unsplash.com` (see below); every other page fails on it.
+   - The e2e smoke test fails on any third-party request. Only the member and admin pages and `/login` and `/register` may still request `images.unsplash.com` and `picsum.photos` (see below); every other page fails on it.
    - The `offline` e2e project reruns the public pages with every outside request aborted, and still fails if a page asks for one.
 7. **Check:** pixel diff of the public pages before and after at 4 widths. Every page keeps its exact height; visibly different pixels stay under 0.05% per page except `/resources` (up to 0.86%, from lazy carousel images that the CDN-era captures did not paint consistently).
 
-**Deferred, pending the owner's OK:** the 20 Unsplash photos (14 session and resource covers in the seeds and mock data, 6 testimonial faces on `/login` and `/register`). Downloading them needs the owner's approval; until then the e2e guard allows that one host on those pages only.
+**Deferred, pending the owner's OK:** the 20 Unsplash photos (14 session and resource covers in the seeds and mock data, 6 testimonial faces on `/login` and `/register`) and the 12 `picsum.photos` placeholder covers in `server/db/seed.js` (six on-demand sessions, six resources; found in Batch 3B). Downloading or replacing them needs the owner's approval; until then the e2e guard allows those two hosts on those pages only.
 
 **Size report:** 16.4 MB in 363 files plus the license (the Webflow originals and their variants were 140.5 MB). Largest files: `videos/li-event-banners-1600-900-px-8-2.webp` 340 KB, `videos/li-event-banners-1600-900-px-11.webp` 327 KB, `posts/li-event-banners-1600-900-px-2.webp` 327 KB, `videos/li-event-banners-1600-900-px-13.webp` 215 KB, `posts/li-event-banners-1600-900-px-34.webp` 215 KB. Nothing is over 500 KB.
 
-**Done when:** no Webflow CDN or avatar-service URL is left in the repo (only the localize script names those hosts, plus the original URLs in the manifest), e2e passes with outside requests blocked on the public pages, the screenshots match within the noise above, and the owner has decided on the Unsplash photos.
+**Done when:** no Webflow CDN or avatar-service URL is left in the repo (only the localize script names those hosts, plus the original URLs in the manifest), e2e passes with outside requests blocked on the public pages, the screenshots match within the noise above, and the owner has decided on the Unsplash and picsum photos.
 
 ## Stage 2: Your section updates
 

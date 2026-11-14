@@ -5,9 +5,11 @@ export const WIDTHS = [1440, 1024, 768, 390]
 
 // Hosts whose files are not localized yet, pending the owner's OK: images.unsplash.com serves the
 // cover photos in server/db/seed.js and src/data/mockData.js and the testimonial faces on the
-// login and register pages. Only the pages that list them in `allowHosts` (member and admin
-// pages, /login and /register) may request them; every other page fails on them.
-export const PENDING_HOSTS = ['images.unsplash.com']
+// login and register pages; picsum.photos serves 12 placeholder covers in server/db/seed.js (six
+// on-demand sessions and six resources), which show on the lists, detail pages, related grids
+// and the member home. Only the pages that list them in `allowHosts` (member and admin pages,
+// /login and /register) may request them; every other page fails on them.
+export const PENDING_HOSTS = ['images.unsplash.com', 'picsum.photos']
 
 export function isLocal(url) {
   try {
