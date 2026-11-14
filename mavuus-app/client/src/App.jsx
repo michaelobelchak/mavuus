@@ -38,6 +38,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import AuthCallbackPage from './pages/auth/AuthCallbackPage'
 import VerifyEmailPage from './pages/auth/VerifyEmailPage'
+import { KeyedById } from './pages/dashboard/shared/KeyedById'
 
 // Dashboard Pages (lazy — code-split behind auth)
 const AcademyPage = lazy(() => import('./pages/dashboard/AcademyPage'))
@@ -154,9 +155,23 @@ export default function App() {
           <Route path="resources" element={<ResourcesPage />} />
           <Route path="resources/:id" element={<ResourceDetailPage />} />
           <Route path="members" element={<MembersPage />} />
-          <Route path="members/:id" element={<MemberProfilePage />} />
+          <Route
+            path="members/:id"
+            element={
+              <KeyedById>
+                <MemberProfilePage />
+              </KeyedById>
+            }
+          />
           <Route path="vendors" element={<VendorsPage />} />
-          <Route path="vendors/:id" element={<VendorDetailPage />} />
+          <Route
+            path="vendors/:id"
+            element={
+              <KeyedById>
+                <VendorDetailPage />
+              </KeyedById>
+            }
+          />
           <Route path="jobs" element={<JobsPage />} />
           <Route path="jobs/:id" element={<JobDetailPage />} />
           <Route path="my-jobs" element={<MyJobsPage />} />
