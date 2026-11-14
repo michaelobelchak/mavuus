@@ -127,8 +127,9 @@ export function findOverflow(page) {
  * Visits `path` at one width: checks the page's main content renders, takes a full-page
  * screenshot to e2e/screenshots/<name>-<width>.png (<name>-<width>-offline.png in the offline
  * project), checks there is no horizontal overflow
- * (the document doesn't scroll sideways and no element sticks out past the viewport, even where
- * the layout clips it) and that the page logged no errors.
+ * (the document doesn't scroll sideways, #main-content isn't wider than its own box when it
+ * exists, and no element sticks out past the viewport, even where the layout clips it) and that
+ * the page logged no errors.
  */
 export async function checkPage(page, { name, path, width, ready, allowHosts = [] }) {
   const problems = watchPage(page, { allowHosts })
@@ -138,14 +139,24 @@ export async function checkPage(page, { name, path, width, ready, allowHosts = [
   await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
   const suffix = base.info().project.name === 'offline' ? '-offline' : ''
   await page.screenshot({ path: `e2e/screenshots/${name}-${width}${suffix}.png`, fullPage: true, animations: 'disabled' })
-  const { scrollWidth, innerWidth } = await page.evaluate(() => ({
-    scrollWidth: document.documentElement.scrollWidth,
-    innerWidth: window.innerWidth,
-  }))
+  const { scrollWidth, innerWidth, main } = await page.evaluate(() => {
+    const el = document.getElementById('main-content')
+    return {
+      scrollWidth: document.documentElement.scrollWidth,
+      innerWidth: window.innerWidth,
+      main: el ? { scrollWidth: el.scrollWidth, clientWidth: el.clientWidth } : null,
+    }
+  })
   const offenders = await findOverflow(page)
   expect
     .soft(scrollWidth, `${name} at ${width}px scrolls sideways: ${offenders.join('; ')}`)
     .toBeLessThanOrEqual(innerWidth)
+  // <main id="main-content"> can clip or scroll its own overflow, which the document check can't see.
+  if (main) {
+    expect
+      .soft(main.scrollWidth, `${name} at ${width}px: #main-content is wider than its box: ${offenders.join('; ')}`)
+      .toBeLessThanOrEqual(main.clientWidth)
+  }
   expect.soft(offenders, `${name} at ${width}px has elements past the right edge`).toEqual([])
   expect(problems, `${name} at ${width}px had errors`).toEqual([])
 }
