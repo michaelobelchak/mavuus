@@ -28,7 +28,7 @@ export default defineConfig({
       // The public pages with every request to a host other than localhost aborted, proving the
       // site renders from its own files with no outside network.
       name: 'offline',
-      testMatch: /smoke\.spec\.js/,
+      testMatch: /(smoke|guard)\.spec\.js/,
       grep: /public pages/,
       use: { ...devices['Desktop Chrome'], blockExternal: true },
     },

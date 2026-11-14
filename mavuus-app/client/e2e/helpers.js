@@ -3,11 +3,11 @@ import { test as base, expect } from '@playwright/test'
 export const DEMO_STATE = 'e2e/.auth/demo.json'
 export const WIDTHS = [1440, 1024, 768, 390]
 
-// Hosts still allowed while their files are not localized. images.unsplash.com serves the
-// session and resource cover photos in server/db/seed.js, src/data/mockData.js and the auth pages;
-// downloading those was not part of Stage 1. The public pages load nothing from it, and the
-// offline project blocks it like any other host.
-const KNOWN_EXTERNAL = new Set(['images.unsplash.com'])
+// Hosts whose files are not localized yet, pending the owner's OK: images.unsplash.com serves the
+// cover photos in server/db/seed.js and src/data/mockData.js and the testimonial faces on the
+// login and register pages. Only the pages that list them in `allowHosts` (member and admin
+// pages, /login and /register) may request them; every other page fails on them.
+export const PENDING_HOSTS = ['images.unsplash.com']
 
 export function isLocal(url) {
   try {
@@ -38,13 +38,15 @@ const AUTH_ME = /^\/api\/auth\/me$/
 /**
  * Collects the problems a page should never have: uncaught errors, console errors from the app,
  * /api responses of 400 or more, failed requests to the app's own origin, and any request to
- * another host (except KNOWN_EXTERNAL). Fonts and site images are served from public/.
- * The only allowed /api error is the 401 from /api/auth/me when logged out.
+ * another host except the ones in `allowHosts`. Fonts and site images are served from public/.
+ * The only allowed /api error is the 401 from /api/auth/me when logged out. In the offline
+ * project outside requests are also aborted, but they still count as problems here.
  */
-export function watchPage(page) {
+export function watchPage(page, { allowHosts = [] } = {}) {
   const problems = []
   page.on('request', (request) => {
-    if (!isLocal(request.url()) && !KNOWN_EXTERNAL.has(new URL(request.url()).hostname)) problems.push(`third-party request: ${request.method()} ${request.url()}`)
+    const url = request.url()
+    if (!isLocal(url) && !allowHosts.includes(new URL(url).hostname)) problems.push(`third-party request: ${request.method()} ${url}`)
   })
   page.on('pageerror', (error) => problems.push(`page error: ${error.message}`))
   page.on('console', (message) => {
@@ -128,8 +130,8 @@ export function findOverflow(page) {
  * (the document doesn't scroll sideways and no element sticks out past the viewport, even where
  * the layout clips it) and that the page logged no errors.
  */
-export async function checkPage(page, { name, path, width, ready }) {
-  const problems = watchPage(page)
+export async function checkPage(page, { name, path, width, ready, allowHosts = [] }) {
+  const problems = watchPage(page, { allowHosts })
   await page.setViewportSize({ width, height: 900 })
   await page.goto(path)
   await ready(page)

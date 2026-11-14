@@ -6,7 +6,7 @@
 // changes data (posting, applying, editing) must run serially (test.describe.configure({ mode:
 // 'serial' })) or reseed, so it can't change what these pages show mid-run.
 import { expect } from '@playwright/test'
-import { DEMO_STATE, WIDTHS, checkPage, test } from './helpers.js'
+import { DEMO_STATE, PENDING_HOSTS, WIDTHS, checkPage, test } from './helpers.js'
 
 // First entries of POSTS in src/data/live/posts.js and VIDEOS in src/data/live/videos.js.
 const POST_SLUG = 'marketing-ideas-that-delivered-real-results-5-real-life-examples-from-cmos'
@@ -33,6 +33,11 @@ const PUBLIC_PAGES = [
   { name: 'contact', path: '/contact' },
   { name: 'faq', path: '/faq' },
   { name: 'terms', path: '/terms-conditions/introduction' },
+  { name: 'articles', path: '/articles' },
+  { name: 'events', path: '/events' },
+  // The testimonial faces on the auth pages still come from a pending host (see helpers.js).
+  { name: 'login', path: '/login', allowHosts: PENDING_HOSTS },
+  { name: 'register', path: '/register', allowHosts: PENDING_HOSTS },
 ]
 
 const MEMBER_PAGES = [
@@ -45,11 +50,11 @@ const MEMBER_PAGES = [
   { name: 'admin-jobs', path: '/admin/jobs' },
 ]
 
-function smoke(pages, ready) {
-  for (const { name, path } of pages) {
+function smoke(pages, ready, { allowHosts = [] } = {}) {
+  for (const { name, path, allowHosts: pageHosts = allowHosts } of pages) {
     for (const width of WIDTHS) {
       test(`${name} at ${width}px (${path})`, async ({ page }) => {
-        await checkPage(page, { name, path, width, ready })
+        await checkPage(page, { name, path, width, ready, allowHosts: pageHosts })
         // No redirect to /login or elsewhere.
         expect(new URL(page.url()).pathname).toBe(path)
       })
@@ -63,5 +68,6 @@ test.describe('public pages', () => {
 
 test.describe('member and admin pages', () => {
   test.use({ storageState: DEMO_STATE })
-  smoke(MEMBER_PAGES, mainRenders)
+  // Member and admin pages show seed cover photos from a pending host (see helpers.js).
+  smoke(MEMBER_PAGES, mainRenders, { allowHosts: PENDING_HOSTS })
 })
