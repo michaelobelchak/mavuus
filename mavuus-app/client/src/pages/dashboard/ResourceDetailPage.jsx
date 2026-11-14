@@ -4,6 +4,7 @@ import { Bookmark, Clock, Download, User } from 'lucide-react'
 import { Card, DescriptionList, MediaFrame, ScrollProgress, SectionHeader, ShareDialog, useToast } from '@/design-system/patterns'
 import { CommentThread, MetaList, ResourceCard } from '@/design-system/organisms'
 import { Badge, Button, Heading, Text } from '@/design-system/primitives'
+import { isHttpUrl } from '@/design-system/lib/safeUrl'
 import { useAuth } from '../../context/AuthContext'
 import { useComments } from '../../hooks/useComments'
 import { useDetailResource } from '../../hooks/useDetailResource'
@@ -144,7 +145,7 @@ export default function ResourceDetailPage() {
   }
 
   // Templates with a file get Download; everything else (and a template without a file) gets Bookmark.
-  const downloadHref = resource.type === 'template' && resource.url ? resource.url : null
+  const downloadHref = resource.type === 'template' && isHttpUrl(resource.url) ? resource.url : null
 
   return (
     <div className="flex flex-col gap-ds-lg">

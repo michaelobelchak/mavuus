@@ -1,3 +1,5 @@
+import { isHttpUrl } from '../../lib/safeUrl'
+
 const VIDEO_FILE = /\.(mp4|webm|ogg|ogv|mov|m4v)$/i
 
 function youtubeId(url) {
@@ -11,9 +13,11 @@ function youtubeId(url) {
 /**
  * How a video URL plays: `{ kind: 'embed', src }` for YouTube (privacy-enhanced
  * youtube-nocookie.com; watch?v=, youtu.be, /embed/ and /shorts/ URLs) and Vimeo,
- * `{ kind: 'file', src }` for a direct video file, or `{ kind: 'link', src }` for any other page.
+ * `{ kind: 'file', src }` for a direct video file, `{ kind: 'link', src }` for any other http(s)
+ * page, or `{ kind: 'none', src }` for anything that isn't http(s) (javascript:, data:...).
  */
 export function videoEmbedSrc(src) {
+  if (!isHttpUrl(src)) return { kind: 'none', src }
   let url
   try {
     url = new URL(src, 'http://local.invalid')

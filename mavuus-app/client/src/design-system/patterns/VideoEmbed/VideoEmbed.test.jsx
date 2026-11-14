@@ -30,6 +30,12 @@ describe('VideoEmbed', () => {
     expect(container.querySelector('source')).toHaveAttribute('src', '/videos/talk.mp4')
   })
 
+  it('should show the placeholder, with no link or player, for a URL that is not http or https', () => {
+    const { container } = render(<VideoEmbed src="javascript:alert(1)" title="Talk" />)
+    expect(screen.getByText('Video coming soon')).toBeInTheDocument()
+    expect(container.querySelector('a, video, iframe')).toBeNull()
+  })
+
   it('should link out instead of a broken player when the URL is not a video', () => {
     const { container } = render(<VideoEmbed src="https://example.com/watch-page" title="Talk" />)
     expect(container.querySelector('video')).toBeNull()
@@ -51,5 +57,7 @@ describe('videoEmbedSrc', () => {
     expect(videoEmbedSrc('/a.webm')).toEqual({ kind: 'file', src: '/a.webm' })
     expect(videoEmbedSrc('https://cdn.example.com/talk.MP4?sig=1')).toEqual({ kind: 'file', src: 'https://cdn.example.com/talk.MP4?sig=1' })
     expect(videoEmbedSrc('https://example.com/page')).toEqual({ kind: 'link', src: 'https://example.com/page' })
+    expect(videoEmbedSrc('javascript:alert(1).mp4')).toEqual({ kind: 'none', src: 'javascript:alert(1).mp4' })
+    expect(videoEmbedSrc('data:video/mp4;base64,AAAA')).toEqual({ kind: 'none', src: 'data:video/mp4;base64,AAAA' })
   })
 })

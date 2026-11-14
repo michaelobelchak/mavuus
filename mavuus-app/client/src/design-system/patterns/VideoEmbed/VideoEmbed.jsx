@@ -7,14 +7,15 @@ import { videoEmbedSrc } from './videoEmbedSrc'
  * A 16:9 video player with the card radius.
  * - `src`: a YouTube (played from youtube-nocookie.com) or Vimeo URL in a locked down iframe, or a
  *   direct video file (.mp4, .webm...) in a native <video> with controls. Any other URL shows a
- *   "Watch the video" link instead of a broken player. Without `src` it shows a "Video coming
- *   soon" placeholder (`emptyLabel`).
+ *   "Watch the video" link instead of a broken player. Without `src`, or with a URL that isn't
+ *   http(s), it shows a "Video coming soon" placeholder (`emptyLabel`).
  * - `title` names the iframe or video for screen readers (default "Video").
  * `className` and other props go to the frame.
  */
 export function VideoEmbed({ src, title = 'Video', emptyLabel = 'Video coming soon', className, ref, ...props }) {
   const frame = 'relative aspect-video overflow-hidden rounded-card'
-  if (!src) {
+  const video = src ? videoEmbedSrc(src) : { kind: 'none' }
+  if (video.kind === 'none') {
     return (
       <div
         ref={ref}
@@ -28,7 +29,6 @@ export function VideoEmbed({ src, title = 'Video', emptyLabel = 'Video coming so
       </div>
     )
   }
-  const video = videoEmbedSrc(src)
   if (video.kind === 'link') {
     // Not something the page can play: link to it instead of showing a broken player.
     return (

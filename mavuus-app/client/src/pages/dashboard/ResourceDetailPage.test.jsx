@@ -74,6 +74,12 @@ describe('ResourceDetailPage', () => {
     expect(screen.queryByRole('button', { name: 'Bookmark' })).not.toBeInTheDocument()
   })
 
+  it('should leave Download Template out when the file URL is not http or https', async () => {
+    renderPage(1, { 'GET /api/resources/1': { ...template, url: 'javascript:alert(1)' } })
+    expect(await screen.findByText('Plan spend.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Download Template' })).not.toBeInTheDocument()
+  })
+
   it('should leave Download Template out when the template has no file', async () => {
     renderPage(1, { 'GET /api/resources/1': template })
     expect(await screen.findByText('Plan spend.')).toBeInTheDocument()
