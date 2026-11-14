@@ -66,7 +66,8 @@ function NotificationsButton({ count, onClick, open, controlsId, buttonRef, puls
  * - `user` (`{ name, email, avatar_url, role }`; the menu opens with the name and email), `userMenuItems` (DropdownMenu items; default
  *   Profile, Settings, Admin panel for admins and Log out, which calls `onLogout`).
  * - `onOpenNav`: shows the menu button (below 1024px) that opens the mobile nav; `navOpen` sets
- *   its aria-expanded and `menuButtonRef` reaches it (for focus return).
+ *   its aria-expanded and `menuButtonRef` reaches it (for focus return). `titleRef` reaches the h1
+ *   (tabIndex -1), which AppShell focuses after a navigation.
  * `className` and other props go to the `<header>`.
  */
 export function AppTopBar({
@@ -82,6 +83,7 @@ export function AppTopBar({
   navOpen = false,
   navId,
   menuButtonRef,
+  titleRef,
   className,
   ref,
   ...props
@@ -156,7 +158,7 @@ export function AppTopBar({
       <div className="flex min-w-0 grow flex-col gap-ds-xxs">
         {breadcrumbs?.length > 0 && <Breadcrumbs items={breadcrumbs} />}
         {title && (
-          <Heading level={1} size="h3" className="m-ds-none truncate">
+          <Heading ref={titleRef} tabIndex={-1} level={1} size="h3" className="m-ds-none truncate">
             {title}
           </Heading>
         )}

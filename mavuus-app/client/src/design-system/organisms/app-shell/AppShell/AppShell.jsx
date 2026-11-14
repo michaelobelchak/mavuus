@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useMediaQuery } from '../../../hooks'
 import { cn } from '../../../lib/cn'
@@ -21,6 +21,10 @@ import { readCollapsed, writeCollapsed } from './sidebarStorage'
  * - The document scrolls, not a panel: the sidebar is sticky at full viewport height (its nav
  *   scrolls on its own when it is long) and the top bar sticks to the top of the content column,
  *   so mobile address bars collapse, Space and Page Down work and window scroll listeners fire.
+ *   The root carries `data-app-shell`; styles/app-shell.css then pads focus scrolling below the
+ *   top bar and sets `--shell-topbar-h` and `--shell-main-pad` for pages that size to the screen.
+ * - After a navigation (not on first load) focus moves to the page title (an h1 with
+ *   tabIndex -1), including when the link was followed from the mobile sheet.
  * - `children` render in `<main id="main-content">`, a tinted panel on `bg-surface-sunken` with a
  *   large top-left radius on desktop, in normal flow. A "Skip to main content" link comes first.
  * - `defaultNavOpen`: open the mobile sheet on the first render (stories).
@@ -68,6 +72,23 @@ export function AppShell({
   const menuButtonRef = useRef(null)
   const mainRef = useRef(null)
   const sheetRef = useRef(null)
+  const titleRef = useRef(null)
+
+  // After a navigation (not on first load), focus moves to the new page's title so keyboard and
+  // screen reader users start at the top of the new page and hear its name.
+  const lastPathRef = useRef(pathname)
+  useEffect(() => {
+    if (lastPathRef.current === pathname) return
+    lastPathRef.current = pathname
+    ;(titleRef.current ?? mainRef.current)?.focus({ preventScroll: true })
+  }, [pathname])
+
+  // The sheet hands focus back to the menu button, unless a link in it was followed: then focus
+  // goes to the new page's title (the sheet's focus trap would undo an earlier move).
+  const sheetNavigatedRef = useRef(false)
+  function sheetFinalFocus() {
+    return sheetNavigatedRef.current ? (titleRef.current ?? mainRef.current) : menuButtonRef.current
+  }
 
   // Open the sheet on the page's own nav link (or the first one), not on the logo.
   function navFocusTarget() {
@@ -83,7 +104,12 @@ export function AppShell({
   }
 
   return (
-    <div ref={ref} className={cn('flex min-h-dvh bg-surface-raised font-sans text-text-primary', className)} {...props}>
+    <div
+      ref={ref}
+      data-app-shell=""
+      className={cn('flex min-h-dvh bg-surface-raised font-sans text-text-primary', className)}
+      {...props}
+    >
       <a
         href="#main-content"
         onClick={(event) => {
@@ -118,10 +144,16 @@ export function AppShell({
           title={<span className="sr-only">Menu</span>}
           ref={sheetRef}
           initialFocus={navFocusTarget}
-          finalFocus={menuButtonRef}
+          finalFocus={sheetFinalFocus}
           className="gap-ds-none p-ds-none"
         >
-          <AppSidebar {...sidebarProps} onNavigate={() => setOpenFor(null)} />
+          <AppSidebar
+            {...sidebarProps}
+            onNavigate={(event) => {
+              sheetNavigatedRef.current = event?.currentTarget?.getAttribute('aria-current') !== 'page'
+              setOpenFor(null)
+            }}
+          />
         </Sheet>
       )}
       <div className="flex min-w-0 grow flex-col">
@@ -134,10 +166,18 @@ export function AppShell({
           user={user}
           userMenuItems={userMenuItems}
           onLogout={onLogout}
-          onOpenNav={mobile ? () => setOpenFor(pathname) : undefined}
+          onOpenNav={
+            mobile
+              ? () => {
+                  sheetNavigatedRef.current = false
+                  setOpenFor(pathname)
+                }
+              : undefined
+          }
           navOpen={navOpen}
           navId={navId}
           menuButtonRef={menuButtonRef}
+          titleRef={titleRef}
           className="sticky top-ds-none z-(--ds-z-sticky) bg-surface-raised"
         />
         <main

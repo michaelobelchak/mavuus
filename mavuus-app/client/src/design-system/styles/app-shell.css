@@ -1,0 +1,16 @@
+/* AppShell (the root carries data-app-shell) has a sticky top bar 80px tall (min-h-20). While a
+   shell is on the page, keyboard focus and in-page anchors scroll to just below that bar instead
+   of under it, and pages can size themselves with these properties:
+   --shell-topbar-h  the top bar height
+   --shell-main-pad  the padding of <main id="main-content"> on each side (p-ds-md, lg:p-ds-xl) */
+html:has([data-app-shell]) {
+  --shell-topbar-h: 5rem;
+  --shell-main-pad: var(--ds-space-md);
+  scroll-padding-top: calc(var(--shell-topbar-h) + var(--ds-space-xs));
+}
+
+@media (min-width: 64rem) {
+  html:has([data-app-shell]) {
+    --shell-main-pad: var(--ds-space-xl);
+  }
+}

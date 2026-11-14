@@ -173,6 +173,33 @@ describe('AppShell', () => {
     expect(screen.getByTestId('where')).toHaveTextContent('/dashboard/speakers')
   })
 
+  it('should mark its root so global CSS can pad focus scrolling below the sticky top bar', () => {
+    const { container } = renderShell(1440)
+    expect(container.firstElementChild).toHaveAttribute('data-app-shell')
+  })
+
+  it('should leave focus alone on first load and move it to the page title after navigating', async () => {
+    const user = userEvent.setup()
+    renderShell(1440)
+    const title = screen.getByRole('heading', { level: 1, name: 'Jobs' })
+    expect(title).not.toHaveFocus()
+    expect(title).toHaveAttribute('tabindex', '-1')
+    await user.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Speakers' }))
+    expect(screen.getByTestId('where')).toHaveTextContent('/dashboard/speakers')
+    await waitFor(() => expect(title).toHaveFocus())
+  })
+
+  it('should leave focus on the page title, not the menu button, when a link in the mobile sheet is followed', async () => {
+    const user = userEvent.setup()
+    renderShell(390)
+    await user.click(screen.getByRole('button', { name: 'Open menu' }))
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('link', { name: 'Speakers' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), { timeout: 3000 })
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(screen.getByRole('heading', { level: 1, name: 'Jobs' })).toHaveFocus()
+  })
+
   it('should open the sheet on first render with defaultNavOpen', async () => {
     renderShell(390, { defaultNavOpen: true })
     expect(await screen.findByRole('dialog')).toBeInTheDocument()

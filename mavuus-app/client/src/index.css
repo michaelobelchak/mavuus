@@ -8,6 +8,7 @@
 @source not "./**/*.mdx";
 @import "./design-system/tokens/tokens.css";
 @import "./design-system/styles/motion.css";
+@import "./design-system/styles/app-shell.css";
 
 /* Fixel Text by MacPaw, the font of the live mavuus.com site, served from public/fonts/fixel/
    (SIL Open Font License 1.1, see OFL.txt there). index.html preloads Medium (hero heading,
