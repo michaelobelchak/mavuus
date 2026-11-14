@@ -17,6 +17,7 @@ import adminRoutes from '../routes/admin.js'
 import membersRoutes from '../routes/members.js'
 import reviewsRoutes from '../routes/reviews.js'
 import searchRoutes from '../routes/search.js'
+import vendorsRoutes from '../routes/vendors.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -66,6 +67,7 @@ export function createTestApp() {
   app.use('/api/members', membersRoutes)
   app.use('/api/reviews', reviewsRoutes)
   app.use('/api/search', searchRoutes)
+  app.use('/api/vendors', vendorsRoutes)
 
   return { app, db }
 }

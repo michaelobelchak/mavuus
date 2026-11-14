@@ -28,7 +28,7 @@ router.get('/', (req, res) => {
 
   const members = db.prepare(
     `SELECT u.id, u.name, u.title, u.company, u.avatar_url FROM users u
-     WHERE (u.name LIKE ? OR u.title LIKE ? OR u.company LIKE ?) AND ${NOT_VENDOR_OWNER}
+     WHERE (u.name LIKE ? OR u.title LIKE ? OR u.company LIKE ?) AND COALESCE(u.is_banned, 0) = 0 AND COALESCE(u.is_deleted, 0) = 0 AND ${NOT_VENDOR_OWNER}
      ORDER BY u.name LIMIT 5`
   ).all(term, term, term)
 

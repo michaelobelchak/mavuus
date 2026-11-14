@@ -2,6 +2,7 @@ import { Router } from 'express'
 import jwt from 'jsonwebtoken'
 import { JWT_SECRET } from '../middleware/auth.js'
 import { NOT_VENDOR_OWNER } from '../db/vendorOwners.js'
+import { parsePaging } from '../middleware/validate.js'
 
 const router = Router()
 
@@ -30,7 +31,7 @@ function isConnected(db, userId1, userId2) {
 const TIERS = ['pro', 'free']
 
 router.get('/', optionalAuth, (req, res) => {
-  const { search, tier, connections, page = 1, limit = 20 } = req.query
+  const { search, tier, connections } = req.query
   const db = req.app.locals.db
 
   if (tier !== undefined && !TIERS.includes(tier)) {
@@ -44,7 +45,8 @@ router.get('/', optionalAuth, (req, res) => {
     return res.status(401).json({ error: 'Sign in to list your connections' })
   }
 
-  const conditions = [NOT_VENDOR_OWNER]
+  // Banned and deleted accounts and vendor owner accounts aren't in the directory.
+  const conditions = ['COALESCE(u.is_banned, 0) = 0', 'COALESCE(u.is_deleted, 0) = 0', NOT_VENDOR_OWNER]
   const params = []
 
   // Privacy filter
@@ -81,13 +83,11 @@ router.get('/', optionalAuth, (req, res) => {
     `SELECT COUNT(*) as count FROM users u LEFT JOIN user_profiles p ON u.id = p.user_id${whereClause}`
   ).get(...params).count
 
-  const pageNum = Math.max(1, parseInt(page))
-  const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
+  const { page: pageNum, limit: limitNum, offset } = parsePaging(req.query)
   const totalPages = Math.ceil(total / limitNum)
-  const offset = (pageNum - 1) * limitNum
 
   const data = db.prepare(
-    `SELECT u.id, u.name, u.email, u.title, u.company, u.avatar_url, u.membership_tier, u.created_at
+    `SELECT u.id, u.name, u.title, u.company, u.avatar_url, u.membership_tier, u.created_at
      FROM users u
      LEFT JOIN user_profiles p ON u.id = p.user_id
      ${whereClause}

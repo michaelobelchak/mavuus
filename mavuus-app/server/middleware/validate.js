@@ -24,3 +24,15 @@ export const MAX_LENGTHS = {
   company: 200,
   email: 254,
 }
+
+/**
+ * `{ page, limit, offset }` from a list request's query: whole numbers in base 10, page at least
+ * 1 and limit from 1 to `max`. A missing or non-numeric value takes the default, never NaN.
+ */
+export function parsePaging(query = {}, { defaultLimit = 20, max = 100 } = {}) {
+  const pageNum = Number.parseInt(query.page, 10)
+  const limitNum = Number.parseInt(query.limit, 10)
+  const page = Number.isNaN(pageNum) ? 1 : Math.max(1, pageNum)
+  const limit = Number.isNaN(limitNum) ? defaultLimit : Math.min(max, Math.max(1, limitNum))
+  return { page, limit, offset: (page - 1) * limit }
+}
