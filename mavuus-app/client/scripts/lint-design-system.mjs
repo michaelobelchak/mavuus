@@ -3,9 +3,9 @@
 //
 // Scans src/**/*.{js,jsx,mjs,css} and the .md/.mdx files under src/design-system/, except the
 // generated src/design-system/tokens/ folder and the @theme and top-level :root blocks of
-// src/index.css. JS and JSX go through @babel/parser so only real strings, JSX text and comments
-// are checked; CSS uses a small comment-aware scanner. Test files (*.test.*) only get the dash
-// and layering rules, since they build styled fixtures on purpose.
+// src/index.css. index.html, .storybook/, e2e/ and scripts/ are scanned for no-remote-assets only. JS and JSX go through @babel/parser so only real strings, JSX text and comments
+// are checked; CSS uses a small comment-aware scanner. Test files (*.test.*) only get the dash,
+// layering and remote-asset rules, since they build styled fixtures on purpose.
 //
 // Override one finding with a comment on the same line or the line above:
 //   // ds-allow no-raw-color: chart library needs a literal color
@@ -25,6 +25,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse } from '@babel/parser'
+import { BANNED_HOST_SUFFIXES } from './localize-assets.mjs'
 
 export const RULES = {
   'no-raw-color': 'Raw color value; use a token class or role variable',
@@ -35,18 +36,26 @@ export const RULES = {
   'no-retired-imports': 'Import from a retired folder (components/ui, components/live); use src/design-system',
   'pages-use-system': 'More than 3 className strings over 120 characters; compose design-system components instead',
   'ds-layering': 'Design-system layer import out of order',
+  'no-remote-assets': 'Remote asset host (Webflow CDN or the old avatar service); use a local copy in public/ (scripts/localize-assets.mjs)',
   'ds-allow-reason': 'ds-allow override needs a known rule and a reason',
   'parse-error': 'Could not parse the file',
 }
 
 // Rules that never go into the baseline: a legacy file with one of these always fails.
-const NEVER_BASELINED = new Set(['parse-error'])
+const NEVER_BASELINED = new Set(['parse-error', 'no-remote-assets'])
 
 const DS = 'src/design-system/'
 const TOKENS_DIR = 'src/design-system/tokens/'
 const INDEX_CSS = 'src/index.css'
 const TEST_FILE = /\.test\.(?:jsx?|mjs)$/
-const TEST_RULES = new Set(['no-em-dash', 'ds-layering'])
+const TEST_RULES = new Set(['no-em-dash', 'ds-layering', 'no-remote-assets'])
+// Any mention of a banned asset host, with or without a protocol or subdomain.
+const REMOTE_HOST = new RegExp(`\\b(?:[a-z0-9-]+\\.)*(?:${BANNED_HOST_SUFFIXES.map((h) => h.replace(/\./g, '\\.')).join('|')})\\b`, 'gi')
+// Outside src/ (index.html, .storybook/, e2e/, scripts/) only the remote-asset rule applies.
+const remoteOnly = (file) => !file.startsWith('src/') || file.endsWith('.html')
+// Folders outside src/ that are scanned for remote assets, and what to skip inside them.
+const EXTRA_DIRS = ['.storybook', 'e2e', 'scripts']
+const SKIP_DIRS = new Set(['node_modules', 'screenshots', '.auth', '__fixtures__'])
 const LONG_CLASS = 120
 const LONG_CLASS_LIMIT = 3
 
@@ -530,11 +539,12 @@ export function lintSource(file, source, { strict = false } = {}) {
       })
     },
   }
+  for (const m of source.matchAll(REMOTE_HOST)) ctx.report('no-remote-assets', m.index, `"${m[0]}"`)
   const ext = path.extname(file)
   let comments = []
   if (ext === '.css') comments = lintCss(file, source, ctx)
   else if (ext === '.md' || ext === '.mdx') comments = lintMarkdown(file, source, ctx)
-  else comments = lintJs(file, source, ctx)
+  else if (ext !== '.html') comments = lintJs(file, source, ctx)
 
   const overrideErrors = []
   const overrides = parseOverrides(comments, source, (rule, offset, detail) => {
@@ -543,7 +553,10 @@ export function lintSource(file, source, { strict = false } = {}) {
   })
   // Tests build fixtures with raw styles on purpose, so only the dash and layering rules apply.
   const isTest = TEST_FILE.test(file)
-  const kept = raw.filter((v) => !overrides.get(v.line)?.has(v.rule) && (!isTest || TEST_RULES.has(v.rule)))
+  const outside = remoteOnly(file)
+  const kept = raw.filter(
+    (v) => !overrides.get(v.line)?.has(v.rule) && (!isTest || TEST_RULES.has(v.rule)) && (!outside || v.rule === 'no-remote-assets'),
+  )
   // Avoid double reports of the same rule at the same spot (a string seen as text and as a class).
   const seen = new Set()
   const unique = kept.filter((v) => {
@@ -562,13 +575,14 @@ export function listFiles(root) {
     for (const entry of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
       const rel = dir ? `${dir}/${entry.name}` : entry.name
       if (entry.isDirectory()) {
-        if (entry.name === 'node_modules' || `${rel}/` === TOKENS_DIR) continue
+        if (SKIP_DIRS.has(entry.name) || `${rel}/` === TOKENS_DIR) continue
         visit(rel)
-      } else if (/\.(jsx?|mjs|css)$/.test(entry.name)) out.push(rel)
+      } else if (/\.(jsx?|mjs|css|html)$/.test(entry.name)) out.push(rel)
       else if (/\.mdx?$/.test(entry.name) && rel.startsWith(DS)) out.push(rel)
     }
   }
-  if (fs.existsSync(path.join(root, 'src'))) visit('src')
+  for (const dir of ['src', ...EXTRA_DIRS]) if (fs.existsSync(path.join(root, dir))) visit(dir)
+  if (fs.existsSync(path.join(root, 'index.html'))) out.push('index.html')
   return out.sort()
 }
 
