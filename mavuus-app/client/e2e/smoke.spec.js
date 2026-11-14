@@ -51,7 +51,13 @@ const MEMBER_PAGES = [
   { name: 'dashboard-resource', path: '/dashboard/resources/2' },
   { name: 'dashboard-messages', path: '/dashboard/messages' },
   { name: 'dashboard-jobs', path: '/dashboard/jobs' },
+  // Member 1 has a full profile; member 17 (seed-demo.js) shows a limited, connections-only one.
+  { name: 'dashboard-speakers', path: '/dashboard/speakers' },
+  { name: 'dashboard-members', path: '/dashboard/members' },
+  { name: 'dashboard-member', path: '/dashboard/members/1' },
+  { name: 'dashboard-member-limited', path: '/dashboard/members/17' },
   { name: 'dashboard-vendors', path: '/dashboard/vendors' },
+  { name: 'dashboard-vendor', path: '/dashboard/vendors/1' },
   { name: 'admin', path: '/admin' },
   { name: 'admin-users', path: '/admin/users' },
   { name: 'admin-jobs', path: '/admin/jobs' },
