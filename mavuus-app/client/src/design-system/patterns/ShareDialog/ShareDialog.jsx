@@ -65,7 +65,9 @@ export function ShareDialog({ title = 'Share', url, shareTitle = '', onOpenChang
                 variant="outline"
                 size="sm"
                 leadingIcon={network.icon}
-                aria-label={`Share on ${network.label}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Share on ${network.label} (opens in a new tab)`}
               >
                 {network.label}
               </Button>

@@ -18,6 +18,17 @@ describe('ShareDialog', () => {
     expect(screen.getByLabelText('Or copy link')).toHaveValue('https://mavuus.com/s/1')
   })
 
+  it('should open every network link in a new tab, safely, and say so', () => {
+    render(<ShareDialog open onOpenChange={() => {}} url="https://mavuus.com/s/1" />)
+    const links = screen.getAllByRole('link', { name: /^Share on / })
+    expect(links).toHaveLength(5)
+    for (const link of links) {
+      expect(link).toHaveAttribute('target', '_blank')
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+      expect(link).toHaveAccessibleName(/\(opens in a new tab\)$/)
+    }
+  })
+
   it('should copy the link and confirm with a toast when Copy is pressed', async () => {
     const user = userEvent.setup()
     const writeText = vi.fn().mockResolvedValue()
