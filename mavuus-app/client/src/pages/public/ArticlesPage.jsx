@@ -92,11 +92,11 @@ export default function ArticlesPage() {
                   </div>
 
                   {/* Articles column */}
-                  <div className="flex flex-col gap-14 w-full lg:w-[950px]">
+                  <div className="flex flex-col gap-14 w-full min-w-0 lg:max-w-[950px]">
                     {items.map((article, i) => (
                       <div key={article.id}>
                         {/* Article card */}
-                        <div className="flex flex-col-reverse lg:flex-row items-start lg:justify-between gap-6 lg:gap-0 lg:h-[200px] w-full lg:w-[950px] group cursor-pointer">
+                        <div className="flex flex-col-reverse lg:flex-row items-start lg:justify-between gap-6 lg:gap-0 lg:h-[200px] w-full min-w-0 lg:max-w-[950px] group cursor-pointer">
                           {/* Text */}
                           <div className="flex flex-col justify-between h-full w-full lg:w-[496px]">
                             <div className="flex flex-col gap-6">
