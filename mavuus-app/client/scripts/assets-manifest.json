@@ -1,0 +1,3586 @@
+{
+  "assets": [
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a8e1f09926e879d24a_FixelText-Bold.woff2",
+      "localPath": "/fonts/fixel/fixeltext-bold.woff2",
+      "bytes": 84124,
+      "contentType": "application/octet-stream",
+      "usedIn": [
+        "client/src/index.css"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a8542d420b9568cbbc_FixelText-Light.woff2",
+      "localPath": "/fonts/fixel/fixeltext-light.woff2",
+      "bytes": 78608,
+      "contentType": "application/octet-stream",
+      "usedIn": [
+        "client/src/index.css"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a80f53689e46a53cbe_FixelText-Medium.woff2",
+      "localPath": "/fonts/fixel/fixeltext-medium.woff2",
+      "bytes": 82908,
+      "contentType": "application/octet-stream",
+      "usedIn": [
+        "client/src/index.css"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a89906e5efe6bc7f35_FixelText-Regular.woff2",
+      "localPath": "/fonts/fixel/fixeltext-regular.woff2",
+      "bytes": 76116,
+      "contentType": "application/octet-stream",
+      "usedIn": [
+        "client/src/index.css"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668967a81353e3635b91fc47_FixelText-SemiBold.woff2",
+      "localPath": "/fonts/fixel/fixeltext-semibold.woff2",
+      "bytes": 83316,
+      "contentType": "application/octet-stream",
+      "usedIn": [
+        "client/src/index.css"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6699bafbbc4abfb2767db752_img-how-we-got-p-1080.webp",
+      "localPath": "/images/about/img-how-we-got-p-1080.webp",
+      "bytes": 42174,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/about.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6699bafbbc4abfb2767db752_img-how-we-got-p-1600.webp",
+      "localPath": "/images/about/img-how-we-got-p-1600.webp",
+      "bytes": 74738,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/about.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6699bafbbc4abfb2767db752_img-how-we-got-p-500.webp",
+      "localPath": "/images/about/img-how-we-got-p-500.webp",
+      "bytes": 15932,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/about.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6699bafbbc4abfb2767db752_img-how-we-got-p-800.webp",
+      "localPath": "/images/about/img-how-we-got-p-800.webp",
+      "bytes": 29456,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/about.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6699bafbbc4abfb2767db752_img-how-we-got.webp",
+      "localPath": "/images/about/img-how-we-got.webp",
+      "bytes": 99344,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/about.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=aisha@figma.com",
+      "localPath": "/images/avatars/avatar-01.jpg",
+      "bytes": 6794,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/mockData.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=alex@stripe.com",
+      "localPath": "/images/avatars/avatar-02.jpg",
+      "bytes": 4533,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/mockData.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=andre@salesforce.com",
+      "localPath": "/images/avatars/avatar-03.jpg",
+      "bytes": 3192,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=danielle@notion.com",
+      "localPath": "/images/avatars/avatar-04.jpg",
+      "bytes": 6805,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=david@twilio.com",
+      "localPath": "/images/avatars/avatar-05.jpg",
+      "bytes": 7463,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/mockData.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=demo@mavuus.com",
+      "localPath": "/images/avatars/avatar-06.jpg",
+      "bytes": 6662,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/.storybook/storyUser.js",
+        "server/db/seed-demo.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=elena@drift.com",
+      "localPath": "/images/avatars/avatar-07.jpg",
+      "bytes": 7031,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/mockData.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=james@amplitude.com",
+      "localPath": "/images/avatars/avatar-08.jpg",
+      "bytes": 4781,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=jennifer@hubspot.com",
+      "localPath": "/images/avatars/avatar-09.jpg",
+      "bytes": 6316,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/mockData.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=keiko@hubspot.com",
+      "localPath": "/images/avatars/avatar-10.jpg",
+      "bytes": 6764,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=laura@moz.com",
+      "localPath": "/images/avatars/avatar-11.jpg",
+      "bytes": 3401,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=leah@lyft.com",
+      "localPath": "/images/avatars/avatar-12.jpg",
+      "bytes": 4822,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=lisa@notion.com",
+      "localPath": "/images/avatars/avatar-13.jpg",
+      "bytes": 4859,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=marcus@growthbase.com",
+      "localPath": "/images/avatars/avatar-14.jpg",
+      "bytes": 6445,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/mockData.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=maya@spotify.com",
+      "localPath": "/images/avatars/avatar-15.jpg",
+      "bytes": 6662,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/mockData.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=nina@intercom.com",
+      "localPath": "/images/avatars/avatar-16.jpg",
+      "bytes": 5643,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/mockData.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=omar@canva.com",
+      "localPath": "/images/avatars/avatar-17.jpg",
+      "bytes": 4843,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=priya@cloudscale.com",
+      "localPath": "/images/avatars/avatar-18.jpg",
+      "bytes": 5394,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/mockData.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=rachel@asana.com",
+      "localPath": "/images/avatars/avatar-19.jpg",
+      "bytes": 6764,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=ryan@shopify.com",
+      "localPath": "/images/avatars/avatar-20.jpg",
+      "bytes": 4885,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/mockData.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=sarah@techflow.com",
+      "localPath": "/images/avatars/avatar-21.jpg",
+      "bytes": 4793,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/mockData.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=simone@slack.com",
+      "localPath": "/images/avatars/avatar-22.jpg",
+      "bytes": 6005,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=tom@datadog.com",
+      "localPath": "/images/avatars/avatar-23.jpg",
+      "bytes": 3516,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/mockData.js",
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://i.pravatar.cc/150?u=tomas@zendesk.com",
+      "localPath": "/images/avatars/avatar-24.jpg",
+      "bytes": 5553,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "server/db/seed.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/669f0e0e2a657f4c5e1c90d0_img-contacts.png",
+      "localPath": "/images/contact/img-contacts.png",
+      "bytes": 431252,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/pages/public/ContactPage.jsx"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/66afe8fe2c0f83efef64a862_icon_adv_1.png",
+      "localPath": "/images/faq/icon-adv-1.png",
+      "bytes": 1700,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/faq.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/66bed3b92d2881a4f93d9d90_av1.png",
+      "localPath": "/images/home/av1.png",
+      "bytes": 8015,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/66bed3b910c947d3795c2c49_av2.png",
+      "localPath": "/images/home/av2.png",
+      "bytes": 9879,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/66bed3badc008570ccee6b56_av3.png",
+      "localPath": "/images/home/av3.png",
+      "bytes": 9480,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/66bed3b9eca421d9b4612935_av4.png",
+      "localPath": "/images/home/av4.png",
+      "bytes": 9048,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/66bed3b95fc4b07c9718ce34_av5%20(1).png",
+      "localPath": "/images/home/av5-1.png",
+      "bytes": 9737,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/66bed3b9a7a302cd86ef4d85_av6.png",
+      "localPath": "/images/home/av6.png",
+      "bytes": 6986,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f3c503a71a14c49821823_customize-p-1080.webp",
+      "localPath": "/images/home/customize-p-1080.webp",
+      "bytes": 114480,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f3c503a71a14c49821823_customize-p-500.webp",
+      "localPath": "/images/home/customize-p-500.webp",
+      "bytes": 31088,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f3c503a71a14c49821823_customize-p-800.webp",
+      "localPath": "/images/home/customize-p-800.webp",
+      "bytes": 56638,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f3c503a71a14c49821823_customize.webp",
+      "localPath": "/images/home/customize.webp",
+      "bytes": 175232,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/668f2c97028e2278d3eb99ea_Frame%203308-1.png",
+      "localPath": "/images/home/frame-3308-1.png",
+      "bytes": 273908,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/668f2d542643e62fdd6f0de2_Frame%203308-2.png",
+      "localPath": "/images/home/frame-3308-2.png",
+      "bytes": 389988,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/668f2d8fd805709f241f7e60_Frame%203308-3.png",
+      "localPath": "/images/home/frame-3308-3.png",
+      "bytes": 247336,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/668f2c5af33e04132746cbe3_Frame%203308.png",
+      "localPath": "/images/home/frame-3308.png",
+      "bytes": 306843,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/668f2cf5d805709f241f22eb_Frame%203310-1.png",
+      "localPath": "/images/home/frame-3310-1.png",
+      "bytes": 352505,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/668f2d11666e30fee46c109c_Frame%203310-2.png",
+      "localPath": "/images/home/frame-3310-2.png",
+      "bytes": 251331,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/668f2d36c60036ab655dcd2a_Frame%203310-3.png",
+      "localPath": "/images/home/frame-3310-3.png",
+      "bytes": 336344,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/668f2d6f8ce1f487a65d3a86_Frame%203310-4.png",
+      "localPath": "/images/home/frame-3310-4.png",
+      "bytes": 410595,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/668f2da9f0506a401976ac7d_Frame%203310-5.png",
+      "localPath": "/images/home/frame-3310-5.png",
+      "bytes": 264307,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/668f2c7d9c66d4db7164fd8f_Frame%203310.png",
+      "localPath": "/images/home/frame-3310.png",
+      "bytes": 381208,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f41ed60ea88d8a546c9d7_Group%203272-p-500.webp",
+      "localPath": "/images/home/group-3272-p-500.webp",
+      "bytes": 37446,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f41ed60ea88d8a546c9d7_Group%203272-p-800.webp",
+      "localPath": "/images/home/group-3272-p-800.webp",
+      "bytes": 66998,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f41ed60ea88d8a546c9d7_Group%203272.webp",
+      "localPath": "/images/home/group-3272.webp",
+      "bytes": 87266,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/66e1f9f7e6f85e23bc2ef8c7_just-image%20(1)-p-500.avif",
+      "localPath": "/images/home/just-image-1-p-500.avif",
+      "bytes": 25714,
+      "contentType": "image/avif",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/66e1f9f7e6f85e23bc2ef8c7_just-image%20(1).avif",
+      "localPath": "/images/home/just-image-1.avif",
+      "bytes": 27859,
+      "contentType": "image/avif",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bc28347aaa3991418103fc_image%20197.png",
+      "localPath": "/images/logos/image-197.png",
+      "bytes": 3344,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bc28ce9e135c0a60329d7e_image%20198.png",
+      "localPath": "/images/logos/image-198.png",
+      "bytes": 5273,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bc2902eb8d3f5a4ba7a419_image%20200.png",
+      "localPath": "/images/logos/image-200.png",
+      "bytes": 7804,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bc28035a04f39f6d65166a_image%20202.png",
+      "localPath": "/images/logos/image-202.png",
+      "bytes": 6315,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66c355116e3d2236f3bc598f_image%20204.png",
+      "localPath": "/images/logos/image-204.png",
+      "bytes": 7079,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bc291aeb8d3f5a4ba7b864_image%20205.png",
+      "localPath": "/images/logos/image-205.png",
+      "bytes": 3624,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6689763240456e66e970e5aa_logo.svg",
+      "localPath": "/images/logos/logo.svg",
+      "bytes": 4369,
+      "contentType": "image/svg+xml",
+      "usedIn": [
+        "client/src/components/layout/PublicHeader.jsx",
+        "client/src/design-system/lib/brand.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6778152db78e91f947eb0e3f_0_VbBuvnq1wVd-1Fuu-p-1080.jpg",
+      "localPath": "/images/posts/0-vbbuvnq1wvd-1fuu-p-1080.jpg",
+      "bytes": 100837,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6778152db78e91f947eb0e3f_0_VbBuvnq1wVd-1Fuu.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6778152db78e91f947eb0e3f_0_VbBuvnq1wVd-1Fuu-p-500.jpg",
+      "localPath": "/images/posts/0-vbbuvnq1wvd-1fuu-p-500.jpg",
+      "bytes": 32205,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6778152db78e91f947eb0e3f_0_VbBuvnq1wVd-1Fuu.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6778152db78e91f947eb0e3f_0_VbBuvnq1wVd-1Fuu-p-800.jpg",
+      "localPath": "/images/posts/0-vbbuvnq1wvd-1fuu-p-800.jpg",
+      "bytes": 64386,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6778152db78e91f947eb0e3f_0_VbBuvnq1wVd-1Fuu.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6778152db78e91f947eb0e3f_0_VbBuvnq1wVd-1Fuu.jpg",
+      "localPath": "/images/posts/0-vbbuvnq1wvd-1fuu.jpg",
+      "bytes": 138098,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69e0bd81b46d699edc6a74c5_135%20(1)-p-1080.jpg",
+      "localPath": "/images/posts/135-1-p-1080.jpg",
+      "bytes": 83743,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69e0bd81b46d699edc6a74c5_135%20(1).jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69e0bd81b46d699edc6a74c5_135%20(1)-p-500.jpg",
+      "localPath": "/images/posts/135-1-p-500.jpg",
+      "bytes": 24283,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69e0bd81b46d699edc6a74c5_135%20(1).jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69e0bd81b46d699edc6a74c5_135%20(1)-p-800.jpg",
+      "localPath": "/images/posts/135-1-p-800.jpg",
+      "bytes": 50694,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69e0bd81b46d699edc6a74c5_135%20(1).jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69e0bd81b46d699edc6a74c5_135%20(1).jpg",
+      "localPath": "/images/posts/135-1.jpg",
+      "bytes": 410301,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/677817184b770acb23e68f9e_360_F_908556002_q3hzsqIqtXJ2giplAbyl6KxfJOS7dN1T-p-500.jpg",
+      "localPath": "/images/posts/360-f-908556002-q3hzsqiqtxj2giplabyl6kxfjos7dn1t-p-500.jpg",
+      "bytes": 25489,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/677817184b770acb23e68f9e_360_F_908556002_q3hzsqIqtXJ2giplAbyl6KxfJOS7dN1T.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/677817184b770acb23e68f9e_360_F_908556002_q3hzsqIqtXJ2giplAbyl6KxfJOS7dN1T.jpg",
+      "localPath": "/images/posts/360-f-908556002-q3hzsqiqtxj2giplabyl6kxfjos7dn1t.jpg",
+      "bytes": 45046,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69047a8dc10b51c0fa7b4447_ai-agents-for-cmos511718-p-500.png",
+      "localPath": "/images/posts/ai-agents-for-cmos511718-p-500.png",
+      "bytes": 67051,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69047a8dc10b51c0fa7b4447_ai-agents-for-cmos511718.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69047a8dc10b51c0fa7b4447_ai-agents-for-cmos511718-p-800.png",
+      "localPath": "/images/posts/ai-agents-for-cmos511718-p-800.png",
+      "bytes": 151782,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69047a8dc10b51c0fa7b4447_ai-agents-for-cmos511718.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69047a8dc10b51c0fa7b4447_ai-agents-for-cmos511718.png",
+      "localPath": "/images/posts/ai-agents-for-cmos511718.png",
+      "bytes": 748881,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67a2532077ea9a2c4ce6cb86_career-compass-jacob-warwick-min%202-p-1080.png",
+      "localPath": "/images/posts/career-compass-jacob-warwick-min-2-p-1080.png",
+      "bytes": 290160,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67a2532077ea9a2c4ce6cb86_career-compass-jacob-warwick-min%202.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67a2532077ea9a2c4ce6cb86_career-compass-jacob-warwick-min%202-p-1600.png",
+      "localPath": "/images/posts/career-compass-jacob-warwick-min-2-p-1600.png",
+      "bytes": 656995,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67a2532077ea9a2c4ce6cb86_career-compass-jacob-warwick-min%202.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67a2532077ea9a2c4ce6cb86_career-compass-jacob-warwick-min%202-p-500.png",
+      "localPath": "/images/posts/career-compass-jacob-warwick-min-2-p-500.png",
+      "bytes": 76306,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67a2532077ea9a2c4ce6cb86_career-compass-jacob-warwick-min%202.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67a2532077ea9a2c4ce6cb86_career-compass-jacob-warwick-min%202-p-800.png",
+      "localPath": "/images/posts/career-compass-jacob-warwick-min-2-p-800.png",
+      "bytes": 167840,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67a2532077ea9a2c4ce6cb86_career-compass-jacob-warwick-min%202.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67a2532077ea9a2c4ce6cb86_career-compass-jacob-warwick-min%202.png",
+      "localPath": "/images/posts/career-compass-jacob-warwick-min-2.png",
+      "bytes": 804709,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b887523d60f760d96b85e_career-compass-jacob-warwick-p-1080.png",
+      "localPath": "/images/posts/career-compass-jacob-warwick-p-1080.png",
+      "bytes": 263826,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b887523d60f760d96b85e_career-compass-jacob-warwick.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b887523d60f760d96b85e_career-compass-jacob-warwick-p-1600.png",
+      "localPath": "/images/posts/career-compass-jacob-warwick-p-1600.png",
+      "bytes": 512647,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b887523d60f760d96b85e_career-compass-jacob-warwick.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b887523d60f760d96b85e_career-compass-jacob-warwick-p-500.png",
+      "localPath": "/images/posts/career-compass-jacob-warwick-p-500.png",
+      "bytes": 74027,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b887523d60f760d96b85e_career-compass-jacob-warwick.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b887523d60f760d96b85e_career-compass-jacob-warwick-p-800.png",
+      "localPath": "/images/posts/career-compass-jacob-warwick-p-800.png",
+      "bytes": 159150,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b887523d60f760d96b85e_career-compass-jacob-warwick.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b887523d60f760d96b85e_career-compass-jacob-warwick.png",
+      "localPath": "/images/posts/career-compass-jacob-warwick.png",
+      "bytes": 1245570,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/682cd1bee3dbe3cfca1322b4_cmo-role-in-gtm-strategy-p-500.png",
+      "localPath": "/images/posts/cmo-role-in-gtm-strategy-p-500.png",
+      "bytes": 98925,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/682cd1bee3dbe3cfca1322b4_cmo-role-in-gtm-strategy.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/682cd1bee3dbe3cfca1322b4_cmo-role-in-gtm-strategy-p-800.png",
+      "localPath": "/images/posts/cmo-role-in-gtm-strategy-p-800.png",
+      "bytes": 218580,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/682cd1bee3dbe3cfca1322b4_cmo-role-in-gtm-strategy.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/682cd1bee3dbe3cfca1322b4_cmo-role-in-gtm-strategy.png",
+      "localPath": "/images/posts/cmo-role-in-gtm-strategy.png",
+      "bytes": 914864,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d8e5b6f18b921b0113fe_cmo-tell-all-managing-c-suite-expectations-driving-growth-building-strategic-alliances-p-1080.png",
+      "localPath": "/images/posts/cmo-tell-all-managing-c-suite-expectations-driving-growth-building-strategic-alliances-p-1080.png",
+      "bytes": 256273,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d8e5b6f18b921b0113fe_cmo-tell-all-managing-c-suite-expectations-driving-growth-building-strategic-alliances.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d8e5b6f18b921b0113fe_cmo-tell-all-managing-c-suite-expectations-driving-growth-building-strategic-alliances-p-500.png",
+      "localPath": "/images/posts/cmo-tell-all-managing-c-suite-expectations-driving-growth-building-strategic-alliances-p-500.png",
+      "bytes": 69491,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d8e5b6f18b921b0113fe_cmo-tell-all-managing-c-suite-expectations-driving-growth-building-strategic-alliances.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d8e5b6f18b921b0113fe_cmo-tell-all-managing-c-suite-expectations-driving-growth-building-strategic-alliances-p-800.png",
+      "localPath": "/images/posts/cmo-tell-all-managing-c-suite-expectations-driving-growth-building-strategic-alliances-p-800.png",
+      "bytes": 152637,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d8e5b6f18b921b0113fe_cmo-tell-all-managing-c-suite-expectations-driving-growth-building-strategic-alliances.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d8e5b6f18b921b0113fe_cmo-tell-all-managing-c-suite-expectations-driving-growth-building-strategic-alliances.png",
+      "localPath": "/images/posts/cmo-tell-all-managing-c-suite-expectations-driving-growth-building-strategic-alliances.png",
+      "bytes": 1542090,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6759f6f46833bba260b97c3d_cmos-tell-all-2025-marketing-playbook-top-5-marketing-opportunities-for-cmos-to-generate-demand-p-500.png",
+      "localPath": "/images/posts/cmos-tell-all-2025-marketing-playbook-top-5-marketing-opportunities-for-cmos-to-generate-demand-p-500.png",
+      "bytes": 72696,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6759f6f46833bba260b97c3d_cmos-tell-all-2025-marketing-playbook-top-5-marketing-opportunities-for-cmos-to-generate-demand.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6759f6f46833bba260b97c3d_cmos-tell-all-2025-marketing-playbook-top-5-marketing-opportunities-for-cmos-to-generate-demand-p-800.png",
+      "localPath": "/images/posts/cmos-tell-all-2025-marketing-playbook-top-5-marketing-opportunities-for-cmos-to-generate-demand-p-800.png",
+      "bytes": 158019,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6759f6f46833bba260b97c3d_cmos-tell-all-2025-marketing-playbook-top-5-marketing-opportunities-for-cmos-to-generate-demand.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6759f6f46833bba260b97c3d_cmos-tell-all-2025-marketing-playbook-top-5-marketing-opportunities-for-cmos-to-generate-demand.png",
+      "localPath": "/images/posts/cmos-tell-all-2025-marketing-playbook-top-5-marketing-opportunities-for-cmos-to-generate-demand.png",
+      "bytes": 624765,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d783f10a9446c60f0417_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-min-p-1080.png",
+      "localPath": "/images/posts/cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-min-p-1080.png",
+      "bytes": 302653,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d783f10a9446c60f0417_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-min.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d783f10a9446c60f0417_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-min-p-500.png",
+      "localPath": "/images/posts/cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-min-p-500.png",
+      "bytes": 76368,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d783f10a9446c60f0417_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-min.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d783f10a9446c60f0417_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-min-p-800.png",
+      "localPath": "/images/posts/cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-min-p-800.png",
+      "bytes": 172491,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d783f10a9446c60f0417_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-min.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d783f10a9446c60f0417_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-min.png",
+      "localPath": "/images/posts/cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-min.png",
+      "bytes": 614534,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d5ba392dfe23ec71b52f_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-p-1080.png",
+      "localPath": "/images/posts/cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-p-1080.png",
+      "bytes": 281793,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d5ba392dfe23ec71b52f_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d5ba392dfe23ec71b52f_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-p-500.png",
+      "localPath": "/images/posts/cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-p-500.png",
+      "bytes": 75945,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d5ba392dfe23ec71b52f_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d5ba392dfe23ec71b52f_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-p-800.png",
+      "localPath": "/images/posts/cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics-p-800.png",
+      "bytes": 168093,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d5ba392dfe23ec71b52f_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6735d5ba392dfe23ec71b52f_cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics.png",
+      "localPath": "/images/posts/cmos-tell-all-marketing-to-and-managing-gen-z-s-expectations-behavior-psychographics.png",
+      "bytes": 2097088,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66a9594d980551c657224b6d_Dilya%20Abushayeva.jpeg",
+      "localPath": "/images/posts/dilya-abushayeva.jpeg",
+      "bytes": 3189,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/68da723480a183b60157e058_financial-literacy-1080-675-1024x640-p-500.png",
+      "localPath": "/images/posts/financial-literacy-1080-675-1024x640-p-500.png",
+      "bytes": 77005,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/68da723480a183b60157e058_financial-literacy-1080-675-1024x640.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/68da723480a183b60157e058_financial-literacy-1080-675-1024x640-p-800.png",
+      "localPath": "/images/posts/financial-literacy-1080-675-1024x640-p-800.png",
+      "bytes": 173115,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/68da723480a183b60157e058_financial-literacy-1080-675-1024x640.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/68da723480a183b60157e058_financial-literacy-1080-675-1024x640.png",
+      "localPath": "/images/posts/financial-literacy-1080-675-1024x640.png",
+      "bytes": 800207,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66ac2eb176773dea6669461a_image%402x.png",
+      "localPath": "/images/posts/image-2x.png",
+      "bytes": 22380,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67d30699a09f7e576b3588a0_istockphoto-1146304621-612x612-p-500.jpg",
+      "localPath": "/images/posts/istockphoto-1146304621-612x612-p-500.jpg",
+      "bytes": 15483,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67d30699a09f7e576b3588a0_istockphoto-1146304621-612x612.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67d30699a09f7e576b3588a0_istockphoto-1146304621-612x612.jpg",
+      "localPath": "/images/posts/istockphoto-1146304621-612x612.jpg",
+      "bytes": 22848,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/677818c791c0779db0db9729_kids-business-team-discussion-group-briefing-partners-share-ideas-office_266732-30511.avif",
+      "localPath": "/images/posts/kids-business-team-discussion-group-briefing-partners-share-ideas-office-266732-30511.avif",
+      "bytes": 22385,
+      "contentType": "image/avif",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a17494f317d4e0c2ce5762d_kids-meet-robot-stockcake-p-500.png",
+      "localPath": "/images/posts/kids-meet-robot-stockcake-p-500.png",
+      "bytes": 71504,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a17494f317d4e0c2ce5762d_kids-meet-robot-stockcake.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a17494f317d4e0c2ce5762d_kids-meet-robot-stockcake.png",
+      "localPath": "/images/posts/kids-meet-robot-stockcake.png",
+      "bytes": 448001,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670eca93156a1065cf217848_Li%20Banners%20(1)-p-1080.png",
+      "localPath": "/images/posts/li-banners-1-p-1080.png",
+      "bytes": 248442,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670eca93156a1065cf217848_Li%20Banners%20(1).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670eca93156a1065cf217848_Li%20Banners%20(1)-p-500.png",
+      "localPath": "/images/posts/li-banners-1-p-500.png",
+      "bytes": 65394,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670eca93156a1065cf217848_Li%20Banners%20(1).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670eca93156a1065cf217848_Li%20Banners%20(1)-p-800.png",
+      "localPath": "/images/posts/li-banners-1-p-800.png",
+      "bytes": 147592,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670eca93156a1065cf217848_Li%20Banners%20(1).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670eca93156a1065cf217848_Li%20Banners%20(1).png",
+      "localPath": "/images/posts/li-banners-1.png",
+      "bytes": 1341464,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecca8069dea20f4638856_Li%20Banners%20(2)-p-1080.png",
+      "localPath": "/images/posts/li-banners-2-p-1080.png",
+      "bytes": 261729,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecca8069dea20f4638856_Li%20Banners%20(2).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecca8069dea20f4638856_Li%20Banners%20(2)-p-500.png",
+      "localPath": "/images/posts/li-banners-2-p-500.png",
+      "bytes": 70548,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecca8069dea20f4638856_Li%20Banners%20(2).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecca8069dea20f4638856_Li%20Banners%20(2)-p-800.png",
+      "localPath": "/images/posts/li-banners-2-p-800.png",
+      "bytes": 155874,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecca8069dea20f4638856_Li%20Banners%20(2).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecca8069dea20f4638856_Li%20Banners%20(2).png",
+      "localPath": "/images/posts/li-banners-2.png",
+      "bytes": 1514914,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecea7e70a07be9ef7ac70_Li%20Banners%20(3)-p-1080.png",
+      "localPath": "/images/posts/li-banners-3-p-1080.png",
+      "bytes": 231458,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecea7e70a07be9ef7ac70_Li%20Banners%20(3).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecea7e70a07be9ef7ac70_Li%20Banners%20(3)-p-500.png",
+      "localPath": "/images/posts/li-banners-3-p-500.png",
+      "bytes": 64163,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecea7e70a07be9ef7ac70_Li%20Banners%20(3).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecea7e70a07be9ef7ac70_Li%20Banners%20(3)-p-800.png",
+      "localPath": "/images/posts/li-banners-3-p-800.png",
+      "bytes": 141740,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecea7e70a07be9ef7ac70_Li%20Banners%20(3).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ecea7e70a07be9ef7ac70_Li%20Banners%20(3).png",
+      "localPath": "/images/posts/li-banners-3.png",
+      "bytes": 1310691,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ec8d2da9da2797a28eb4a_Li%20Banners-p-1080.png",
+      "localPath": "/images/posts/li-banners-p-1080.png",
+      "bytes": 225528,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ec8d2da9da2797a28eb4a_Li%20Banners.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ec8d2da9da2797a28eb4a_Li%20Banners-p-500.png",
+      "localPath": "/images/posts/li-banners-p-500.png",
+      "bytes": 63340,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ec8d2da9da2797a28eb4a_Li%20Banners.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ec8d2da9da2797a28eb4a_Li%20Banners-p-800.png",
+      "localPath": "/images/posts/li-banners-p-800.png",
+      "bytes": 136430,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ec8d2da9da2797a28eb4a_Li%20Banners.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/670ec8d2da9da2797a28eb4a_Li%20Banners.png",
+      "localPath": "/images/posts/li-banners.png",
+      "bytes": 1227947,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2a661d9eab5f767eb17_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(11)-p-1080.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-11-p-1080.png",
+      "bytes": 220127,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2a661d9eab5f767eb17_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(11).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2a661d9eab5f767eb17_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(11)-p-500.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-11-p-500.png",
+      "bytes": 52253,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2a661d9eab5f767eb17_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(11).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2a661d9eab5f767eb17_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(11)-p-800.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-11-p-800.png",
+      "bytes": 124289,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2a661d9eab5f767eb17_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(11).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2a661d9eab5f767eb17_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(11).png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-11.png",
+      "bytes": 1941740,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2dfde8011b72559a183_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(17)-p-1080.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-17-p-1080.png",
+      "bytes": 284862,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2dfde8011b72559a183_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(17).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2dfde8011b72559a183_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(17)-p-500.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-17-p-500.png",
+      "bytes": 77349,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2dfde8011b72559a183_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(17).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2dfde8011b72559a183_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(17)-p-800.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-17-p-800.png",
+      "bytes": 170174,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2dfde8011b72559a183_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(17).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d2dfde8011b72559a183_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(17).png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-17.png",
+      "bytes": 1998002,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bbaf8a7a1580cfff8ec601_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2)-p-1080.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-2-p-1080.png",
+      "bytes": 409891,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bbaf8a7a1580cfff8ec601_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bbaf8a7a1580cfff8ec601_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2)-p-500.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-2-p-500.png",
+      "bytes": 98163,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bbaf8a7a1580cfff8ec601_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bbaf8a7a1580cfff8ec601_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2)-p-800.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-2-p-800.png",
+      "bytes": 231396,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bbaf8a7a1580cfff8ec601_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bbaf8a7a1580cfff8ec601_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2).png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-2.png",
+      "bytes": 3049111,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d274d67548f95b6beccf_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(25)-p-1080.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-25-p-1080.png",
+      "bytes": 285450,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d274d67548f95b6beccf_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(25).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d274d67548f95b6beccf_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(25)-p-500.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-25-p-500.png",
+      "bytes": 76649,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d274d67548f95b6beccf_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(25).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d274d67548f95b6beccf_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(25)-p-800.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-25-p-800.png",
+      "bytes": 170630,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d274d67548f95b6beccf_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(25).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d274d67548f95b6beccf_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(25).png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-25.png",
+      "bytes": 2058370,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1e767b2998ef34ddb7e_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(29)-p-1080.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-29-p-1080.png",
+      "bytes": 268173,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1e767b2998ef34ddb7e_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(29).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1e767b2998ef34ddb7e_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(29)-p-500.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-29-p-500.png",
+      "bytes": 69086,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1e767b2998ef34ddb7e_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(29).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1e767b2998ef34ddb7e_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(29)-p-800.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-29-p-800.png",
+      "bytes": 155061,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1e767b2998ef34ddb7e_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(29).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1e767b2998ef34ddb7e_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(29).png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-29.png",
+      "bytes": 2250812,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d22637d3b2b558478c8b_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(32)-p-1080.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-32-p-1080.png",
+      "bytes": 249938,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d22637d3b2b558478c8b_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(32).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d22637d3b2b558478c8b_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(32)-p-500.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-32-p-500.png",
+      "bytes": 54366,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d22637d3b2b558478c8b_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(32).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d22637d3b2b558478c8b_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(32)-p-800.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-32-p-800.png",
+      "bytes": 130857,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d22637d3b2b558478c8b_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(32).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d22637d3b2b558478c8b_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(32).png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-32.png",
+      "bytes": 1000671,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1b18c300a3e4e627695_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(34)-p-1080.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-34-p-1080.png",
+      "bytes": 339257,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1b18c300a3e4e627695_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(34).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1b18c300a3e4e627695_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(34)-p-500.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-34-p-500.png",
+      "bytes": 91006,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1b18c300a3e4e627695_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(34).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1b18c300a3e4e627695_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(34)-p-800.png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-34-p-800.png",
+      "bytes": 195868,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1b18c300a3e4e627695_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(34).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0d1b18c300a3e4e627695_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)(34).png",
+      "localPath": "/images/posts/li-event-banners-1600-900-px-34.png",
+      "bytes": 1916248,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6759f1bbaa05e4526b316dd0_marketing-budget-planning-2025639029-min-p-1080.png",
+      "localPath": "/images/posts/marketing-budget-planning-2025639029-min-p-1080.png",
+      "bytes": 238222,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6759f1bbaa05e4526b316dd0_marketing-budget-planning-2025639029-min.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6759f1bbaa05e4526b316dd0_marketing-budget-planning-2025639029-min-p-500.png",
+      "localPath": "/images/posts/marketing-budget-planning-2025639029-min-p-500.png",
+      "bytes": 66907,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6759f1bbaa05e4526b316dd0_marketing-budget-planning-2025639029-min.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6759f1bbaa05e4526b316dd0_marketing-budget-planning-2025639029-min-p-800.png",
+      "localPath": "/images/posts/marketing-budget-planning-2025639029-min-p-800.png",
+      "bytes": 143033,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6759f1bbaa05e4526b316dd0_marketing-budget-planning-2025639029-min.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6759f1bbaa05e4526b316dd0_marketing-budget-planning-2025639029-min.png",
+      "localPath": "/images/posts/marketing-budget-planning-2025639029-min.png",
+      "bytes": 443322,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671a9a1216ce693f5bc8ad48_marketing-budget-planning-2025639029-p-1080.png",
+      "localPath": "/images/posts/marketing-budget-planning-2025639029-p-1080.png",
+      "bytes": 222969,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671a9a1216ce693f5bc8ad48_marketing-budget-planning-2025639029.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671a9a1216ce693f5bc8ad48_marketing-budget-planning-2025639029-p-500.png",
+      "localPath": "/images/posts/marketing-budget-planning-2025639029-p-500.png",
+      "bytes": 65857,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671a9a1216ce693f5bc8ad48_marketing-budget-planning-2025639029.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671a9a1216ce693f5bc8ad48_marketing-budget-planning-2025639029-p-800.png",
+      "localPath": "/images/posts/marketing-budget-planning-2025639029-p-800.png",
+      "bytes": 138984,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671a9a1216ce693f5bc8ad48_marketing-budget-planning-2025639029.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671a9a1216ce693f5bc8ad48_marketing-budget-planning-2025639029.png",
+      "localPath": "/images/posts/marketing-budget-planning-2025639029.png",
+      "bytes": 1229582,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a593ab6479ea97de36e8425_marketing-ideas-that-delivered-real-results-p-1080.png",
+      "localPath": "/images/posts/marketing-ideas-that-delivered-real-results-p-1080.png",
+      "bytes": 290734,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a593ab6479ea97de36e8425_marketing-ideas-that-delivered-real-results.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a593ab6479ea97de36e8425_marketing-ideas-that-delivered-real-results-p-500.png",
+      "localPath": "/images/posts/marketing-ideas-that-delivered-real-results-p-500.png",
+      "bytes": 77060,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a593ab6479ea97de36e8425_marketing-ideas-that-delivered-real-results.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a593ab6479ea97de36e8425_marketing-ideas-that-delivered-real-results-p-800.png",
+      "localPath": "/images/posts/marketing-ideas-that-delivered-real-results-p-800.png",
+      "bytes": 172510,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a593ab6479ea97de36e8425_marketing-ideas-that-delivered-real-results.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a593ab6479ea97de36e8425_marketing-ideas-that-delivered-real-results.png",
+      "localPath": "/images/posts/marketing-ideas-that-delivered-real-results.png",
+      "bytes": 1531378,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67e5ae00d15f348dc1a25003_marketing-leadership-by-the-numbers-p-500.jpg",
+      "localPath": "/images/posts/marketing-leadership-by-the-numbers-p-500.jpg",
+      "bytes": 28634,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67e5ae00d15f348dc1a25003_marketing-leadership-by-the-numbers.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67e5ae00d15f348dc1a25003_marketing-leadership-by-the-numbers-p-800.jpg",
+      "localPath": "/images/posts/marketing-leadership-by-the-numbers-p-800.jpg",
+      "bytes": 57081,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67e5ae00d15f348dc1a25003_marketing-leadership-by-the-numbers.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67e5ae00d15f348dc1a25003_marketing-leadership-by-the-numbers.jpg",
+      "localPath": "/images/posts/marketing-leadership-by-the-numbers.jpg",
+      "bytes": 247627,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/680b3d68accccab3b2b9d988_marketing-teams-of-the-future930047-p-1080.jpg",
+      "localPath": "/images/posts/marketing-teams-of-the-future930047-p-1080.jpg",
+      "bytes": 100822,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/680b3d68accccab3b2b9d988_marketing-teams-of-the-future930047.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/680b3d68accccab3b2b9d988_marketing-teams-of-the-future930047-p-500.jpg",
+      "localPath": "/images/posts/marketing-teams-of-the-future930047-p-500.jpg",
+      "bytes": 26377,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/680b3d68accccab3b2b9d988_marketing-teams-of-the-future930047.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/680b3d68accccab3b2b9d988_marketing-teams-of-the-future930047-p-800.jpg",
+      "localPath": "/images/posts/marketing-teams-of-the-future930047-p-800.jpg",
+      "bytes": 61191,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/680b3d68accccab3b2b9d988_marketing-teams-of-the-future930047.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/680b3d68accccab3b2b9d988_marketing-teams-of-the-future930047.jpg",
+      "localPath": "/images/posts/marketing-teams-of-the-future930047.jpg",
+      "bytes": 598987,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671aa00edf45d9583f5e47b8_robot-child-learning-neurosince-p-1080.webp",
+      "localPath": "/images/posts/robot-child-learning-neurosince-p-1080.webp",
+      "bytes": 38202,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671aa00edf45d9583f5e47b8_robot-child-learning-neurosince.webp"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671aa00edf45d9583f5e47b8_robot-child-learning-neurosince-p-500.webp",
+      "localPath": "/images/posts/robot-child-learning-neurosince-p-500.webp",
+      "bytes": 15994,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671aa00edf45d9583f5e47b8_robot-child-learning-neurosince.webp"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671aa00edf45d9583f5e47b8_robot-child-learning-neurosince-p-800.webp",
+      "localPath": "/images/posts/robot-child-learning-neurosince-p-800.webp",
+      "bytes": 27874,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671aa00edf45d9583f5e47b8_robot-child-learning-neurosince.webp"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671aa00edf45d9583f5e47b8_robot-child-learning-neurosince.webp",
+      "localPath": "/images/posts/robot-child-learning-neurosince.webp",
+      "bytes": 66832,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6894f71a0edd3228d83f15f7_should-cmos-report-to-sales-p-500.png",
+      "localPath": "/images/posts/should-cmos-report-to-sales-p-500.png",
+      "bytes": 73031,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6894f71a0edd3228d83f15f7_should-cmos-report-to-sales.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6894f71a0edd3228d83f15f7_should-cmos-report-to-sales-p-800.png",
+      "localPath": "/images/posts/should-cmos-report-to-sales-p-800.png",
+      "bytes": 162558,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6894f71a0edd3228d83f15f7_should-cmos-report-to-sales.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6894f71a0edd3228d83f15f7_should-cmos-report-to-sales.png",
+      "localPath": "/images/posts/should-cmos-report-to-sales.png",
+      "bytes": 785717,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671b424985024c44aa6c39ae_shutterstock_499584073-p-500.jpg",
+      "localPath": "/images/posts/shutterstock-499584073-p-500.jpg",
+      "bytes": 29612,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671b424985024c44aa6c39ae_shutterstock_499584073.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671b424985024c44aa6c39ae_shutterstock_499584073-p-800.jpg",
+      "localPath": "/images/posts/shutterstock-499584073-p-800.jpg",
+      "bytes": 63799,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671b424985024c44aa6c39ae_shutterstock_499584073.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/671b424985024c44aa6c39ae_shutterstock_499584073.jpg",
+      "localPath": "/images/posts/shutterstock-499584073.jpg",
+      "bytes": 623669,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/693bd1554a90bf2f0ec5b351_the-2026-cmo-role-p-1080.jpg",
+      "localPath": "/images/posts/the-2026-cmo-role-p-1080.jpg",
+      "bytes": 47330,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/693bd1554a90bf2f0ec5b351_the-2026-cmo-role.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/693bd1554a90bf2f0ec5b351_the-2026-cmo-role-p-1600.jpg",
+      "localPath": "/images/posts/the-2026-cmo-role-p-1600.jpg",
+      "bytes": 88208,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/693bd1554a90bf2f0ec5b351_the-2026-cmo-role.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/693bd1554a90bf2f0ec5b351_the-2026-cmo-role-p-500.jpg",
+      "localPath": "/images/posts/the-2026-cmo-role-p-500.jpg",
+      "bytes": 14672,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/693bd1554a90bf2f0ec5b351_the-2026-cmo-role.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/693bd1554a90bf2f0ec5b351_the-2026-cmo-role-p-800.jpg",
+      "localPath": "/images/posts/the-2026-cmo-role-p-800.jpg",
+      "bytes": 29737,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/693bd1554a90bf2f0ec5b351_the-2026-cmo-role.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/693bd1554a90bf2f0ec5b351_the-2026-cmo-role.jpg",
+      "localPath": "/images/posts/the-2026-cmo-role.jpg",
+      "bytes": 727448,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/68545bc815800675c16ac9f3_the-impact-of-ai-in-digital-marketing-p-500.png",
+      "localPath": "/images/posts/the-impact-of-ai-in-digital-marketing-p-500.png",
+      "bytes": 70908,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/68545bc815800675c16ac9f3_the-impact-of-ai-in-digital-marketing.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/68545bc815800675c16ac9f3_the-impact-of-ai-in-digital-marketing-p-800.png",
+      "localPath": "/images/posts/the-impact-of-ai-in-digital-marketing-p-800.png",
+      "bytes": 162468,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/68545bc815800675c16ac9f3_the-impact-of-ai-in-digital-marketing.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/68545bc815800675c16ac9f3_the-impact-of-ai-in-digital-marketing.png",
+      "localPath": "/images/posts/the-impact-of-ai-in-digital-marketing.png",
+      "bytes": 632596,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js",
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/678a0f066aebf9143121ef87_Tips-for-kids-on-how-to-nail-presentations-in-the-classroom-header-p-500.jpg",
+      "localPath": "/images/posts/tips-for-kids-on-how-to-nail-presentations-in-the-classroom-header-p-500.jpg",
+      "bytes": 23494,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/678a0f066aebf9143121ef87_Tips-for-kids-on-how-to-nail-presentations-in-the-classroom-header.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/678a0f066aebf9143121ef87_Tips-for-kids-on-how-to-nail-presentations-in-the-classroom-header-p-800.jpg",
+      "localPath": "/images/posts/tips-for-kids-on-how-to-nail-presentations-in-the-classroom-header-p-800.jpg",
+      "bytes": 47071,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/678a0f066aebf9143121ef87_Tips-for-kids-on-how-to-nail-presentations-in-the-classroom-header.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/678a0f066aebf9143121ef87_Tips-for-kids-on-how-to-nail-presentations-in-the-classroom-header.jpg",
+      "localPath": "/images/posts/tips-for-kids-on-how-to-nail-presentations-in-the-classroom-header.jpg",
+      "bytes": 63993,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69a83b8a20b38567feefce9a_tired-young-beautiful-girl-sitting-working-place-office_176420-5170.avif",
+      "localPath": "/images/posts/tired-young-beautiful-girl-sitting-working-place-office-176420-5170.avif",
+      "bytes": 15559,
+      "contentType": "image/avif",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6ad7349b78663e55088dfe02_cmo-talent-planning-for-2027-p-1080.png",
+      "localPath": "/images/resources/cmo-talent-planning-for-2027-p-1080.png",
+      "bytes": 327247,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6ad7349b78663e55088dfe02_cmo-talent-planning-for-2027.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6ad7349b78663e55088dfe02_cmo-talent-planning-for-2027-p-500.png",
+      "localPath": "/images/resources/cmo-talent-planning-for-2027-p-500.png",
+      "bytes": 89756,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6ad7349b78663e55088dfe02_cmo-talent-planning-for-2027.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6ad7349b78663e55088dfe02_cmo-talent-planning-for-2027-p-800.png",
+      "localPath": "/images/resources/cmo-talent-planning-for-2027-p-800.png",
+      "bytes": 196202,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6ad7349b78663e55088dfe02_cmo-talent-planning-for-2027.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6ad7349b78663e55088dfe02_cmo-talent-planning-for-2027.png",
+      "localPath": "/images/resources/cmo-talent-planning-for-2027.png",
+      "bytes": 976223,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a7da91f5efb8996db133679_Financail-Smarts-Kids-p-1080.jpg",
+      "localPath": "/images/resources/financail-smarts-kids-p-1080.jpg",
+      "bytes": 92543,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a7da91f5efb8996db133679_Financail-Smarts-Kids.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a7da91f5efb8996db133679_Financail-Smarts-Kids-p-500.jpg",
+      "localPath": "/images/resources/financail-smarts-kids-p-500.jpg",
+      "bytes": 28610,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a7da91f5efb8996db133679_Financail-Smarts-Kids.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a7da91f5efb8996db133679_Financail-Smarts-Kids-p-800.jpg",
+      "localPath": "/images/resources/financail-smarts-kids-p-800.jpg",
+      "bytes": 57909,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a7da91f5efb8996db133679_Financail-Smarts-Kids.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6a7da91f5efb8996db133679_Financail-Smarts-Kids.jpg",
+      "localPath": "/images/resources/financail-smarts-kids.jpg",
+      "bytes": 695770,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/posts.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6699cbb6206dc486ff34f56f_bg.svg",
+      "localPath": "/images/shared/bg.svg",
+      "bytes": 13287,
+      "contentType": "image/svg+xml",
+      "usedIn": [
+        "client/src/components/live/CTABand.jsx",
+        "client/src/design-system/organisms/site/CTABand/CTABand.jsx"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f4ef17e1ac5e4d40cd793_Group%203276-p-1080.webp",
+      "localPath": "/images/shared/group-3276-p-1080.webp",
+      "bytes": 66242,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js",
+        "client/src/data/live/services.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f4ef17e1ac5e4d40cd793_Group%203276-p-500.webp",
+      "localPath": "/images/shared/group-3276-p-500.webp",
+      "bytes": 24138,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js",
+        "client/src/data/live/services.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f4ef17e1ac5e4d40cd793_Group%203276-p-800.webp",
+      "localPath": "/images/shared/group-3276-p-800.webp",
+      "bytes": 45564,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js",
+        "client/src/data/live/services.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f4ef17e1ac5e4d40cd793_Group%203276.webp",
+      "localPath": "/images/shared/group-3276.webp",
+      "bytes": 95560,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js",
+        "client/src/data/live/services.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f46214842f23691d72111_Rectangle%207-p-500.webp",
+      "localPath": "/images/shared/rectangle-7-p-500.webp",
+      "bytes": 32412,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f46214842f23691d72111_Rectangle%207-p-800.webp",
+      "localPath": "/images/shared/rectangle-7-p-800.webp",
+      "bytes": 59070,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/668f46214842f23691d72111_Rectangle%207.webp",
+      "localPath": "/images/shared/rectangle-7.webp",
+      "bytes": 80390,
+      "contentType": "image/webp",
+      "usedIn": [
+        "client/src/data/live/home.js",
+        "client/src/data/live/services.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6699b58945922c66688e3a22_sisters-p-1080.jpg",
+      "localPath": "/images/shared/sisters-p-1080.jpg",
+      "bytes": 151943,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/about.js",
+        "client/src/data/live/services.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6699b58945922c66688e3a22_sisters-p-500.jpg",
+      "localPath": "/images/shared/sisters-p-500.jpg",
+      "bytes": 49745,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/about.js",
+        "client/src/data/live/services.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6699b58945922c66688e3a22_sisters-p-800.jpg",
+      "localPath": "/images/shared/sisters-p-800.jpg",
+      "bytes": 98374,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/about.js",
+        "client/src/data/live/services.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/6689664d9906e5efe6bbc54d/6699b58945922c66688e3a22_sisters.jpg",
+      "localPath": "/images/shared/sisters.jpg",
+      "bytes": 160888,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/about.js",
+        "client/src/data/live/services.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/672d23063b7fffdef825efed_1638515120674-p-500.png",
+      "localPath": "/images/videos/1638515120674-p-500.png",
+      "bytes": 72696,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/672d23063b7fffdef825efed_1638515120674.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/672d23063b7fffdef825efed_1638515120674-p-800.png",
+      "localPath": "/images/videos/1638515120674-p-800.png",
+      "bytes": 158019,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/672d23063b7fffdef825efed_1638515120674.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/672d23063b7fffdef825efed_1638515120674.png",
+      "localPath": "/images/videos/1638515120674.png",
+      "bytes": 714853,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67214c6bdec04139f518ee65_AdobeStock_436767512-scaled-p-1080.png",
+      "localPath": "/images/videos/adobestock-436767512-scaled-p-1080.png",
+      "bytes": 303801,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67214c6bdec04139f518ee65_AdobeStock_436767512-scaled.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67214c6bdec04139f518ee65_AdobeStock_436767512-scaled-p-1600.png",
+      "localPath": "/images/videos/adobestock-436767512-scaled-p-1600.png",
+      "bytes": 609755,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67214c6bdec04139f518ee65_AdobeStock_436767512-scaled.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67214c6bdec04139f518ee65_AdobeStock_436767512-scaled-p-2000.png",
+      "localPath": "/images/videos/adobestock-436767512-scaled-p-2000.png",
+      "bytes": 913951,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67214c6bdec04139f518ee65_AdobeStock_436767512-scaled.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67214c6bdec04139f518ee65_AdobeStock_436767512-scaled-p-500.png",
+      "localPath": "/images/videos/adobestock-436767512-scaled-p-500.png",
+      "bytes": 83073,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67214c6bdec04139f518ee65_AdobeStock_436767512-scaled.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67214c6bdec04139f518ee65_AdobeStock_436767512-scaled-p-800.png",
+      "localPath": "/images/videos/adobestock-436767512-scaled-p-800.png",
+      "bytes": 183122,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67214c6bdec04139f518ee65_AdobeStock_436767512-scaled.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67214c6bdec04139f518ee65_AdobeStock_436767512-scaled.png",
+      "localPath": "/images/videos/adobestock-436767512-scaled.png",
+      "bytes": 3464809,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b88493e6c8d2ceabd0e05_career-compass-andy-martinello-p-1080.png",
+      "localPath": "/images/videos/career-compass-andy-martinello-p-1080.png",
+      "bytes": 244212,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b88493e6c8d2ceabd0e05_career-compass-andy-martinello.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b88493e6c8d2ceabd0e05_career-compass-andy-martinello-p-500.png",
+      "localPath": "/images/videos/career-compass-andy-martinello-p-500.png",
+      "bytes": 67258,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b88493e6c8d2ceabd0e05_career-compass-andy-martinello.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b88493e6c8d2ceabd0e05_career-compass-andy-martinello-p-800.png",
+      "localPath": "/images/videos/career-compass-andy-martinello-p-800.png",
+      "bytes": 145431,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b88493e6c8d2ceabd0e05_career-compass-andy-martinello.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b88493e6c8d2ceabd0e05_career-compass-andy-martinello.png",
+      "localPath": "/images/videos/career-compass-andy-martinello.png",
+      "bytes": 1656674,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b87db23d60f760d9608bf_career-compass-bart-molenda-p-1080.png",
+      "localPath": "/images/videos/career-compass-bart-molenda-p-1080.png",
+      "bytes": 275067,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b87db23d60f760d9608bf_career-compass-bart-molenda.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b87db23d60f760d9608bf_career-compass-bart-molenda-p-500.png",
+      "localPath": "/images/videos/career-compass-bart-molenda-p-500.png",
+      "bytes": 69477,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b87db23d60f760d9608bf_career-compass-bart-molenda.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b87db23d60f760d9608bf_career-compass-bart-molenda-p-800.png",
+      "localPath": "/images/videos/career-compass-bart-molenda-p-800.png",
+      "bytes": 159027,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b87db23d60f760d9608bf_career-compass-bart-molenda.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/673b87db23d60f760d9608bf_career-compass-bart-molenda.png",
+      "localPath": "/images/videos/career-compass-bart-molenda.png",
+      "bytes": 1834751,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67a4d214460470aeb3f77c33_cmo-career-setback-p-500.png",
+      "localPath": "/images/videos/cmo-career-setback-p-500.png",
+      "bytes": 84958,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67a4d214460470aeb3f77c33_cmo-career-setback.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67a4d214460470aeb3f77c33_cmo-career-setback.png",
+      "localPath": "/images/videos/cmo-career-setback.png",
+      "bytes": 246091,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6708257b4b8d5d64f8435b9e_computer-classes-for-kids-p-1080.png",
+      "localPath": "/images/videos/computer-classes-for-kids-p-1080.png",
+      "bytes": 286742,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6708257b4b8d5d64f8435b9e_computer-classes-for-kids.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6708257b4b8d5d64f8435b9e_computer-classes-for-kids-p-500.png",
+      "localPath": "/images/videos/computer-classes-for-kids-p-500.png",
+      "bytes": 77069,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6708257b4b8d5d64f8435b9e_computer-classes-for-kids.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6708257b4b8d5d64f8435b9e_computer-classes-for-kids-p-800.png",
+      "localPath": "/images/videos/computer-classes-for-kids-p-800.png",
+      "bytes": 169560,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6708257b4b8d5d64f8435b9e_computer-classes-for-kids.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/6708257b4b8d5d64f8435b9e_computer-classes-for-kids.png",
+      "localPath": "/images/videos/computer-classes-for-kids.png",
+      "bytes": 1036967,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66e33b56700c2f71abd75766_getty_482805813_9706479704500174_101825-p-1080.jpg",
+      "localPath": "/images/videos/getty-482805813-9706479704500174-101825-p-1080.jpg",
+      "bytes": 45981,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66e33b56700c2f71abd75766_getty_482805813_9706479704500174_101825.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66e33b56700c2f71abd75766_getty_482805813_9706479704500174_101825-p-1600.jpg",
+      "localPath": "/images/videos/getty-482805813-9706479704500174-101825-p-1600.jpg",
+      "bytes": 80620,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66e33b56700c2f71abd75766_getty_482805813_9706479704500174_101825.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66e33b56700c2f71abd75766_getty_482805813_9706479704500174_101825-p-500.jpg",
+      "localPath": "/images/videos/getty-482805813-9706479704500174-101825-p-500.jpg",
+      "bytes": 14843,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66e33b56700c2f71abd75766_getty_482805813_9706479704500174_101825.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66e33b56700c2f71abd75766_getty_482805813_9706479704500174_101825-p-800.jpg",
+      "localPath": "/images/videos/getty-482805813-9706479704500174-101825-p-800.jpg",
+      "bytes": 29616,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66e33b56700c2f71abd75766_getty_482805813_9706479704500174_101825.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66e33b56700c2f71abd75766_getty_482805813_9706479704500174_101825.jpg",
+      "localPath": "/images/videos/getty-482805813-9706479704500174-101825.jpg",
+      "bytes": 129157,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67521bc9aca998b8fdd1caf0_How-do-you-teach-money-management-skills-p-500.jpg",
+      "localPath": "/images/videos/how-do-you-teach-money-management-skills-p-500.jpg",
+      "bytes": 18480,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67521bc9aca998b8fdd1caf0_How-do-you-teach-money-management-skills.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/67521bc9aca998b8fdd1caf0_How-do-you-teach-money-management-skills.jpg",
+      "localPath": "/images/videos/how-do-you-teach-money-management-skills.jpg",
+      "bytes": 31835,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66fc57ac6b9e101a0c2c35d3_Li%20Banners-p-1080.png",
+      "localPath": "/images/videos/li-banners-2-p-1080.png",
+      "bytes": 245618,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66fc57ac6b9e101a0c2c35d3_Li%20Banners.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66fc57ac6b9e101a0c2c35d3_Li%20Banners-p-500.png",
+      "localPath": "/images/videos/li-banners-2-p-500.png",
+      "bytes": 69983,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66fc57ac6b9e101a0c2c35d3_Li%20Banners.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66fc57ac6b9e101a0c2c35d3_Li%20Banners-p-800.png",
+      "localPath": "/images/videos/li-banners-2-p-800.png",
+      "bytes": 149673,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66fc57ac6b9e101a0c2c35d3_Li%20Banners.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66fc57ac6b9e101a0c2c35d3_Li%20Banners.png",
+      "localPath": "/images/videos/li-banners-2.png",
+      "bytes": 1306146,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66f5a79ce696a478dba18f0a_Li%20Banners-p-1080.png",
+      "localPath": "/images/videos/li-banners-p-1080.png",
+      "bytes": 346347,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66f5a79ce696a478dba18f0a_Li%20Banners.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66f5a79ce696a478dba18f0a_Li%20Banners-p-500.png",
+      "localPath": "/images/videos/li-banners-p-500.png",
+      "bytes": 91514,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66f5a79ce696a478dba18f0a_Li%20Banners.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66f5a79ce696a478dba18f0a_Li%20Banners-p-800.png",
+      "localPath": "/images/videos/li-banners-p-800.png",
+      "bytes": 206432,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66f5a79ce696a478dba18f0a_Li%20Banners.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66f5a79ce696a478dba18f0a_Li%20Banners.png",
+      "localPath": "/images/videos/li-banners.png",
+      "bytes": 1493171,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0909dffff6cc53986be61_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(1)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-1-p-1080.png",
+      "bytes": 295507,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0909dffff6cc53986be61_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(1).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0909dffff6cc53986be61_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(1)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-1-p-500.png",
+      "bytes": 68413,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0909dffff6cc53986be61_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(1).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0909dffff6cc53986be61_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(1)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-1-p-800.png",
+      "bytes": 165163,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0909dffff6cc53986be61_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(1).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0909dffff6cc53986be61_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(1).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-1.png",
+      "bytes": 2030865,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092f90679980541353efd_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(10)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-10-p-1080.png",
+      "bytes": 285242,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092f90679980541353efd_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(10).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092f90679980541353efd_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(10)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-10-p-500.png",
+      "bytes": 71610,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092f90679980541353efd_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(10).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092f90679980541353efd_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(10)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-10-p-800.png",
+      "bytes": 162922,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092f90679980541353efd_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(10).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092f90679980541353efd_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(10).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-10.png",
+      "bytes": 1534971,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093247f1b32010019f07f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(11)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-11-p-1080.png",
+      "bytes": 409891,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093247f1b32010019f07f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(11).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093247f1b32010019f07f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(11)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-11-p-500.png",
+      "bytes": 98163,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093247f1b32010019f07f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(11).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093247f1b32010019f07f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(11)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-11-p-800.png",
+      "bytes": 231396,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093247f1b32010019f07f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(11).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093247f1b32010019f07f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(11).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-11.png",
+      "bytes": 3049111,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0935a46faa03a3617ed2f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(12)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-12-p-1080.png",
+      "bytes": 268664,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0935a46faa03a3617ed2f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(12).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0935a46faa03a3617ed2f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(12)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-12-p-500.png",
+      "bytes": 68557,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0935a46faa03a3617ed2f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(12).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0935a46faa03a3617ed2f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(12)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-12-p-800.png",
+      "bytes": 155854,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0935a46faa03a3617ed2f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(12).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0935a46faa03a3617ed2f_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(12).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-12.png",
+      "bytes": 2250752,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d09392ddfeb9aa105db2a1_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(13)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-13-p-1080.png",
+      "bytes": 340376,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d09392ddfeb9aa105db2a1_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(13).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d09392ddfeb9aa105db2a1_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(13)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-13-p-500.png",
+      "bytes": 91707,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d09392ddfeb9aa105db2a1_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(13).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d09392ddfeb9aa105db2a1_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(13)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-13-p-800.png",
+      "bytes": 196798,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d09392ddfeb9aa105db2a1_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(13).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d09392ddfeb9aa105db2a1_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(13).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-13.png",
+      "bytes": 1916249,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093c4c44ba65dca85c7d8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(14)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-14-p-1080.png",
+      "bytes": 256273,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093c4c44ba65dca85c7d8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(14).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093c4c44ba65dca85c7d8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(14)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-14-p-500.png",
+      "bytes": 69491,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093c4c44ba65dca85c7d8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(14).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093c4c44ba65dca85c7d8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(14)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-14-p-800.png",
+      "bytes": 152637,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093c4c44ba65dca85c7d8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(14).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d093c4c44ba65dca85c7d8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(14).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-14.png",
+      "bytes": 1611186,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094621cff20ed428321a8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(15)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-15-p-1080.png",
+      "bytes": 270538,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094621cff20ed428321a8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(15).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094621cff20ed428321a8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(15)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-15-p-500.png",
+      "bytes": 67103,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094621cff20ed428321a8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(15).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094621cff20ed428321a8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(15)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-15-p-800.png",
+      "bytes": 151082,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094621cff20ed428321a8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(15).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094621cff20ed428321a8_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(15).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-15.png",
+      "bytes": 1638084,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0949417e5b36958b7989d_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(16)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-16-p-1080.png",
+      "bytes": 281793,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0949417e5b36958b7989d_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(16).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0949417e5b36958b7989d_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(16)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-16-p-500.png",
+      "bytes": 75945,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0949417e5b36958b7989d_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(16).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0949417e5b36958b7989d_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(16)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-16-p-800.png",
+      "bytes": 168093,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0949417e5b36958b7989d_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(16).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0949417e5b36958b7989d_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(16).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-16.png",
+      "bytes": 2150614,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094d5f209573b5442d007_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(17)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-17-p-1080.png",
+      "bytes": 278177,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094d5f209573b5442d007_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(17).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094d5f209573b5442d007_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(17)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-17-p-500.png",
+      "bytes": 72988,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094d5f209573b5442d007_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(17).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094d5f209573b5442d007_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(17)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-17-p-800.png",
+      "bytes": 163654,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094d5f209573b5442d007_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(17).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d094d5f209573b5442d007_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(17).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-17.png",
+      "bytes": 2108242,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091095f88041763674be6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-2-p-1080.png",
+      "bytes": 297405,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091095f88041763674be6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091095f88041763674be6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-2-p-500.png",
+      "bytes": 76790,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091095f88041763674be6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091095f88041763674be6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-2-p-800.png",
+      "bytes": 170930,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091095f88041763674be6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091095f88041763674be6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(2).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-2.png",
+      "bytes": 2385461,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0914e6ce1039fb8fbec28_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-3-2-p-1080.png",
+      "bytes": 263356,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0914e6ce1039fb8fbec28_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0914e6ce1039fb8fbec28_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-3-2-p-500.png",
+      "bytes": 65808,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0914e6ce1039fb8fbec28_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0914e6ce1039fb8fbec28_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-3-2-p-800.png",
+      "bytes": 145211,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0914e6ce1039fb8fbec28_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0914e6ce1039fb8fbec28_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-3-2.png",
+      "bytes": 1411658,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce569f065a81cb6d05b23_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-3-p-1080.png",
+      "bytes": 322631,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce569f065a81cb6d05b23_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce569f065a81cb6d05b23_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-3-p-500.png",
+      "bytes": 60340,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce569f065a81cb6d05b23_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce569f065a81cb6d05b23_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-3-p-800.png",
+      "bytes": 161984,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce569f065a81cb6d05b23_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce569f065a81cb6d05b23_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(3).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-3.png",
+      "bytes": 2028067,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0919276f835f8b096ef09_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-4-2-p-1080.png",
+      "bytes": 266912,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0919276f835f8b096ef09_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0919276f835f8b096ef09_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-4-2-p-500.png",
+      "bytes": 69092,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0919276f835f8b096ef09_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0919276f835f8b096ef09_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-4-2-p-800.png",
+      "bytes": 155778,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0919276f835f8b096ef09_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0919276f835f8b096ef09_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-4-2.png",
+      "bytes": 1864996,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce82c17e532709f22f728_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-4-p-1080.png",
+      "bytes": 371195,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce82c17e532709f22f728_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce82c17e532709f22f728_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-4-p-500.png",
+      "bytes": 94026,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce82c17e532709f22f728_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce82c17e532709f22f728_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-4-p-800.png",
+      "bytes": 217675,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce82c17e532709f22f728_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce82c17e532709f22f728_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(4).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-4.png",
+      "bytes": 2086278,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091bf0a4d4b137e358b75_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-5-2-p-1080.png",
+      "bytes": 313538,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091bf0a4d4b137e358b75_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091bf0a4d4b137e358b75_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-5-2-p-500.png",
+      "bytes": 82193,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091bf0a4d4b137e358b75_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091bf0a4d4b137e358b75_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-5-2-p-800.png",
+      "bytes": 184453,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091bf0a4d4b137e358b75_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d091bf0a4d4b137e358b75_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-5-2.png",
+      "bytes": 2317615,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce8dc34f1cab30787debb_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-5-p-1080.png",
+      "bytes": 219446,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce8dc34f1cab30787debb_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce8dc34f1cab30787debb_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-5-p-500.png",
+      "bytes": 52251,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce8dc34f1cab30787debb_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce8dc34f1cab30787debb_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-5-p-800.png",
+      "bytes": 123227,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce8dc34f1cab30787debb_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce8dc34f1cab30787debb_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(5).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-5.png",
+      "bytes": 1941684,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0923124e8bd168703fbc2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-6-2-p-1080.png",
+      "bytes": 338192,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0923124e8bd168703fbc2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0923124e8bd168703fbc2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-6-2-p-500.png",
+      "bytes": 81920,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0923124e8bd168703fbc2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0923124e8bd168703fbc2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-6-2-p-800.png",
+      "bytes": 189392,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0923124e8bd168703fbc2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0923124e8bd168703fbc2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-6-2.png",
+      "bytes": 2173530,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce913ab03c3a4a385e692_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-6-p-1080.png",
+      "bytes": 322396,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce913ab03c3a4a385e692_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce913ab03c3a4a385e692_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-6-p-500.png",
+      "bytes": 70270,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce913ab03c3a4a385e692_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce913ab03c3a4a385e692_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-6-p-800.png",
+      "bytes": 170770,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce913ab03c3a4a385e692_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce913ab03c3a4a385e692_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(6).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-6.png",
+      "bytes": 1794777,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092669ba6d9897e360092_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-7-2-p-1080.png",
+      "bytes": 252412,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092669ba6d9897e360092_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092669ba6d9897e360092_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-7-2-p-500.png",
+      "bytes": 65292,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092669ba6d9897e360092_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092669ba6d9897e360092_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-7-2-p-800.png",
+      "bytes": 146612,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092669ba6d9897e360092_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092669ba6d9897e360092_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-7-2.png",
+      "bytes": 1613021,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce96fe0faaeeb2e37f48c_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-7-p-1080.png",
+      "bytes": 283637,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce96fe0faaeeb2e37f48c_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce96fe0faaeeb2e37f48c_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-7-p-500.png",
+      "bytes": 77327,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce96fe0faaeeb2e37f48c_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce96fe0faaeeb2e37f48c_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-7-p-800.png",
+      "bytes": 166781,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce96fe0faaeeb2e37f48c_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce96fe0faaeeb2e37f48c_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(7).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-7.png",
+      "bytes": 1997767,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0929bddfeb9aa105c9339_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-8-2-p-1080.png",
+      "bytes": 483087,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0929bddfeb9aa105c9339_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0929bddfeb9aa105c9339_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-8-2-p-500.png",
+      "bytes": 113952,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0929bddfeb9aa105c9339_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0929bddfeb9aa105c9339_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-8-2-p-800.png",
+      "bytes": 274643,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0929bddfeb9aa105c9339_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d0929bddfeb9aa105c9339_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-8-2.png",
+      "bytes": 3068359,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9a6d5042631169eeff6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-8-p-1080.png",
+      "bytes": 284460,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9a6d5042631169eeff6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9a6d5042631169eeff6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-8-p-500.png",
+      "bytes": 76692,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9a6d5042631169eeff6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9a6d5042631169eeff6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-8-p-800.png",
+      "bytes": 169246,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9a6d5042631169eeff6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9a6d5042631169eeff6_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(8).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-8.png",
+      "bytes": 2057955,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092c7112d1b0161a01290_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-9-2-p-1080.png",
+      "bytes": 232590,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092c7112d1b0161a01290_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092c7112d1b0161a01290_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-9-2-p-500.png",
+      "bytes": 58343,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092c7112d1b0161a01290_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092c7112d1b0161a01290_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-9-2-p-800.png",
+      "bytes": 131666,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092c7112d1b0161a01290_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d092c7112d1b0161a01290_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-9-2.png",
+      "bytes": 1468044,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9d763efa493a775fdf2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-9-p-1080.png",
+      "bytes": 249964,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9d763efa493a775fdf2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9d763efa493a775fdf2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-9-p-500.png",
+      "bytes": 54366,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9d763efa493a775fdf2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9d763efa493a775fdf2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-9-p-800.png",
+      "bytes": 131072,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9d763efa493a775fdf2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66bce9d763efa493a775fdf2_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)%20(9).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-9.png",
+      "bytes": 1000671,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d086742d75a4b1b0997abc_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)-p-1080.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-p-1080.png",
+      "bytes": 313339,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d086742d75a4b1b0997abc_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d086742d75a4b1b0997abc_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)-p-500.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-p-500.png",
+      "bytes": 79875,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d086742d75a4b1b0997abc_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d086742d75a4b1b0997abc_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px)-p-800.png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px-p-800.png",
+      "bytes": 178970,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d086742d75a4b1b0997abc_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px).png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/66d086742d75a4b1b0997abc_LI%20Event%20Banners%20(1600%20%C3%97%20900%20px).png",
+      "localPath": "/images/videos/li-event-banners-1600-900-px.png",
+      "bytes": 2142561,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/678027b1f2ab2ab1fe2ce6b3_managing-board-expectations-p-500.png",
+      "localPath": "/images/videos/managing-board-expectations-p-500.png",
+      "bytes": 81517,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/678027b1f2ab2ab1fe2ce6b3_managing-board-expectations.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/678027b1f2ab2ab1fe2ce6b3_managing-board-expectations-p-800.png",
+      "localPath": "/images/videos/managing-board-expectations-p-800.png",
+      "bytes": 177943,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/678027b1f2ab2ab1fe2ce6b3_managing-board-expectations.png"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/678027b1f2ab2ab1fe2ce6b3_managing-board-expectations.png",
+      "localPath": "/images/videos/managing-board-expectations.png",
+      "bytes": 691247,
+      "contentType": "image/png",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69a1b8cfa981cee6a6607954_the-2026-cmo-burnout-crisis-p-500.jpg",
+      "localPath": "/images/videos/the-2026-cmo-burnout-crisis-p-500.jpg",
+      "bytes": 25321,
+      "contentType": "image/jpg",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ],
+      "variantOf": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69a1b8cfa981cee6a6607954_the-2026-cmo-burnout-crisis.jpg"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/668f2b775dccc4947eb1a4d3/69a1b8cfa981cee6a6607954_the-2026-cmo-burnout-crisis.jpg",
+      "localPath": "/images/videos/the-2026-cmo-burnout-crisis.jpg",
+      "bytes": 156714,
+      "contentType": "image/jpeg",
+      "usedIn": [
+        "client/src/data/live/videos.js"
+      ]
+    }
+  ]
+}
