@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { dbPath } from '../config.js'
 import bcrypt from 'bcryptjs'
+import { ensureVendorOwners } from './vendorOwners.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // DB_PATH is relative to the server folder (e2e uses db/e2e.db); the default is db/mavuus.db.
@@ -640,6 +641,9 @@ const vendorData = [
 ]
 
 vendorData.forEach(v => insertVendor.run(...v))
+
+// Vendor owner accounts, so vendors can be reviewed and messaged.
+ensureVendorOwners(db, passwordHash)
 
 // Seed jobs (with seniority and expanded descriptions)
 const insertJob = db.prepare(`

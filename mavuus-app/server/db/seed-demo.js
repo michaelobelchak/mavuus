@@ -16,6 +16,7 @@ import { dirname, join } from 'path'
 import { dbPath } from '../config.js'
 import { readFileSync } from 'fs'
 import { healRemoteAvatars } from './healAvatars.js'
+import { ensureVendorOwners } from './vendorOwners.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // DB_PATH is relative to the server folder (e2e uses db/e2e.db); the default is db/mavuus.db.
@@ -162,6 +163,10 @@ if (limitedMember && !limitedConnected) {
   ).run(limitedMember.id)
   console.log(`  ✓ Profile visibility set to connections for user ${limitedMember.id}`)
 }
+
+// Vendor owner accounts (older databases seeded their vendors without one).
+const vendorsLinked = ensureVendorOwners(db, bcrypt.hashSync(DEMO_PASSWORD, 10))
+if (vendorsLinked > 0) console.log(`  ✓ Linked ${vendorsLinked} vendor(s) to owner accounts`)
 
 // ─── 6. Conversations + messages ─────────────────────────────
 // Create a handful of conversations if demo has none. Idempotent by checking existing.

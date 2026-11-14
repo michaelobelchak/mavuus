@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import jwt from 'jsonwebtoken'
 import { JWT_SECRET } from '../middleware/auth.js'
+import { NOT_VENDOR_OWNER } from '../db/vendorOwners.js'
 
 const router = Router()
 
@@ -30,7 +31,7 @@ router.get('/', optionalAuth, (req, res) => {
   const { search, page = 1, limit = 20 } = req.query
   const db = req.app.locals.db
 
-  const conditions = []
+  const conditions = [NOT_VENDOR_OWNER]
   const params = []
 
   // Privacy filter

@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { NOT_VENDOR_OWNER } from '../db/vendorOwners.js'
 
 const router = Router()
 
@@ -26,9 +27,9 @@ router.get('/', (req, res) => {
   ).all(term, term, term)
 
   const members = db.prepare(
-    `SELECT id, name, title, company, avatar_url FROM users
-     WHERE name LIKE ? OR title LIKE ? OR company LIKE ?
-     ORDER BY name LIMIT 5`
+    `SELECT u.id, u.name, u.title, u.company, u.avatar_url FROM users u
+     WHERE (u.name LIKE ? OR u.title LIKE ? OR u.company LIKE ?) AND ${NOT_VENDOR_OWNER}
+     ORDER BY u.name LIMIT 5`
   ).all(term, term, term)
 
   const vendors = db.prepare(

@@ -14,6 +14,9 @@ import authRoutes from '../routes/auth.js'
 import jobsRoutes from '../routes/jobs.js'
 import profileRoutes from '../routes/profile.js'
 import adminRoutes from '../routes/admin.js'
+import membersRoutes from '../routes/members.js'
+import reviewsRoutes from '../routes/reviews.js'
+import searchRoutes from '../routes/search.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -60,6 +63,9 @@ export function createTestApp() {
   app.use('/api/jobs', jobsRoutes)
   app.use('/api/profile', profileRoutes)
   app.use('/api/admin', adminRoutes)
+  app.use('/api/members', membersRoutes)
+  app.use('/api/reviews', reviewsRoutes)
+  app.use('/api/search', searchRoutes)
 
   return { app, db }
 }
