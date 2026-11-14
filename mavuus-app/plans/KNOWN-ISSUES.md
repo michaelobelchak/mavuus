@@ -11,7 +11,7 @@ Anything here is known, intentional, and out of scope for the demo. Every item i
 - **Stripe / billing** — Profile billing tab shows a static "Pro $15/month" summary card. No checkout, no subscription management, no webhooks. Phase 2.
 
 ## Content & Data
-- **Pravatar rate limits** — some seed avatars come from `pravatar.cc`; they may fall back to initials under rate limiting. Replace with static uploads in Phase 2.
+- **Remote avatars** - resolved 2026-11-14 (Stage 1 of FINISH-AND-LAUNCH-PLAN.md): seed and mock avatars are local files in `client/public/images/avatars/`.
 - **Seeded social share URLs** — Footer social links read from `platform_settings` which is empty; they fall back to `#`. Populate via admin panel before launch.
 - **FAQ data** — `/api/faq?page=contact` returns empty; Contact page falls back to the static `contactFaqItems` array. Seed FAQs via admin panel before launch.
 

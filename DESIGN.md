@@ -465,6 +465,7 @@ src/design-system/
 Rules, checked by tools:
 
 - **Layering** (`ds-layering` in `npm run lint:ds`, error): primitives never import patterns or organisms; patterns never import organisms. The barrel tests also check that patterns don't import organisms and that organisms never import app `components/`, `context/` or `pages/`.
+- **Local assets only** (`no-remote-assets`, error everywhere, tests and stories included): no Webflow CDN, other Webflow asset hosts or pravatar. Fonts and images live in `client/public/` (see `scripts/localize-assets.mjs`).
 - **Retired folders** (`no-retired-imports`): the design system never imports `components/ui/` or `components/live/` (error inside `src/design-system/`, a warning elsewhere until Phase 8).
 - **Barrels:** each tier barrel has a test that fails when a component folder's exports are missing from it.
 - **Stories:** `npm run check:stories` fails when a component folder (each folder in `primitives/` and `patterns/`, each component folder in `organisms/<domain>/`) has no `*.stories.jsx`, or when an organism component file sits loose in a domain folder.
@@ -475,7 +476,7 @@ Inside the design system, files import each other with relative paths (`../../pr
 ## 18. Known gaps
 
 - **Dark theme.** Not built. Adding `role.dark` to `tokens.json` emits a `[data-theme="dark"]` block; the Storybook theme toolbar's dark option is a placeholder that falls back to light until then.
-- **Webflow CDN assets.** Fixel Text, the Mavuus wordmark and the public site images still load from the live Webflow CDN. They must move into the repo before launch, pending the founders' OK.
+- **Remote images left: Unsplash.** Fixel Text, the wordmark, every public site image and the demo avatars are local files in `client/public/` since Stage 1 (`public/fonts/fixel/`, `public/images/<page>/`, listed in `scripts/assets-manifest.json`), and `no-remote-assets` keeps the Webflow and pravatar hosts out. The session and resource cover photos in the seeds, mock data and auth pages still load from `images.unsplash.com`; the e2e guard allows that one host by name until they are localized.
 - **Pages not migrated.** Phase 8 moves the dashboard, admin, auth and public pages onto the system. Until then legacy pages keep their own styling and `components/ui/` and `components/live/` still exist. The app shell isn't wired in yet and `<Toaster />` isn't mounted in the app.
 - **Legacy lint baseline.** `scripts/lint-design-system.baseline.json` holds 651 legacy errors in 97 files outside the design system (477 `no-arbitrary-size`, 75 `no-raw-color`, 72 `no-em-dash`, 27 `no-inline-style`). A run fails when a count goes up or a new file has errors; when counts drop, run `npm run lint:ds -- --update-baseline`. `src/design-system/` has no baseline.
 - **Legacy bugs logged for Phase 8:** the closed notifications drawer in `DashboardLayout.jsx` is likely still focusable, and the weekly signups bars on `AdminDashboardPage` render empty.

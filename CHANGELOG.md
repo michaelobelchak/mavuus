@@ -189,3 +189,14 @@ All notable changes to the Mavuus project are documented here, organized by phas
 - Docs: root `DESIGN.md`, `design-system/AGENTS.md`, `client/public/llms.txt` (served at `/llms.txt`), the `mavuus-design-system` skill, CLAUDE.md pointers
 - Fixed: `/admin` crashed into the error boundary (weekly signups read `week.slice` on a number; labels now use the week start date); `/admin` weekly signups chart and the `/resources` sign-up link overflowed a 390px screen
 - Server: `config.js` resolves `DB_PATH` and the test-only rate-limit overrides, which are ignored in production
+
+## Local Fonts and Images - 2026-11-14
+**Status:** Complete (branch `feat/local-assets`, Stage 1 of `FINISH-AND-LAUNCH-PLAN.md`)
+
+- Fixel Text (5 weights) now ships from `client/public/fonts/fixel/` with its SIL Open Font License 1.1 (`OFL.txt` from github.com/macpaw/fixel). `index.html` preloads Medium and SemiBold, the two weights the hero uses
+- Every public site image (338 files, 226 of them srcset size variants) and the 24 demo avatars are local copies in `client/public/images/{home,about,services,resources,posts,videos,faq,logos,contact,shared,avatars}/`, 140.5 MB in 367 files plus the license
+- `scripts/localize-assets.mjs` (with tests) scans mavuus-app for remote assets, keeps `scripts/assets-manifest.json` (URL, local path, size, type, where it's used), downloads with retries and type checks, and rewrites the source. All three modes are safe to run again
+- Seeds and mock data store `/images/avatars/avatar-NN.jpg`; `srcSetFor` in `data/live/posts.js` looks up widths by local path
+- Guards: `no-remote-assets` in `lint:ds` (error everywhere, never baselined) bans the Webflow CDN, other Webflow asset hosts and the old avatar service. The e2e smoke test fails on any request to another host (only `images.unsplash.com` is still allowed), and a new `offline` project reruns the public pages with every outside request aborted
+- Fixed: the home leaders marquee picked the photo height from the remote file name; Vite now proxies `/uploads` so uploaded avatars show in dev
+- Pixel diff before and after at 1440, 1024, 768 and 390: 37 of 40 public page captures identical; the 3 `/resources` differences come from lazy carousel images that the CDN-era captures did not paint consistently (two CDN-era runs already differed by up to 1.4%)

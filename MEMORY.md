@@ -93,3 +93,23 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - A hidden browser preview pane pauses `requestAnimationFrame`, so count-ups, reveals and chart animations look stuck there. Verify motion in headless Chromium (Playwright) instead.
 - Unlayered base heading rules beat Tailwind utilities; base `h1` to `h6` styles must stay in `@layer base`.
 - SQLite `CURRENT_TIMESTAMP` is UTC with no zone marker (`2026-10-28 23:30:00`), so `new Date()` reads it as local time. `parseDate` treats that shape as UTC and date-only strings as local calendar dates; Vitest runs in UTC so date tests are stable.
+
+## Local fonts and images - 2026-11-14
+
+**Decision:** the owner asked for local copies of the fonts and images, so the site no longer depends on the live Webflow site. If that site went away, the font and every public image would go blank. Fonts and images now live in `client/public/`, recorded in `scripts/assets-manifest.json`.
+
+**Folder scheme:** `fonts/fixel/`, `images/<page>/` by where a file is used (`home`, `about`, `services`, `resources` for live events, `posts`, `videos`, `faq`, `logos`, `contact`), `images/shared/` for a file used on more than one page, and `images/avatars/avatar-NN.jpg`. Names drop the Webflow hash and are slugified. Size variants keep their `-p-<width>` suffix next to their original, because `srcSetFor` (posts) and the Insights slider build srcsets from the original's name. Avatars are numbered in URL order the first time they are seen and never renumbered.
+
+**License:** Fixel is by MacPaw under the SIL Open Font License 1.1 (GitHub reports `OFL-1.1` for github.com/macpaw/fixel; no Reserved Font Name). `public/fonts/fixel/OFL.txt` is the repo's own license file. The fonts are unmodified.
+
+**Rejected:**
+- Dropping the srcset variants to save space (33 MB): pages would download the full-size originals at every width and the screenshots would change.
+- Wiring WebP copies now: lossless WebP would cut the PNGs from 138 MB to 95 MB (93 files save more than 30%), but `MediaFrame` and `srcSetFor` take one format, so it needs a `<picture>` source. Left for a follow-up.
+- Reusing `public/assets/`: none of the downloaded files matched an existing file byte for byte, so nothing was reused. 12 downloaded files are byte-identical to another downloaded file (1.8 MB) under different Webflow asset ids; they stay separate because each belongs to a srcset family.
+
+**Non-obvious:**
+- 208 of the files are srcset variants that never appear in source; the script expands them from `IMAGE_WIDTHS` (posts) and `VIDEO_THUMB_WIDTHS` (home).
+- Stored avatar URLs are relative (`/images/avatars/...`) and served by the client, like uploads at `/uploads/...`. Production serves both from one Express origin; dev needed a `/uploads` proxy.
+- `db/mavuus.db` keeps the old remote avatar URLs until it is reset (`cd mavuus-app/server && rm -f db/mavuus.db && node db/seed.js`).
+- The Unsplash cover photos in the seeds, mock data and auth pages are still remote; the e2e guard names that one host.
+- Full-page screenshots in headless Chromium can leave a lazy, async-decoded image in a horizontal carousel unpainted. The parity captures set `decoding = 'sync'` and wait for `img.decode()` on every image.

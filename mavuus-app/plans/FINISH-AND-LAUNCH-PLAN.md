@@ -1,7 +1,7 @@
 # Finish and launch plan
 
 **Date:** 2026-11-14
-**Status:** Stage 1 in progress
+**Status:** Stage 1 done on `feat/local-assets` (2026-11-14), waiting for the owner check
 **Goal:** a complete Mavuus the founders can click through at a real URL: every page on the design system, no dependency on the Webflow site, and production settings ready for the host the owner provides.
 
 PR #5 (design system foundation) is merged. What's left falls into five stages. Each stage is its own branch and PR to `main`, runs the full gate, and ends with an owner check before the next one starts.
@@ -16,15 +16,15 @@ PR #5 (design system foundation) is merged. What's left falls into five stages. 
 
 **Branch:** `feat/local-assets`. **Why first:** Phase 8 rewrites the same files, and every later screenshot should come from local files.
 
-Today the site loads 143 files from `cdn.prod.website-files.com` (the live Webflow site): 5 Fixel Text font files and the images and video thumbnails. 56 avatar URLs come from `i.pravatar.cc` in the seed data, mock data and auth pages. If the Webflow site goes away, the font and every public image go blank.
+Before this stage the site loaded 143 files from the live Webflow site's CDN: 5 Fixel Text font files and the images and video thumbnails. 56 avatar URLs came from a remote avatar service in the seed data, mock data and auth pages. If the Webflow site goes away, the font and every public image go blank.
 
 1. **Inventory script** `scripts/localize-assets.mjs` (with tests): find every remote asset URL in `src/`, `index.html` and the server seed files, including `srcset` variants, and write `scripts/assets-manifest.json` (URL, local path, size, where it's used).
 2. **Fonts:** download the 5 Fixel Text weights to `public/fonts/fixel/`. Point `@font-face` at them with `font-display: swap`, preload the two weights the first screen uses, and ship the font's license file next to it. Fixel is published by MacPaw under the SIL Open Font License; confirm that from the license file before committing.
 3. **Images:** download to `public/images/` in folders by page (`home/`, `about/`, `services/`, `resources/`, `posts/`, `videos/`, `logos/`) with readable file names. Keep originals, and add a WebP copy where it saves more than 30%.
-4. **Avatars:** replace the pravatar URLs with local demo avatars in `public/images/avatars/`, used by both the client mock data and the server seeds.
+4. **Avatars:** replace the remote avatar URLs with local demo avatars in `public/images/avatars/`, used by both the client mock data and the server seeds.
 5. **Rewrite references** through the manifest, so nothing points at a remote host.
 6. **Guards:**
-   - A `no-remote-assets` rule in `lint:ds` that bans the Webflow CDN and pravatar hosts everywhere.
+   - A `no-remote-assets` rule in `lint:ds` that bans the Webflow CDN and remote avatar hosts everywhere.
    - The e2e smoke test fails on any third-party request instead of ignoring it.
    - One e2e run with the network blocked to prove the site works offline.
 7. **Check:** pixel diff of public pages before and after at 4 widths, which must be identical apart from font loading timing. Also a size report: total image weight and the largest files.

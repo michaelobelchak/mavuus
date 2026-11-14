@@ -93,7 +93,8 @@ The process skills live in `.claude/skills/`.
 ## Conventions
 
 - One design system for the site, dashboard and admin, with Fixel Text everywhere: `client/src/design-system/` (map in `DESIGN.md`, rules in its `AGENTS.md`). New UI uses it: components from `@/design-system/<tier>` and role token classes (`bg-surface-raised`, `text-text-secondary`, `p-ds-lg`, `rounded-card`), never raw hex or arbitrary px.
-- Until Phase 8 migrates them, legacy pages keep their current styling: the public site (`pages/public/`) uses `components/live/` and `.live-site` typography, the dashboard and admin use `components/ui/` and the `@theme` aliases in `index.css`. Don't restyle a legacy page piecemeal; move it onto the system. Static content lives in `data/live/`; images still load from the live Webflow CDN.
+- Until Phase 8 migrates them, legacy pages keep their current styling: the public site (`pages/public/`) uses `components/live/` and `.live-site` typography, the dashboard and admin use `components/ui/` and the `@theme` aliases in `index.css`. Don't restyle a legacy page piecemeal; move it onto the system. Static content lives in `data/live/`.
+- Fonts and images are local files in `client/public/` (`fonts/fixel/`, `images/<page>/`, `images/avatars/`), never hotlinked from the Webflow CDN or pravatar (`no-remote-assets` in `lint:ds` and the e2e guard enforce it). `scripts/localize-assets.mjs --scan --download --rewrite` brings in any new remote asset and records it in `scripts/assets-manifest.json`.
 - Brand: pink `#F26D92`, blue `#1F648D`, dark blue `#1C2232`, all as tokens in `design-system/tokens/tokens.json`.
 - Brand pink `#F26D92` stays as is (owner decision, see MEMORY.md), so never put essential small text in pink on its own; focus rings are navy.
 - Buttons and filter pills come from the design system (`Button`, `Chip`). Check `DESIGN.md` section 10 before building anything new.
