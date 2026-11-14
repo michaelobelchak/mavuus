@@ -174,7 +174,13 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 
 ## Dashboard pages 2 - 2026-11-14 (feat/member-pages-2, Batch 3C)
 
-**Decision:** CatalogList grew props instead of being forked: options as `{ value, label }`, `filterItems` for filters the API doesn't take (Members' tier and My Connections stay client side, so no new API params), `paged={false}` for `/api/speakers` (no page or limit sent), filter-aware empty copy, a `children` slot for the pending requests and `gridClassName`. It and `DetailChrome` moved to `pages/dashboard/shared/` with `DetailSection`, `JobLinkList`, `reviewProps.js` and `paths.js`.
+**Decision:** CatalogList grew props instead of being forked: options as `{ value, label }`, `filterQuery` for filters the API names differently, `paged={false}` for `/api/speakers` (no page or limit sent), filter-aware empty copy, a `children` slot for the pending requests and `gridClassName`. It and `DetailChrome` moved to `pages/dashboard/shared/` with `DetailSection`, `JobLinkList`, `reviewProps.js` and `paths.js`.
+
+**Decision (follow-up):** vendor owner accounts are told apart by `vendors.user_id`, not by a role. `users.role` has `CHECK(role IN ('member', 'admin'))`, and SQLite can't change a CHECK without rebuilding the users table, which existing databases (and their foreign keys) would need a migration for. `NOT_VENDOR_OWNER` in `server/db/vendorOwners.js` keeps them out of `/api/members` and `/api/search`. No route sets `vendors.user_id` today, so only seeded owners match.
+
+**Decision (follow-up):** the Members chips are server filters (`tier`, `connections=1` with an EXISTS on accepted connections) so paging and counts follow them. CatalogList's `filterItems` became `filterQuery` (a value as API params).
+
+**Decision (follow-up):** below lg the speaker details are a Sheet driven by the same `?speaker=` param; closing it clears the param (replace) and `finalFocus` finds the card through `data-speaker-id`, because the Sheet opens from a link navigation, not a trigger, so Base UI has no trigger to return to.
 
 **Decision:** the picked speaker is a URL param (`?speaker=1`) and each MemberCard links to it, instead of a button card: MemberCard is a link card, there is no SpeakerCard, and the URL makes the panel shareable and back-button friendly.
 
@@ -187,7 +193,10 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - The LinkedIn icon on each speaker card: a second link inside a link card; the panel has it.
 
 **Non-obvious:**
-- No seeded vendor has a `user_id`, so Contact Vendor is always disabled (now with a line saying why) and a vendor review posts the reviewer as `reviewee_id`, which the server refuses ("Cannot review yourself"). Behavior kept, logged as a follow-up.
+- Before the follow-up, no seeded vendor had a `user_id`, so Contact Vendor was always disabled and a vendor review posted the reviewer as `reviewee_id`, which the server refuses. Seeded owner accounts fixed both; the disabled state and its hint remain for a vendor without one.
 - `useToast()` from the design system calls `toast.success(message, undefined)`, so tests spying on sonner assert `toHaveBeenCalledWith(message, undefined)`.
 - `Card` only renders div, article, section or li (`as="header"` falls back with a console error the capture caught).
 - Only MemberProfilePage and VendorDetailPage were in the lint baseline (em dashes); the list pages had only retired-import warnings.
+- Undeclared in the first pass, kept on purpose: free members get no tier badge (MemberCard shows paid tiers only); an incoming request's card shows only the Pending badge; the member profile facts moved to a Details aside and the resume became a download button; back links go to fixed list paths instead of `navigate(-1)`; some labels went to sentence case.
+- Vendors are seeded with ratings and counts that have no review rows behind them, so the first new review recalculates them from the real rows (logged in the plan).
+- `mockApi` prefers an exact URL match (query included) over a path-only one, so tests can answer `?tier=free` differently from the default list.

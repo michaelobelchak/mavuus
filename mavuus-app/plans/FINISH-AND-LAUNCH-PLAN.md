@@ -76,12 +76,12 @@ Rules for every page:
 - **ShareDialog invite:** the email field isn't validated before the `mailto:` opens; use FormField's error for an invalid address.
 - **Two toast systems:** the legacy `ToastProvider` and the design-system `Toaster` are both mounted; 3I removes the legacy one once no page uses it.
 
-### Follow-ups from Batch 3C (not fixed yet)
+### Follow-ups from Batch 3C
 
-- **Vendor reviews fail for seeded vendors:** no seeded vendor has a `user_id`, so the review form sends the reviewer's own id as `reviewee_id` and the server answers "Cannot review yourself". Contact Vendor is disabled for the same reason. Link the seeded vendors to accounts, or let `POST /api/reviews` take a vendor review without a reviewee.
-- **Vendor jobs come from the first page of `/api/jobs`:** VendorDetailPage filters 20 jobs by `posted_by`; ask for `?posted_by=<vendor user id>` instead (the endpoint supports it).
-- **Members tier and connections filters are client side:** Pro, Free and My Connections filter the loaded page of 20, so a page can look empty while later pages have matches. `/api/members` needs `tier` (and a connections filter), or My Connections should read `/api/connections`.
-- **Speakers on phones:** the details panel opens below the list, out of sight after a tap. Consider a Sheet below lg.
+Fixed in the batch: vendor reviews and Contact Vendor (seeded owner accounts), a vendor's jobs (`/api/jobs?posted_by=`), the Members filters (server side `tier` and `connections=1`) and the speaker details on phones (a Sheet). Still open:
+
+- **Seeded vendor ratings:** vendors are seeded with a rating and review count (PipelineHQ 4.9 from 18) but few or no review rows, and the first new review recalculates both from the real rows (PipelineHQ drops to one review). Seed matching review rows, or stop recalculating until then.
+- **Owner accounts and roles:** `users.role` only allows member and admin, so vendor owner accounts are told apart by `vendors.user_id` (left out of `/api/members` and `/api/search`). A real `vendor` role needs a users table rebuild on existing databases; decide before vendors can sign up.
 
 ## Stage 4: Launch readiness (everything except the host)
 
@@ -111,6 +111,8 @@ Rules for every page:
    - status colors
    - the Pro member tag
    - the pink contrast decision
+   - Rachel Foster's profile is connections-only in the demo data (`seed-demo.js`), so her profile shows the limited view to the demo account; keep it, or pick another member to show privacy
+   - the vendor owner accounts (`hello@<vendor>.example`, password `demo123`) that receive vendor reviews and Contact Vendor messages
 12. **E2E against any URL:** a `BASE_URL` option, so the same smoke test runs against staging.
 
 ## Stage 5: Hosting (owner provides it, last)
