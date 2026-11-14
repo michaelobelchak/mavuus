@@ -12,6 +12,7 @@ import {
   buildVariants,
   capWidths,
   checkContent,
+  compareCodePoints,
   downloadAssets,
   expandConstants,
   extractUrls,
@@ -59,6 +60,10 @@ describe('extractUrls', () => {
     expect(extractUrls(`image: \`${url}\`,`)).toEqual([url])
   })
 
+  it('should trim a sentence-ending period after a URL', () => {
+    expect(extractUrls(`See ${WF}/668967a8542d420b9568cbbc_a.png. Then`)).toEqual([`${WF}/668967a8542d420b9568cbbc_a.png`])
+  })
+
   it('should ignore other hosts and bare site prefixes with no file', () => {
     expect(extractUrls(`a = 'https://example.com/x.png'; b = '${WF}'`)).toEqual([])
   })
@@ -86,6 +91,12 @@ describe('localNameFor', () => {
     expect(localNameFor(`${WF}/66e1f9f7e6f85e23bc2ef8c7_just-image%20(1).avif`).file).toBe('just-image-1.webp')
     expect(localNameFor(`${WF}/668967a8542d420b9568cbbc_FixelText-Light.woff2`).file).toBe('fixeltext-light.woff2')
     expect(localNameFor(`${WF}/6699cbb6206dc486ff34f56f_bg.svg`).file).toBe('bg.svg')
+  })
+})
+
+describe('localNameFor with a malformed escape', () => {
+  it('should fall back to the raw name instead of throwing', () => {
+    expect(localNameFor(`${WF}/668f4ef17e1ac5e4d40cd793_100%25-off%E0%A4.png`).file).toBe('100-25-off-e0-a4.webp')
   })
 })
 
@@ -236,6 +247,25 @@ describe('rewriteSource', () => {
   it('should lower a srcset descriptor wider than the stored, capped original', () => {
     const manifest = { assets: [{ url: `${WF}/a_x.jpg`, localPath: '/images/about/x.webp', width: 1600 }] }
     expect(rewriteSource(`'${WF}/a_x.jpg 1920w'`, manifest).text).toBe("'/images/about/x.webp 1600w'")
+  })
+
+  it('should keep the first of two srcset entries that end up with the same width', () => {
+    const manifest = {
+      assets: [
+        { url: `${WF}/a_x-p-1600.jpg`, localPath: '/images/about/x-p-1600.webp', variantOf: `${WF}/a_x.jpg`, width: 1600 },
+        { url: `${WF}/a_x.jpg`, localPath: '/images/about/x.webp', width: 1600 },
+      ],
+    }
+    const source = `'${WF}/a_x-p-1600.jpg 1600w, ${WF}/a_x.jpg 1920w'`
+    expect(rewriteSource(source, manifest).text).toBe("'/images/about/x-p-1600.webp 1600w'")
+  })
+
+  it('should only drop a CDN constant declared at the start of a line and never an exported one', () => {
+    const source = `const A = 1\n\nconst CDN = '${WF}'\nexport const CDN_CMS = '${CMS}'\nexport const x = \`\${CDN}/668f46214842f23691d72111_r.webp\`\nexport const y = \`\${CDN_CMS}/668f46214842f23691d72112_s.webp\`\n`
+    const manifest = buildManifest({ files: { 'client/src/data/live/faq.js': source } })
+    expect(rewriteSource(source, manifest).text).toBe(
+      `const A = 1\n\nexport const CDN_CMS = '${CMS}'\nexport const x = \`/images/faq/r.webp\`\nexport const y = \`/images/faq/s.webp\`\n`,
+    )
   })
 
   it('should leave a file without remote URLs untouched', () => {
@@ -411,9 +441,45 @@ describe('buildVariants', () => {
     expect(webpSize(fs.readFileSync(path.join(root, 'images/about/x-p-800.webp')))).toEqual({ width: 800, height: 325 })
   })
 
+  it('should report a cwebp failure per variant and leave no partial file behind', () => {
+    fs.mkdirSync(path.join(root, 'images/posts'), { recursive: true })
+    const vp8 = Buffer.alloc(30)
+    vp8.write('RIFF', 0, 'latin1')
+    vp8.write('WEBP', 8, 'latin1')
+    vp8.write('VP8 ', 12, 'latin1')
+    vp8.writeUInt16LE(1000, 26)
+    vp8.writeUInt16LE(500, 28)
+    fs.writeFileSync(path.join(root, 'images/posts/x.webp'), vp8)
+    const manifest = {
+      assets: [
+        { url: `${CMS}/a_x.png`, localPath: '/images/posts/x.webp' },
+        { url: `${CMS}/a_x-p-500.png`, localPath: '/images/posts/x-p-500.webp', variantOf: `${CMS}/a_x.png`, width: 500 },
+      ],
+    }
+    // A cwebp that writes half a file, then dies.
+    const run = (cmd, args) => {
+      fs.writeFileSync(args[args.length - 1], 'partial')
+      throw new Error('cwebp crashed')
+    }
+    const result = buildVariants(manifest, { publicDir: root, run })
+    expect(result.failed).toEqual(['/images/posts/x-p-500.webp: cwebp crashed'])
+    expect(fs.readdirSync(path.join(root, 'images/posts'))).toEqual(['x.webp'])
+  })
+
   it('should report a variant whose original is missing', () => {
     const manifest = { assets: [{ url: `${CMS}/a_x-p-500.png`, localPath: '/images/posts/x-p-500.webp', variantOf: `${CMS}/a_x.png`, width: 500 }] }
     expect(buildVariants(manifest, { publicDir: root }).failed[0]).toMatch(/missing/)
+  })
+})
+
+describe('compareCodePoints', () => {
+  it('should sort by code point, the same on every machine, not by locale', () => {
+    expect(['/images/a/b.webp', '/images/a/B.webp', '/images/a/a-1.webp', '/images/a/a1.webp'].sort(compareCodePoints)).toEqual([
+      '/images/a/B.webp',
+      '/images/a/a-1.webp',
+      '/images/a/a1.webp',
+      '/images/a/b.webp',
+    ])
   })
 })
 

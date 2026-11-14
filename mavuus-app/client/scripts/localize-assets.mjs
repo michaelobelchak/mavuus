@@ -94,8 +94,9 @@ export function extractUrls(text) {
   const out = []
   for (const m of text.matchAll(URL_RE)) {
     let url = m[0]
-    // Trim punctuation that ends the surrounding code, and a closing paren of an unquoted url().
-    url = url.replace(/[,;]+$/, '')
+    // Trim punctuation that ends the surrounding code or sentence, and a closing paren of an
+    // unquoted url().
+    url = url.replace(/[,;.]+$/, '')
     while (url.endsWith(')') && (url.match(/\(/g) || []).length < (url.match(/\)/g) || []).length) url = url.slice(0, -1)
     const { pathname } = new URL(url)
     if (numberedHost(url) || /\.[a-z0-9]+$/i.test(pathname)) out.push(url)
@@ -120,6 +121,20 @@ export function expandConstants(source) {
   return { text, constants }
 }
 
+/** decodeURIComponent that keeps the raw text when it holds a malformed escape. */
+function safeDecode(text) {
+  try {
+    return decodeURIComponent(text)
+  } catch {
+    return text
+  }
+}
+
+/** Compares strings by code point, so the manifest order is the same on every machine. */
+export function compareCodePoints(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0
+}
+
 function slugify(text) {
   return text
     .normalize('NFKD')
@@ -135,7 +150,7 @@ function slugify(text) {
  */
 export function localNameFor(url) {
   const { pathname } = new URL(url)
-  const raw = decodeURIComponent(pathname.split('/').pop())
+  const raw = safeDecode(pathname.split('/').pop())
   const under = raw.indexOf('_')
   const id = under > 0 && WEBFLOW_ID.test(raw.slice(0, under)) ? raw.slice(0, under) : null
   const name = id ? raw.slice(under + 1) : raw
@@ -361,8 +376,24 @@ export function buildManifest({ files, previous = { assets: [] }, tables = VARIA
     }
     assets.push(entry)
   }
-  assets.sort((a, b) => a.localPath.localeCompare(b.localPath) || a.url.localeCompare(b.url))
+  assets.sort((a, b) => compareCodePoints(a.localPath, b.localPath) || compareCodePoints(a.url, b.url))
   return { assets }
+}
+
+/** In each srcset list, drops an entry whose width descriptor an earlier entry already has. */
+export function dedupeSrcsets(text) {
+  return text.replace(/[^\s,'"`]+ \d+w(?:,\s*[^\s,'"`]+ \d+w)+/g, (list) => {
+    const seen = new Set()
+    return list
+      .split(/,\s*/)
+      .filter((entry) => {
+        const width = entry.split(' ').pop()
+        if (seen.has(width)) return false
+        seen.add(width)
+        return true
+      })
+      .join(', ')
+  })
 }
 
 /**
@@ -386,12 +417,14 @@ export function rewriteSource(source, manifest) {
     }
   }
   if (changed === 0) return { text: source, changed: 0 }
+  // A CDN prefix constant nothing else uses any more goes, unless it is exported.
   for (const { name } of constants) {
-    if ((text.match(new RegExp(`\\b${name.replace(/\$/g, '\\$')}\\b`, 'g')) || []).length === 1) {
-      text = text.replace(new RegExp(`^\\s*(?:export\\s+)?const\\s+${name.replace(/\$/g, '\\$')}\\s*=.*\\n`, 'm'), '')
+    const id = name.replace(/\$/g, '\\$')
+    if ((text.match(new RegExp(`\\b${id}\\b`, 'g')) || []).length === 1) {
+      text = text.replace(new RegExp(`^[ \\t]*const[ \\t]+${id}[ \\t]*=.*\\n`, 'm'), '')
     }
   }
-  return { text, changed }
+  return { text: dedupeSrcsets(text), changed }
 }
 
 // Accepted content types per extension (the CDN sends the nonstandard image/jpg for some JPEGs).
@@ -410,6 +443,14 @@ export function checkContent(url, contentType, buffer) {
   if (!type.startsWith('image/')) return `unexpected content type ${type || '(none)'}`
   if (IMAGE_TYPES[ext] && !IMAGE_TYPES[ext].includes(type)) return `content type ${type} does not match .${ext}`
   return null
+}
+
+/** Writes `target` through a .tmp file and a rename, so a crash never leaves half a file. */
+function writeAtomically(target, data) {
+  fs.mkdirSync(path.dirname(target), { recursive: true })
+  const tmp = `${target}.tmp`
+  fs.writeFileSync(tmp, data)
+  fs.renameSync(tmp, target)
 }
 
 /** Reads a WebP file's pixel size from its header. Returns { width, height } or null. */
@@ -461,19 +502,22 @@ function storeImage(buffer, ext, target, localPath, run = execFileSync) {
       source = png
     }
     const lossless = wantsLossless(localPath, ext, buffer.length)
-    fs.mkdirSync(path.dirname(target), { recursive: true })
+    const encoded = path.join(dir, 'encoded.webp')
+    let result
     if (ext === 'webp' && (webpSize(buffer)?.width ?? Infinity) <= MAX_WIDTH) {
-      fs.writeFileSync(target, buffer)
-      return { width: webpSize(buffer).width, lossless: false }
+      fs.writeFileSync(encoded, buffer)
+      result = { width: webpSize(buffer).width, lossless: false }
+    } else {
+      run('cwebp', [...webpArgs({ lossless }), source, '-o', encoded])
+      const size = webpSize(fs.readFileSync(encoded))
+      result = { width: size?.width, lossless }
+      if (size?.width > MAX_WIDTH) {
+        run('cwebp', [...webpArgs({ lossless, resize: scaledSize(size, MAX_WIDTH) }), source, '-o', encoded])
+        result = { width: MAX_WIDTH, lossless, sourceSize: [size.width, size.height] }
+      }
     }
-    run('cwebp', [...webpArgs({ lossless }), source, '-o', target])
-    const size = webpSize(fs.readFileSync(target))
-    let width = size?.width
-    if (width > MAX_WIDTH) {
-      run('cwebp', [...webpArgs({ lossless, resize: scaledSize(size, MAX_WIDTH) }), source, '-o', target])
-      return { width: MAX_WIDTH, lossless, sourceSize: [size.width, size.height] }
-    }
-    return { width, lossless }
+    writeAtomically(target, fs.readFileSync(encoded))
+    return result
   } finally {
     fs.rmSync(dir, { recursive: true, force: true })
   }
@@ -510,8 +554,7 @@ export async function downloadAssets(manifest, { publicDir, fetchImpl = fetch, s
             Object.assign(asset, store(buffer, ext, target, asset.localPath))
             asset.contentType = 'image/webp'
           } else {
-            fs.mkdirSync(path.dirname(target), { recursive: true })
-            fs.writeFileSync(target, buffer)
+            writeAtomically(target, buffer)
             asset.contentType = contentType
           }
           asset.bytes = fs.statSync(target).size
@@ -553,8 +596,16 @@ export function buildVariants(manifest, { publicDir, run = execFileSync, log = (
     const size = webpSize(fs.readFileSync(source)) ?? { width: 0, height: 0 }
     // An original scaled down to MAX_WIDTH keeps its source proportions for the variant heights.
     const proportions = parent.sourceSize ? { width: parent.sourceSize[0], height: parent.sourceSize[1] } : size
-    if (size.width <= asset.width) fs.copyFileSync(source, target)
-    else run('cwebp', [...webpArgs({ lossless: Boolean(parent.lossless), resize: scaledSize(proportions, asset.width) }), source, '-o', target])
+    const tmp = `${target}.tmp`
+    try {
+      if (size.width <= asset.width) fs.copyFileSync(source, tmp)
+      else run('cwebp', [...webpArgs({ lossless: Boolean(parent.lossless), resize: scaledSize(proportions, asset.width) }), source, '-o', tmp])
+      fs.renameSync(tmp, target)
+    } catch (error) {
+      fs.rmSync(tmp, { force: true })
+      result.failed.push(`${asset.localPath}: ${error.message}`)
+      continue
+    }
     asset.bytes = fs.statSync(target).size
     asset.contentType = 'image/webp'
     result.built++
