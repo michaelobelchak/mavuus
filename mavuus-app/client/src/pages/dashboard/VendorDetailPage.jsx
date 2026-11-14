@@ -1,63 +1,86 @@
-import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Globe, MapPin, MessageCircle } from 'lucide-react'
+import { Card, DescriptionList, Dialog, DialogClose, FormField, ShareDialog, useToast } from '@/design-system/patterns'
+import { CommentThread, CompanyLogo, MetaList, RecommendationCard, ReviewCard, StarRating } from '@/design-system/organisms'
+import { Badge, Button, Caption, Heading, Text, Textarea } from '@/design-system/primitives'
+import { isHttpUrl } from '@/design-system/lib/safeUrl'
 import { useAuth } from '../../context/AuthContext'
-import { useToast } from '../../components/ui/Toast'
-import Badge from '../../components/ui/Badge'
-import Button from '../../components/ui/Button'
-import Modal from '../../components/ui/Modal'
-import StarRating from '../../components/ui/StarRating'
-import ReviewCard from '../../components/ui/ReviewCard'
-import RecommendationCard from '../../components/ui/RecommendationCard'
-import DetailPageHeader from '../../components/ui/DetailPageHeader'
-import ShareModal from '../../components/ui/ShareModal'
-import { Textarea } from '../../components/ui/Input'
-import CommentSection from '../../components/ui/CommentSection'
-import {
-  Star,
-  MapPin,
-  Globe,
-  ExternalLink,
-  Briefcase,
-  MessageCircle,
-} from 'lucide-react'
+import { useComments } from '../../hooks/useComments'
+import { useDetailResource } from '../../hooks/useDetailResource'
+import { DetailError, DetailLayout, DetailNotFound, DetailSkeleton, DetailTopBar } from './shared/DetailChrome'
+import { DetailSection, JobLinkList } from './shared/DetailSection'
+import { JOBS_PATH, MESSAGES_PATH, VENDORS_PATH } from './shared/paths'
+import { listOf, recommendationCardProps, reviewCardProps } from './shared/reviewProps'
+
+const BACK = { backTo: VENDORS_PATH, backLabel: 'Back to Vendors' }
+const NO_LISTS = { jobs: [], reviews: [], recommendations: [] }
+
+const reviewsLabel = (count) => `${count} review${count !== 1 ? 's' : ''}`
 
 export default function VendorDetailPage() {
   const { id } = useParams()
   const { user, token } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
-  const [vendor, setVendor] = useState(null)
-  const [jobs, setJobs] = useState([])
-  const [reviews, setReviews] = useState([])
-  const [recommendations, setRecommendations] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  // Write review modal
-  const [showReviewModal, setShowReviewModal] = useState(false)
+  const auth = { Authorization: `Bearer ${token}` }
+  const { data: loaded, loading, error, notFound, retry } = useDetailResource(`/api/vendors/${id}`, token)
+  // Per-vendor state is stored with the id it belongs to, so another :id never shows it. A review
+  // reloads the vendor (rating, count) into `fresh` instead of reloading the whole page.
+  const [fresh, setFresh] = useState({ id: null, vendor: null })
+  const [lists, setLists] = useState({ id: null, ...NO_LISTS })
+  const vendor = fresh.id === id && fresh.vendor ? fresh.vendor : loaded
+  const { jobs, reviews, recommendations } = lists.id === id ? lists : NO_LISTS
+  const comments = useComments('vendor', parseInt(id, 10))
+  const [shareOpen, setShareOpen] = useState(false)
+  const [contacting, setContacting] = useState(false)
+  const [reviewOpen, setReviewOpen] = useState(false)
   const [reviewRating, setReviewRating] = useState(0)
   const [reviewText, setReviewText] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
-  const [contactingVendor, setContactingVendor] = useState(false)
-  const [shareOpen, setShareOpen] = useState(false)
+  const vendorUserId = loaded?.user_id
+
+  // Reviews, recommendations and the jobs the vendor's account posted.
+  useEffect(() => {
+    if (!loaded) return
+    const controller = new AbortController()
+    const get = (url) =>
+      fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
+        .then((res) => (res.ok ? res.json() : []))
+        .then(listOf)
+        .catch(() => [])
+    Promise.all([get('/api/jobs'), get(`/api/reviews/vendor/${id}`), get(`/api/recommendations/vendor/${id}`)]).then(
+      ([allJobs, vendorReviews, recs]) => {
+        if (controller.signal.aborted) return
+        setLists({
+          id,
+          jobs: allJobs.filter((job) => vendorUserId && job.posted_by === vendorUserId),
+          reviews: vendorReviews,
+          recommendations: recs,
+        })
+      },
+    )
+    return () => controller.abort()
+  }, [loaded, vendorUserId, id, token])
 
   const handleContactVendor = async () => {
-    if (contactingVendor) return
+    if (contacting) return
     if (!vendor?.user_id) {
       toast.error('This vendor is not set up for direct messaging yet.')
       return
     }
-    if (vendor.user_id === user.id) {
-      toast.error('You can\'t message yourself.')
+    if (vendor.user_id === user?.id) {
+      toast.error("You can't message yourself.")
       return
     }
-    setContactingVendor(true)
+    setContacting(true)
     try {
       const res = await fetch('/api/messages/conversations', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: { ...auth, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: vendor.user_id,
-          message: `Hi ${vendor.company_name} — I'd like to connect about your services.`,
+          message: `Hi ${vendor.company_name}, I'd like to connect about your services.`,
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -65,301 +88,220 @@ export default function VendorDetailPage() {
         toast.error(data.error || 'Could not start conversation.')
         return
       }
-      navigate(`/dashboard/messages?conversation=${data.conversationId}`)
+      navigate(`${MESSAGES_PATH}?conversation=${data.conversationId}`)
     } catch {
       toast.error('Network error. Please try again.')
     } finally {
-      setContactingVendor(false)
+      setContacting(false)
     }
   }
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [vendorRes, jobsRes, reviewsRes, recsRes] = await Promise.all([
-          fetch(`/api/vendors/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch('/api/jobs', { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`/api/reviews/vendor/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`/api/recommendations/vendor/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-        ])
-        if (vendorRes.ok) {
-          const v = await vendorRes.json()
-          setVendor(v)
-          if (jobsRes.ok) {
-            const allJobsData = await jobsRes.json()
-            const allJobs = allJobsData.data || allJobsData
-            setJobs(allJobs.filter(j =>
-              v.user_id && j.posted_by === v.user_id
-            ))
-          }
-        }
-        if (reviewsRes.ok) setReviews(await reviewsRes.json())
-        if (recsRes.ok) setRecommendations(await recsRes.json())
-      } catch {
-        // Network error
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchData()
-  }, [id, token])
-
   const handleSubmitReview = async () => {
-    if (!reviewRating) return toast.error('Please select a rating')
+    if (!reviewRating) {
+      toast.error('Please select a rating')
+      return
+    }
     setSubmittingReview(true)
     try {
       const res = await fetch('/api/reviews', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: { ...auth, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           reviewee_id: vendor.user_id || user.id, // vendor reviews need a reviewee
-          vendor_id: parseInt(id),
+          vendor_id: parseInt(id, 10),
           rating: reviewRating,
           text: reviewText,
         }),
       })
-      if (res.ok) {
-        toast.success('Review submitted!')
-        setShowReviewModal(false)
-        setReviewRating(0)
-        setReviewText('')
-        // Refresh reviews and vendor data
-        const [reviewsRes, vendorRes] = await Promise.all([
-          fetch(`/api/reviews/vendor/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`/api/vendors/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-        ])
-        if (reviewsRes.ok) setReviews(await reviewsRes.json())
-        if (vendorRes.ok) setVendor(await vendorRes.json())
-      } else {
-        const data = await res.json()
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
         toast.error(data.error || 'Failed to submit review')
+        return
       }
-    } catch { toast.error('Network error') }
-    finally { setSubmittingReview(false) }
+      toast.success('Review submitted!')
+      setReviewOpen(false)
+      setReviewRating(0)
+      setReviewText('')
+      const [reviewsRes, vendorRes] = await Promise.all([
+        fetch(`/api/reviews/vendor/${id}`, { headers: auth }),
+        fetch(`/api/vendors/${id}`, { headers: auth }),
+      ])
+      if (reviewsRes.ok) {
+        const next = listOf(await reviewsRes.json())
+        setLists((prev) => (prev.id === id ? { ...prev, reviews: next } : prev))
+      }
+      if (vendorRes.ok) setFresh({ id, vendor: await vendorRes.json() })
+    } catch {
+      toast.error('Network error')
+    } finally {
+      setSubmittingReview(false)
+    }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-brand-pink border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return <DetailSkeleton label="Loading vendor" />
+  if (error) return <DetailError title="We couldn't load this vendor" onRetry={retry} {...BACK} />
+  if (notFound || !vendor) return <DetailNotFound title="Vendor not found" {...BACK} />
 
-  if (!vendor) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-neutral-500">Vendor not found</p>
-        <button
-          onClick={() => navigate('/dashboard/vendors')}
-          className="text-brand-pink hover:underline mt-2 inline-block cursor-pointer"
-        >
-          Back to Vendors
-        </button>
-      </div>
-    )
-  }
+  const websiteHref = isHttpUrl(vendor.website) ? vendor.website : null
+  const categories = vendor.categories || []
+  const reviewCount = Number(vendor.reviews_count) || 0
 
   return (
-    <div className="max-w-6xl">
-      <DetailPageHeader onShare={() => setShareOpen(true)} backLabel="Back to Vendors" />
-
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Main content */}
-        <div className="flex-1 space-y-4">
-          {/* Header card */}
-          <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-brand-blue/10 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl font-bold text-brand-blue">
-                    {vendor.company_name.charAt(0)}
-                  </span>
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-dark-blue">
+    <div className="flex flex-col gap-ds-lg">
+      <DetailTopBar {...BACK} onShare={() => setShareOpen(true)} />
+      <DetailLayout
+        asideLabel="Vendor info"
+        asideWidth="lg:w-72"
+        comments={<CommentThread {...comments} />}
+        main={
+          <>
+            <Card as="article" aria-labelledby="vendor-title" padding="lg" className="flex flex-col gap-ds-md">
+              <div className="flex items-start gap-ds-md">
+                <CompanyLogo name={vendor.company_name} size="lg" />
+                <div className="flex min-w-0 flex-col gap-ds-xxs">
+                  <Heading id="vendor-title" level={2} size="h3" className="break-words">
                     {vendor.company_name}
-                  </h1>
-                  <div className="flex items-center gap-3 mt-1">
-                    <div className="flex items-center gap-1 text-sm text-yellow-500">
-                      <Star size={14} className="fill-yellow-400" />
-                      <span className="font-semibold">{vendor.rating}</span>
-                      <span className="text-neutral-400">
-                        ({vendor.reviews_count} review{vendor.reviews_count !== 1 ? 's' : ''})
-                      </span>
-                    </div>
-                    {vendor.location && (
-                      <span className="flex items-center gap-1 text-sm text-neutral-500">
-                        <MapPin size={14} />
-                        {vendor.location}
-                      </span>
-                    )}
+                  </Heading>
+                  <div className="flex flex-wrap items-center gap-x-ds-md gap-y-ds-xxs">
+                    <span className="inline-flex items-center gap-ds-xs">
+                      <StarRating value={vendor.rating} />
+                      <Caption>{`${vendor.rating ?? 0} (${reviewsLabel(reviewCount)})`}</Caption>
+                    </span>
+                    <MetaList items={[{ key: 'location', icon: MapPin, label: vendor.location }]} />
                   </div>
                 </div>
               </div>
-            </div>
+              {vendor.description && (
+                <Text size="body-sm" tone="secondary">
+                  {vendor.description}
+                </Text>
+              )}
+              {categories.length > 0 && (
+                <ul className="flex flex-wrap gap-ds-xs">
+                  {categories.map((category) => (
+                    <li key={category}>
+                      <Badge tone="info">{category}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
 
-            <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-              {vendor.description}
-            </p>
-
-            <div className="flex flex-wrap gap-2">
-              {vendor.categories.map(cat => (
-                <Badge key={cat} variant="blue">{cat}</Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Jobs by this vendor */}
-          {jobs.length > 0 && (
-            <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-              <h3 className="text-lg font-semibold text-dark-blue mb-4 flex items-center gap-2">
-                <Briefcase size={18} />
-                Jobs by {vendor.company_name}
-              </h3>
-              <div className="space-y-3">
-                {jobs.map(job => (
-                  <button
-                    key={job.id}
-                    onClick={() => navigate(`/dashboard/jobs/${job.id}`)}
-                    className="w-full text-left p-4 rounded-xl border border-neutral-100 hover:border-brand-pink/30 hover:bg-brand-pink/5 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-semibold text-dark-blue">{job.title}</h4>
-                        <div className="flex items-center gap-3 mt-1 text-sm text-neutral-500">
-                          <span>{job.location}</span>
-                          <span className="capitalize">{job.type}</span>
-                          {job.salary_range && <span>{job.salary_range}</span>}
-                        </div>
-                      </div>
-                      <Badge variant="pink">{job.category}</Badge>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Reviews */}
-          <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-dark-blue flex items-center gap-2">
-                <Star size={18} /> Reviews ({reviews.length})
-              </h3>
-              <Button size="sm" onClick={() => setShowReviewModal(true)}>
-                Write a Review
-              </Button>
-            </div>
-            {reviews.length === 0 ? (
-              <p className="text-sm text-neutral-500 text-center py-4">No reviews yet. Be the first to review!</p>
-            ) : (
-              <div className="space-y-3">
-                {reviews.map(review => (
-                  <ReviewCard key={review.id} {...review} />
-                ))}
-              </div>
+            {jobs.length > 0 && (
+              <DetailSection title={`Jobs by ${vendor.company_name}`}>
+                <JobLinkList
+                  label={`Jobs by ${vendor.company_name}`}
+                  jobs={jobs}
+                  to={(job) => `${JOBS_PATH}/${job.id}`}
+                  meta={(job) => [job.location, job.type, job.salary_range].filter(Boolean).join(' · ')}
+                  badge={(job) => job.category && <Badge size="sm" tone="brand">{job.category}</Badge>}
+                />
+              </DetailSection>
             )}
-          </div>
 
-          {/* Comments */}
-          <div className="mt-4">
-            <CommentSection entityType="vendor" entityId={parseInt(id)} />
-          </div>
-
-          {/* Recommendations */}
-          {recommendations.length > 0 && (
-            <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-              <h3 className="text-lg font-semibold text-dark-blue mb-4">Recommendations</h3>
-              <div className="space-y-3">
-                {recommendations.map(rec => (
-                  <RecommendationCard key={rec.id} {...rec} />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="w-full lg:w-72 space-y-4">
-          {/* Contact card */}
-          <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-            <Button
-              className="w-full mb-3"
-              onClick={handleContactVendor}
-              disabled={contactingVendor || !vendor.user_id}
+            <DetailSection
+              title={`Reviews (${reviews.length})`}
+              actions={
+                <Button size="sm" onClick={() => setReviewOpen(true)}>
+                  Write a Review
+                </Button>
+              }
             >
-              <MessageCircle size={16} /> {contactingVendor ? 'Connecting…' : 'Contact Vendor'}
-            </Button>
-            {vendor.website && (
-              <a
-                href={vendor.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 border border-neutral-200 rounded-xl text-sm font-medium text-neutral-600 hover:bg-neutral-50 transition-colors"
-              >
-                <Globe size={14} /> Visit Website <ExternalLink size={12} />
-              </a>
+              {reviews.length === 0 ? (
+                <Text size="body-sm" tone="secondary">
+                  No reviews yet. Be the first to review!
+                </Text>
+              ) : (
+                <ul className="flex flex-col gap-ds-sm">
+                  {reviews.map((review) => (
+                    <li key={review.id}>
+                      <ReviewCard {...reviewCardProps(review)} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </DetailSection>
+
+            {recommendations.length > 0 && (
+              <DetailSection title="Recommendations">
+                <ul className="flex flex-col gap-ds-sm">
+                  {recommendations.map((rec) => (
+                    <li key={rec.id}>
+                      <RecommendationCard {...recommendationCardProps(rec)} />
+                    </li>
+                  ))}
+                </ul>
+              </DetailSection>
             )}
-          </div>
+          </>
+        }
+        aside={
+          <>
+            <Card padding="lg" className="flex flex-col gap-ds-sm">
+              <Button
+                block
+                leadingIcon={MessageCircle}
+                loading={contacting}
+                disabled={!vendor.user_id}
+                onClick={handleContactVendor}
+              >
+                Contact Vendor
+              </Button>
+              {!vendor.user_id && <Caption className="text-center">Direct messages aren't set up for this vendor yet.</Caption>}
+              {websiteHref && (
+                <Button variant="outline" block leadingIcon={Globe} href={websiteHref}>
+                  Visit Website
+                </Button>
+              )}
+            </Card>
+            <DetailSection title="Details">
+              <DescriptionList
+                items={[
+                  { key: 'rating', label: 'Rating', value: String(vendor.rating ?? 0) },
+                  { key: 'reviews', label: 'Reviews', value: String(reviewCount) },
+                  { key: 'location', label: 'Location', value: vendor.location },
+                  { key: 'jobs', label: 'Open Jobs', value: String(jobs.length) },
+                ]}
+              />
+            </DetailSection>
+          </>
+        }
+      />
 
-          {/* Details card */}
-          <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-            <h3 className="text-sm font-semibold text-dark-blue mb-3">Details</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-neutral-500">Rating</span>
-                <span className="text-dark-blue font-medium flex items-center gap-1">
-                  <Star size={12} className="fill-yellow-400 text-yellow-400" />
-                  {vendor.rating}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-neutral-500">Reviews</span>
-                <span className="text-dark-blue font-medium">{vendor.reviews_count}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-neutral-500">Location</span>
-                <span className="text-dark-blue font-medium">{vendor.location}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-neutral-500">Open Jobs</span>
-                <span className="text-dark-blue font-medium">{jobs.length}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <ShareModal
+      <ShareDialog
         open={shareOpen}
-        onClose={() => setShareOpen(false)}
+        onOpenChange={setShareOpen}
         title={`Share ${vendor.company_name}`}
         shareTitle={vendor.company_name}
       />
 
-      {/* Write Review Modal */}
-      <Modal isOpen={showReviewModal} onClose={() => setShowReviewModal(false)} title={`Review ${vendor.company_name}`}>
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-dark-blue mb-2 block">Rating</label>
-            <StarRating rating={reviewRating} onChange={setReviewRating} size={24} />
-          </div>
-          <Textarea
-            label="Your Review"
-            value={reviewText}
-            onChange={(e) => setReviewText(e.target.value)}
-            rows={4}
-            placeholder="Share your experience with this vendor..."
-          />
-          <div className="flex justify-end gap-3 pt-2">
-            <Button variant="ghost" onClick={() => setShowReviewModal(false)}>Cancel</Button>
-            <Button onClick={handleSubmitReview} disabled={submittingReview || !reviewRating}>
-              {submittingReview ? 'Submitting...' : 'Submit Review'}
+      <Dialog
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        title={`Review ${vendor.company_name}`}
+        footer={
+          <>
+            <DialogClose>
+              <Button variant="ghost">Cancel</Button>
+            </DialogClose>
+            <Button loading={submittingReview} disabled={!reviewRating} onClick={handleSubmitReview}>
+              Submit Review
             </Button>
-          </div>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-ds-md">
+          <StarRating value={reviewRating} onChange={setReviewRating} label="Rating" showLabel />
+          <FormField label="Your Review">
+            <Textarea
+              value={reviewText}
+              onChange={(event) => setReviewText(event.target.value)}
+              rows={4}
+              placeholder="Share your experience with this vendor..."
+            />
+          </FormField>
         </div>
-      </Modal>
+      </Dialog>
     </div>
   )
 }

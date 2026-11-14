@@ -260,9 +260,6 @@
     "no-arbitrary-size": 1,
     "no-em-dash": 5
   },
-  "src/pages/dashboard/VendorDetailPage.jsx": {
-    "no-em-dash": 1
-  },
   "src/pages/public/AboutPage.jsx": {
     "no-arbitrary-size": 3
   },
