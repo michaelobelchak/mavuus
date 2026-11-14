@@ -37,6 +37,7 @@ import uploadRoutes from './routes/upload.js'
 import adminRoutes from './routes/admin.js'
 import publicContentRoutes from './routes/public-content.js'
 import { sanitizeBody } from './middleware/sanitize.js'
+import { serveClient } from './static.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -160,10 +161,7 @@ app.get('/api/health', (req, res) => {
 
 // Serve client in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(join(__dirname, '../client/dist')))
-  app.get('*', (req, res) => {
-    res.sendFile(join(__dirname, '../client/dist/index.html'))
-  })
+  serveClient(app, join(__dirname, '../client/dist'))
 }
 
 app.listen(PORT, () => {
