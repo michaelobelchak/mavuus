@@ -93,3 +93,24 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - A hidden browser preview pane pauses `requestAnimationFrame`, so count-ups, reveals and chart animations look stuck there. Verify motion in headless Chromium (Playwright) instead.
 - Unlayered base heading rules beat Tailwind utilities; base `h1` to `h6` styles must stay in `@layer base`.
 - SQLite `CURRENT_TIMESTAMP` is UTC with no zone marker (`2026-10-28 23:30:00`), so `new Date()` reads it as local time. `parseDate` treats that shape as UTC and date-only strings as local calendar dates; Vitest runs in UTC so date tests are stable.
+
+## Local fonts and images - 2026-11-14
+
+**Decision:** the owner asked for local copies of the fonts and images, so the site no longer depends on the live Webflow site. If that site went away, the font and every public image would go blank. Fonts and images now live in `client/public/`, recorded in `scripts/assets-manifest.json`.
+
+**WebP and size:** a first pass kept the Webflow files byte for byte (140.5 MB with the CDN's srcset variants), too much for git without LFS. The committed set is WebP: lossy quality 82 with alpha kept for photos and thumbnails, lossless for logos and PNGs under 10 KB, Webflow WebP files kept as they are when no resizing is needed, and the AVIF hero decoded with `sips` first. Originals are capped at 1600px (nothing renders wider than about 1300 CSS pixels), and the width tables in `posts.js` and `home.js` are capped to match. The 222 srcset variants are resized from the local original (`--variants`), with heights rounded the way the CDN rounds them and taken from the source proportions for capped originals, so every page keeps its exact height. Result: 16.4 MB. The heavy first pass is kept on the local branch `feat/local-assets-heavy`.
+
+**Folder scheme:** `fonts/fixel/`, `images/<page>/` by where a file is used (`home`, `about`, `services`, `resources` for live events, `posts`, `videos`, `faq`, `logos`, `contact`), `images/shared/` for a file used on more than one page, and `images/avatars/avatar-NN.webp`. Names drop the Webflow hash and are slugified. Size variants keep their `-p-<width>` suffix next to their original, because `srcSetFor` (posts) and the Insights slider build srcsets from the original's name. Avatars are numbered in URL order the first time they are seen and never renumbered.
+
+**License:** Fixel is by MacPaw under the SIL Open Font License 1.1 (GitHub reports `OFL-1.1` for github.com/macpaw/fixel; no Reserved Font Name). `public/fonts/fixel/OFL.txt` is the repo's own license file. The fonts are unmodified.
+
+**Rejected:**
+- Committing the Webflow originals and variants: 140.5 MB of thumbnails in history.
+- Dropping srcset variants: pages would download the full-size images at every width.
+- Reusing `public/assets/`: none of the downloads matched an existing file byte for byte.
+
+**Non-obvious:**
+- Stored avatar URLs are relative (`/images/avatars/...`) and served by the client, like uploads at `/uploads/...`. Production serves both from one Express origin; dev needed a `/uploads` proxy.
+- `db/mavuus.db` keeps the old remote avatar URLs until it is reset (`cd mavuus-app/server && rm -f db/mavuus.db && node db/seed.js`).
+- The Unsplash cover photos in the seeds, mock data and auth pages are still remote; the e2e guard names that one host until the owner OKs downloading them.
+- Full-page screenshots in headless Chromium can leave a lazy, async-decoded image in a horizontal carousel unpainted. The parity captures set `decoding = 'sync'` and wait for `img.decode()` on every image.

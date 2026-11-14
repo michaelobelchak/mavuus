@@ -54,6 +54,6 @@ Accordion, Alert, Banner, Breadcrumbs, Card, CardLink, CardAction, ChartCard, Ba
 
 ## Optional
 
-- `DESIGN.md#18-known-gaps`: dark theme, Webflow CDN assets, pages not yet migrated, legacy lint baseline
+- `DESIGN.md#18-known-gaps`: dark theme, remaining Unsplash cover photos, pages not yet migrated, legacy lint baseline
 - `mavuus-app/plans/2026-11-06-design-system-design.md`: the approved design
 - `mavuus-app/plans/DESIGN-SYSTEM-PLAN.md`: the implementation plan and the Phase 8 migration
