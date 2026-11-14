@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { mockApi, reply } from '../../test/mockApi'
@@ -93,13 +93,22 @@ describe('LiveSessionsPage', () => {
     expect(await screen.findByRole('heading', { name: 'No sessions found' })).toBeInTheDocument()
   })
 
-  it('should abort the old request when the filter changes', async () => {
+  it('should abort the old request and never show its late answer when the filter changes', async () => {
     const user = userEvent.setup()
-    const fetchMock = renderPage()
-    await screen.findByRole('link', { name: 'ABM at Scale' })
+    let finishOld
+    const fetchMock = renderPage({
+      'GET /api/sessions': (url) =>
+        url.includes('category=ABM')
+          ? { data: [live[1]], totalPages: 1 }
+          : new Promise((resolve) => (finishOld = resolve)),
+    })
+    expect(screen.getByRole('list', { name: 'Live sessions' })).toHaveAttribute('aria-busy', 'true')
     await user.click(screen.getByRole('button', { name: 'ABM' }))
-    await waitFor(() => expect(lastQuery(fetchMock).get('category')).toBe('ABM'))
-    for (const [, init] of fetchMock.mock.calls) expect(init.signal).toBeInstanceOf(AbortSignal)
+    expect(await screen.findByRole('link', { name: 'ABM at Scale' })).toBeInTheDocument()
+    expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(true)
+    await act(async () => finishOld({ data: live, totalPages: 2 }))
+    expect(screen.queryByRole('link', { name: 'Building a Content Engine' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'ABM at Scale' })).toBeInTheDocument()
   })
 
   it('should keep a typed trailing space after the search runs', async () => {
