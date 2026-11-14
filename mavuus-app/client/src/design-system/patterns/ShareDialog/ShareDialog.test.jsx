@@ -4,7 +4,16 @@ import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 import { ShareDialog } from './ShareDialog'
 
-afterEach(() => vi.restoreAllMocks())
+// Tests replace the clipboard and execCommand; put the originals back so nothing leaks.
+const clipboardDescriptor = Object.getOwnPropertyDescriptor(navigator, 'clipboard')
+const originalExecCommand = document.execCommand
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  if (clipboardDescriptor) Object.defineProperty(navigator, 'clipboard', clipboardDescriptor)
+  else delete navigator.clipboard
+  document.execCommand = originalExecCommand
+})
 
 describe('ShareDialog', () => {
   it('should link each network with the encoded URL and title when open', () => {
