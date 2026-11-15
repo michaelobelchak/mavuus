@@ -160,7 +160,7 @@ export default function App() {
           <Route path="vendors" element={<VendorsPage />} />
           <Route path="vendors/:id" element={<KeyedById><VendorDetailPage /></KeyedById>} />
           <Route path="jobs" element={<JobsPage />} />
-          <Route path="jobs/:id" element={<JobDetailPage />} />
+          <Route path="jobs/:id" element={<KeyedById><JobDetailPage /></KeyedById>} />
           <Route path="my-jobs" element={<MyJobsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="messages" element={<MessagesPage />} />
