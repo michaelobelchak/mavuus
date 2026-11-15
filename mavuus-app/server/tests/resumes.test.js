@@ -143,3 +143,11 @@ describe('applying with a resume', () => {
     expect((await request(app).post('/api/jobs/41/apply').set('Authorization', `Bearer ${bob}`).send({ resume_url: own })).status).toBe(201)
   })
 })
+
+describe('the member profile', () => {
+  it('should include the resume url, so the apply dialog can offer the profile resume', async () => {
+    const url = (await upload(bob)).body.url
+    const me = await request(app).get('/api/profile/me').set('Authorization', `Bearer ${bob}`)
+    expect(me.body.resume_url).toBe(url)
+  })
+})

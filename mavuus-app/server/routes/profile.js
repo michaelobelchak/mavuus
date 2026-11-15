@@ -83,7 +83,7 @@ router.get('/me', (req, res) => {
   const user = db.prepare(`
     SELECT u.id, u.email, u.name, u.title, u.company, u.avatar_url, u.role, u.membership_tier, u.created_at,
            p.bio, p.industry, p.years_experience, p.linkedin_url, p.website_url, p.location, p.timezone,
-           p.resume_filename, p.profile_visibility, p.notification_email, p.notification_messages,
+           p.resume_filename, p.resume_url, p.profile_visibility, p.notification_email, p.notification_messages,
            p.notification_connections, p.notification_jobs
     FROM users u
     LEFT JOIN user_profiles p ON u.id = p.user_id
