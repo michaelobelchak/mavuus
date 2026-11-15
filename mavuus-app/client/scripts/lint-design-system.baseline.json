@@ -249,9 +249,6 @@
   "src/pages/dashboard/JobDetailPage.jsx": {
     "no-em-dash": 1
   },
-  "src/pages/dashboard/JobsPage.jsx": {
-    "no-inline-style": 1
-  },
   "src/pages/dashboard/MessagesPage.jsx": {
     "no-arbitrary-size": 5,
     "no-em-dash": 3
