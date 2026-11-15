@@ -103,6 +103,7 @@ Fixed in the batch: vendor reviews and Contact Vendor (seeded owner accounts), a
 7. **SEO and sharing:** title and description per public page, Open Graph image, `sitemap.xml`, and a `robots.txt` that blocks staging.
 8. **Session registration fields:** the live session form asks for first name, email, job title and company, but `POST /api/sessions/:id/register` takes no body, so they are only prefilled from the profile and never stored. Accept and store them (or drop the form fields).
 9. **Search privacy:** `/api/search` is mounted without auth (server/index.js) and returns member names to anyone: require auth or limit public results.
+9b. **Member review trust:** member-to-member reviews (`POST /api/reviews` without `vendor_id`) take `reviewee_id` from the request body and don't check that the two members shared a job, so anyone can review anyone. Require a completed job between them (reviewer posted it and hired the reviewee, or the other way round) and derive the reviewee from it.
 10. **Final quality pass:** an accessibility, responsive and performance audit with the impeccable audit, with results filed in `plans/audits/`. Fix anything critical.
 11. **Founders' checklist** (DEMO-SCRIPT.md update): a demo path and the content to confirm:
    - member counts

@@ -180,13 +180,13 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 
 **Decision (review):** vendor owner accounts are full member accounts (role member) that the `vendors.user_id` link marks as owners; nothing else about them differs. When owners get their own dashboard, add a `vendor` role (needs a users table rebuild migration, because of the role CHECK) or an `is_vendor_account` column (a safe `ALTER TABLE ADD COLUMN`). The seeded owner password (`demo123`) is demo-only, like every seeded account.
 
-**Decision (review):** one vendor review per member is enforced by a partial unique index (`idx_reviews_vendor_once`). `dedupeVendorReviews` runs before `db.exec(schema)` in the server start, `seed.js` and `seed-demo.js`, because the server applies schema.sql on every start and an older database with repeat rows would otherwise refuse the index and stop the server. It keeps the lowest id and is a no-op once the index exists.
+**Decision (review):** one vendor review per member is enforced by a partial unique index (`idx_reviews_vendor_once`), created by `ensureVendorReviewIndex` after the schema runs (server start, `seed.js`, `seed-demo.js`, test setup) rather than in schema.sql: an older database with repeat rows would refuse the index and stop the server. It runs only while the index is missing and, in one transaction, deletes the repeats keeping each member's latest review (highest id: the latest opinion wins), recalculates ratings and creates the index, so a failure rolls everything back. The server warns with the deleted count.
 
 **Decision (review):** the server, not the client, picks a vendor review's reviewee (the vendor's owner). The old client sent its own id as a fallback, which is why seeded vendors couldn't be reviewed.
 
 **Decision (follow-up):** the Members chips are server filters (`tier`, `connections=1` with an EXISTS on accepted connections) so paging and counts follow them. CatalogList's `filterItems` became `filterQuery` (a value as API params).
 
-**Decision (follow-up):** below lg the speaker details are a Sheet driven by the same `?speaker=` param; closing it goes back when it was opened in the app (`location.key !== 'default'`) and otherwise clears the param in place and `finalFocus` finds the card through `data-speaker-id`, because the Sheet opens from a link navigation, not a trigger, so Base UI has no trigger to return to.
+**Decision (follow-up):** below lg the speaker details are a Sheet driven by the same `?speaker=` param. Speaker cards link with `{ fromList: true }` state (MemberCard `linkState`); closing goes back only with that state, otherwise it removes `?speaker=` in place, so closing never leaves the page. `finalFocus` finds the card through `data-speaker-id`, because the Sheet opens from a link navigation, not a trigger, so Base UI has no trigger to return to.
 
 **Decision:** the picked speaker is a URL param (`?speaker=1`) and each MemberCard links to it, instead of a button card: MemberCard is a link card, there is no SpeakerCard, and the URL makes the panel shareable and back-button friendly.
 
