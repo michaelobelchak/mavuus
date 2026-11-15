@@ -144,10 +144,12 @@ router.get('/:id/profile', optionalAuth, (req, res) => {
   res.json({ ...member, skills, experience, connection_count: connectionCount, limited: false })
 })
 
+// GET /api/members/:id - A member's card (no email: this route needs no sign-in). Banned and
+// deleted accounts answer 404, as they are left out of the member list.
 router.get('/:id', (req, res) => {
   const db = req.app.locals.db
   const member = db.prepare(
-    'SELECT id, name, email, title, company, avatar_url, membership_tier, created_at FROM users WHERE id = ?'
+    'SELECT id, name, title, company, avatar_url, membership_tier, created_at FROM users WHERE id = ? AND COALESCE(is_banned, 0) = 0 AND COALESCE(is_deleted, 0) = 0'
   ).get(req.params.id)
 
   if (!member) {

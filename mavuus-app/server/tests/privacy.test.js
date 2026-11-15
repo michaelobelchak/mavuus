@@ -37,6 +37,20 @@ describe('member privacy', () => {
   })
 })
 
+describe('member card privacy', () => {
+  it('should not send the email address of a member by id', async () => {
+    const res = await request(app).get('/api/members/2')
+    expect(res.status).toBe(200)
+    expect(res.body.name).toBe('Bob Test')
+    expect(res.body).not.toHaveProperty('email')
+  })
+
+  it('should answer 404 for a banned or deleted member by id', async () => {
+    expect((await request(app).get('/api/members/3')).status).toBe(404)
+    expect((await request(app).get('/api/members/4')).status).toBe(404)
+  })
+})
+
 describe('vendor privacy', () => {
   it('should not send admin notes or the moderation status', async () => {
     const one = await request(app).get('/api/vendors/1')
