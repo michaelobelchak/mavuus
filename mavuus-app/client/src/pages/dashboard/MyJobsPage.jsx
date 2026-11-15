@@ -6,8 +6,9 @@ import { JobCard, JobCardSkeleton, StatusBadge } from '@/design-system/organisms
 import { Badge, Button, Input, Select, Text, Textarea } from '@/design-system/primitives'
 import { formatDate } from '@/design-system/lib/formatDate'
 import { useAuth } from '../../context/AuthContext'
-import { JOB_TYPES, jobCardProps, jobTypeLabel } from './shared/jobs'
+import { JOB_SENIORITIES, JOB_TYPES, jobCardProps, jobTypeLabel } from './shared/jobs'
 import { JOBS_PATH } from './shared/paths'
+import { errorMessage } from './shared/errorMessage'
 import { listOf } from './shared/reviewProps'
 
 const TABS = ['applications', 'saved', 'postings']
@@ -27,6 +28,7 @@ const emptyForm = (company) => ({
   type: 'full-time',
   category: '',
   salary_range: '',
+  seniority: null,
 })
 
 function JobList({ label, children }) {
@@ -47,6 +49,8 @@ export default function MyJobsPage() {
   const removing = useRef(new Set())
   const [postOpen, setPostOpen] = useState(false)
   const [posting, setPosting] = useState(false)
+  // The guard is a ref, so two clicks in the same frame can't both post.
+  const postingRef = useRef(false)
   const [form, setForm] = useState(() => emptyForm(user?.company))
 
   const setList = (name, next) => setLists((prev) => ({ ...prev, [name]: next }))
@@ -101,21 +105,22 @@ export default function MyJobsPage() {
   }
 
   const postJob = async () => {
-    if (posting) return
+    if (postingRef.current) return
     if (!form.title.trim() || !form.company.trim()) {
       toast.error('Title and company are required')
       return
     }
+    postingRef.current = true
     setPosting(true)
     try {
+      const { seniority, ...fields } = form
       const res = await fetch('/api/jobs', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(seniority ? { ...fields, seniority } : fields),
       })
       if (!res.ok) {
-        const body = await res.json().catch(() => null)
-        toast.error(body?.error || 'Failed to post job')
+        toast.error(await errorMessage(res, 'Failed to post job'))
         return
       }
       toast.success('Job posted!')
@@ -126,8 +131,14 @@ export default function MyJobsPage() {
     } catch {
       toast.error('Failed to post job')
     } finally {
+      postingRef.current = false
       setPosting(false)
     }
+  }
+  // Every new form starts from the profile's company, whatever the last one held.
+  const openPost = () => {
+    setForm(emptyForm(user?.company))
+    setPostOpen(true)
   }
 
   const field = (key) => ({
@@ -140,7 +151,7 @@ export default function MyJobsPage() {
     </Button>
   )
   const postButton = (size) => (
-    <Button size={size} leadingIcon={Plus} onClick={() => setPostOpen(true)}>
+    <Button size={size} leadingIcon={Plus} onClick={openPost}>
       Post a Job
     </Button>
   )
@@ -273,8 +284,15 @@ export default function MyJobsPage() {
                   company={job.company}
                   location={job.location}
                   applicantCount={job.applicant_count || 0}
-                  status={<StatusBadge status={job.status} size="sm" />}
+                  status={
+                    <>
+                      <StatusBadge status={job.status} size="sm" />
+                      {job.unavailable && <Badge size="sm">No longer available</Badge>}
+                    </>
+                  }
                   postedLabel={`Posted ${formatDate(job.created_at)}`}
+                  // Hidden or removed by an admin: members can't see it, but the detail page still
+                  // opens for its poster, who can manage the applicants there.
                   to={`${JOBS_PATH}/${job.id}`}
                 />
               </li>
@@ -337,6 +355,14 @@ export default function MyJobsPage() {
               <Input {...field('salary_range')} placeholder="e.g. $120k - $150k" />
             </FormField>
           </div>
+          <FormField label="Seniority" hint="Optional">
+            <Select
+              placeholder="Pick a level"
+              items={JOB_SENIORITIES}
+              value={form.seniority}
+              onValueChange={(seniority) => setForm((prev) => ({ ...prev, seniority }))}
+            />
+          </FormField>
           <FormField label="Description">
             <Textarea {...field('description')} rows={6} placeholder="Describe the role, responsibilities, and requirements..." />
           </FormField>

@@ -7,6 +7,9 @@ export const JOB_TYPES = [
   { value: 'contract', label: 'Contract' },
 ]
 
+/** Seniority levels the API accepts. */
+export const JOB_SENIORITIES = ['Junior', 'Mid', 'Senior', 'Lead'].map((level) => ({ value: level, label: level }))
+
 /** Job statuses a poster can pick, in order. */
 export const JOB_STATUSES = [
   { value: 'open', label: 'Open' },

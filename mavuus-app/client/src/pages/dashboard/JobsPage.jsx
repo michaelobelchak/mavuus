@@ -1,13 +1,13 @@
 import { JobCard, JobCardSkeleton } from '@/design-system/organisms'
 import { useAuth } from '../../context/AuthContext'
 import { CatalogList } from './shared/CatalogList'
-import { JOB_TYPES, jobCardProps, postedLabel } from './shared/jobs'
+import { JOB_SENIORITIES, JOB_TYPES, jobCardProps, postedLabel } from './shared/jobs'
 import { JOBS_PATH } from './shared/paths'
 import { useSavedJobs } from './shared/useSavedJobs'
 
 const FILTERS = [
   { param: 'type', label: 'Job type', allLabel: 'Any type', options: JOB_TYPES },
-  { param: 'seniority', label: 'Seniority', allLabel: 'Any seniority', options: ['Junior', 'Mid', 'Senior', 'Lead'] },
+  { param: 'seniority', label: 'Seniority', allLabel: 'Any seniority', options: JOB_SENIORITIES },
   {
     param: 'category',
     label: 'Category',

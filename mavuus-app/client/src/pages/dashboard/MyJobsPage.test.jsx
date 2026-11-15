@@ -165,4 +165,37 @@ describe('MyJobsPage', () => {
     expect(screen.queryByRole('link', { name: 'Senior Content Strategist' })).not.toBeInTheDocument()
     expect(screen.getByText('No longer available')).toBeInTheDocument()
   })
+
+  it("should mark a posting an admin hid as no longer available and keep the poster's link", async () => {
+    renderPage('/dashboard/my-jobs?tab=postings', {
+      'GET /api/jobs/my-postings': [{ ...postings[0], unavailable: true }],
+    })
+    expect(await screen.findByRole('link', { name: 'Freelance SEO Consultant' })).toHaveAttribute('href', '/dashboard/jobs/8')
+    expect(screen.getByText('No longer available')).toBeInTheDocument()
+  })
+
+  it('should post a seniority and start each new form from the profile company', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(toast, 'success').mockImplementation(() => {})
+    const fetchMock = renderPage('/dashboard/my-jobs', { 'POST /api/jobs': reply(201, { id: 31 }) })
+    await user.click(await screen.findByRole('button', { name: 'Post a Job' }))
+    let dialog = await screen.findByRole('dialog', { name: 'Post a New Job' })
+    const company = within(dialog).getByRole('textbox', { name: /Company/ })
+    await user.clear(company)
+    await user.type(company, 'Other Co')
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: 'Post a Job' }))
+    dialog = await screen.findByRole('dialog', { name: 'Post a New Job' })
+    expect(within(dialog).getByRole('textbox', { name: /Company/ })).toHaveValue('Mavuus')
+    await user.type(within(dialog).getByRole('textbox', { name: /Job title/ }), 'Brand Lead')
+    await user.click(within(dialog).getByRole('combobox', { name: 'Seniority' }))
+    await user.click(await screen.findByRole('option', { name: 'Lead' }))
+    const post = within(dialog).getByRole('button', { name: 'Post Job' })
+    await user.dblClick(post)
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([url, init]) => url === '/api/jobs' && init?.method === 'POST')).toHaveLength(1))
+    const [, init] = fetchMock.mock.calls.find(([url, options]) => url === '/api/jobs' && options?.method === 'POST')
+    expect(JSON.parse(init.body).seniority).toBe('Lead')
+  })
 })
