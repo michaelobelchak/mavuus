@@ -66,6 +66,9 @@ const MEMBER_PAGES = [
   { name: 'dashboard-member-limited', path: '/dashboard/members/17' },
   { name: 'dashboard-vendors', path: '/dashboard/vendors' },
   { name: 'dashboard-vendor', path: '/dashboard/vendors/1' },
+  { name: 'dashboard-profile', path: '/dashboard/profile' },
+  // The account menu links here.
+  { name: 'dashboard-profile-account', path: '/dashboard/profile?tab=account' },
   { name: 'dashboard-invite', path: '/dashboard/invite' },
   { name: 'admin', path: '/admin' },
   { name: 'admin-users', path: '/admin/users' },
