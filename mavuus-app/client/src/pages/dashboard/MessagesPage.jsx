@@ -121,8 +121,9 @@ export default function MessagesPage() {
             incoming.length === 1 ? `New message from ${name}: ${last.content}` : `${incoming.length} new messages from ${name}`,
           )
         }
-        // Opening a thread marks it read, and so does a poll that brought new messages.
-        if (!poll || incoming.length > 0) markRead(id, incoming.length > 0 || (row?.unread_count || 0) > 0)
+        // Opening a thread marks it read, and so does a poll that brought new messages. The shell
+        // hears about it when something was unread, or when the list hasn't loaded yet to say.
+        if (!poll || incoming.length > 0) markRead(id, incoming.length > 0 || !row || (row.unread_count || 0) > 0)
       } catch (err) {
         if (signal?.aborted || err?.name === 'AbortError' || activeRef.current !== id) return
         if (!poll) setThread({ id, status: 'error', messages: [] })

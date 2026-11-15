@@ -116,6 +116,19 @@ describe('MessagesPage', () => {
     }
   })
 
+  it('should tell the shell about the read when the thread loads before the list', async () => {
+    const onRead = vi.fn()
+    window.addEventListener('mavuus:messages-read', onRead)
+    let finishList
+    renderPage('/dashboard/messages?conversation=2', {
+      'GET /api/messages/conversations': () => new Promise((resolve) => (finishList = resolve)).then(() => conversations),
+    })
+    await waitFor(() => expect(onRead).toHaveBeenCalled())
+    finishList()
+    expect(await screen.findByRole('list', { name: 'Messages with Jennifer Martinez' })).toBeInTheDocument()
+    window.removeEventListener('mavuus:messages-read', onRead)
+  })
+
   it('should put the picked conversation in the URL', async () => {
     const user = userEvent.setup()
     renderPage()
