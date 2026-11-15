@@ -155,6 +155,7 @@ export default function App() {
           <Route path="resources" element={<ResourcesPage />} />
           <Route path="resources/:id" element={<ResourceDetailPage />} />
           <Route path="members" element={<MembersPage />} />
+          {/* Keep each <Route path=...> on one line: shellTitle.test.js reads these routes line by line. */}
           <Route path="members/:id" element={<KeyedById><MemberProfilePage /></KeyedById>} />
           <Route path="vendors" element={<VendorsPage />} />
           <Route path="vendors/:id" element={<KeyedById><VendorDetailPage /></KeyedById>} />
