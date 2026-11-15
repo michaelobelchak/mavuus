@@ -178,3 +178,45 @@ describe('hidden and removed jobs for members', () => {
     expect(byJob[12]).not.toHaveProperty('moderation_status')
   })
 })
+
+describe('hire rules', () => {
+  const setStatus = (id, status) =>
+    request(app).put(`/api/jobs/applications/${id}/status`).set('Authorization', `Bearer ${alice}`).send({ status })
+  let first, second, onClosed
+
+  beforeAll(() => {
+    db.prepare("INSERT INTO users (id, email, password_hash, name) VALUES (3, 'cara@test.com', 'x', 'Cara Test')").run()
+    db.prepare("INSERT INTO jobs (id, title, company, posted_by, status) VALUES (20, 'Two Applicants', 'TestCo', 1, 'open')").run()
+    db.prepare("INSERT INTO jobs (id, title, company, posted_by, status) VALUES (21, 'Closed Job', 'TestCo', 1, 'closed')").run()
+    const apply = db.prepare('INSERT INTO job_applications (job_id, user_id) VALUES (?, ?)')
+    first = Number(apply.run(20, 2).lastInsertRowid)
+    second = Number(apply.run(20, 3).lastInsertRowid)
+    onClosed = Number(apply.run(21, 2).lastInsertRowid)
+  })
+
+  it('should hire on an open job with nobody hired yet', async () => {
+    expect((await setStatus(first, 'hired')).status).toBe(200)
+    expect(db.prepare('SELECT status, hired_user_id FROM jobs WHERE id = 20').get()).toEqual({ status: 'in-progress', hired_user_id: 2 })
+  })
+
+  it('should refuse a second hire on the same job', async () => {
+    const res = await setStatus(second, 'hired')
+    expect(res.status).toBe(409)
+    expect(db.prepare('SELECT status FROM job_applications WHERE id = ?').get(second).status).toBe('applied')
+    expect(db.prepare('SELECT hired_user_id FROM jobs WHERE id = 20').get().hired_user_id).toBe(2)
+  })
+
+  it('should refuse a hire on a job that is not open', async () => {
+    expect((await setStatus(onClosed, 'hired')).status).toBe(409)
+    expect(db.prepare('SELECT status FROM job_applications WHERE id = ?').get(onClosed).status).toBe('applied')
+  })
+
+  it('should refuse to move a hired application to another status', async () => {
+    expect((await setStatus(first, 'rejected')).status).toBe(409)
+    expect(db.prepare('SELECT status FROM job_applications WHERE id = ?').get(first).status).toBe('hired')
+  })
+
+  it('should still move other applications between the other statuses', async () => {
+    expect((await setStatus(second, 'rejected')).status).toBe(200)
+  })
+})

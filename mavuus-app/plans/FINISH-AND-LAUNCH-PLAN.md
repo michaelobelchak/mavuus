@@ -86,8 +86,7 @@ Fixed in the batch: vendor reviews and Contact Vendor (seeded owner accounts), a
 
 Fixed in the batch: hiring (the `hired` application status), Recommend a Vendor, hidden jobs and admin fields on the member job routes, server-side seniority. Still open:
 
-- **Job reviews:** `POST /api/reviews` doesn't check that the reviewer and reviewee shared the job (see 9b in Stage 4); the page only offers the button to the poster and the hired member.
-- **Hiring rules on the server:** `PUT /api/jobs/applications/:id/status` accepts `hired` on a job that isn't open and can hire twice; the page only offers Hire on open jobs.
+- **Job reviews:** `POST /api/reviews` with a `job_id` doesn't check that the job is completed or that the reviewer and reviewee are its poster and its hire (see 9b in Stage 4); the page only offers the button to those two on a completed job.
 - **Withdraw an application:** `withdrawn` is a valid status but nothing sets it.
 
 ## Stage 4: Launch readiness (everything except the host)
@@ -112,6 +111,7 @@ Fixed in the batch: hiring (the `hired` application status), Recommend a Vendor,
 8. **Session registration fields:** the live session form asks for first name, email, job title and company, but `POST /api/sessions/:id/register` takes no body, so they are only prefilled from the profile and never stored. Accept and store them (or drop the form fields).
 9. **Search privacy:** `/api/search` is mounted without auth (server/index.js) and returns member names to anyone: require auth or limit public results.
 9b. **Member review trust:** member-to-member reviews (`POST /api/reviews` without `vendor_id`) take `reviewee_id` from the request body and don't check that the two members shared a job, so anyone can review anyone. Require a completed job between them (reviewer posted it and hired the reviewee, or the other way round) and derive the reviewee from it.
+9c. **Job review checks:** with a `job_id`, `POST /api/reviews` should require a completed job and a reviewer and reviewee who are its poster and its hire (one review each way), and take the reviewee from the job instead of the body.
 10. **Final quality pass:** an accessibility, responsive and performance audit with the impeccable audit, with results filed in `plans/audits/`. Fix anything critical.
 11. **Founders' checklist** (DEMO-SCRIPT.md update): a demo path and the content to confirm:
    - member counts

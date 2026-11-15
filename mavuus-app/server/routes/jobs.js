@@ -235,24 +235,34 @@ router.put('/applications/:id/status', authenticateToken, (req, res) => {
   const validStatuses = ['applied', 'reviewing', 'interview', 'offer', 'rejected', 'hired']
   if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' })
 
-  const app = db.prepare(`
-    SELECT ja.*, j.posted_by, j.title as job_title, j.id as the_job_id FROM job_applications ja
-    JOIN jobs j ON j.id = ja.job_id WHERE ja.id = ?
-  `).get(req.params.id)
-  if (!app || app.posted_by !== req.user.id) return res.status(404).json({ error: 'Application not found or not authorized' })
+  // Read, check and write in one transaction, so two hires can't both pass the checks.
+  const outcome = db.transaction(() => {
+    const app = db.prepare(`
+      SELECT ja.*, j.posted_by, j.title as job_title, j.id as the_job_id, j.status as job_status, j.hired_user_id
+      FROM job_applications ja
+      JOIN jobs j ON j.id = ja.job_id WHERE ja.id = ?
+    `).get(req.params.id)
+    if (!app || app.posted_by !== req.user.id) return { status: 404, error: 'Application not found or not authorized' }
+    // A hire is final: it moved the job to in-progress and told the applicant.
+    if (app.status === 'hired' && status !== 'hired') return { status: 409, error: 'This applicant is already hired' }
+    if (status === 'hired') {
+      if (app.status === 'hired') return { ok: true }
+      if (app.job_status !== 'open') return { status: 409, error: 'Only an open job can hire' }
+      if (app.hired_user_id) return { status: 409, error: 'This job already has a hire' }
+    }
 
-  db.prepare('UPDATE job_applications SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, req.params.id)
+    db.prepare('UPDATE job_applications SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, req.params.id)
+    // When hired, set job to in-progress and hired_user_id
+    if (status === 'hired') {
+      db.prepare('UPDATE jobs SET status = ?, hired_user_id = ? WHERE id = ?').run('in-progress', app.user_id, app.the_job_id)
+    }
+    // Notify applicant
+    db.prepare('INSERT INTO notifications (user_id, type, title, message, link) VALUES (?, ?, ?, ?, ?)')
+      .run(app.user_id, 'job', 'Application Update', `Your application for ${app.job_title} status changed to ${status}`, `/dashboard/my-jobs`)
+    return { ok: true }
+  })()
 
-  // When hired, set job to in-progress and hired_user_id
-  if (status === 'hired') {
-    db.prepare('UPDATE jobs SET status = ?, hired_user_id = ? WHERE id = ?')
-      .run('in-progress', app.user_id, app.the_job_id)
-  }
-
-  // Notify applicant
-  db.prepare('INSERT INTO notifications (user_id, type, title, message, link) VALUES (?, ?, ?, ?, ?)')
-    .run(app.user_id, 'job', 'Application Update', `Your application for ${app.job_title} status changed to ${status}`, `/dashboard/my-jobs`)
-
+  if (!outcome.ok) return res.status(outcome.status).json({ error: outcome.error })
   res.json({ success: true })
 })
 
