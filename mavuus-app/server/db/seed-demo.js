@@ -184,6 +184,12 @@ const hiresAdded = db.prepare(`
   INSERT OR IGNORE INTO job_applications (job_id, user_id, status, applied_at)
   SELECT id, hired_user_id, 'hired', created_at FROM jobs WHERE hired_user_id IS NOT NULL
 `).run().changes
+// A hired member who already had an application (say, still "reviewing") gets it marked hired.
+const hiresUpdated = db.prepare(`
+  UPDATE job_applications SET status = 'hired', updated_at = CURRENT_TIMESTAMP
+  WHERE status != 'hired'
+    AND EXISTS (SELECT 1 FROM jobs j WHERE j.id = job_applications.job_id AND j.hired_user_id = job_applications.user_id)
+`).run().changes
 const insertApplicant = db.prepare(
   'INSERT OR IGNORE INTO job_applications (job_id, user_id, cover_letter, status, applied_at) VALUES (?, ?, ?, ?, ?)'
 )
@@ -200,7 +206,7 @@ for (const job of db.prepare("SELECT id FROM jobs WHERE posted_by = ? AND status
     if (member) applicantsAdded += insertApplicant.run(job.id, member.id, letter, status, appliedAt).changes
   }
 }
-console.log(`  ✓ Job applications ensured (${hiresAdded} hires, ${applicantsAdded} applicants on the demo postings)`)
+console.log(`  ✓ Job applications ensured (${hiresAdded} hires added, ${hiresUpdated} marked hired, ${applicantsAdded} applicants on the demo postings)`)
 
 // ─── 6. Conversations + messages ─────────────────────────────
 // Create a handful of conversations if demo has none. Idempotent by checking existing.

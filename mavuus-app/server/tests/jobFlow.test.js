@@ -236,3 +236,28 @@ describe('hire rules', () => {
     expect((await setStatus(second, 'rejected')).status).toBe(200)
   })
 })
+
+describe('job and application input', () => {
+  it('should refuse a cover letter over 5000 characters', async () => {
+    db.prepare("INSERT INTO jobs (id, title, company, posted_by) VALUES (50, 'Letter Job', 'TestCo', 1)").run()
+    const res = await request(app).post('/api/jobs/50/apply').set('Authorization', `Bearer ${bob}`).send({ cover_letter: 'x'.repeat(5001) })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/Cover letter/)
+  })
+
+  it('should store a seniority from the allowed list and refuse any other', async () => {
+    const ok = await request(app).post('/api/jobs').set('Authorization', `Bearer ${alice}`).send({ title: 'Lead Role', company: 'TestCo', seniority: 'Lead' })
+    expect(ok.status).toBe(201)
+    expect(db.prepare('SELECT seniority FROM jobs WHERE id = ?').get(ok.body.id).seniority).toBe('Lead')
+    const bad = await request(app).post('/api/jobs').set('Authorization', `Bearer ${alice}`).send({ title: 'Odd Role', company: 'TestCo', seniority: 'Wizard' })
+    expect(bad.status).toBe(400)
+  })
+
+  it('should mark a hidden posting unavailable in my postings', async () => {
+    const res = await request(app).get('/api/jobs/my-postings').set('Authorization', `Bearer ${alice}`)
+    const byId = Object.fromEntries(res.body.map((job) => [job.id, job]))
+    expect(byId[11].unavailable).toBe(true)
+    expect(byId[10].unavailable).toBe(false)
+    expect(byId[11]).not.toHaveProperty('moderation_status')
+  })
+})

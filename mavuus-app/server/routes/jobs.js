@@ -15,6 +15,8 @@ const publicColumns = (alias) => PUBLIC_COLUMNS.map((column) => (alias ? `${alia
 // Jobs an admin hid or removed stay out of the member lists.
 const APPROVED = "moderation_status = 'approved'"
 const JOB_STATUSES = ['open', 'in-progress', 'completed', 'closed']
+const SENIORITIES = ['Junior', 'Mid', 'Senior', 'Lead']
+const MAX_COVER_LETTER = 5000
 
 // The signed-in member on a public route, or null (no token or an invalid one).
 function optionalUser(req) {
@@ -120,12 +122,13 @@ router.get('/my-applications', authenticateToken, (req, res) => {
 router.get('/my-postings', authenticateToken, (req, res) => {
   const db = req.app.locals.db
   const postings = db.prepare(`
-    SELECT ${publicColumns('j')},
+    SELECT ${publicColumns('j')}, j.moderation_status != 'approved' as unavailable,
       (SELECT COUNT(*) FROM job_applications WHERE job_id = j.id) as applicant_count
     FROM jobs j WHERE j.posted_by = ?
     ORDER BY j.created_at DESC
   `).all(req.user.id)
-  res.json(postings)
+  // A posting an admin hid or removed shows as unavailable to its poster.
+  res.json(postings.map((posting) => ({ ...posting, unavailable: Boolean(posting.unavailable) })))
 })
 
 // Public: Get single job
@@ -152,14 +155,17 @@ router.get('/:id', (req, res) => {
 // Auth: Create a job
 router.post('/', authenticateToken, (req, res) => {
   const db = req.app.locals.db
-  const { title, company, description, location, type, category, salary_range } = req.body
+  const { title, company, description, location, type, category, salary_range, seniority } = req.body
   if (!title || !company) return res.status(400).json({ error: 'Title and company are required' })
+  if (seniority && !SENIORITIES.includes(seniority)) {
+    return res.status(400).json({ error: `Seniority must be one of ${SENIORITIES.join(', ')}` })
+  }
   if (!validateLength(title, MAX_LENGTHS.title)) return res.status(400).json({ error: `Title must be ${MAX_LENGTHS.title} characters or less` })
   if (!validateLength(description, MAX_LENGTHS.description)) return res.status(400).json({ error: `Description must be ${MAX_LENGTHS.description} characters or less` })
 
   const result = db.prepare(
-    'INSERT INTO jobs (title, company, description, location, type, category, salary_range, posted_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-  ).run(title, company, description || null, location || null, type || null, category || null, salary_range || null, req.user.id)
+    'INSERT INTO jobs (title, company, description, location, type, category, salary_range, seniority, posted_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(title, company, description || null, location || null, type || null, category || null, salary_range || null, seniority || null, req.user.id)
 
   res.status(201).json({ id: result.lastInsertRowid })
 })
@@ -191,6 +197,9 @@ router.delete('/:id', authenticateToken, (req, res) => {
 router.post('/:id/apply', authenticateToken, (req, res) => {
   const db = req.app.locals.db
   const { cover_letter, resume_url } = req.body
+  if (!validateLength(cover_letter, MAX_COVER_LETTER)) {
+    return res.status(400).json({ error: `Cover letter must be ${MAX_COVER_LETTER} characters or less` })
+  }
 
   const job = db.prepare(`SELECT * FROM jobs WHERE id = ? AND ${APPROVED}`).get(req.params.id)
   if (!job) return res.status(404).json({ error: 'Job not found' })
