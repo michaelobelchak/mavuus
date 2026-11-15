@@ -32,6 +32,7 @@ import { fireConfetti } from '../../hooks/useConfetti'
 import { useDetailResource } from '../../hooks/useDetailResource'
 import { DetailError, DetailLayout, DetailNotFound, DetailSkeleton, DetailTopBar } from './shared/DetailChrome'
 import { DetailSection } from './shared/DetailSection'
+import { errorMessage } from './shared/errorMessage'
 import { JOB_STATUSES, jobTypeLabel } from './shared/jobs'
 import { JOBS_PATH, MEMBERS_PATH } from './shared/paths'
 import { listOf, reviewCardProps } from './shared/reviewProps'
@@ -39,6 +40,15 @@ import { useSavedJobs } from './shared/useSavedJobs'
 
 const BACK = { backTo: JOBS_PATH, backLabel: 'Back to Jobs' }
 const MY_POSTINGS = '/dashboard/my-jobs?tab=postings'
+const MAX_RESUME_BYTES = 5 * 1024 * 1024
+// What's wrong with a picked resume file, or null. The server checks the file's content too.
+function resumeProblem(file) {
+  if (!file) return null
+  const pdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+  if (!pdf) return 'Choose a PDF file.'
+  if (file.size > MAX_RESUME_BYTES) return 'Choose a PDF of 5 MB or less.'
+  return null
+}
 const statusLabel = (status) => JOB_STATUSES.find((option) => option.value === status)?.label ?? status
 
 const bulletsOf = (lines) => lines.filter((line) => line.trim().startsWith('-')).map((line) => line.replace(/^\s*-\s*/, '').trim())
@@ -198,10 +208,11 @@ export default function JobDetailPage() {
       setBusy(null)
     }
   }
-  const errorOf = async (res, fallback) => {
-    const body = await res.json().catch(() => null)
-    return typeof body?.error === 'string' && body.error ? body.error : fallback
-  }
+  const errorOf = errorMessage
+  // Uploading a different resume needs a file; any picked file must be a PDF of 5 MB or less.
+  const uploading = !profileResume || resumeChoice === 'upload'
+  const fileError = uploading ? resumeProblem(resumeFile) : null
+  const missingFile = Boolean(profileResume) && resumeChoice === 'upload' && !resumeFile
 
   const handleApply = () =>
     run('apply', async () => {
@@ -217,7 +228,8 @@ export default function JobDetailPage() {
             toast.error(await errorOf(upload, "Couldn't upload your resume. Try again."))
             return
           }
-          body.resume_url = (await upload.json()).resume_url
+          // The upload answers { success, filename, url }.
+          body.resume_url = (await upload.json()).url
         }
         const res = await fetch(`/api/jobs/${jobId}/apply`, { method: 'POST', headers: json, body: JSON.stringify(body) })
         if (!res.ok) {
@@ -584,7 +596,7 @@ export default function JobDetailPage() {
             <DialogClose>
               <Button variant="ghost">Cancel</Button>
             </DialogClose>
-            <Button loading={busy === 'apply'} onClick={handleApply}>
+            <Button loading={busy === 'apply'} disabled={Boolean(fileError) || missingFile} onClick={handleApply}>
               Submit Application
             </Button>
           </>
@@ -611,7 +623,11 @@ export default function JobDetailPage() {
             />
           )}
           {(!profileResume || resumeChoice === 'upload') && (
-            <FormField label={profileResume ? 'Resume file' : 'Resume'} hint="PDF, up to 5 MB">
+            <FormField
+              label={profileResume ? 'Resume file' : 'Resume'}
+              hint="PDF, up to 5 MB. Uploading also replaces the resume on your profile."
+              error={fileError || (missingFile ? 'Choose a PDF to upload.' : undefined)}
+            >
               <Input
                 type="file"
                 accept=".pdf"

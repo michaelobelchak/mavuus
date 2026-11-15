@@ -140,6 +140,64 @@ describe('JobDetailPage', () => {
     expect(screen.getByRole('button', { name: 'Applied' })).toBeDisabled()
   })
 
+  it('should upload a new resume, then apply with the url the upload returns', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(toast, 'success').mockImplementation(() => {})
+    const fetchMock = renderPage(3, {
+      'GET /api/profile/me': {},
+      'POST /api/profile/me/resume': { success: true, filename: 'cv.pdf', url: '/api/files/resumes/abc.pdf' },
+      'POST /api/jobs/3/apply': reply(201, { success: true }),
+    })
+    await user.click(await screen.findByRole('button', { name: 'Apply Now' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Apply for Freelance Brand Designer' })
+    const file = new File(['%PDF-1.4'], 'cv.pdf', { type: 'application/pdf' })
+    await user.upload(within(dialog).getByLabelText(/^Resume/), file)
+    await user.click(within(dialog).getByRole('button', { name: 'Submit Application' }))
+    await waitFor(() => expect(bodyOf(fetchMock, '/api/jobs/3/apply', 'POST')).toEqual({
+      cover_letter: '',
+      resume_url: '/api/files/resumes/abc.pdf',
+    }))
+    const [, uploadInit] = fetchMock.mock.calls.find(([url]) => url === '/api/profile/me/resume')
+    expect(uploadInit.body).toBeInstanceOf(FormData)
+    expect(uploadInit.body.get('resume')).toBe(file)
+  })
+
+  it('should not apply when the resume upload is refused', async () => {
+    const user = userEvent.setup()
+    const error = vi.spyOn(toast, 'error').mockImplementation(() => {})
+    const fetchMock = renderPage(3, {
+      'GET /api/profile/me': {},
+      'POST /api/profile/me/resume': reply(400, { error: 'Only PDF files are allowed' }),
+    })
+    await user.click(await screen.findByRole('button', { name: 'Apply Now' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Apply for Freelance Brand Designer' })
+    await user.upload(within(dialog).getByLabelText(/^Resume/), new File(['%PDF-1.4'], 'cv.pdf', { type: 'application/pdf' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Submit Application' }))
+    await waitFor(() => expect(error).toHaveBeenCalledWith('Only PDF files are allowed', undefined))
+    expect(fetchMock.mock.calls.some(([url]) => url === '/api/jobs/3/apply')).toBe(false)
+  })
+
+  it('should check the chosen file before uploading and need one when uploading a different resume', async () => {
+    const user = userEvent.setup({ applyAccept: false })
+    renderPage(3)
+    await user.click(await screen.findByRole('button', { name: 'Apply Now' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Apply for Freelance Brand Designer' })
+    await user.click(within(dialog).getByRole('radio', { name: 'Upload a different resume' }))
+    const submit = within(dialog).getByRole('button', { name: 'Submit Application' })
+    expect(submit).toBeDisabled()
+    expect(within(dialog).getByText(/also replaces the resume on your profile/)).toBeInTheDocument()
+    const field = within(dialog).getByLabelText(/^Resume file/)
+    await user.upload(field, new File(['hello'], 'cv.docx', { type: 'application/msword' }))
+    expect(within(dialog).getByText('Choose a PDF file.')).toBeInTheDocument()
+    expect(submit).toBeDisabled()
+    const big = new File(['%PDF-'], 'big.pdf', { type: 'application/pdf' })
+    Object.defineProperty(big, 'size', { value: 6 * 1024 * 1024 })
+    await user.upload(field, big)
+    expect(within(dialog).getByText('Choose a PDF of 5 MB or less.')).toBeInTheDocument()
+    await user.upload(field, new File(['%PDF-1.4'], 'cv.pdf', { type: 'application/pdf' }))
+    expect(submit).toBeEnabled()
+  })
+
   it('should show the server error when an application is refused', async () => {
     const user = userEvent.setup()
     const error = vi.spyOn(toast, 'error').mockImplementation(() => {})
