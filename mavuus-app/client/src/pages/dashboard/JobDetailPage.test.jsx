@@ -226,7 +226,7 @@ describe('JobDetailPage', () => {
     expect(screen.getByText('You posted this job')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Apply Now' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Recommend a Vendor' })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Resume of Marcus Johnson/ })).toHaveAttribute('href', '/uploads/resumes/m.pdf')
+    expect(screen.getByRole('link', { name: /Resume of Marcus Johnson/ })).toHaveAttribute('href', '/api/files/resumes/m.pdf')
 
     await user.click(screen.getByRole('button', { name: 'Hire Marcus Johnson' }))
     const dialog = await screen.findByRole('dialog', { name: 'Hire Marcus Johnson?' })

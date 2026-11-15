@@ -26,13 +26,13 @@ import {
   Textarea,
 } from '@/design-system/primitives'
 import { formatDate } from '@/design-system/lib/formatDate'
-import { isHttpUrl } from '@/design-system/lib/safeUrl'
 import { useAuth } from '../../context/AuthContext'
 import { fireConfetti } from '../../hooks/useConfetti'
 import { useDetailResource } from '../../hooks/useDetailResource'
 import { DetailError, DetailLayout, DetailNotFound, DetailSkeleton, DetailTopBar } from './shared/DetailChrome'
 import { DetailSection } from './shared/DetailSection'
 import { errorMessage } from './shared/errorMessage'
+import { resumeHref as resumeLink } from './shared/resumeHref'
 import { JOB_STATUSES, jobTypeLabel } from './shared/jobs'
 import { JOBS_PATH, MEMBERS_PATH } from './shared/paths'
 import { listOf, reviewCardProps } from './shared/reviewProps'
@@ -388,7 +388,7 @@ export default function JobDetailPage() {
     )
   }
 
-  const resumeHref = (app) => [app.resume_url, app.profile_resume_url].find(isHttpUrl)
+  const resumeHref = (app) => resumeLink(app.resume_url) || resumeLink(app.profile_resume_url)
 
   return (
     <div className="flex flex-col gap-ds-lg">

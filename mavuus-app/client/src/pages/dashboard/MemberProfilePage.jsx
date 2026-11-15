@@ -11,6 +11,7 @@ import { useDetailResource } from '../../hooks/useDetailResource'
 import { DetailError, DetailLayout, DetailNotFound, DetailSkeleton, DetailTopBar } from './shared/DetailChrome'
 import { DetailSection, JobLinkList } from './shared/DetailSection'
 import { JOBS_PATH, MEMBERS_PATH, MESSAGES_PATH } from './shared/paths'
+import { resumeHref as resumeLink } from './shared/resumeHref'
 import { listOf, recommendationCardProps, reviewCardProps } from './shared/reviewProps'
 
 const BACK = { backTo: MEMBERS_PATH, backLabel: 'Back to Members' }
@@ -226,7 +227,7 @@ export default function MemberProfilePage() {
 
   const skills = member.skills || []
   const experience = member.experience || []
-  const resumeHref = isHttpUrl(member.resume_url) ? member.resume_url : null
+  const resumeHref = resumeLink(member.resume_url)
   const linkedinHref = isHttpUrl(member.linkedin_url) ? member.linkedin_url : null
   const connectionCount = member.connection_count > 0
     ? `${member.connection_count} connection${member.connection_count !== 1 ? 's' : ''}`

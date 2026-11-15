@@ -74,7 +74,7 @@ describe('MemberProfilePage', () => {
     const info = screen.getByRole('complementary', { name: 'Member info' })
     expect(within(info).getByText('San Francisco, CA')).toBeInTheDocument()
     expect(within(info).getByText('3 connections')).toBeInTheDocument()
-    expect(within(info).getByRole('link', { name: /sarah\.pdf/ })).toHaveAttribute('href', '/uploads/resumes/sarah.pdf')
+    expect(within(info).getByRole('link', { name: /sarah\.pdf/ })).toHaveAttribute('href', '/api/files/resumes/sarah.pdf')
     expect(await screen.findByRole('link', { name: 'Content Lead' })).toHaveAttribute('href', '/dashboard/jobs/5')
     expect(screen.getByRole('article', { name: 'Review by Priya Patel' })).toBeInTheDocument()
     expect(screen.getByRole('article', { name: 'Recommendation from Marcus Johnson' })).toBeInTheDocument()
