@@ -1,7 +1,7 @@
 # Finish and launch plan
 
 **Date:** 2026-11-14
-**Status:** Stage 1 done on `feat/local-assets` (2026-11-14), waiting for the owner check. Batch 3A (app shell) done on `feat/app-shell-live` (2026-11-14), waiting for the owner check. Batch 3B (Academy, Live Sessions, Session detail, On-Demand, Resources, Resource detail) done on `feat/member-pages-1` (2026-11-14). Batch 3C (Speakers, Members, Member profile, Vendors, Vendor detail) done on `feat/member-pages-2` (2026-11-14)
+**Status:** Stage 1 done on `feat/local-assets` (2026-11-14), waiting for the owner check. Batch 3A (app shell) done on `feat/app-shell-live` (2026-11-14), waiting for the owner check. Batch 3B (Academy, Live Sessions, Session detail, On-Demand, Resources, Resource detail) done on `feat/member-pages-1` (2026-11-14). Batch 3C (Speakers, Members, Member profile, Vendors, Vendor detail) done on `feat/member-pages-2` (2026-11-14). Batch 3D first half (Jobs, Job detail, My Jobs) done on `feat/member-pages-3` (2026-11-14); Messages, Profile and Invite are next
 **Goal:** a complete Mavuus the founders can click through at a real URL: every page on the design system, no dependency on the Webflow site, and production settings ready for the host the owner provides.
 
 PR #5 (design system foundation) is merged. What's left falls into five stages. Each stage is its own branch and PR to `main`, runs the full gate, and ends with an owner check before the next one starts.
@@ -81,6 +81,14 @@ Rules for every page:
 Fixed in the batch: vendor reviews and Contact Vendor (seeded owner accounts), a vendor's jobs (`/api/jobs?posted_by=`), the Members filters (server side `tier` and `connections=1`) and the speaker details on phones (a Sheet). Still open:
 
 - **Owner accounts and roles:** `users.role` only allows member and admin, so vendor owner accounts are full member accounts told apart by `vendors.user_id` (left out of `/api/members` and `/api/search`). A `vendor` role needs a users table rebuild on existing databases; when owners get their own dashboard, add a role (with that migration) or an `is_vendor_account` column (a safe `ALTER TABLE ADD COLUMN`).
+
+### Follow-ups from Batch 3D (first half)
+
+Fixed in the batch: hiring (the `hired` application status), Recommend a Vendor, hidden jobs and admin fields on the member job routes, server-side seniority. Still open:
+
+- **Job reviews:** `POST /api/reviews` doesn't check that the reviewer and reviewee shared the job (see 9b in Stage 4); the page only offers the button to the poster and the hired member.
+- **Hiring rules on the server:** `PUT /api/jobs/applications/:id/status` accepts `hired` on a job that isn't open and can hire twice; the page only offers Hire on open jobs.
+- **Withdraw an application:** `withdrawn` is a valid status but nothing sets it.
 
 ## Stage 4: Launch readiness (everything except the host)
 

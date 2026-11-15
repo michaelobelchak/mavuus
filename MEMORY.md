@@ -207,3 +207,29 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - Vendor ratings used to be seeded totals with no review rows behind them; now `seedVendorReviews` writes 30 rows and recalculates every vendor from them.
 - `mockApi` prefers an exact URL match (query included) over a path-only one, so tests can answer `?tier=free` differently from the default list.
 - react-router 7's MemoryRouter and BrowserRouter render location changes in `React.startTransition`, and `setSearchParams` gives its updater the rendered params. CatalogList therefore ignores the late echo of its own sent search (or the field snapped back and the next search was dropped) and builds URL changes on its own pending URL until it renders (or a chip right after a search dropped `q`). This was the flaky LiveSessionsPage history test; `CatalogList.test.jsx` forces both interleavings with fake timers.
+
+
+## Dashboard pages 3, first half - 2026-11-14 (feat/member-pages-3, Batch 3D Jobs)
+
+**Decision:** Jobs needs three filters, so CatalogList grew a `filters` prop rendered as selects in the design-system FilterBar (each with an "Any ..." option and Clear filters) instead of three chip rows, which wrapped into a wall of 16 chips beside the search. The single-filter chip path and its URL race handling are untouched; both modes share the same `update` queue.
+
+**Decision:** seniority moved to the server (`/api/jobs?seniority=`). The old page filtered the loaded page of 20 on the client, so paging and the count ignored it. Same reasoning as the Members filters in 3C.
+
+**Decision:** `hired` was added to the `job_applications` CHECK and older databases get a one-time table rebuild (`ensureJobApplicationStatuses`, in one transaction, rows and ids kept). No table references `job_applications`, so the drop and rename are safe with foreign keys on. Rejected: dropping the `hired` application status and only setting `jobs.hired_user_id`, because applicants and notifications already show the application status.
+
+**Decision:** a hidden or removed job answers 404 on `/api/jobs/:id` except for its poster, read from an optional token on that public route. Rejected: 404 for everyone, which would make a poster's own job vanish from My Jobs links.
+
+**Decision:** on the job detail page the description, applicants and reviews sit in DetailLayout's lower slot (`comments`), so below 1024px the order is header, actions, details, then the long description. With everything in `main`, Apply was 2,000px down on a phone.
+
+**Decision:** Hire asks for confirmation in a Dialog. It changes the job's status and notifies the applicant, and there is no un-hire.
+
+**Rejected:**
+- CommentThread on jobs: the old page had no comments, and adding them is a feature, not a migration.
+- A Filters toggle like the old page: with the filters in the URL, a hidden panel could hide active filters.
+
+**Non-obvious:**
+- The Dialog body had `min-h-0 grow` in a scrolling flex popup, so a form taller than the screen shrank its body and the textarea slid under the footer. Dialog passes `bodyClassName="shrink-0"`; Sheet keeps `min-h-0` because the mobile nav scrolls inside it.
+- The seeded demo profile has no `resume_url`, so the apply dialog shows the file field, not the profile/upload choice; the unit test covers the choice.
+- `seed.js` uses `INSERT OR IGNORE`, which also ignores CHECK failures: that is how the two hired applications vanished without an error.
+- The detail page's busy guard is a ref (`busyRef`) plus state for the spinner, so two clicks in the same frame can't both send.
+- `/api/jobs/:id/applicants` still sends applicant emails to the poster; the apply dialog says the profile is shared with the employer, so it was kept.
