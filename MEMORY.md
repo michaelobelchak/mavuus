@@ -233,3 +233,11 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - `seed.js` uses `INSERT OR IGNORE`, which also ignores CHECK failures: that is how the two hired applications vanished without an error.
 - The detail page's busy guard is a ref (`busyRef`) plus state for the spinner, so two clicks in the same frame can't both send.
 - `/api/jobs/:id/applicants` still sends applicant emails to the poster; the apply dialog says the profile is shared with the employer, so it was kept.
+
+**Decision (review):** hidden or removed jobs stay in a member's applications (their history) but come back `unavailable: true` and render without a link and with "No longer available"; apply and save refuse them with a 404 and the saved list leaves them out. Rejected: dropping them from My Applications, which would make an application vanish without a word.
+
+**Decision (review):** My Jobs loads its three lists separately, each with its own loading, error and Try again, so a failing `/api/jobs/saved` doesn't hide your applications. Counts show in a tab label only once its list loaded.
+
+**Decision (review):** the job detail page keeps a single Save button in the side card; the old header bookmark repeated it.
+
+**Non-obvious (review):** dropping a table deletes its `sqlite_sequence` row, so the rebuilt `job_applications` would restart AUTOINCREMENT at the highest copied id and could reuse ids of deleted applications. `ensureJobApplicationStatuses` writes back the larger of the old counter and the new one. SQLite's table-change recipe also turns `foreign_keys` off around a rebuild; it isn't needed here because no table references `job_applications`.
