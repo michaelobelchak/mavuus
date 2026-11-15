@@ -155,3 +155,26 @@ describe('public job routes', () => {
     expect(res.body.total).toBe(1)
   })
 })
+
+describe('hidden and removed jobs for members', () => {
+  it('should refuse to apply to or save a job that is not approved', async () => {
+    const applied = await request(app).post('/api/jobs/11/apply').set('Authorization', `Bearer ${bob}`).send({})
+    expect(applied.status).toBe(404)
+    const saved = await request(app).post('/api/jobs/12/save').set('Authorization', `Bearer ${bob}`)
+    expect(saved.status).toBe(404)
+  })
+
+  it('should leave them out of saved jobs and mark them unavailable in my applications', async () => {
+    db.prepare('INSERT INTO saved_jobs (user_id, job_id) VALUES (2, 11)').run()
+    db.prepare("INSERT INTO job_applications (job_id, user_id, status) VALUES (12, 2, 'applied')").run()
+
+    const saved = await request(app).get('/api/jobs/saved').set('Authorization', `Bearer ${bob}`)
+    expect(saved.body.map((job) => job.id)).not.toContain(11)
+
+    const apps = await request(app).get('/api/jobs/my-applications').set('Authorization', `Bearer ${bob}`)
+    const byJob = Object.fromEntries(apps.body.map((app) => [app.job_id, app]))
+    expect(byJob[12].unavailable).toBe(true)
+    expect(byJob[10].unavailable).toBe(false)
+    expect(byJob[12]).not.toHaveProperty('moderation_status')
+  })
+})

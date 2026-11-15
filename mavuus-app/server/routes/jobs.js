@@ -94,7 +94,7 @@ router.get('/saved', authenticateToken, (req, res) => {
   const saved = db.prepare(`
     SELECT ${publicColumns('j')}, sj.saved_at FROM saved_jobs sj
     JOIN jobs j ON j.id = sj.job_id
-    WHERE sj.user_id = ?
+    WHERE sj.user_id = ? AND j.${APPROVED}
     ORDER BY sj.saved_at DESC
   `).all(req.user.id)
   res.json(saved)
@@ -104,13 +104,15 @@ router.get('/saved', authenticateToken, (req, res) => {
 router.get('/my-applications', authenticateToken, (req, res) => {
   const db = req.app.locals.db
   const applications = db.prepare(`
-    SELECT ja.*, j.title as job_title, j.company as job_company, j.location as job_location, j.type as job_type
+    SELECT ja.*, j.title as job_title, j.company as job_company, j.location as job_location, j.type as job_type,
+      j.moderation_status != 'approved' as unavailable
     FROM job_applications ja
     JOIN jobs j ON j.id = ja.job_id
     WHERE ja.user_id = ?
     ORDER BY ja.applied_at DESC
   `).all(req.user.id)
-  res.json(applications)
+  // A job an admin hid or removed stays in the member's history, marked unavailable.
+  res.json(applications.map((application) => ({ ...application, unavailable: Boolean(application.unavailable) })))
 })
 
 // Auth: Get jobs I posted
@@ -189,7 +191,7 @@ router.post('/:id/apply', authenticateToken, (req, res) => {
   const db = req.app.locals.db
   const { cover_letter, resume_url } = req.body
 
-  const job = db.prepare('SELECT * FROM jobs WHERE id = ?').get(req.params.id)
+  const job = db.prepare(`SELECT * FROM jobs WHERE id = ? AND ${APPROVED}`).get(req.params.id)
   if (!job) return res.status(404).json({ error: 'Job not found' })
 
   try {
@@ -257,6 +259,9 @@ router.put('/applications/:id/status', authenticateToken, (req, res) => {
 // Auth: Save a job
 router.post('/:id/save', authenticateToken, (req, res) => {
   const db = req.app.locals.db
+  if (!db.prepare(`SELECT 1 FROM jobs WHERE id = ? AND ${APPROVED}`).get(req.params.id)) {
+    return res.status(404).json({ error: 'Job not found' })
+  }
   try {
     db.prepare('INSERT INTO saved_jobs (user_id, job_id) VALUES (?, ?)').run(req.user.id, req.params.id)
     res.status(201).json({ success: true })
