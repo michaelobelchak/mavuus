@@ -262,3 +262,36 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 **Open (owner):** resume visibility. Members who may see a full profile can open its resume (the member profile page always offered it). Proposed for the founders' checklist: a separate resume setting defaulting to "employers I apply to".
 
 **Known gaps (logged in the plan):** authenticated routes trust the JWT and never recheck the user row, so ban and role changes wait for the 7-day token to expire (Stage 4, 9d); `POST /api/reviews` with a `job_id` doesn't check the job is completed or that the two members are its poster and hire (Stage 4, 9c, confirmed still open).
+
+
+## Dashboard pages 3, second half - 2026-11-14 (feat/member-pages-4, Batch 3D Messages, Profile, Invite)
+
+**Decision:** the open conversation is `?conversation=<id>` (the param VendorDetailPage already sent), not a `/messages/:id` route, so existing links keep working and the list stays mounted. Thread rows are links with `{ fromList: true }` state; the phone back button goes back in history only with that state, otherwise it navigates to the list.
+
+**Decision:** `?user=<id>` with no existing thread shows a new-conversation view (the member from `GET /api/members/:id`) and the first message goes to `POST /api/messages/conversations`, then the URL is replaced with `?conversation=<new id>`. The old page silently did nothing, so every Message button for someone you hadn't written to was dead. Rejected: creating the conversation on open, which would leave empty threads in both members' lists.
+
+**Decision:** the shell's unread badge refreshes through a window event (`announceMessagesRead()` in `layouts/messagesRead.js`, bumping MemberLayout's `refreshKey`). Rejected: putting the search in `refreshKey`, which would refetch on every keystroke of every list search; and a context, which would re-render the whole shell for a counter.
+
+**Decision:** your own messages use `surface-brand-strong` (blue) with white text. The old pink bubble with white text is about 3:1, below AA for body text, and pink stays an accent.
+
+**Decision:** the thread marks read on open and only on polls that brought new messages (the old page sent a PUT every 5 seconds), and tells the shell only when something was unread.
+
+**Decision:** profile sections save only the fields that changed. The server's `PUT /api/profile/me` uses COALESCE, so sending the whole form was harmless, but sending less keeps a stale form from overwriting a change made elsewhere. Name, title and company also go to `updateUser` so the shell shows them.
+
+**Decision:** visibility waits for a Save button (a RadioGroup), notifications save on toggle (Switch). That follows the system's rule: Switch for settings that apply right away, a form control with Save for a choice with privacy impact.
+
+**Decision:** `profileCompletion` moved to `pages/dashboard/shared/` with each step's button text and tab, so the home nudge and the profile can't disagree.
+
+**Rejected:**
+- A design-system TagInput for skills: chips with a remove icon, an Add field and suggestion chips cover it with existing parts.
+- A larger Avatar size for the profile header: MemberProfilePage uses `lg`, and both headers now match.
+- Confirming resume removal: the old page removed it right away and the file is easy to upload again.
+
+**Non-obvious:**
+- `GET /api/members/:id` needs no sign-in and returned any member's email, including banned and deleted accounts. Nothing in the client used the email; it's gone and those accounts answer 404.
+- Starting a conversation with yourself answered 500: the "existing conversation" query matched any conversation you're in when both ids are yours, then the participant insert hit the primary key.
+- Invite links never counted: the server reads `?ref=` on `/api/auth/register`, but RegisterPage never forwarded it. The seeded demo account has no referrals, so the Invite page shows the empty state in the demo.
+- `sanitizeBody` trims every string, so a message of spaces arrives empty and gets the 400.
+- `--shell-fill-h` is declared on `[data-app-shell]`, not on `html`, because ShellLayout sets `--shell-banner-h` inline on the shell root and a custom property resolves where it's declared.
+
+**Known gaps (logged in the plan):** any member can message any other member, including ones with a private or connections-only profile; `PUT /api/profile/me` still takes any `avatar_url` string (length checked only).

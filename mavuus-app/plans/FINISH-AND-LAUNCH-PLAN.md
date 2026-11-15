@@ -1,7 +1,7 @@
 # Finish and launch plan
 
 **Date:** 2026-11-14
-**Status:** Stage 1 done on `feat/local-assets` (2026-11-14), waiting for the owner check. Batch 3A (app shell) done on `feat/app-shell-live` (2026-11-14), waiting for the owner check. Batch 3B (Academy, Live Sessions, Session detail, On-Demand, Resources, Resource detail) done on `feat/member-pages-1` (2026-11-14). Batch 3C (Speakers, Members, Member profile, Vendors, Vendor detail) done on `feat/member-pages-2` (2026-11-14). Batch 3D first half (Jobs, Job detail, My Jobs) done on `feat/member-pages-3` (2026-11-14); Messages, Profile and Invite are next
+**Status:** Stage 1 done on `feat/local-assets` (2026-11-14), waiting for the owner check. Batch 3A (app shell) done on `feat/app-shell-live` (2026-11-14), waiting for the owner check. Batch 3B (Academy, Live Sessions, Session detail, On-Demand, Resources, Resource detail) done on `feat/member-pages-1` (2026-11-14). Batch 3C (Speakers, Members, Member profile, Vendors, Vendor detail) done on `feat/member-pages-2` (2026-11-14). Batch 3D (Jobs, Job detail, My Jobs on `feat/member-pages-3`; Messages, Profile, Invite on `feat/member-pages-4`) done (2026-11-14): the whole member area is on the design system, waiting for the owner check. Batch 3E (admin) is next
 **Goal:** a complete Mavuus the founders can click through at a real URL: every page on the design system, no dependency on the Webflow site, and production settings ready for the host the owner provides.
 
 PR #5 (design system foundation) is merged. What's left falls into five stages. Each stage is its own branch and PR to `main`, runs the full gate, and ends with an owner check before the next one starts.
@@ -73,7 +73,7 @@ Rules for every page:
 
 - **AcademyPage data:** the live sessions row is filtered from the first page of `/api/sessions` (20 mixed live and on-demand items), so live sessions past the first 20 never show; ask for `?type=live&limit=4` and `?type=on-demand&limit=4` instead. The `mockData` fallback shows fake sessions whenever the API returns none; drop it once the seed always has data.
 - **Resources chips mix two fields:** Guide, Template, Report and Playbook are sent as `category`, but resources also have a `type` (guide, template, article). Pick one field for the filter (CatalogList's `filterParam` supports `type`) and align the seed.
-- **ShareDialog invite:** the email field isn't validated before the `mailto:` opens; use FormField's error for an invalid address.
+- ~~**ShareDialog invite:** the email field isn't validated before the `mailto:` opens.~~ Fixed in Batch 3D (second half).
 - **Two toast systems:** the legacy `ToastProvider` and the design-system `Toaster` are both mounted; 3I removes the legacy one once no page uses it.
 
 ### Follow-ups from Batch 3C
@@ -88,6 +88,14 @@ Fixed in the batch: hiring (the `hired` application status), Recommend a Vendor,
 
 - **Job reviews:** `POST /api/reviews` with a `job_id` doesn't check that the job is completed or that the reviewer and reviewee are its poster and its hire (see 9b in Stage 4); the page only offers the button to those two on a completed job.
 - **Withdraw an application:** `withdrawn` is a valid status but nothing sets it.
+
+### Follow-ups from Batch 3D (second half)
+
+Fixed in the batch: Message buttons for members you hadn't written to (a new conversation now starts with the first message), invite links that never counted (`?ref=` wasn't sent), message validation and same-second order, the member card by id sending emails, profile update validation, and the unread badge refreshing when a thread opens. Still open:
+
+- **Who can message whom:** any member can start a conversation with any active member, including private and connections-only profiles. Decide with the founders whether messaging needs a connection (or respects visibility), then enforce it in `POST /api/messages/conversations`.
+- **Avatar URL:** `PUT /api/profile/me` still accepts any `avatar_url` string up to 500 characters. Only the upload route should set it; drop the field from the update or limit it to `/uploads/avatars/` and the seeded `/images/avatars/` paths.
+- **Unread at second precision:** unread counts compare `created_at` with `last_read_at` (both `CURRENT_TIMESTAMP`, whole seconds), so a message that lands in the same second as a read counts as read. Store milliseconds or track the last read message id.
 
 ## Stage 4: Launch readiness (everything except the host)
 
