@@ -14,7 +14,7 @@ import { mkdirSync, readFileSync } from 'fs'
 
 import { JWT_SECRET } from './middleware/auth.js'
 import { dbPath, rateLimitMax } from './config.js'
-import { dedupeVendorReviews, recalcAllVendorRatings } from './db/vendorReviews.js'
+import { ensureVendorReviewIndex } from './db/vendorReviews.js'
 import authRoutes from './routes/auth.js'
 import sessionsRoutes from './routes/sessions.js'
 import resourcesRoutes from './routes/resources.js'
@@ -54,10 +54,10 @@ db.pragma('journal_mode = WAL')
 
 // Ensure schema is applied (idempotent — uses CREATE TABLE IF NOT EXISTS)
 const schemaSQL = readFileSync(join(__dirname, 'db', 'schema.sql'), 'utf-8')
-// Older databases may hold repeat vendor reviews, which the unique index in the schema refuses.
-const repeatReviews = dedupeVendorReviews(db)
 db.exec(schemaSQL)
-if (repeatReviews > 0) recalcAllVendorRatings(db)
+// One review per member per vendor; an older database's repeat reviews go first (latest kept).
+const repeatReviews = ensureVendorReviewIndex(db)
+if (repeatReviews > 0) console.warn(`Removed ${repeatReviews} repeat vendor review(s) before creating idx_reviews_vendor_once`)
 
 // Make db available to routes
 app.locals.db = db

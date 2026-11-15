@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import request from 'supertest'
 import { createTestApp, generateTestToken } from './setup.js'
 import { ensureVendorOwners } from '../db/vendorOwners.js'
-import { dedupeVendorReviews, seedVendorReviews } from '../db/vendorReviews.js'
+import { ensureVendorReviewIndex, seedVendorReviews } from '../db/vendorReviews.js'
 
 let app, db, alice, bob, ownerId, ownerToken
 
@@ -77,16 +77,41 @@ describe('POST /api/reviews for a vendor', () => {
 })
 
 describe('seeded vendor reviews', () => {
-  it('should keep the earliest of repeat vendor reviews', () => {
+  it('should keep the latest of repeat vendor reviews and create the index in one go', () => {
+    const fresh = createTestApp().db
+    fresh.exec('DROP INDEX idx_reviews_vendor_once')
+    fresh.prepare("INSERT INTO vendors (id, company_name, user_id, rating, reviews_count) VALUES (1, 'V', 2, 0, 0)").run()
+    const insert = fresh.prepare('INSERT INTO reviews (id, reviewer_id, reviewee_id, vendor_id, rating) VALUES (?, 1, 2, 1, ?)')
+    insert.run(10, 5)
+    insert.run(11, 1)
+    expect(ensureVendorReviewIndex(fresh)).toBe(1)
+    expect(fresh.prepare('SELECT id FROM reviews').all()).toEqual([{ id: 11 }])
+    expect(fresh.prepare('SELECT rating, reviews_count FROM vendors WHERE id = 1').get()).toEqual({ rating: 1, reviews_count: 1 })
+    expect(fresh.prepare("SELECT 1 AS ok FROM sqlite_master WHERE type = 'index' AND name = 'idx_reviews_vendor_once'").get()).toEqual({ ok: 1 })
+    fresh.close()
+  })
+
+  it('should leave reviews alone once the index exists', () => {
+    const fresh = createTestApp().db
+    fresh.prepare("INSERT INTO vendors (id, company_name, user_id) VALUES (1, 'V', 2)").run()
+    fresh.prepare('INSERT INTO reviews (id, reviewer_id, reviewee_id, vendor_id, rating) VALUES (10, 1, 2, 1, 5)').run()
+    const run = fresh.prepare('SELECT COUNT(*) AS c FROM reviews')
+    expect(ensureVendorReviewIndex(fresh)).toBe(0)
+    expect(run.get().c).toBe(1)
+    fresh.close()
+  })
+
+  it('should keep the index off a repeat-review table if the index creation fails', () => {
     const fresh = createTestApp().db
     fresh.exec('DROP INDEX idx_reviews_vendor_once')
     fresh.prepare("INSERT INTO vendors (id, company_name, user_id) VALUES (1, 'V', 2)").run()
     const insert = fresh.prepare('INSERT INTO reviews (id, reviewer_id, reviewee_id, vendor_id, rating) VALUES (?, 1, 2, 1, ?)')
     insert.run(10, 5)
     insert.run(11, 1)
-    expect(dedupeVendorReviews(fresh)).toBe(1)
-    expect(fresh.prepare('SELECT id FROM reviews').all()).toEqual([{ id: 10 }])
-    expect(dedupeVendorReviews(fresh)).toBe(0)
+    // A clashing object with the index's name makes the creation fail: the delete rolls back.
+    fresh.exec('CREATE TABLE idx_reviews_vendor_once (x)')
+    expect(() => ensureVendorReviewIndex(fresh)).toThrow()
+    expect(fresh.prepare('SELECT COUNT(*) AS c FROM reviews').get().c).toBe(2)
     fresh.close()
   })
 

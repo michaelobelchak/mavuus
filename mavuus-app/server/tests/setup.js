@@ -9,6 +9,7 @@ import { dirname, join } from 'path'
 import { mkdirSync } from 'fs'
 
 import { JWT_SECRET } from '../middleware/auth.js'
+import { ensureVendorReviewIndex } from '../db/vendorReviews.js'
 import { sanitizeBody } from '../middleware/sanitize.js'
 import authRoutes from '../routes/auth.js'
 import jobsRoutes from '../routes/jobs.js'
@@ -35,6 +36,7 @@ export function createTestApp() {
   const schemaPath = join(__dirname, '..', 'db', 'schema.sql')
   const schema = readFileSync(schemaPath, 'utf-8')
   db.exec(schema)
+  ensureVendorReviewIndex(db)
 
   // Seed test data
   const hash1 = bcrypt.hashSync('Password1', 10)

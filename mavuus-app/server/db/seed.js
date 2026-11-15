@@ -5,7 +5,7 @@ import { dirname, join } from 'path'
 import { dbPath } from '../config.js'
 import bcrypt from 'bcryptjs'
 import { ensureVendorOwners } from './vendorOwners.js'
-import { dedupeVendorReviews, seedVendorReviews } from './vendorReviews.js'
+import { ensureVendorReviewIndex, seedVendorReviews } from './vendorReviews.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // DB_PATH is relative to the server folder (e2e uses db/e2e.db); the default is db/mavuus.db.
@@ -16,8 +16,8 @@ db.pragma('journal_mode = WAL')
 
 // Run schema
 const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8')
-dedupeVendorReviews(db)
 db.exec(schema)
+ensureVendorReviewIndex(db)
 
 // Seed users (IDs 1-12, with avatar_url)
 const passwordHash = bcrypt.hashSync('demo123', 10)

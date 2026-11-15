@@ -2,18 +2,26 @@
 // Vendor reviews are written to the vendor's owner account (vendors.user_id, see vendorOwners.js).
 
 /**
- * Deletes repeat vendor reviews (same reviewer and vendor), keeping the earliest row, so the
- * unique index idx_reviews_vendor_once in schema.sql can be created on an older database. Run it
- * before db.exec(schema). Returns the number of rows deleted; 0 once the index exists.
+ * Creates the unique index idx_reviews_vendor_once (one review per member per vendor) if it
+ * doesn't exist yet. An older database may hold repeat vendor reviews, which the index would
+ * refuse, so in one transaction it first deletes them, keeping each member's latest review of a
+ * vendor (the highest id: the latest opinion wins), recalculates the ratings and creates the
+ * index. Run it after db.exec(schema). Returns the number of reviews deleted; 0 once the index
+ * exists.
  */
-export function dedupeVendorReviews(db) {
-  const hasReviews = db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'reviews'").get()
-  if (!hasReviews) return 0
-  return db.prepare(`
-    DELETE FROM reviews
-    WHERE vendor_id IS NOT NULL
-      AND id NOT IN (SELECT MIN(id) FROM reviews WHERE vendor_id IS NOT NULL GROUP BY reviewer_id, vendor_id)
-  `).run().changes
+export function ensureVendorReviewIndex(db) {
+  const exists = db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = 'idx_reviews_vendor_once'").get()
+  if (exists) return 0
+  return db.transaction(() => {
+    const deleted = db.prepare(`
+      DELETE FROM reviews
+      WHERE vendor_id IS NOT NULL
+        AND id NOT IN (SELECT MAX(id) FROM reviews WHERE vendor_id IS NOT NULL GROUP BY reviewer_id, vendor_id)
+    `).run().changes
+    if (deleted > 0) recalcAllVendorRatings(db)
+    db.exec('CREATE UNIQUE INDEX idx_reviews_vendor_once ON reviews(reviewer_id, vendor_id) WHERE vendor_id IS NOT NULL')
+    return deleted
+  })()
 }
 
 /** Sets a vendor's rating (average, one decimal, 0 without reviews) and review count from its rows. */

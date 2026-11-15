@@ -17,7 +17,7 @@ import { dbPath } from '../config.js'
 import { readFileSync } from 'fs'
 import { healRemoteAvatars } from './healAvatars.js'
 import { ensureVendorOwners } from './vendorOwners.js'
-import { dedupeVendorReviews, seedVendorReviews } from './vendorReviews.js'
+import { ensureVendorReviewIndex, seedVendorReviews } from './vendorReviews.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // DB_PATH is relative to the server folder (e2e uses db/e2e.db); the default is db/mavuus.db.
@@ -25,10 +25,10 @@ const db = new Database(dbPath())
 
 // Ensure schema exists before we try to write
 const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8')
-// Repeat vendor reviews (same member and vendor) would stop the unique index; keep the earliest.
-const repeatReviews = dedupeVendorReviews(db)
-if (repeatReviews > 0) console.log(`  Removed ${repeatReviews} repeat vendor review(s)`)
 db.exec(schema)
+// One review per member per vendor; an older database's repeat reviews go first (latest kept).
+const repeatReviews = ensureVendorReviewIndex(db)
+if (repeatReviews > 0) console.log(`  Removed ${repeatReviews} repeat vendor review(s)`)
 
 // Older databases still hold remote avatar URLs; point them at the local files.
 const healed = healRemoteAvatars(db)
