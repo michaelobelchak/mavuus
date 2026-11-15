@@ -6,7 +6,7 @@ import { Avatar, Badge, Button, Caption, Chip, Eyebrow, Heading, Icon, Link, Pro
 import useApiData from '../../hooks/useApiData'
 import { liveSessions as fallbackLive, onDemandVideos as fallbackVideos, communityResources as fallbackResources } from '../../data/mockData'
 import { useAuth } from '../../context/AuthContext'
-import { profileCompletion } from './academy/profileCompletion'
+import { profileCompletion } from './shared/profileCompletion'
 import { LIVE_PATH, ON_DEMAND_PATH, RESOURCES_PATH, resourceCardProps, sessionCardProps } from './academy/cardProps'
 
 const tabs = ['All', 'Live Sessions', 'On-Demand', 'Resources']

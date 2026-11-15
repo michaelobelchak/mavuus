@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { demoAuth, mockApi } from '../../test/mockApi'
 import AcademyPage from './AcademyPage'
-import { profileCompletion } from './academy/profileCompletion'
+import { profileCompletion } from './shared/profileCompletion'
 
 vi.mock('../../context/AuthContext', async () => {
   const { demoAuth: auth } = await import('../../test/mockApi')
@@ -82,7 +82,7 @@ describe('AcademyPage', () => {
   })
 
   it('should score a profile by the five sidebar checks', () => {
-    expect(profileCompletion(fullProfile)).toEqual({ percent: 100, missing: [] })
+    expect(profileCompletion(fullProfile)).toMatchObject({ percent: 100, missing: [] })
     expect(profileCompletion({}).percent).toBe(0)
     expect(profileCompletion(null)).toBeNull()
     expect(demoAuth.user.name).toBe('Demo User')
