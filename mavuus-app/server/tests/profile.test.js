@@ -31,6 +31,13 @@ describe('PUT /api/profile/me', () => {
     expect((await me()).industry).toBeFalsy()
   })
 
+  it('should clear years of experience when it gets an empty value', async () => {
+    expect((await update({ years_experience: 8 })).status).toBe(200)
+    expect((await update({ years_experience: '' })).status).toBe(200)
+    expect((await me()).years_experience).toBeNull()
+    expect((await update({ years_experience: 12 })).status).toBe(200)
+  })
+
   it('should refuse a visibility that is not public, connections or private', async () => {
     const res = await update({ profile_visibility: 'everyone' })
     expect(res.status).toBe(400)

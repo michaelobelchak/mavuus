@@ -12,6 +12,8 @@ function messageError(content) {
   return null
 }
 
+const ACTIVE = 'COALESCE(is_banned, 0) = 0 AND COALESCE(is_deleted, 0) = 0'
+
 const isParticipant = (db, conversationId, userId) =>
   Boolean(db.prepare('SELECT 1 FROM conversation_participants WHERE conversation_id = ? AND user_id = ?').get(conversationId, userId))
 
@@ -39,15 +41,15 @@ router.get('/conversations', (req, res) => {
 router.post('/conversations', (req, res) => {
   const db = req.app.locals.db
   const { message } = req.body
-  const userId = Number(req.body.userId)
-  if (!req.body.userId || !message) return res.status(400).json({ error: 'userId and message are required' })
+  const raw = req.body.userId
+  const userId = typeof raw === 'number' || typeof raw === 'string' ? Number(raw) : NaN
+  if (!raw || !message) return res.status(400).json({ error: 'userId and message are required' })
+  if (!Number.isInteger(userId) || userId < 1) return res.status(400).json({ error: 'userId must be a member id' })
   const invalid = messageError(message)
   if (invalid) return res.status(400).json({ error: invalid })
   if (userId === req.user.id) return res.status(400).json({ error: "You can't message yourself" })
   // Only an active member: not a missing id, and not a banned or deleted account.
-  const recipient = Number.isInteger(userId)
-    ? db.prepare('SELECT id FROM users WHERE id = ? AND COALESCE(is_banned, 0) = 0 AND COALESCE(is_deleted, 0) = 0').get(userId)
-    : null
+  const recipient = db.prepare(`SELECT id FROM users WHERE id = ? AND ${ACTIVE}`).get(userId)
   if (!recipient) return res.status(404).json({ error: 'Member not found' })
 
   // Check if conversation already exists between these two users
@@ -100,6 +102,12 @@ router.post('/conversations/:id/messages', (req, res) => {
   if (invalid) return res.status(400).json({ error: invalid })
 
   if (!isParticipant(db, req.params.id, req.user.id)) return res.status(403).json({ error: 'Not a participant' })
+  // The other member must still be active, as when the conversation started.
+  const other = db.prepare(`
+    SELECT u.id FROM conversation_participants cp JOIN users u ON u.id = cp.user_id
+    WHERE cp.conversation_id = ? AND cp.user_id != ? AND ${ACTIVE.replace(/is_/g, 'u.is_')}
+  `).get(req.params.id, req.user.id)
+  if (!other) return res.status(404).json({ error: 'Member not found' })
 
   const result = db.prepare('INSERT INTO messages (conversation_id, sender_id, content) VALUES (?, ?, ?)').run(req.params.id, req.user.id, content)
   db.prepare('UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(req.params.id)

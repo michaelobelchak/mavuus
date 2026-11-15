@@ -171,6 +171,11 @@ router.put('/me', (req, res) => {
       updated_at = CURRENT_TIMESTAMP
   `).run(req.user.id, bio ?? null, industry ?? null, years_experience ?? null, linkedin_url ?? null, website_url ?? null, location ?? null, timezone ?? null, profile_visibility ?? null, notification_email ?? null, notification_messages ?? null, notification_connections ?? null, notification_jobs ?? null)
 
+  // COALESCE keeps a field the update left out, so an empty value clears it here.
+  if (req.body.years_experience === '') {
+    db.prepare('UPDATE user_profiles SET years_experience = NULL WHERE user_id = ?').run(req.user.id)
+  }
+
   res.json({ success: true })
 })
 

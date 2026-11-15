@@ -28,11 +28,17 @@ describe('starting a conversation', () => {
   })
 
   it('should answer 404 for a member who does not exist, is banned or was deleted', async () => {
-    for (const userId of [99, 3, 4, 'abc']) {
+    for (const userId of [99, 3, 4]) {
       const res = await start(alice, { userId, message: 'Hello' })
       expect(res.status, String(userId)).toBe(404)
     }
     expect(db.prepare('SELECT COUNT(*) c FROM conversations').get().c).toBe(0)
+  })
+
+  it('should answer 400 for a member id that is not a number', async () => {
+    for (const userId of ['abc', 1.5, [2]]) {
+      expect((await start(alice, { userId, message: 'Hello' })).status, JSON.stringify(userId)).toBe(400)
+    }
   })
 
   it('should refuse a blank or non-text message', async () => {
@@ -83,6 +89,17 @@ describe('sending and reading messages', () => {
 
     const list = await request(app).get('/api/messages/conversations').set('Authorization', `Bearer ${alice}`)
     expect(list.body.find((c) => c.id === conversationId).last_message).toBe('four')
+  })
+
+  it('should answer 404 to a message for a member who was banned or deleted since', async () => {
+    db.prepare('INSERT INTO users (id, email, password_hash, name) VALUES (5, ?, ?, ?)').run('dan@test.com', 'x', 'Dan Later')
+    const { body } = await start(alice, { userId: 5, message: 'Hi Dan' })
+    db.prepare('UPDATE users SET is_banned = 1 WHERE id = 5').run()
+    const res = await request(app)
+      .post(`/api/messages/conversations/${body.conversationId}/messages`)
+      .set('Authorization', `Bearer ${alice}`)
+      .send({ content: 'Still there?' })
+    expect(res.status).toBe(404)
   })
 
   it('should answer 403 to marking a conversation read when you are not in it', async () => {

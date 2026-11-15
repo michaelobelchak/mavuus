@@ -40,4 +40,12 @@ describe('referrals', () => {
     expect(res.status).toBe(201)
     expect(db.prepare('SELECT COUNT(*) c FROM referral_tracking').get().c).toBe(1)
   })
+
+  it('should ignore a referral code that is not a single value, after creating the account', async () => {
+    const res = await request(app)
+      .post('/api/auth/register?ref=A&ref=B')
+      .send({ name: 'Arr Ay', email: 'array@test.com', password: 'Password9' })
+    expect(res.status).toBe(201)
+    expect(db.prepare('SELECT COUNT(*) c FROM referral_tracking').get().c).toBe(1)
+  })
 })
