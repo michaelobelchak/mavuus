@@ -24,6 +24,13 @@ describe('PUT /api/profile/me', () => {
     expect(profile).toMatchObject({ name: 'Alice Test', title: 'Head of Growth', bio: 'Hello', years_experience: 12 })
   })
 
+  it('should clear the industry when it gets an empty value', async () => {
+    expect((await update({ industry: 'SaaS' })).status).toBe(200)
+    expect((await me()).industry).toBe('SaaS')
+    expect((await update({ industry: '' })).status).toBe(200)
+    expect((await me()).industry).toBeFalsy()
+  })
+
   it('should refuse a visibility that is not public, connections or private', async () => {
     const res = await update({ profile_visibility: 'everyone' })
     expect(res.status).toBe(400)

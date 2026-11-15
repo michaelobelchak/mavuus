@@ -28,6 +28,9 @@ const linkOrNotSet = (url) =>
     NOT_SET
   )
 
+// The Industry select's empty choice; saved as '' (clears the industry).
+const NO_INDUSTRY = 'none'
+
 const PERSONAL_FIELDS = [
   { key: 'name', label: 'Full name', max: 200, required: true },
   { key: 'title', label: 'Job title', max: 200 },
@@ -124,10 +127,9 @@ function AboutSection({ profile, onSave }) {
           <div className="grid grid-cols-1 gap-ds-md md:grid-cols-2">
             <FormField label="Industry">
               <Select
-                placeholder="Pick an industry"
-                items={industries.map((value) => ({ value, label: value }))}
-                value={values.industry || null}
-                onValueChange={(value) => set('industry', value || '')}
+                items={[{ value: NO_INDUSTRY, label: 'Not set' }, ...industries.map((value) => ({ value, label: value }))]}
+                value={values.industry || NO_INDUSTRY}
+                onValueChange={(value) => set('industry', !value || value === NO_INDUSTRY ? '' : value)}
               />
             </FormField>
             <FormField label="Years of experience" error={errors.years_experience || undefined}>
@@ -187,7 +189,8 @@ function SkillsSection({ skills, onAdd, onRemove }) {
     }
   }
 
-  const add = async (raw) => {
+  // `fromField`: typed in Add a skill (clears the field when added); a suggestion leaves it alone.
+  const add = async (raw, fromField = false) => {
     const skill = raw.trim()
     if (!skill) return
     if (skill.length > 50) {
@@ -199,7 +202,7 @@ function SkillsSection({ skills, onAdd, onRemove }) {
       return
     }
     const added = await run(`add:${skill}`, () => onAdd(skill))
-    if (added) {
+    if (added && fromField) {
       setText('')
       setError('')
     }
@@ -234,7 +237,7 @@ function SkillsSection({ skills, onAdd, onRemove }) {
         noValidate
         onSubmit={(event) => {
           event.preventDefault()
-          add(text)
+          add(text, true)
         }}
         className="flex flex-col gap-ds-sm sm:flex-row sm:items-start"
       >

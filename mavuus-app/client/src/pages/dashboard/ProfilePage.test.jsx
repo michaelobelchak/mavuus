@@ -161,6 +161,28 @@ describe('ProfilePage', () => {
     expect(screen.getByRole('textbox', { name: 'Add a skill' })).toHaveAccessibleDescription(/already on your profile/)
   })
 
+  it('should keep the typed skill when a suggestion is added', async () => {
+    const user = userEvent.setup()
+    const fetchMock = renderPage('/dashboard/profile', { 'POST /api/profile/me/skills': reply(201, { success: true }) })
+    const field = await screen.findByRole('textbox', { name: 'Add a skill' })
+    await user.type(field, 'Lifecycle')
+    await user.click(screen.getByRole('button', { name: 'Add Revenue Marketing' }))
+    expect(await screen.findByRole('button', { name: 'Remove Revenue Marketing' })).toBeInTheDocument()
+    expect(lastBody(fetchMock, 'POST', '/api/profile/me/skills')).toEqual({ skill: 'Revenue Marketing' })
+    expect(field).toHaveValue('Lifecycle')
+  })
+
+  it('should clear the industry back to not set', async () => {
+    const user = userEvent.setup()
+    const fetchMock = renderPage()
+    await user.click(await screen.findByRole('button', { name: 'Edit about' }))
+    await user.click(screen.getByRole('combobox', { name: 'Industry' }))
+    await user.click(await screen.findByRole('option', { name: 'Not set' }))
+    await user.click(screen.getByRole('button', { name: 'Save changes' }))
+    await waitFor(() => expect(calls(fetchMock, 'PUT', '/api/profile/me')).toHaveLength(1))
+    expect(lastBody(fetchMock, 'PUT', '/api/profile/me')).toEqual({ industry: '' })
+  })
+
   it('should check a new role and add it', async () => {
     const user = userEvent.setup()
     const fetchMock = renderPage('/dashboard/profile?tab=experience', { 'POST /api/profile/me/experience': reply(201, { id: 10 }) })
