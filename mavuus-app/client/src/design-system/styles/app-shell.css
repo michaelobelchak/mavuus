@@ -2,7 +2,10 @@
    shell is on the page, keyboard focus and in-page anchors scroll to just below that bar instead
    of under it, and pages can size themselves with these properties:
    --shell-topbar-h  the top bar height
-   --shell-main-pad  the padding of <main id="main-content"> on each side (p-ds-md, lg:p-ds-xl) */
+   --shell-main-pad  the padding of <main id="main-content"> on each side (p-ds-md, lg:p-ds-xl)
+   --shell-fill-h    the height that fills the screen under the bar inside <main> (h-(--shell-fill-h)),
+                     minus the email verification banner when it shows (ShellLayout sets
+                     --shell-banner-h on the shell root, so this one is declared there too) */
 html:has([data-app-shell]) {
   --shell-topbar-h: 5rem;
   --shell-main-pad: var(--ds-space-md);
@@ -13,4 +16,8 @@ html:has([data-app-shell]) {
   html:has([data-app-shell]) {
     --shell-main-pad: var(--ds-space-xl);
   }
+}
+
+[data-app-shell] {
+  --shell-fill-h: calc(100dvh - var(--shell-topbar-h) - 2 * var(--shell-main-pad) - var(--shell-banner-h, 0px));
 }

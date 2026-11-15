@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -6,6 +6,7 @@ import { mockViewport } from '@/design-system/test/browserMocks'
 import ProtectedRoute from '../components/layout/ProtectedRoute'
 import AdminLayout from './AdminLayout'
 import MemberLayout from './MemberLayout'
+import { announceMessagesRead } from './messagesRead'
 
 // A small stand-in for AuthContext that re-renders its readers when the session changes, so a
 // logout that clears the user reaches the route guard like the real provider does.
@@ -207,6 +208,15 @@ describe('MemberLayout', () => {
     await waitFor(() =>
       expect(fetchMock.mock.calls.filter(([url]) => url === '/api/messages/unread-count').length).toBe(before + 1),
     )
+  })
+
+  it('should refetch the unread messages count when a page says messages were read', async () => {
+    renderApp('/dashboard/messages')
+    await screen.findByRole('link', { name: 'Messages, 4 new' })
+    const calls = () => fetchMock.mock.calls.filter(([url]) => url === '/api/messages/unread-count').length
+    const before = calls()
+    act(() => announceMessagesRead())
+    await waitFor(() => expect(calls()).toBe(before + 1))
   })
 
   it('should leave the admin panel out of the account menu for members', async () => {

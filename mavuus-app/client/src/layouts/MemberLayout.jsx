@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { ShellLayout } from './ShellLayout'
 import { ShellSearch } from './ShellSearch'
 import { sidebarFooterLink } from './sidebarFooterLink'
+import { useMessagesReadKey } from './messagesRead'
 import { usePolledCount } from './useNotifications'
 import { useSignOut } from './useSignOut'
 
@@ -13,15 +14,16 @@ const adminPanelFooter = sidebarFooterLink({ label: 'Admin panel', icon: ShieldC
 
 /**
  * The member dashboard frame (/dashboard): AppShell with MEMBER_NAV, the global search, the
- * unread messages count on the Messages item (refreshed on every navigation and every 30
- * seconds) and, for admins, an Admin panel link under the nav.
+ * unread messages count on the Messages item (refreshed on every navigation, every 30 seconds
+ * and when the Messages page marks a thread read) and, for admins, an Admin panel link under the nav.
  */
 export default function MemberLayout() {
   const { user, token } = useAuth()
   const { pathname } = useLocation()
   const { sessionExpired } = useSignOut()
+  const readKey = useMessagesReadKey()
   const [messages] = usePolledCount('/api/messages/unread-count', token, {
-    refreshKey: pathname,
+    refreshKey: `${pathname}#${readKey}`,
     onUnauthorized: sessionExpired,
   })
   return (
