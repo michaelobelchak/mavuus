@@ -5,6 +5,7 @@ import { dirname, join, extname } from 'path'
 import { randomUUID } from 'crypto'
 import { existsSync, unlinkSync } from 'fs'
 import { authenticateToken } from '../middleware/auth.js'
+import { MAX_LENGTHS, validateUrl } from '../middleware/validate.js'
 import { RESUMES_DIR, resumeInUse, resumeName, resumePath, resumeUrl, startsLikePdf } from '../db/resumes.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -60,6 +61,48 @@ const avatarUpload = multer({
   },
 })
 
+const VISIBILITIES = new Set(['public', 'connections', 'private'])
+const TEXT_LIMITS = {
+  name: MAX_LENGTHS.name,
+  title: MAX_LENGTHS.title,
+  company: MAX_LENGTHS.company,
+  bio: MAX_LENGTHS.bio,
+  industry: 100,
+  location: 200,
+  timezone: 100,
+  linkedin_url: 500,
+  website_url: 500,
+  avatar_url: 500,
+}
+const FLAGS = ['notification_email', 'notification_messages', 'notification_connections', 'notification_jobs']
+
+/** The first problem with a profile update, or null. Fields left out (undefined) are not checked. */
+function profileUpdateError(body) {
+  for (const [field, max] of Object.entries(TEXT_LIMITS)) {
+    const value = body[field]
+    if (value === undefined || value === null) continue
+    if (typeof value !== 'string') return `${field} must be text`
+    if (value.length > max) return `${field} can be ${max} characters at most`
+  }
+  for (const field of ['linkedin_url', 'website_url']) {
+    if (body[field] && !validateUrl(body[field])) return 'Links must start with http:// or https://'
+  }
+  if (body.profile_visibility !== undefined && !VISIBILITIES.has(body.profile_visibility)) {
+    return 'Visibility must be public, connections or private'
+  }
+  const years = body.years_experience
+  // An empty value clears it, as before.
+  if (years !== undefined && years !== null && years !== '') {
+    const number = typeof years === 'string' ? Number(years) : years
+    if (!Number.isInteger(number) || number < 0 || number > 70) return 'Years of experience must be a whole number from 0 to 70'
+  }
+  for (const field of FLAGS) {
+    const value = body[field]
+    if (value !== undefined && ![0, 1, true, false].includes(value)) return `${field} must be on or off`
+  }
+  return null
+}
+
 const router = Router()
 
 // All routes require auth
@@ -90,7 +133,17 @@ router.get('/me', (req, res) => {
 // PUT /api/profile/me - Update profile
 router.put('/me', (req, res) => {
   const db = req.app.locals.db
-  const { name, title, company, avatar_url, bio, industry, years_experience, linkedin_url, website_url, location, timezone, profile_visibility, notification_email, notification_messages, notification_connections, notification_jobs } = req.body
+  const invalid = profileUpdateError(req.body)
+  if (invalid) return res.status(400).json({ error: invalid })
+  const { name, title, company, avatar_url, bio, industry, linkedin_url, website_url, location, timezone, profile_visibility } = req.body
+  const years_experience = typeof req.body.years_experience === 'string' && req.body.years_experience !== ''
+    ? Number(req.body.years_experience)
+    : req.body.years_experience
+  const flag = (value) => (value === undefined || value === null ? value : value ? 1 : 0)
+  const notification_email = flag(req.body.notification_email)
+  const notification_messages = flag(req.body.notification_messages)
+  const notification_connections = flag(req.body.notification_connections)
+  const notification_jobs = flag(req.body.notification_jobs)
 
   // Update users table fields
   if (name || title !== undefined || company !== undefined || avatar_url !== undefined) {
