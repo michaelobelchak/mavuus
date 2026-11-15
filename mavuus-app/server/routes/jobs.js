@@ -2,6 +2,7 @@ import { Router } from 'express'
 import jwt from 'jsonwebtoken'
 import { authenticateToken, JWT_SECRET } from '../middleware/auth.js'
 import { validateLength, MAX_LENGTHS } from '../middleware/validate.js'
+import { ownsResume, resumeName, resumeUrl } from '../db/resumes.js'
 
 const router = Router()
 
@@ -194,8 +195,16 @@ router.post('/:id/apply', authenticateToken, (req, res) => {
   const job = db.prepare(`SELECT * FROM jobs WHERE id = ? AND ${APPROVED}`).get(req.params.id)
   if (!job) return res.status(404).json({ error: 'Job not found' })
 
+  // A resume must be the member's own file (profile resume or an earlier application's).
+  let resume = null
+  if (resume_url) {
+    const name = resumeName(resume_url)
+    if (!name || !ownsResume(db, req.user.id, name)) return res.status(400).json({ error: 'Resume not found' })
+    resume = resumeUrl(name)
+  }
+
   try {
-    db.prepare('INSERT INTO job_applications (job_id, user_id, cover_letter, resume_url) VALUES (?, ?, ?, ?)').run(req.params.id, req.user.id, cover_letter || null, resume_url || null)
+    db.prepare('INSERT INTO job_applications (job_id, user_id, cover_letter, resume_url) VALUES (?, ?, ?, ?)').run(req.params.id, req.user.id, cover_letter || null, resume)
 
     // Notify job poster
     if (job.posted_by) {

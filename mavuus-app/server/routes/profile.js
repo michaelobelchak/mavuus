@@ -2,19 +2,18 @@ import { Router } from 'express'
 import multer from 'multer'
 import { fileURLToPath } from 'url'
 import { dirname, join, extname } from 'path'
-import { unlinkSync, existsSync } from 'fs'
+import { randomUUID } from 'crypto'
+import { closeSync, existsSync, openSync, readSync, unlinkSync } from 'fs'
 import { authenticateToken } from '../middleware/auth.js'
+import { RESUMES_DIR, resumeInUse, resumeName, resumePath, resumeUrl } from '../db/resumes.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const uploadsDir = join(__dirname, '..', 'uploads', 'resumes')
 const avatarsDir = join(__dirname, '..', 'uploads', 'avatars')
 
+// Always a random .pdf name: the original name and extension are never trusted.
 const resumeStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const ext = extname(file.originalname)
-    cb(null, `resume-${req.user.id}-${Date.now()}${ext}`)
-  },
+  destination: (req, file, cb) => cb(null, RESUMES_DIR),
+  filename: (req, file, cb) => cb(null, `${randomUUID()}.pdf`),
 })
 
 const resumeUpload = multer({
@@ -28,6 +27,28 @@ const resumeUpload = multer({
     }
   },
 })
+
+// The browser's mimetype is only a claim; a PDF starts with "%PDF-".
+function startsLikePdf(path) {
+  const fd = openSync(path, 'r')
+  try {
+    const head = Buffer.alloc(5)
+    readSync(fd, head, 0, 5, 0)
+    return head.toString('latin1') === '%PDF-'
+  } finally {
+    closeSync(fd)
+  }
+}
+
+// Deletes the member's old resume file unless an application still points at it.
+function removeOldResume(db, url) {
+  const name = resumeName(url)
+  if (!name || resumeInUse(db, name)) return
+  const path = resumePath(name)
+  if (existsSync(path)) {
+    try { unlinkSync(path) } catch { /* ignore */ }
+  }
+}
 
 const avatarStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, avatarsDir),
@@ -173,23 +194,23 @@ router.delete('/me/experience/:id', (req, res) => {
 router.post('/me/resume', (req, res) => {
   resumeUpload.single('resume')(req, res, (err) => {
     if (err) {
-      return res.status(400).json({ error: err.message || 'Upload failed' })
+      const error = err.code === 'LIMIT_FILE_SIZE' ? 'Resume must be 5 MB or less' : err.message || 'Upload failed'
+      return res.status(400).json({ error })
     }
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
     }
+    if (!startsLikePdf(req.file.path)) {
+      try { unlinkSync(req.file.path) } catch { /* ignore */ }
+      return res.status(400).json({ error: 'Only PDF files are allowed' })
+    }
 
     const db = req.app.locals.db
-    const resumeUrl = `/uploads/resumes/${req.file.filename}`
+    const newUrl = resumeUrl(req.file.filename)
 
-    // Remove old resume file if exists
+    // The old file goes unless an application still uses it.
     const existing = db.prepare('SELECT resume_url FROM user_profiles WHERE user_id = ?').get(req.user.id)
-    if (existing?.resume_url) {
-      const oldPath = join(__dirname, '..', existing.resume_url)
-      if (existsSync(oldPath)) {
-        try { unlinkSync(oldPath) } catch { /* ignore */ }
-      }
-    }
+    if (existing?.resume_url) removeOldResume(db, existing.resume_url)
 
     db.prepare(`
       INSERT INTO user_profiles (user_id, resume_filename, resume_url, updated_at)
@@ -198,9 +219,9 @@ router.post('/me/resume', (req, res) => {
         resume_filename = excluded.resume_filename,
         resume_url = excluded.resume_url,
         updated_at = CURRENT_TIMESTAMP
-    `).run(req.user.id, req.file.originalname, resumeUrl)
+    `).run(req.user.id, req.file.originalname, newUrl)
 
-    res.json({ success: true, filename: req.file.originalname, url: resumeUrl })
+    res.json({ success: true, filename: req.file.originalname, url: newUrl })
   })
 })
 
@@ -236,12 +257,7 @@ router.delete('/me/resume', (req, res) => {
   const db = req.app.locals.db
   const existing = db.prepare('SELECT resume_url FROM user_profiles WHERE user_id = ?').get(req.user.id)
 
-  if (existing?.resume_url) {
-    const filePath = join(__dirname, '..', existing.resume_url)
-    if (existsSync(filePath)) {
-      try { unlinkSync(filePath) } catch { /* ignore */ }
-    }
-  }
+  if (existing?.resume_url) removeOldResume(db, existing.resume_url)
 
   db.prepare('UPDATE user_profiles SET resume_filename = NULL, resume_url = NULL, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?')
     .run(req.user.id)

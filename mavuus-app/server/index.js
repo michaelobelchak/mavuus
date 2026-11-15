@@ -36,6 +36,7 @@ import commentsRoutes from './routes/comments.js'
 import referralsRoutes from './routes/referrals.js'
 import speakersRoutes from './routes/speakers.js'
 import uploadRoutes from './routes/upload.js'
+import filesRoutes, { uploadsStatic } from './routes/files.js'
 import adminRoutes from './routes/admin.js'
 import publicContentRoutes from './routes/public-content.js'
 import { sanitizeBody } from './middleware/sanitize.js'
@@ -89,7 +90,8 @@ app.use(express.json({ limit: '1mb' }))
 app.use(sanitizeBody)
 
 // Static uploads
-app.use('/uploads', express.static(join(__dirname, 'uploads')))
+// Resumes are private: /uploads/resumes is not served; GET /api/files/resumes/:name checks access.
+app.use('/uploads', uploadsStatic(join(__dirname, 'uploads')))
 
 // Passport Google OAuth setup
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
@@ -158,6 +160,7 @@ app.use('/api/comments', commentsRoutes)
 app.use('/api/referrals', referralsRoutes)
 app.use('/api/speakers', speakersRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api/files', filesRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api', publicContentRoutes)
 
