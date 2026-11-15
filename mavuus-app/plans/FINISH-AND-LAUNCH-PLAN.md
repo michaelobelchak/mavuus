@@ -95,6 +95,7 @@ Fixed in the batch: Message buttons for members you hadn't written to (a new con
 
 - **Who can message whom:** any member can start a conversation with any active member, including private and connections-only profiles. Decide with the founders whether messaging needs a connection (or respects visibility), then enforce it in `POST /api/messages/conversations`.
 - **Avatar URL:** `PUT /api/profile/me` still accepts any `avatar_url` string up to 500 characters. Only the upload route should set it; drop the field from the update or limit it to `/uploads/avatars/` and the seeded `/images/avatars/` paths.
+- **Password 401 vs expired session:** `PUT /api/auth/change-password` answers 401 for a wrong current password, the same status an expired session gets, so a client that signs out on any 401 would sign the member out for a typo. The profile page shows it on the Current password field; consider 400 (or 403) for the wrong password when session handling moves to one place (Stage 4, 9d).
 - **Unread at second precision:** unread counts compare `created_at` with `last_read_at` (both `CURRENT_TIMESTAMP`, whole seconds), so a message that lands in the same second as a read counts as read. Store milliseconds or track the last read message id.
 
 ## Stage 4: Launch readiness (everything except the host)
