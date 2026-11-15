@@ -140,6 +140,10 @@ export default function JobDetailPage() {
   const [vendors, setVendors] = useState([])
   const [vendorId, setVendorId] = useState(null)
   const [recommendMessage, setRecommendMessage] = useState('')
+  const [vendorsLoading, setVendorsLoading] = useState(false)
+  const vendorsRequest = useRef(null)
+  const [applicantsError, setApplicantsError] = useState(false)
+  const [applicantsAttempt, setApplicantsAttempt] = useState(0)
 
   const isMyJob = Boolean(loaded && user) && Number(loaded.posted_by) === Number(user.id)
   const hiredUserId = job?.hired_user_id
@@ -168,16 +172,14 @@ export default function JobDetailPage() {
       fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
         .then((res) => (res.ok ? res.json() : null))
         .catch(() => null)
-    get('/api/jobs/my-applications').then((apps) => {
-      const mine = listOf(apps).find((app) => Number(app.job_id) === jobId)
-      if (!controller.signal.aborted && mine) setApplied(mine)
-    })
-    get('/api/profile/me').then((profile) => {
-      if (!controller.signal.aborted && profile?.resume_url) setProfileResume(profile.resume_url)
-    })
-    if (isMyJob) {
-      get(`/api/jobs/${jobId}/applicants`).then((rows) => {
-        if (!controller.signal.aborted) setApplicants(listOf(rows))
+    // The poster can't apply to their own job, so there is no application to look for.
+    if (!isMyJob) {
+      get('/api/jobs/my-applications').then((apps) => {
+        const mine = listOf(apps).find((app) => Number(app.job_id) === jobId)
+        if (!controller.signal.aborted && mine) setApplied(mine)
+      })
+      get('/api/profile/me').then((profile) => {
+        if (!controller.signal.aborted && profile?.resume_url) setProfileResume(profile.resume_url)
       })
     }
     if (loaded.status === 'completed' && loaded.hired_user_id) loadReviews(controller.signal)
@@ -185,6 +187,28 @@ export default function JobDetailPage() {
     // loadReviews reads the same loaded job; it only needs to run once per job.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded, isMyJob, jobId, token])
+
+  // The applicants, for the poster, with their own error and Try again.
+  useEffect(() => {
+    if (!loaded || !isMyJob) return
+    const controller = new AbortController()
+    fetch(`/api/jobs/${jobId}/applicants`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const rows = listOf(await res.json())
+        if (!controller.signal.aborted) {
+          setApplicants(rows)
+          setApplicantsError(false)
+        }
+      })
+      .catch((err) => {
+        if (!controller.signal.aborted && err?.name !== 'AbortError') setApplicantsError(true)
+      })
+    return () => controller.abort()
+  }, [loaded, isMyJob, jobId, token, applicantsAttempt])
+
+  // Leaving the page drops a vendors request still running.
+  useEffect(() => () => vendorsRequest.current?.abort(), [])
 
   if (loading) return <DetailSkeleton label="Loading job" />
   if (error) return <DetailError title="We couldn't load this job" onRetry={retry} {...BACK} />
@@ -290,11 +314,8 @@ export default function JobDetailPage() {
       }
     })
 
-  const handleSubmitReview = () => {
-    if (!reviewRating) {
-      toast.error('Please select a rating')
-      return
-    }
+  // Submit stays disabled until a rating is picked.
+  const handleSubmitReview = () =>
     run('review', async () => {
       try {
         const res = await fetch('/api/reviews', {
@@ -320,16 +341,25 @@ export default function JobDetailPage() {
         toast.error('Network error')
       }
     })
-  }
 
   const openRecommend = async () => {
     setRecommendOpen(true)
+    vendorsRequest.current?.abort()
+    const controller = new AbortController()
+    vendorsRequest.current = controller
+    setVendorsLoading(true)
     try {
-      const res = await fetch('/api/vendors?limit=100', { headers: auth })
-      if (res.ok) setVendors(listOf(await res.json()))
+      const res = await fetch('/api/vendors?limit=100', { headers: auth, signal: controller.signal })
+      if (res.ok && !controller.signal.aborted) setVendors(listOf(await res.json()))
     } catch {
-      // The select stays empty; the dialog says there are no vendors to pick.
+      // Aborted or offline: the select stays as it was.
+    } finally {
+      if (vendorsRequest.current === controller) setVendorsLoading(false)
     }
+  }
+  const changeRecommendOpen = (open) => {
+    setRecommendOpen(open)
+    if (!open) vendorsRequest.current?.abort()
   }
 
   const handleRecommend = () =>
@@ -456,8 +486,26 @@ export default function JobDetailPage() {
             </DetailSection>
 
             {isMyJob && (
-              <DetailSection title={`Applicants (${applicants.length})`}>
-                {applicants.length === 0 ? (
+              <DetailSection title={applicantsError ? 'Applicants' : `Applicants (${applicants.length})`}>
+                {applicantsError ? (
+                  <Alert
+                    tone="error"
+                    title="We couldn't load the applicants"
+                    description="Check your connection and try again."
+                    actions={
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setApplicantsError(false)
+                          setApplicantsAttempt((n) => n + 1)
+                        }}
+                      >
+                        Try again
+                      </Button>
+                    }
+                  />
+                ) : applicants.length === 0 ? (
                   <Text size="body-sm" tone="secondary">
                     No applicants yet.
                   </Text>
@@ -688,7 +736,7 @@ export default function JobDetailPage() {
 
       <Dialog
         open={recommendOpen}
-        onOpenChange={setRecommendOpen}
+        onOpenChange={changeRecommendOpen}
         title="Recommend a Vendor"
         description={`Recommend a vendor for this job to ${job.poster_name || 'the poster'}.`}
         footer={
@@ -703,8 +751,9 @@ export default function JobDetailPage() {
         }
       >
         <div className="flex flex-col gap-ds-md">
-          <FormField label="Vendor">
+          <FormField label="Vendor" hint={vendorsLoading ? 'Loading vendors...' : undefined}>
             <Select
+              disabled={vendorsLoading}
               placeholder="Choose a vendor..."
               items={vendors.map((vendor) => ({
                 value: vendor.id,

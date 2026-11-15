@@ -302,4 +302,38 @@ describe('JobDetailPage', () => {
     await user.click(screen.getByRole('button', { name: 'Share' }))
     expect(await screen.findByRole('dialog', { name: 'Share Freelance Brand Designer' })).toBeInTheDocument()
   })
+
+  it('should show an error with Try again when the applicants fail to load, and skip my applications for the poster', async () => {
+    const user = userEvent.setup()
+    let fail = true
+    const fetchMock = renderPage(8, { 'GET /api/jobs/8/applicants': () => (fail ? reply(500, {}) : applicants) })
+    expect(await screen.findByText("We couldn't load the applicants")).toBeInTheDocument()
+    fail = false
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(await screen.findByRole('heading', { name: 'Applicants (2)' })).toBeInTheDocument()
+    expect(fetchMock.mock.calls.some(([url]) => url === '/api/jobs/my-applications')).toBe(false)
+  })
+
+  it('should show the vendors loading and keep Send disabled until one is picked', async () => {
+    const user = userEvent.setup()
+    let answer
+    const fetchMock = renderPage(3)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url, init) =>
+        url.startsWith('/api/vendors')
+          ? new Promise((resolve) => {
+              answer = () => resolve(fetchMock(url, init))
+            })
+          : fetchMock(url, init),
+      ),
+    )
+    fetchMock.mockClear()
+    await user.click(await screen.findByRole('button', { name: 'Recommend a Vendor' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Recommend a Vendor' })
+    expect(within(dialog).getByRole('combobox', { name: 'Vendor' })).toBeDisabled()
+    expect(within(dialog).getByText('Loading vendors...')).toBeInTheDocument()
+    answer()
+    await waitFor(() => expect(within(dialog).getByRole('combobox', { name: 'Vendor' })).toBeEnabled())
+  })
 })
