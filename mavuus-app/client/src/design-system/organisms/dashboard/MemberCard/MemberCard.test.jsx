@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { MemberCard, MemberCardSkeleton } from './MemberCard'
 
 const member = { name: 'Priya Nair', title: 'VP Marketing', company: 'Contoso', tier: 'Pro' }
@@ -21,6 +21,23 @@ describe('MemberCard', () => {
     expect(screen.getByText('VP Marketing')).toBeInTheDocument()
     expect(screen.getByText('Contoso')).toBeInTheDocument()
     expect(screen.getByText('Pro member')).toBeInTheDocument()
+  })
+
+  it('should pass linkState to the router link', async () => {
+    const user = userEvent.setup()
+    function State() {
+      return <output data-testid="state">{JSON.stringify(useLocation().state)}</output>
+    }
+    render(
+      <MemoryRouter>
+        <Routes>
+          <Route path="/" element={<MemberCard {...member} to="/members/7" linkState={{ fromList: true }} />} />
+          <Route path="/members/7" element={<State />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    await user.click(screen.getByRole('link', { name: 'Priya Nair' }))
+    expect(screen.getByTestId('state')).toHaveTextContent('{"fromList":true}')
   })
 
   it('should show initials when there is no avatar', () => {
