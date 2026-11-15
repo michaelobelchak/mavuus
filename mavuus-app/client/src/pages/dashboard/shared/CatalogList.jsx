@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SearchX } from 'lucide-react'
-import { Alert, EmptyState, Pagination, SearchInput } from '@/design-system/patterns'
+import { Alert, EmptyState, FilterBar, Pagination, SearchInput } from '@/design-system/patterns'
 import { Button, Chip, Text } from '@/design-system/primitives'
 
 const NO_PARAMS = {}
@@ -14,27 +14,37 @@ const optionOf = (option) => (typeof option === 'string' ? { value: option, labe
 const forFilter = (copy, value) => (typeof copy === 'function' ? copy(value) : copy)
 
 /**
- * Loads one page of a catalog list (`/api/sessions?type=live`, `/api/resources`) with search, a
- * filter and paging, all kept in the page URL (`?q=`, `?<filterParam>=`, `?page=`) so back,
- * forward and shared links restore them. The filter goes to the API as `filterParam` (left out
- * for "All"), or as the params `filterQuery(value)` returns when the API names it differently.
- * Changing the search or the filter goes back to page 1; typing replaces the history entry
- * instead of adding one. Without `paged`, no page or limit goes to the API. Accepts `{ data, totalPages }` or a plain
- * array; anything else is an empty list. A new query aborts the request before it.
+ * Loads one page of a catalog list (`/api/sessions?type=live`, `/api/resources`) with search,
+ * filters and paging, all kept in the page URL (`?q=`, `?<param>=` per filter, `?page=`) so back,
+ * forward and shared links restore them. Each filter (`{ param, values, query }`) goes to the API
+ * as `param` (left out for "All"), or as the params `query(value)` returns when the API names it
+ * differently. Changing the search or a filter goes back to page 1; typing replaces the history
+ * entry instead of adding one. Without `paged`, no page or limit goes to the API. Accepts
+ * `{ data, total, totalPages }` or a plain array; anything else is an empty list. A new query
+ * aborts the request before it.
  */
-function useCatalog(endpoint, baseParams, filterParam, { paged, filterQuery, filterValues }) {
+function useCatalog(endpoint, baseParams, filters, { paged }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const search = searchParams.get('q') || ''
-  // A value the chips don't offer (an old or edited link) counts as All.
-  const requested = searchParams.get(filterParam) || 'All'
-  const category = filterValues.includes(requested) ? requested : 'All'
+  // A value a filter doesn't offer (an old or edited link) counts as All.
+  const values = filters.map(({ param, values: offered }) => {
+    const requested = searchParams.get(param) || 'All'
+    return offered.includes(requested) ? requested : 'All'
+  })
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
-  const [result, setResult] = useState({ key: null, items: [], totalPages: 1, error: false })
+  const [result, setResult] = useState({ key: null, items: [], total: 0, totalPages: 1, error: false })
   const [attempt, setAttempt] = useState(0)
   const params = JSON.stringify(baseParams)
-  // The filter as API params, as a string so a new filterQuery function doesn't refetch.
+  // The filters as API params, as a string so a new query function doesn't refetch.
   const apiFilter = JSON.stringify(
-    category === 'All' ? {} : typeof filterQuery === 'function' ? filterQuery(category) : { [filterParam]: category },
+    Object.assign(
+      {},
+      ...filters.map(({ param, query }, i) => {
+        const value = values[i]
+        if (value === 'All') return {}
+        return typeof query === 'function' ? query(value) : { [param]: value }
+      }),
+    ),
   )
   const apiPage = paged ? page : 1
   const queryKey = JSON.stringify([endpoint, params, apiFilter, search, apiPage, paged, attempt])
@@ -57,12 +67,13 @@ function useCatalog(endpoint, baseParams, filterParam, { paged, filterQuery, fil
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const json = await res.json()
         const list = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : []
-        if (!controller.signal.aborted) setResult({ key: queryKey, items: list, totalPages: json?.totalPages || 1, error: false })
+        const total = Number.isFinite(json?.total) ? json.total : list.length
+        if (!controller.signal.aborted) setResult({ key: queryKey, items: list, total, totalPages: json?.totalPages || 1, error: false })
       })
       .catch((err) => {
         if (controller.signal.aborted || err?.name === 'AbortError') return
         console.error(`Failed to load ${endpoint}`, err)
-        setResult({ key: queryKey, items: [], totalPages: 1, error: true })
+        setResult({ key: queryKey, items: [], total: 0, totalPages: 1, error: true })
       })
     return () => controller.abort()
   }, [endpoint, params, apiFilter, search, apiPage, paged, queryKey])
@@ -93,24 +104,36 @@ function useCatalog(endpoint, baseParams, filterParam, { paged, filterQuery, fil
     [setSearchParams],
   )
   const changeSearch = useCallback((value) => update({ q: value.trim(), page: null }, { replace: true }), [update])
-  const changeCategory = useCallback((value) => update({ [filterParam]: value === 'All' ? null : value, page: null }), [update, filterParam])
+  const changeFilter = useCallback(
+    (param, value) => update({ [param]: !value || value === 'All' ? null : value, page: null }),
+    [update],
+  )
+  const paramList = filters.map((filter) => filter.param).join(' ')
+  const clearFilters = useCallback(
+    () => update({ ...Object.fromEntries(paramList.split(' ').map((param) => [param, null])), page: null }),
+    [update, paramList],
+  )
   const setPage = useCallback((next) => update({ page: next > 1 ? String(next) : null }), [update])
   const retry = () => setAttempt((n) => n + 1)
 
-  return { ...result, loading, retry, page, setPage, search, category, changeCategory, changeSearch }
+  return { ...result, loading, retry, page, setPage, search, values, changeFilter, clearFilters, changeSearch }
 }
 
 /**
  * The shared body of the dashboard lists (Live Sessions, On-Demand, Resources, Speakers, Members,
- * Vendors): an intro line, a search field and filter chips, then a grid of cards with skeletons,
- * an empty state, an error with Try again and pagination.
+ * Vendors, Jobs): an intro line, a search field and filter chips (or selects), then a grid of
+ * cards with skeletons, an empty state, an error with Try again and pagination.
  * - `endpoint`, `params` (fixed query params, like { type: 'live' }), `filterParam` (the query
  *   param the filter goes in, in the page URL and the API, default `category`).
  * - `categories`: the filter chips, strings or { value, label }; "All" is the no-filter default.
  *   None (or one) hides the chips. `filterLabel` names the chip group (default "Category").
  * - `filterQuery(value)`: the API params for a filter value when they differ from
  *   `filterParam=value` (Members: `connections` becomes `connections=1`). Not called for "All".
+ * - `filters`: several filters instead of the one above, shown as selects with Clear filters:
+ *   [{ param, label, allLabel ("Any type"), options (strings or { value, label }), query }].
+ *   Each lives in the URL and the API under its `param`; `query(value)` works like filterQuery.
  * - `paged` (default true): send page and limit and show Pagination. False for unpaged APIs.
+ * - `resultLabel(total)`: a line above the list with the API's `total` (or the list length).
  * - `intro`, `searchLabel`, `searchPlaceholder`, `listLabel`, `errorTitle`; `emptyTitle` and
  *   `emptyDescription` may be functions of the filter value.
  * - `children`: shown between the intro and the search (a pending requests list).
@@ -131,6 +154,8 @@ export function CatalogList({
   errorTitle,
   filterLabel = 'Category',
   filterQuery,
+  filters,
+  resultLabel,
   paged = true,
   gridClassName = GRID,
   children,
@@ -138,12 +163,18 @@ export function CatalogList({
   skeleton: Skeleton,
 }) {
   const options = (categories || []).map(optionOf)
-  const { items, loading, error, retry, page, setPage, totalPages, search, category, changeCategory, changeSearch } = useCatalog(
-    endpoint,
-    params,
-    filterParam,
-    { paged, filterQuery, filterValues: options.map((option) => option.value) },
-  )
+  // One shape for both modes: the single chip filter, or the `filters` selects.
+  const groups = filters
+    ? filters.map((filter) => ({ ...filter, options: filter.options.map(optionOf) }))
+    : [{ param: filterParam, label: filterLabel, options, query: filterQuery }]
+  const { items, loading, error, retry, page, setPage, total, totalPages, search, values, changeFilter, clearFilters, changeSearch } =
+    useCatalog(
+      endpoint,
+      params,
+      groups.map(({ param, options: offered, query }) => ({ param, query, values: offered.map((option) => option.value) })),
+      { paged },
+    )
+  const category = values[0]
   // The field follows the URL (back, forward, a shared link) and the member's typing.
   const [text, setText] = useState(search)
   const [shownSearch, setShownSearch] = useState(search)
@@ -170,6 +201,16 @@ export function CatalogList({
     setPage(next)
     topRef.current?.scrollIntoView?.({ block: 'start' })
   }
+
+  const searchField = (
+    <SearchInput
+      label={searchLabel}
+      placeholder={searchPlaceholder}
+      value={text}
+      onChange={(event) => setText(event.target.value)}
+      onSearch={sendSearch}
+    />
+  )
 
   let body
   if (loading) {
@@ -207,6 +248,11 @@ export function CatalogList({
   } else {
     body = (
       <>
+        {resultLabel && (
+          <Text size="body-sm" tone="secondary">
+            {resultLabel(total)}
+          </Text>
+        )}
         <ul aria-label={listLabel} className={gridClassName}>
           {items.map((item) => (
             <li key={item.id}>{renderItem(item)}</li>
@@ -221,26 +267,34 @@ export function CatalogList({
     <div ref={topRef} className="flex flex-col gap-ds-lg">
       <Text tone="secondary">{intro}</Text>
       {children}
-      <div className="flex flex-col gap-ds-md lg:flex-row lg:items-center">
-        <div className="w-full lg:max-w-sm lg:shrink-0">
-          <SearchInput
-            label={searchLabel}
-            placeholder={searchPlaceholder}
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            onSearch={sendSearch}
-          />
+      {filters ? (
+        <FilterBar
+          search={searchField}
+          filters={groups.map((group, i) => ({
+            type: 'select',
+            key: group.param,
+            label: group.label,
+            items: [{ value: 'All', label: group.allLabel ?? 'All' }, ...group.options],
+            value: values[i],
+            emptyValue: 'All',
+            onChange: (value) => changeFilter(group.param, value),
+          }))}
+          onClear={clearFilters}
+        />
+      ) : (
+        <div className="flex flex-col gap-ds-md lg:flex-row lg:items-center">
+          <div className="w-full lg:max-w-sm lg:shrink-0">{searchField}</div>
+          {options.length > 1 && (
+            <div role="group" aria-label={filterLabel} className="flex flex-wrap gap-ds-xs">
+              {options.map(({ value, label }) => (
+                <Chip key={value} selected={category === value} onClick={() => changeFilter(filterParam, value)}>
+                  {label}
+                </Chip>
+              ))}
+            </div>
+          )}
         </div>
-        {options.length > 1 && (
-          <div role="group" aria-label={filterLabel} className="flex flex-wrap gap-ds-xs">
-            {options.map(({ value, label }) => (
-              <Chip key={value} selected={category === value} onClick={() => changeCategory(value)}>
-                {label}
-              </Chip>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
       {body}
     </div>
   )

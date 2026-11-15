@@ -168,4 +168,68 @@ describe('CatalogList', () => {
     expect(box).toHaveValue('')
     expect(screen.getByTestId('where')).toHaveTextContent(/^$/)
   })
+
+  describe('with several filters', () => {
+    const filters = [
+      {
+        param: 'type',
+        label: 'Job type',
+        allLabel: 'Any type',
+        options: [{ value: 'full-time', label: 'Full-time' }, { value: 'contract', label: 'Contract' }],
+      },
+      { param: 'level', label: 'Level', allLabel: 'Any level', options: ['Junior', 'Senior'] },
+    ]
+
+    it('should read every filter from the URL, send each to the API and name the selects', async () => {
+      const fetchMock = renderList({ filters }, { url: '/things?type=contract&level=Senior' })
+      await screen.findByText('Alpha')
+      expect(lastQuery(fetchMock).get('type')).toBe('contract')
+      expect(lastQuery(fetchMock).get('level')).toBe('Senior')
+      expect(screen.getByRole('combobox', { name: 'Job type' })).toHaveTextContent('Contract')
+      expect(screen.getByRole('combobox', { name: 'Level' })).toHaveTextContent('Senior')
+      // The single-filter chips are not shown.
+      expect(screen.queryByRole('group', { name: 'Category' })).not.toBeInTheDocument()
+    })
+
+    it('should treat a value a filter does not offer as Any', async () => {
+      const fetchMock = renderList({ filters }, { url: '/things?type=bogus' })
+      await screen.findByText('Alpha')
+      expect(lastQuery(fetchMock).has('type')).toBe(false)
+      expect(screen.getByRole('combobox', { name: 'Job type' })).toHaveTextContent('Any type')
+    })
+
+    it('should put a picked option in the URL, keep the others and go back to page 1', async () => {
+      const user = userEvent.setup()
+      const fetchMock = renderList({ filters }, { url: '/things?level=Junior&page=2' })
+      await screen.findByText('Alpha')
+      await user.click(screen.getByRole('combobox', { name: 'Job type' }))
+      await user.click(await screen.findByRole('option', { name: 'Full-time' }))
+      await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('?level=Junior&type=full-time'))
+      await waitFor(() => expect(lastQuery(fetchMock).get('type')).toBe('full-time'))
+      expect(lastQuery(fetchMock).get('level')).toBe('Junior')
+      expect(lastQuery(fetchMock).get('page')).toBe('1')
+    })
+
+    it('should clear every filter and keep the search', async () => {
+      const user = userEvent.setup()
+      renderList({ filters }, { url: '/things?q=ab&type=contract&level=Senior' })
+      await screen.findByText('Alpha')
+      await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+      await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent(/^\?q=ab$/))
+      expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument()
+    })
+  })
+
+  it('should say how many results the API found with resultLabel', async () => {
+    renderList(
+      { resultLabel: (total) => `${total} things found` },
+      { routes: { 'GET /api/things': { data: things, total: 12, totalPages: 1 } } },
+    )
+    expect(await screen.findByText('12 things found')).toBeInTheDocument()
+  })
+
+  it('should count the loaded list when the API sends no total', async () => {
+    renderList({ resultLabel: (total) => `${total} things found` })
+    expect(await screen.findByText('2 things found')).toBeInTheDocument()
+  })
 })
