@@ -19,6 +19,8 @@ import { healRemoteAvatars } from './healAvatars.js'
 import { ensureVendorOwners } from './vendorOwners.js'
 import { ensureVendorReviewIndex, seedVendorReviews } from './vendorReviews.js'
 import { ensureJobApplicationStatuses } from './jobApplications.js'
+import { migrateResumeFiles, resumeName, resumePath, resumeUrl, samplePdf } from './resumes.js'
+import { existsSync, writeFileSync } from 'fs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // DB_PATH is relative to the server folder (e2e uses db/e2e.db); the default is db/mavuus.db.
@@ -98,9 +100,30 @@ db.prepare(`
   'New York, NY',
   'America/New_York',
   'demo-user-resume.pdf',
-  '/uploads/resumes/demo-user-resume.pdf'
+  null
 )
 console.log('  ✓ Profile upserted')
+
+// A real sample resume, so the demo profile's resume link opens. Resumes live in
+// private/resumes (see resumes.js); a fixed name keeps reruns and e2e resets to one file.
+const resumeFiles = migrateResumeFiles(db)
+if (resumeFiles.moved || resumeFiles.renamed || resumeFiles.removed) {
+  console.log(`  ✓ Resume files: ${resumeFiles.moved} moved, ${resumeFiles.renamed} renamed, ${resumeFiles.removed} removed`)
+}
+const DEMO_RESUME = '00000000-0000-4000-8000-000000000007.pdf'
+const demoResume = db.prepare('SELECT resume_url FROM user_profiles WHERE user_id = ?').get(demoId)?.resume_url
+const demoResumeName = resumeName(demoResume)
+if (!demoResumeName || !existsSync(resumePath(demoResumeName))) {
+  if (!existsSync(resumePath(DEMO_RESUME))) {
+    writeFileSync(
+      resumePath(DEMO_RESUME),
+      samplePdf(['Demo User', 'Marketing Director', 'New York, NY', 'Sample resume for the Mavuus demo account.']),
+    )
+  }
+  db.prepare("UPDATE user_profiles SET resume_url = ?, resume_filename = 'demo-user-resume.pdf' WHERE user_id = ?")
+    .run(resumeUrl(DEMO_RESUME), demoId)
+  console.log('  ✓ Sample resume set on the demo profile')
+}
 
 // ─── 3. Skills ───────────────────────────────────────────────
 const demoSkills = [
