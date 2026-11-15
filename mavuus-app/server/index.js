@@ -15,6 +15,7 @@ import { mkdirSync, readFileSync } from 'fs'
 import { JWT_SECRET } from './middleware/auth.js'
 import { dbPath, rateLimitMax } from './config.js'
 import { ensureVendorReviewIndex } from './db/vendorReviews.js'
+import { ensureJobApplicationStatuses } from './db/jobApplications.js'
 import authRoutes from './routes/auth.js'
 import sessionsRoutes from './routes/sessions.js'
 import resourcesRoutes from './routes/resources.js'
@@ -58,6 +59,8 @@ db.exec(schemaSQL)
 // One review per member per vendor; an older database's repeat reviews go first (latest kept).
 const repeatReviews = ensureVendorReviewIndex(db)
 if (repeatReviews > 0) console.warn(`Removed ${repeatReviews} repeat vendor review(s) before creating idx_reviews_vendor_once`)
+// Older databases refuse the 'hired' application status; rebuild that table once.
+if (ensureJobApplicationStatuses(db)) console.warn('Rebuilt job_applications so applications can be marked hired')
 
 // Make db available to routes
 app.locals.db = db

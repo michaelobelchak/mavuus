@@ -210,7 +210,7 @@ CREATE TABLE IF NOT EXISTS job_applications (
   cover_letter TEXT,
   resume_filename TEXT,
   resume_url TEXT,
-  status TEXT DEFAULT 'applied' CHECK(status IN ('applied', 'reviewing', 'interview', 'offer', 'rejected', 'withdrawn')),
+  status TEXT DEFAULT 'applied' CHECK(status IN ('applied', 'reviewing', 'interview', 'offer', 'rejected', 'withdrawn', 'hired')),
   applied_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(job_id, user_id)

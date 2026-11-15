@@ -18,6 +18,7 @@ import { readFileSync } from 'fs'
 import { healRemoteAvatars } from './healAvatars.js'
 import { ensureVendorOwners } from './vendorOwners.js'
 import { ensureVendorReviewIndex, seedVendorReviews } from './vendorReviews.js'
+import { ensureJobApplicationStatuses } from './jobApplications.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // DB_PATH is relative to the server folder (e2e uses db/e2e.db); the default is db/mavuus.db.
@@ -29,6 +30,8 @@ db.exec(schema)
 // One review per member per vendor; an older database's repeat reviews go first (latest kept).
 const repeatReviews = ensureVendorReviewIndex(db)
 if (repeatReviews > 0) console.log(`  Removed ${repeatReviews} repeat vendor review(s)`)
+// Older databases refuse the 'hired' application status (and dropped the seeded hires).
+if (ensureJobApplicationStatuses(db)) console.log('  Rebuilt job_applications to allow hired')
 
 // Older databases still hold remote avatar URLs; point them at the local files.
 const healed = healRemoteAvatars(db)
@@ -174,6 +177,30 @@ if (vendorsLinked > 0) console.log(`  ✓ Linked ${vendorsLinked} vendor(s) to o
 // Real review rows for every vendor, written to the owners, and ratings recalculated from them.
 const vendorReviewsAdded = seedVendorReviews(db)
 console.log(`  ✓ Vendor reviews ensured (${vendorReviewsAdded} added), ratings recalculated`)
+
+// Job applications: every hired member has a hired application (older databases refused the
+// status and dropped them), and the demo account's open postings have applicants to hire.
+const hiresAdded = db.prepare(`
+  INSERT OR IGNORE INTO job_applications (job_id, user_id, status, applied_at)
+  SELECT id, hired_user_id, 'hired', created_at FROM jobs WHERE hired_user_id IS NOT NULL
+`).run().changes
+const insertApplicant = db.prepare(
+  'INSERT OR IGNORE INTO job_applications (job_id, user_id, cover_letter, status, applied_at) VALUES (?, ?, ?, ?, ?)'
+)
+const demoApplicants = [
+  ['marcus@growthbase.com', 'I have run SEO programs for two B2B SaaS teams and can start next week.', 'reviewing', '2026-03-09T10:00:00Z'],
+  ['lisa@notion.com', 'Our content clusters doubled organic signups. Happy to share the playbook.', 'applied', '2026-03-10T15:30:00Z'],
+]
+let applicantsAdded = 0
+for (const job of db.prepare("SELECT id FROM jobs WHERE posted_by = ? AND status = 'open'").all(demoId)) {
+  const taken = db.prepare('SELECT COUNT(*) c FROM job_applications WHERE job_id = ?').get(job.id).c
+  if (taken > 0) continue
+  for (const [email, letter, status, appliedAt] of demoApplicants) {
+    const member = db.prepare('SELECT id FROM users WHERE email = ?').get(email)
+    if (member) applicantsAdded += insertApplicant.run(job.id, member.id, letter, status, appliedAt).changes
+  }
+}
+console.log(`  ✓ Job applications ensured (${hiresAdded} hires, ${applicantsAdded} applicants on the demo postings)`)
 
 // ─── 6. Conversations + messages ─────────────────────────────
 // Create a handful of conversations if demo has none. Idempotent by checking existing.
