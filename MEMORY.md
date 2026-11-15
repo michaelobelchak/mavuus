@@ -254,3 +254,11 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - `/api/profile/me` never returned `resume_url`, so the apply dialog's profile resume choice had never shown in the real app; the unit test mocked it in.
 - The seeded demo profile points at `/uploads/resumes/demo-user-resume.pdf`, a file that doesn't exist, so the demo's profile resume link answers 404 until a real file is uploaded.
 - ProfilePage (second half of 3D) shows the resume file name without a link; when it moves onto the system, link it with `resumeHref`.
+
+**Decision (re-review):** resumes live in `server/private/resumes`, outside the static root, instead of `uploads/resumes` behind a path blocklist. The blocklist compared the raw path while serve-static decodes it, so `/uploads/%72esumes/<file>` served any resume. Keeping private files out of every static root removes the whole class of bypass; a blocklist would need to match the decoded, normalized path forever. Legacy `resume-*` files get random names only when they start with `%PDF-`; anything else is deleted and its rows cleared, since it was never a valid upload.
+
+**Decision (re-review):** the demo resume is a PDF built in code (`samplePdf`) under a fixed name (`00000000-0000-4000-8000-000000000007.pdf`), so no binary sits in the repo and e2e resets don't pile up files.
+
+**Open (owner):** resume visibility. Members who may see a full profile can open its resume (the member profile page always offered it). Proposed for the founders' checklist: a separate resume setting defaulting to "employers I apply to".
+
+**Known gaps (logged in the plan):** authenticated routes trust the JWT and never recheck the user row, so ban and role changes wait for the 7-day token to expire (Stage 4, 9d); `POST /api/reviews` with a `job_id` doesn't check the job is completed or that the two members are its poster and hire (Stage 4, 9c, confirmed still open).

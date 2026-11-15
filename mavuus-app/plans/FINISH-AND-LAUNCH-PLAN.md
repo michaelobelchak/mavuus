@@ -102,7 +102,7 @@ Fixed in the batch: hiring (the `hired` application status), Recommend a Vendor,
    - A small mail module. Development prints links to the log, as now. Production sends through a provider (Resend or Postmark, picked in Stage 5).
    - Verify email, reset password and contact form go through it.
    - Tests use a fake sender.
-4. **Uploads:** avatars and resumes write to `UPLOADS_DIR`, so they can live on a persistent disk.
+4. **Uploads:** avatars write to `UPLOADS_DIR` and resumes to a private folder outside the static root (today `server/private/resumes`, see `db/resumes.js`), both configurable so they can live on a persistent disk. Resumes must never move under a statically served folder.
 5. **Database:** `DB_PATH` already exists. Add:
    - a documented backup command (SQLite `.backup`)
    - a one-time `npm run setup:prod` (schema, seed, demo account)
@@ -112,6 +112,7 @@ Fixed in the batch: hiring (the `hired` application status), Recommend a Vendor,
 9. **Search privacy:** `/api/search` is mounted without auth (server/index.js) and returns member names to anyone: require auth or limit public results.
 9b. **Member review trust:** member-to-member reviews (`POST /api/reviews` without `vendor_id`) take `reviewee_id` from the request body and don't check that the two members shared a job, so anyone can review anyone. Require a completed job between them (reviewer posted it and hired the reviewee, or the other way round) and derive the reviewee from it.
 9c. **Job review checks:** with a `job_id`, `POST /api/reviews` should require a completed job and a reviewer and reviewee who are its poster and its hire (one review each way), and take the reviewee from the job instead of the body.
+9d. **Stale tokens:** authenticated routes trust the JWT's `role` and never recheck the user row, so a banned or deleted member keeps access, and a demoted admin keeps admin routes, until the 7-day token expires. Recheck status and role against the database in `authenticateToken` (or `isAdmin`), or keep a token version per user.
 10. **Final quality pass:** an accessibility, responsive and performance audit with the impeccable audit, with results filed in `plans/audits/`. Fix anything critical.
 11. **Founders' checklist** (DEMO-SCRIPT.md update): a demo path and the content to confirm:
    - member counts
@@ -120,6 +121,7 @@ Fixed in the batch: hiring (the `hired` application status), Recommend a Vendor,
    - the Pro member tag
    - the pink contrast decision
    - Rachel Foster's profile is connections-only in the demo data (`seed-demo.js`), so her profile shows the limited view to the demo account; keep it, or pick another member to show privacy
+   - resume visibility (owner decision pending): today anyone who may see a member's full profile can open their resume. Proposed: a separate resume setting that defaults to "employers I apply to" (posters of jobs the member applied to), with "everyone who can see my profile" as the opt-in
    - the vendor owner accounts (`hello@<vendor>.example`, demo-only password `demo123`) that receive vendor reviews and Contact Vendor messages
    - vendor ratings now come from 30 seeded review rows (one per member and vendor) instead of made-up totals: ContentPro Agency 4.8 (4 reviews), PipelineHQ 4.8 (5), BrandSpark Studio 4.3 (3), GrowthLab Analytics 4.5 (4), Elevate PR 4.3 (3), PixelCraft Creative 4.8 (4), Lifecycle Labs 4.7 (3), NorthStar Events 4.8 (4). The old seed showed 4.0 to 5.0 from 1 to 27 reviews. The demo account has reviewed none of them, so Write a Review works on every vendor
 12. **E2E against any URL:** a `BASE_URL` option, so the same smoke test runs against staging.
