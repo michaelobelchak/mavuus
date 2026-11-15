@@ -21,6 +21,8 @@ import reviewsRoutes from '../routes/reviews.js'
 import searchRoutes from '../routes/search.js'
 import vendorsRoutes from '../routes/vendors.js'
 import filesRoutes from '../routes/files.js'
+import messagesRoutes from '../routes/messages.js'
+import referralsRoutes from '../routes/referrals.js'
 import { RESUMES_DIR } from '../db/resumes.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -75,6 +77,8 @@ export function createTestApp() {
   app.use('/api/search', searchRoutes)
   app.use('/api/vendors', vendorsRoutes)
   app.use('/api/files', filesRoutes)
+  app.use('/api/messages', messagesRoutes)
+  app.use('/api/referrals', referralsRoutes)
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')))
 
   return { app, db }
