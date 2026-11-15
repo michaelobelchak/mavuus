@@ -246,10 +246,6 @@
     "no-em-dash": 3,
     "no-raw-color": 10
   },
-  "src/pages/dashboard/MessagesPage.jsx": {
-    "no-arbitrary-size": 5,
-    "no-em-dash": 3
-  },
   "src/pages/dashboard/ProfilePage.jsx": {
     "no-arbitrary-size": 1,
     "no-em-dash": 5

@@ -49,7 +49,9 @@ const MEMBER_PAGES = [
   { name: 'dashboard-on-demand-video', path: '/dashboard/on-demand/7' },
   { name: 'dashboard-resources', path: '/dashboard/resources' },
   { name: 'dashboard-resource', path: '/dashboard/resources/2' },
+  // Conversation 1 is the demo user's thread with Sarah Chen (seed.js).
   { name: 'dashboard-messages', path: '/dashboard/messages' },
+  { name: 'dashboard-messages-thread', path: '/dashboard/messages?conversation=1' },
   { name: 'dashboard-jobs', path: '/dashboard/jobs' },
   // Job 3 is open and posted by someone else, job 8 is the demo user's posting (with seeded
   // applicants) and job 1 is completed, with a hire and reviews.
@@ -74,8 +76,9 @@ function smoke(pages, ready, { allowHosts = [] } = {}) {
     for (const width of WIDTHS) {
       test(`${name} at ${width}px (${path})`, async ({ page }) => {
         await checkPage(page, { name, path, width, ready, allowHosts: pageHosts })
-        // No redirect to /login or elsewhere.
-        expect(new URL(page.url()).pathname).toBe(path)
+        // No redirect to /login or elsewhere (a query string in `path` must stay too).
+        const url = new URL(page.url())
+        expect(url.pathname + url.search).toBe(path)
       })
     }
   }

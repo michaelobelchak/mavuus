@@ -1,325 +1,442 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { MessageCircle, SearchX, UserX } from 'lucide-react'
+import { cn } from '@/design-system/lib/cn'
+import { Alert, Card, EmptyState, SearchInput, useToast } from '@/design-system/patterns'
+import { MessageThreadItem, MessageThreadItemSkeleton } from '@/design-system/organisms'
+import { Button, Heading, Spinner } from '@/design-system/primitives'
 import { useAuth } from '../../context/AuthContext'
-import { useToast } from '../../components/ui/Toast'
-import Avatar from '../../components/ui/Avatar'
-import Button from '../../components/ui/Button'
-import EmptyState from '../../components/ui/EmptyState'
-import { Search, Send, MessageCircle, ArrowLeft, Plus } from 'lucide-react'
+import { announceMessagesRead } from '../../layouts/messagesRead'
+import { ThreadView } from './messages/ThreadView'
+import { listTime } from './messages/messageTime'
+import { errorMessage } from './shared/errorMessage'
+import { MEMBERS_PATH, MESSAGES_PATH } from './shared/paths'
 
+const LIST_POLL_MS = 10_000
+const THREAD_POLL_MS = 5_000
+const SEND_ERROR = "Couldn't send your message. Try again."
+
+const parseId = (value) => {
+  const id = Number(value)
+  return Number.isInteger(id) && id > 0 ? id : null
+}
+
+function Centered({ children }) {
+  return <div className="flex grow flex-col items-center justify-center p-ds-md">{children}</div>
+}
+
+/**
+ * Messages: the conversation list and the open thread side by side from 768px, one at a time on
+ * phones. The open conversation lives in the URL (`?conversation=<id>`), so back works and links
+ * from other pages open it. `?user=<id>` (the Message buttons on member pages) opens that
+ * member's conversation, or a new one that starts with the first message sent.
+ * The list polls every 10 seconds and the open thread every 5, both paused while the tab is hidden.
+ */
 export default function MessagesPage() {
   const { user, token } = useAuth()
   const toast = useToast()
-  const [searchParams] = useSearchParams()
-  const [conversations, setConversations] = useState([])
-  const [selectedConv, setSelectedConv] = useState(null)
-  const [messages, setMessages] = useState([])
-  const [newMessage, setNewMessage] = useState('')
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const conversationId = parseId(searchParams.get('conversation'))
+  const userId = conversationId ? null : parseId(searchParams.get('user'))
+
+  const [list, setList] = useState({ status: 'loading', rows: [] })
+  const [query, setQuery] = useState('')
+  // Stored with the id it belongs to, so another conversation reads as loading, never stale.
+  const [thread, setThread] = useState({ id: null, status: 'loading', messages: [] })
+  const [recipient, setRecipient] = useState({ id: null, status: 'loading', member: null })
+  const [drafts, setDrafts] = useState({})
   const [sending, setSending] = useState(false)
-  const messagesEndRef = useRef(null)
-  const inputRef = useRef(null)
+  const [announcement, setAnnouncement] = useState('')
+  const sendingRef = useRef(false)
+  const composerRef = useRef(null)
+  // The conversation on screen: a response for any other one is dropped.
+  const activeRef = useRef(null)
+  const knownRef = useRef({ id: null, ids: new Set() })
+  const rowsRef = useRef([])
+  const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token])
+  const listHeadingId = useId()
 
-  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-
-  // Fetch conversations
-  const fetchConversations = useCallback(async () => {
-    try {
-      const res = await fetch('/api/messages/conversations', { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
-        setConversations(data)
-        return data
-      }
-    } catch {
-      // silently fail on poll
-    }
-    return []
-  }, [token])
-
-  // Fetch messages for a conversation
-  const fetchMessages = useCallback(async (convId) => {
-    try {
-      const res = await fetch(`/api/messages/conversations/${convId}/messages`, { headers: { Authorization: `Bearer ${token}` } })
-      if (res.ok) {
-        const data = await res.json()
-        setMessages(data)
-        // Mark as read
-        fetch(`/api/messages/conversations/${convId}/read`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } })
-      }
-    } catch {
-      // silently fail on poll
-    }
-  }, [token])
-
-  // Initial load
-  useEffect(() => {
-    const t = token || localStorage.getItem('mavuus_token')
-    if (!t) {
-      setLoading(false)
-      return
-    }
-    const init = async () => {
+  const loadList = useCallback(
+    async ({ signal, quiet = false } = {}) => {
       try {
-        const res = await fetch('/api/messages/conversations', { headers: { Authorization: `Bearer ${t}` } })
-        if (res.ok) {
-          const convs = await res.json()
-          setConversations(convs)
-          // Auto-select from URL param (by conversation id)
-          const convParam = searchParams.get('conversation')
-          if (convParam && convs.length > 0) {
-            const conv = convs.find(c => c.id === parseInt(convParam))
-            if (conv) {
-              setSelectedConv(conv)
-              fetchMessages(conv.id)
-            }
-          }
-          // Auto-select from URL param (by user id)
-          const userParam = searchParams.get('user')
-          if (userParam && convs.length > 0) {
-            const conv = convs.find(c => c.other_user_id === parseInt(userParam))
-            if (conv) {
-              setSelectedConv(conv)
-              fetchMessages(conv.id)
-            }
-          }
-        }
-      } catch { /* silent */ }
-      setLoading(false)
-    }
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token])
-
-  // Poll conversations every 10s — paused when tab is hidden
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!document.hidden) fetchConversations()
-    }, 10000)
-    return () => clearInterval(interval)
-  }, [fetchConversations])
-
-  // Poll messages every 5s when conversation is active — paused when tab is hidden
-  useEffect(() => {
-    if (!selectedConv) return
-    const interval = setInterval(() => {
-      if (!document.hidden) fetchMessages(selectedConv.id)
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [selectedConv, fetchMessages])
-
-  // Auto-scroll to bottom
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
-
-  const selectConversation = (conv) => {
-    setSelectedConv(conv)
-    fetchMessages(conv.id)
-    // Update unread count in conv list
-    setConversations(prev => prev.map(c => c.id === conv.id ? { ...c, unread_count: 0 } : c))
-  }
-
-  const sendMessage = async (e) => {
-    e.preventDefault()
-    if (!newMessage.trim() || !selectedConv || sending) return
-    setSending(true)
-    try {
-      const res = await fetch(`/api/messages/conversations/${selectedConv.id}/messages`, {
-        method: 'POST', headers, body: JSON.stringify({ content: newMessage.trim() })
-      })
-      if (res.ok) {
-        setNewMessage('')
-        fetchMessages(selectedConv.id)
-        fetchConversations()
-        inputRef.current?.focus()
+        const res = await fetch('/api/messages/conversations', { headers: auth, signal })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const body = await res.json()
+        if (signal?.aborted) return
+        const rows = Array.isArray(body) ? body : []
+        rowsRef.current = rows
+        setList({ status: 'ready', rows })
+      } catch (err) {
+        if (signal?.aborted || err?.name === 'AbortError') return
+        // A failed poll keeps the list on screen; only a first load shows the error.
+        if (!quiet) setList((prev) => (prev.status === 'ready' ? prev : { status: 'error', rows: [] }))
       }
-    } catch {
-      toast.error('Failed to send message')
-    } finally {
-      setSending(false)
-    }
-  }
-
-  const formatTime = (dateStr) => {
-    const date = new Date(dateStr)
-    const now = new Date()
-    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24))
-    if (diffDays === 0) return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-    if (diffDays === 1) return 'Yesterday'
-    if (diffDays < 7) return date.toLocaleDateString('en-US', { weekday: 'short' })
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  }
-
-  const formatMessageTime = (dateStr) => {
-    return new Date(dateStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-  }
-
-  const filteredConvs = conversations.filter(c =>
-    c.other_user_name?.toLowerCase().includes(search.toLowerCase())
+    },
+    [auth],
   )
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-brand-pink border-t-transparent rounded-full animate-spin" />
-      </div>
+  useEffect(() => {
+    const controller = new AbortController()
+    loadList({ signal: controller.signal })
+    const timer = setInterval(() => {
+      if (!document.hidden) loadList({ signal: controller.signal, quiet: true })
+    }, LIST_POLL_MS)
+    return () => {
+      controller.abort()
+      clearInterval(timer)
+    }
+  }, [loadList])
+
+  const markRead = useCallback(
+    async (id, tellShell) => {
+      try {
+        const res = await fetch(`/api/messages/conversations/${id}/read`, { method: 'PUT', headers: auth })
+        if (res.ok && tellShell) announceMessagesRead()
+      } catch {
+        // The next load marks it again.
+      }
+    },
+    [auth],
+  )
+
+  const loadThread = useCallback(
+    async (id, { signal, poll = false } = {}) => {
+      try {
+        const res = await fetch(`/api/messages/conversations/${id}/messages`, { headers: auth, signal })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const body = await res.json()
+        if (signal?.aborted || activeRef.current !== id) return
+        const messages = Array.isArray(body) ? body : []
+        const known = knownRef.current.id === id ? knownRef.current.ids : null
+        const incoming = known ? messages.filter((m) => !known.has(m.id) && m.sender_id !== user?.id) : []
+        knownRef.current = { id, ids: new Set(messages.map((m) => m.id)) }
+        setThread({ id, status: 'ready', messages })
+        const row = rowsRef.current.find((c) => c.id === id)
+        if (incoming.length > 0) {
+          const name = row?.other_user_name || 'this member'
+          const last = incoming[incoming.length - 1]
+          setAnnouncement(
+            incoming.length === 1 ? `New message from ${name}: ${last.content}` : `${incoming.length} new messages from ${name}`,
+          )
+        }
+        // Opening a thread marks it read, and so does a poll that brought new messages.
+        if (!poll || incoming.length > 0) markRead(id, incoming.length > 0 || (row?.unread_count || 0) > 0)
+      } catch (err) {
+        if (signal?.aborted || err?.name === 'AbortError' || activeRef.current !== id) return
+        if (!poll) setThread({ id, status: 'error', messages: [] })
+      }
+    },
+    [auth, markRead, user?.id],
+  )
+
+  useEffect(() => {
+    activeRef.current = conversationId
+    if (!conversationId) return undefined
+    const controller = new AbortController()
+    loadThread(conversationId, { signal: controller.signal })
+    const timer = setInterval(() => {
+      if (!document.hidden) loadThread(conversationId, { signal: controller.signal, poll: true })
+    }, THREAD_POLL_MS)
+    return () => {
+      controller.abort()
+      clearInterval(timer)
+    }
+  }, [conversationId, loadThread])
+
+  // ?user=<id>: open the conversation with that member when there is one.
+  const existing = userId && list.status === 'ready' ? list.rows.find((c) => c.other_user_id === userId) : null
+  const existingId = existing?.id
+  useEffect(() => {
+    if (!existingId) return
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev)
+        params.delete('user')
+        params.set('conversation', String(existingId))
+        return params
+      },
+      { replace: true },
+    )
+  }, [existingId, setSearchParams])
+
+  // ...or load the member for a new conversation.
+  const needsRecipient = Boolean(userId && userId !== user?.id && list.status === 'ready' && !existing)
+  useEffect(() => {
+    if (!needsRecipient) return undefined
+    const controller = new AbortController()
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/members/${userId}`, { headers: auth, signal: controller.signal })
+        if (res.status === 404) {
+          setRecipient({ id: userId, status: 'missing', member: null })
+          return
+        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const member = await res.json()
+        setRecipient({ id: userId, status: 'ready', member })
+      } catch (err) {
+        if (controller.signal.aborted || err?.name === 'AbortError') return
+        setRecipient({ id: userId, status: 'error', member: null })
+      }
+    })()
+    return () => controller.abort()
+  }, [needsRecipient, userId, auth])
+
+  const draftKey = conversationId ? `c${conversationId}` : userId ? `u${userId}` : null
+  const draft = (draftKey && drafts[draftKey]) || ''
+  const setDraft = (key, value) => setDrafts((prev) => ({ ...prev, [key]: value }))
+
+  const send = async () => {
+    const text = draft.trim()
+    if (!text || sendingRef.current || !draftKey) return
+    sendingRef.current = true
+    setSending(true)
+    const key = draftKey
+    try {
+      const headers = { ...auth, 'Content-Type': 'application/json' }
+      if (conversationId) {
+        const res = await fetch(`/api/messages/conversations/${conversationId}/messages`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ content: text }),
+        })
+        if (!res.ok) {
+          toast.error(await errorMessage(res, SEND_ERROR))
+          return
+        }
+        setDraft(key, '')
+        setAnnouncement('Message sent')
+        await Promise.all([loadThread(conversationId), loadList({ quiet: true })])
+      } else {
+        const res = await fetch('/api/messages/conversations', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ userId, message: text }),
+        })
+        if (!res.ok) {
+          toast.error(await errorMessage(res, SEND_ERROR))
+          return
+        }
+        const { conversationId: created } = await res.json()
+        setDraft(key, '')
+        setAnnouncement('Message sent')
+        await loadList({ quiet: true })
+        setSearchParams({ conversation: String(created) }, { replace: true })
+      }
+    } catch {
+      toast.error(SEND_ERROR)
+    } finally {
+      sendingRef.current = false
+      setSending(false)
+      composerRef.current?.focus()
+    }
+  }
+
+  // Phones: back to the list. After picking a thread from the list that's a history step back.
+  const back = () => {
+    if (location.state?.fromList) navigate(-1)
+    else navigate(MESSAGES_PATH)
+  }
+
+  const open = Boolean(conversationId || userId)
+  const selected = conversationId && list.status === 'ready' ? list.rows.find((c) => c.id === conversationId) : null
+  const needle = query.trim().toLowerCase()
+  const rows = needle ? list.rows.filter((c) => c.other_user_name?.toLowerCase().includes(needle)) : list.rows
+
+  const retryList = () => {
+    setList({ status: 'loading', rows: [] })
+    loadList()
+  }
+  const listError = (
+    <Alert
+      tone="error"
+      title="We couldn't load your conversations"
+      description="Check your connection and try again."
+      actions={
+        <Button size="sm" variant="outline" onClick={retryList}>
+          Try again
+        </Button>
+      }
+    />
+  )
+
+  let listBody
+  if (list.status === 'loading') {
+    listBody = (
+      <ul aria-busy="true" aria-label="Loading conversations">
+        {[0, 1, 2, 3].map((i) => (
+          <li key={i}>
+            <MessageThreadItemSkeleton announce={false} />
+          </li>
+        ))}
+      </ul>
+    )
+  } else if (list.status === 'error') {
+    listBody = <div className="p-ds-md">{listError}</div>
+  } else if (list.rows.length === 0) {
+    listBody = (
+      <EmptyState
+        size="sm"
+        headingLevel={3}
+        icon={MessageCircle}
+        title="No conversations yet"
+        description="Start one from a member's profile with the Message button."
+        actions={
+          <Button size="sm" variant="outline" to={MEMBERS_PATH}>
+            Browse members
+          </Button>
+        }
+        className="p-ds-md"
+      />
+    )
+  } else if (rows.length === 0) {
+    listBody = (
+      <EmptyState
+        size="sm"
+        headingLevel={3}
+        icon={SearchX}
+        title="No matching conversations"
+        description={`No one named "${query.trim()}" in your messages.`}
+        className="p-ds-md"
+      />
+    )
+  } else {
+    listBody = (
+      <ul aria-label="Conversations">
+        {rows.map((c) => {
+          const isOpen = c.id === conversationId
+          return (
+            <li key={c.id}>
+              <MessageThreadItem
+                name={c.other_user_name}
+                avatarSrc={c.other_user_avatar}
+                preview={c.last_message}
+                fromSelf={c.last_message_sender_id === user?.id}
+                time={listTime(c.last_message_at)}
+                // The open thread is being read, so a poll that still counts it shows no bubble.
+                unreadCount={isOpen ? 0 : c.unread_count}
+                selected={isOpen}
+                to={`${MESSAGES_PATH}?conversation=${c.id}`}
+                state={{ fromList: true }}
+              />
+            </li>
+          )
+        })}
+      </ul>
     )
   }
 
-  // Fills the screen under the app shell: the viewport minus the sticky top bar
-  // (--shell-topbar-h), <main>'s padding above and below (--shell-main-pad: 16px below 1024px,
-  // 32px from 1024px) and the email verification banner when it shows (--shell-banner-h), so the
-  // page itself never scrolls. The properties come from design-system/styles/app-shell.css and
-  // ShellLayout.
+  const threadProps = {
+    selfId: user?.id,
+    draft,
+    onDraftChange: (value) => setDraft(draftKey, value),
+    onSend: send,
+    sending,
+    composerRef,
+    onBack: back,
+    announcement,
+  }
+  const unavailable = (title, description) => (
+    <Centered>
+      <EmptyState
+        size="sm"
+        headingLevel={2}
+        icon={UserX}
+        title={title}
+        description={description}
+        actions={
+          <Button size="sm" variant="outline" onClick={back}>
+            Back to conversations
+          </Button>
+        }
+      />
+    </Centered>
+  )
+  const waiting = (
+    <Centered>
+      <Spinner size="lg" label="Loading conversation" />
+    </Centered>
+  )
+
+  let threadBody
+  if (!open) {
+    threadBody = (
+      <Centered>
+        <EmptyState
+          size="sm"
+          headingLevel={2}
+          icon={MessageCircle}
+          title="Select a conversation"
+          description="Pick one from the list, or start one from a member's profile."
+        />
+      </Centered>
+    )
+  } else if (list.status === 'error') {
+    threadBody = <div className="p-ds-md">{listError}</div>
+  } else if (list.status === 'loading') {
+    threadBody = waiting
+  } else if (conversationId) {
+    const current = thread.id === conversationId ? thread : { status: 'loading', messages: [] }
+    threadBody = selected ? (
+      <ThreadView
+        {...threadProps}
+        person={{ name: selected.other_user_name, title: selected.other_user_title, avatar_url: selected.other_user_avatar }}
+        messages={current.messages}
+        status={current.status}
+        onRetry={() => {
+          setThread({ id: conversationId, status: 'loading', messages: [] })
+          loadThread(conversationId)
+        }}
+      />
+    ) : (
+      unavailable('Conversation not found', "This conversation doesn't exist or you're not part of it.")
+    )
+  } else if (userId === user?.id) {
+    threadBody = unavailable("You can't message yourself", "Pick a conversation, or start one from another member's profile.")
+  } else if (existing) {
+    threadBody = waiting
+  } else {
+    const current = recipient.id === userId ? recipient : { status: 'loading' }
+    if (current.status === 'loading') threadBody = waiting
+    else if (current.status === 'missing') threadBody = unavailable('Member not found', "This member isn't available to message.")
+    else if (current.status === 'error') {
+      threadBody = unavailable("We couldn't load this member", 'Check your connection and try again.')
+    } else {
+      threadBody = (
+        <ThreadView
+          {...threadProps}
+          person={current.member}
+          messages={[]}
+          status="ready"
+          emptyTitle="Start the conversation"
+          emptyDescription={`Your first message to ${current.member.name} starts the thread.`}
+        />
+      )
+    }
+  }
+
   return (
-    <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm flex h-[calc(100dvh-var(--shell-topbar-h)-2*var(--shell-main-pad)-var(--shell-banner-h,0px))] overflow-hidden">
-      {/* Left Panel - Conversation List */}
-      <div className={`w-full md:w-80 lg:w-96 border-r border-neutral-100 flex flex-col ${selectedConv ? 'hidden md:flex' : 'flex'}`}>
-        <div className="p-4 border-b border-neutral-100">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-dark-blue">Messages</h2>
-          </div>
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input
-              type="text"
-              placeholder="Search conversations..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-pink/30 focus:border-brand-pink"
-            />
-          </div>
+    <Card padding="none" className="flex h-(--shell-fill-h) overflow-hidden">
+      <section
+        aria-labelledby={listHeadingId}
+        className={cn('w-full flex-col border-border-subtle md:flex md:w-80 md:shrink-0 md:border-r lg:w-96', open ? 'hidden' : 'flex')}
+      >
+        <div className="flex flex-col gap-ds-sm border-b border-border-subtle p-ds-md">
+          <Heading id={listHeadingId} level={2} size="h4">
+            Conversations
+          </Heading>
+          <SearchInput
+            label="Search conversations"
+            placeholder="Search by name"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
         </div>
-
-        <div className="flex-1 overflow-y-auto">
-          {filteredConvs.length === 0 ? (
-            <div className="px-6 py-12 text-center">
-              <div className="w-16 h-16 bg-brand-pink/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageCircle size={28} className="text-brand-pink" />
-              </div>
-              <p className="text-sm font-semibold text-dark-blue mb-1">No conversations yet</p>
-              <p className="text-xs text-neutral-500 mb-4 leading-relaxed">
-                Start a conversation by visiting a member&apos;s profile and clicking the &ldquo;Message&rdquo; button.
-              </p>
-              <Link to="/dashboard/members" className="inline-flex items-center gap-1 text-xs font-medium text-brand-pink hover:underline">
-                Browse Members <ArrowLeft size={12} className="rotate-180" />
-              </Link>
-            </div>
-          ) : (
-            filteredConvs.map(conv => (
-              <button
-                key={conv.id}
-                onClick={() => selectConversation(conv)}
-                className={`relative w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-brand-pink/[0.04] transition-colors cursor-pointer ${
-                  selectedConv?.id === conv.id ? 'bg-brand-pink/[0.06]' : ''
-                }`}
-              >
-                {selectedConv?.id === conv.id && (
-                  <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-brand-pink" />
-                )}
-                <Avatar name={conv.other_user_name} src={conv.other_user_avatar} size="md" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className={`text-sm font-medium truncate ${conv.unread_count > 0 ? 'text-dark-blue' : 'text-neutral-700'}`}>
-                      {conv.other_user_name}
-                    </span>
-                    <span className="text-xs text-neutral-400 ml-2 flex-shrink-0">
-                      {conv.last_message_at ? formatTime(conv.last_message_at) : ''}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between mt-0.5">
-                    <p className={`text-xs truncate ${conv.unread_count > 0 ? 'text-dark-blue font-medium' : 'text-neutral-500'}`}>
-                      {conv.last_message_sender_id === user?.id ? 'You: ' : ''}{conv.last_message || 'No messages yet'}
-                    </p>
-                    {conv.unread_count > 0 && (
-                      <span className="ml-2 w-5 h-5 rounded-full bg-brand-pink text-white text-[10px] flex items-center justify-center flex-shrink-0">
-                        {conv.unread_count}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Right Panel - Chat Window */}
-      <div className={`flex-1 flex flex-col ${!selectedConv ? 'hidden md:flex' : 'flex'}`}>
-        {selectedConv ? (
-          <>
-            {/* Chat Header — glass */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-100/80 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-              <button onClick={() => setSelectedConv(null)} className="md:hidden text-neutral-500 cursor-pointer">
-                <ArrowLeft size={20} />
-              </button>
-              <Avatar name={selectedConv.other_user_name} src={selectedConv.other_user_avatar} size="sm" />
-              <div>
-                <h3 className="text-sm font-semibold text-dark-blue">{selectedConv.other_user_name}</h3>
-                <p className="text-xs text-neutral-500">{selectedConv.other_user_title || 'Mavuus Member'}</p>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-              {messages.map((msg, idx) => {
-                const isMine = msg.sender_id === user?.id
-                const showDate = idx === 0 || new Date(msg.created_at).toDateString() !== new Date(messages[idx - 1].created_at).toDateString()
-
-                return (
-                  <div key={msg.id}>
-                    {showDate && (
-                      <div className="text-center my-4">
-                        <span className="text-xs text-neutral-400 bg-neutral-50 px-3 py-1 rounded-full">
-                          {new Date(msg.created_at).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-                        </span>
-                      </div>
-                    )}
-                    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-sm ${
-                        isMine
-                          ? 'bg-brand-pink text-white rounded-br-md shadow-[0_4px_15px_rgba(242,109,146,0.25)]'
-                          : 'bg-white text-dark-blue rounded-bl-md border border-neutral-100'
-                      }`}>
-                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                        <p className={`text-[10px] mt-1 ${isMine ? 'text-white/70' : 'text-neutral-400'}`}>
-                          {formatMessageTime(msg.created_at)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input */}
-            <form onSubmit={sendMessage} className="px-4 py-3 border-t border-neutral-100 flex items-center gap-3">
-              <input
-                ref={inputRef}
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 px-4 py-2.5 text-sm border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-pink/30 focus:border-brand-pink"
-              />
-              <Button type="submit" size="sm" pill disabled={!newMessage.trim() || sending}>
-                <Send size={16} />
-              </Button>
-            </form>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <EmptyState
-              icon={MessageCircle}
-              title="Select a conversation"
-              message="Choose a conversation from the left or start a new one from a member's profile."
-            />
-          </div>
-        )}
-      </div>
-    </div>
+        <div className="min-h-0 grow overflow-y-auto">{listBody}</div>
+      </section>
+      <div className={cn('min-w-0 grow flex-col md:flex', open ? 'flex' : 'hidden')}>{threadBody}</div>
+    </Card>
   )
 }
