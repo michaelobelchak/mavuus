@@ -117,10 +117,11 @@ export default function SpeakersPage() {
   useEffect(() => {
     if (selected) lastSelected.current = selected
   }, [selected])
-  // Opened from a card in the app: go back, so Back afterwards leaves the list. Opened from a
-  // shared link (the first history entry): drop ?speaker= in place.
+  // Opened from a card on this list (the link's fromList state): go back, so Back afterwards
+  // leaves the list. Opened any other way (a shared link, a link elsewhere in the app): drop
+  // ?speaker= in place.
   const closeSheet = () => {
-    if (location.key !== 'default') {
+    if (location.state?.fromList) {
       navigate(-1)
       return
     }
@@ -164,6 +165,7 @@ export default function SpeakersPage() {
               company={speaker.company}
               avatarSrc={speaker.avatar_url}
               to={linkFor(speaker.id)}
+              linkState={{ fromList: true }}
               data-speaker-id={speaker.id}
               className={String(speaker.id) === selected ? 'ring-2 ring-border-brand' : undefined}
             />

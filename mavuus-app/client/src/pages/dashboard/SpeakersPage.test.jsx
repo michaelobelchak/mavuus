@@ -114,6 +114,18 @@ describe('SpeakersPage', () => {
     expect(screen.getByTestId('path')).not.toHaveTextContent('/dashboard/speakers')
   })
 
+  it('should not go back on close when the speaker link came from elsewhere in the app', async () => {
+    const user = userEvent.setup()
+    mockViewport(390)
+    // In-app history, but ?speaker= was reached without a card from this list (no fromList state).
+    renderPage('/dashboard/speakers?speaker=1', {}, { before: ['/dashboard'] })
+    await screen.findByRole('dialog', { name: 'Speaker details' })
+    await user.click(screen.getByRole('button', { name: 'Close' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.getByTestId('path')).toHaveTextContent('/dashboard/speakers')
+    expect(screen.getByTestId('where')).toHaveTextContent(/^$/)
+  })
+
   it('should close the sheet on Back and return focus to the card', async () => {
     const user = userEvent.setup()
     mockViewport(390)
