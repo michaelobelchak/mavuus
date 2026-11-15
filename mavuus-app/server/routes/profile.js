@@ -3,9 +3,9 @@ import multer from 'multer'
 import { fileURLToPath } from 'url'
 import { dirname, join, extname } from 'path'
 import { randomUUID } from 'crypto'
-import { closeSync, existsSync, openSync, readSync, unlinkSync } from 'fs'
+import { existsSync, unlinkSync } from 'fs'
 import { authenticateToken } from '../middleware/auth.js'
-import { RESUMES_DIR, resumeInUse, resumeName, resumePath, resumeUrl } from '../db/resumes.js'
+import { RESUMES_DIR, resumeInUse, resumeName, resumePath, resumeUrl, startsLikePdf } from '../db/resumes.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const avatarsDir = join(__dirname, '..', 'uploads', 'avatars')
@@ -27,18 +27,6 @@ const resumeUpload = multer({
     }
   },
 })
-
-// The browser's mimetype is only a claim; a PDF starts with "%PDF-".
-function startsLikePdf(path) {
-  const fd = openSync(path, 'r')
-  try {
-    const head = Buffer.alloc(5)
-    readSync(fd, head, 0, 5, 0)
-    return head.toString('latin1') === '%PDF-'
-  } finally {
-    closeSync(fd)
-  }
-}
 
 // Deletes the member's old resume file unless an application still points at it.
 function removeOldResume(db, url) {
@@ -200,6 +188,7 @@ router.post('/me/resume', (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
     }
+    // The browser's mimetype is only a claim; a PDF starts with "%PDF-". An unreadable file fails too.
     if (!startsLikePdf(req.file.path)) {
       try { unlinkSync(req.file.path) } catch { /* ignore */ }
       return res.status(400).json({ error: 'Only PDF files are allowed' })

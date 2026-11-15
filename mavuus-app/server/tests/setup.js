@@ -20,13 +20,14 @@ import membersRoutes from '../routes/members.js'
 import reviewsRoutes from '../routes/reviews.js'
 import searchRoutes from '../routes/search.js'
 import vendorsRoutes from '../routes/vendors.js'
-import filesRoutes, { uploadsStatic } from '../routes/files.js'
+import filesRoutes from '../routes/files.js'
+import { RESUMES_DIR } from '../db/resumes.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // Ensure uploads directories exist (some routes reference them)
 mkdirSync(join(__dirname, '..', 'uploads', 'avatars'), { recursive: true })
-mkdirSync(join(__dirname, '..', 'uploads', 'resumes'), { recursive: true })
+mkdirSync(RESUMES_DIR, { recursive: true })
 
 export function createTestApp() {
   // In-memory database for test isolation
@@ -74,7 +75,7 @@ export function createTestApp() {
   app.use('/api/search', searchRoutes)
   app.use('/api/vendors', vendorsRoutes)
   app.use('/api/files', filesRoutes)
-  app.use('/uploads', uploadsStatic(join(__dirname, '..', 'uploads')))
+  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')))
 
   return { app, db }
 }

@@ -1,5 +1,4 @@
 import { Router } from 'express'
-import express from 'express'
 import { existsSync } from 'fs'
 import { authenticateToken } from '../middleware/auth.js'
 import { canReadResume, resumeName, resumePath, resumeUrl } from '../db/resumes.js'
@@ -18,19 +17,9 @@ router.get('/resumes/:name', authenticateToken, (req, res) => {
   res.set('Cache-Control', 'private, no-store')
   res.type('application/pdf')
   res.set('Content-Disposition', 'inline; filename="resume.pdf"')
+  // A PDF viewer can run scripts; sandbox keeps the file away from the site's origin.
+  res.set('Content-Security-Policy', 'sandbox')
   res.sendFile(resumePath(name))
 })
-
-/**
- * Static /uploads (avatars and images) without the resumes folder: resumes go through the
- * route above.
- */
-export function uploadsStatic(dir) {
-  const files = express.static(dir)
-  return (req, res, next) => {
-    if (req.path.toLowerCase().startsWith('/resumes')) return res.status(404).json({ error: 'File not found' })
-    return files(req, res, next)
-  }
-}
 
 export default router

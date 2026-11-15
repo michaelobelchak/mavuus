@@ -36,7 +36,8 @@ import commentsRoutes from './routes/comments.js'
 import referralsRoutes from './routes/referrals.js'
 import speakersRoutes from './routes/speakers.js'
 import uploadRoutes from './routes/upload.js'
-import filesRoutes, { uploadsStatic } from './routes/files.js'
+import filesRoutes from './routes/files.js'
+import { migrateResumeFiles } from './db/resumes.js'
 import adminRoutes from './routes/admin.js'
 import publicContentRoutes from './routes/public-content.js'
 import { sanitizeBody } from './middleware/sanitize.js'
@@ -48,7 +49,6 @@ const PORT = process.env.PORT || 3001
 
 // Ensure uploads directory exists
 mkdirSync(join(__dirname, 'uploads', 'avatars'), { recursive: true })
-mkdirSync(join(__dirname, 'uploads', 'resumes'), { recursive: true })
 
 // Database. DB_PATH (relative to this folder) lets e2e runs use their own file.
 const db = new Database(dbPath())
@@ -62,6 +62,11 @@ const repeatReviews = ensureVendorReviewIndex(db)
 if (repeatReviews > 0) console.warn(`Removed ${repeatReviews} repeat vendor review(s) before creating idx_reviews_vendor_once`)
 // Older databases refuse the 'hired' application status; rebuild that table once.
 if (ensureJobApplicationStatuses(db)) console.warn('Rebuilt job_applications so applications can be marked hired')
+// Resumes move out of the static /uploads folder; legacy names become random .pdf names.
+const resumeFiles = migrateResumeFiles(db)
+if (resumeFiles.moved || resumeFiles.renamed || resumeFiles.removed) {
+  console.warn(`Resume files: ${resumeFiles.moved} moved to private/, ${resumeFiles.renamed} renamed, ${resumeFiles.removed} non-PDF removed`)
+}
 
 // Make db available to routes
 app.locals.db = db
@@ -90,8 +95,8 @@ app.use(express.json({ limit: '1mb' }))
 app.use(sanitizeBody)
 
 // Static uploads
-// Resumes are private: /uploads/resumes is not served; GET /api/files/resumes/:name checks access.
-app.use('/uploads', uploadsStatic(join(__dirname, 'uploads')))
+// Static uploads (avatars, images). Resumes live in private/, outside this root.
+app.use('/uploads', express.static(join(__dirname, 'uploads')))
 
 // Passport Google OAuth setup
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
