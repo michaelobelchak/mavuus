@@ -51,6 +51,12 @@ const MEMBER_PAGES = [
   { name: 'dashboard-resource', path: '/dashboard/resources/2' },
   { name: 'dashboard-messages', path: '/dashboard/messages' },
   { name: 'dashboard-jobs', path: '/dashboard/jobs' },
+  // Job 3 is open and posted by someone else, job 8 is the demo user's posting (with seeded
+  // applicants) and job 1 is completed, with a hire and reviews.
+  { name: 'dashboard-job', path: '/dashboard/jobs/3' },
+  { name: 'dashboard-job-mine', path: '/dashboard/jobs/8' },
+  { name: 'dashboard-job-completed', path: '/dashboard/jobs/1' },
+  { name: 'dashboard-my-jobs', path: '/dashboard/my-jobs' },
   // Member 1 has a full profile; member 17 (seed-demo.js) shows a limited, connections-only one.
   { name: 'dashboard-speakers', path: '/dashboard/speakers' },
   { name: 'dashboard-members', path: '/dashboard/members' },
