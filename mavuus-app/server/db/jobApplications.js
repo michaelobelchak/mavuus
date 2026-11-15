@@ -6,13 +6,19 @@ export const APPLICATION_STATUSES = ['applied', 'reviewing', 'interview', 'offer
 
 /**
  * Rebuilds job_applications when its CHECK doesn't allow 'hired' yet (databases created before
- * the status was added), keeping every row and id. Runs in one transaction, so a failure leaves
- * the old table. Run it after db.exec(schema). Returns true when it rebuilt the table.
+ * the status was added), keeping every row, id and the AUTOINCREMENT counter, so an id the old
+ * table handed out is never reused. Runs in one transaction, so a failure leaves the old table.
+ * Run it after db.exec(schema). Returns true when it rebuilt the table.
+ *
+ * SQLite's full table-change recipe turns foreign_keys off around the rebuild. That isn't needed
+ * here: no table references job_applications, so dropping it can't break or cascade into another
+ * table, and its own references (jobs, users) are copied row for row and stay valid.
  */
 export function ensureJobApplicationStatuses(db) {
   const table = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'job_applications'").get()
   if (!table || table.sql.includes("'hired'")) return false
   const checked = APPLICATION_STATUSES.map((status) => `'${status}'`).join(', ')
+  const sequence = db.prepare("SELECT seq FROM sqlite_sequence WHERE name = 'job_applications'").get()?.seq ?? 0
   db.transaction(() => {
     db.exec(`
       CREATE TABLE job_applications_next (
@@ -32,6 +38,11 @@ export function ensureJobApplicationStatuses(db) {
       DROP TABLE job_applications;
       ALTER TABLE job_applications_next RENAME TO job_applications;
     `)
+    // The copy sets the counter to the highest id left; keep the old one when it was higher.
+    db.prepare("UPDATE sqlite_sequence SET seq = MAX(seq, ?) WHERE name = 'job_applications'").run(sequence)
+    if (!db.prepare("SELECT 1 FROM sqlite_sequence WHERE name = 'job_applications'").get()) {
+      db.prepare("INSERT INTO sqlite_sequence (name, seq) VALUES ('job_applications', ?)").run(sequence)
+    }
   })()
   return true
 }

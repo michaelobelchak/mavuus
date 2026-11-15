@@ -83,6 +83,19 @@ describe('ensureJobApplicationStatuses', () => {
     old.close()
   })
 
+  it('should never reuse an id the old table handed out', () => {
+    const old = oldDatabase()
+    old.prepare("INSERT INTO job_applications (id, job_id, user_id) VALUES (9, 5, 1)").run()
+    old.prepare('DELETE FROM job_applications WHERE id = 9').run()
+    expect(old.prepare("SELECT seq FROM sqlite_sequence WHERE name = 'job_applications'").get().seq).toBe(9)
+
+    ensureJobApplicationStatuses(old)
+
+    const { lastInsertRowid } = old.prepare('INSERT INTO job_applications (job_id, user_id) VALUES (5, 1)').run()
+    expect(Number(lastInsertRowid)).toBeGreaterThan(9)
+    old.close()
+  })
+
   it('should leave a current table alone', () => {
     expect(ensureJobApplicationStatuses(db)).toBe(false)
   })
