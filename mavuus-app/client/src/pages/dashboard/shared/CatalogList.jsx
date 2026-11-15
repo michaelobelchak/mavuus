@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SearchX } from 'lucide-react'
 import { Alert, EmptyState, Pagination, SearchInput } from '@/design-system/patterns'
@@ -67,14 +67,27 @@ function useCatalog(endpoint, baseParams, filterParam, { paged, filterQuery, fil
     return () => controller.abort()
   }, [endpoint, params, apiFilter, search, apiPage, paged, queryKey])
 
+  // Query strings this list navigated to that haven't rendered yet, oldest first. The router
+  // renders a URL change in a transition and hands setSearchParams the rendered params, so a
+  // second change made before the first one renders (a chip right after a search fired) would
+  // start from the old URL and drop the first change. A rendered URL we didn't ask for (back,
+  // forward, a link) clears the list.
+  const pending = useRef([])
+  const rendered = searchParams.toString()
+  useLayoutEffect(() => {
+    const at = pending.current.indexOf(rendered)
+    pending.current = at === -1 ? [] : pending.current.slice(at + 1)
+  }, [rendered])
   const update = useCallback(
     (changes, options) =>
       setSearchParams((prev) => {
-        const next = new URLSearchParams(prev)
+        const queue = pending.current
+        const next = new URLSearchParams(queue.length > 0 ? queue[queue.length - 1] : prev)
         for (const [key, value] of Object.entries(changes)) {
           if (value === null || value === '') next.delete(key)
           else next.set(key, value)
         }
+        pending.current = [...queue, next.toString()]
         return next
       }, options),
     [setSearchParams],
@@ -134,11 +147,22 @@ export function CatalogList({
   // The field follows the URL (back, forward, a shared link) and the member's typing.
   const [text, setText] = useState(search)
   const [shownSearch, setShownSearch] = useState(search)
+  // The search this field last sent. The router renders a URL change in a transition, so the URL
+  // for "ab" can land after the member has typed "abm"; that echo of our own search must leave
+  // the field alone (overwriting it would also drop the pending "abm" search).
+  const [sentSearch, setSentSearch] = useState(search)
   if (search !== shownSearch) {
     setShownSearch(search)
-    // Only when the URL says something else than the field (back, forward, a link), so the
-    // trailing space someone just typed survives the trimmed search.
-    if (search !== text.trim()) setText(search)
+    if (search !== sentSearch) {
+      // The URL moved for another reason (back, forward, a link). Keep a trailing space someone
+      // just typed when the trimmed text already matches.
+      setSentSearch(search)
+      if (search !== text.trim()) setText(search)
+    }
+  }
+  const sendSearch = (value) => {
+    setSentSearch(value.trim())
+    changeSearch(value)
   }
   // A new page scrolls back to the top of the list (below the sticky top bar).
   const topRef = useRef(null)
@@ -204,7 +228,7 @@ export function CatalogList({
             placeholder={searchPlaceholder}
             value={text}
             onChange={(event) => setText(event.target.value)}
-            onSearch={changeSearch}
+            onSearch={sendSearch}
           />
         </div>
         {options.length > 1 && (

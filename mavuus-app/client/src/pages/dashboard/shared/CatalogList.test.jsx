@@ -1,21 +1,29 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router-dom'
 import { mockApi } from '../../../test/mockApi'
 import { CatalogList } from './CatalogList'
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.useRealTimers()
+  vi.unstubAllGlobals()
+})
 
 const things = [
   { id: 1, name: 'Alpha', kind: 'pro' },
   { id: 2, name: 'Beta', kind: 'free' },
 ]
 
+function Where() {
+  return <output data-testid="where">{useLocation().search}</output>
+}
+
 function renderList(props, { url = '/things', routes } = {}) {
   const fetchMock = mockApi(routes ?? { 'GET /api/things': { data: things, totalPages: 1 } })
   render(
     <MemoryRouter initialEntries={[url]}>
+      <Where />
       <CatalogList
         endpoint="/api/things"
         categories={['All', 'Guide']}
@@ -115,5 +123,49 @@ describe('CatalogList', () => {
     fail = false
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     await waitFor(() => expect(screen.getByText('Alpha')).toBeInTheDocument())
+  })
+
+  it('should keep what was typed after a search whose URL update lands late', async () => {
+    renderList({})
+    await screen.findByText('Alpha')
+    vi.useFakeTimers()
+    const box = screen.getByRole('searchbox', { name: 'Search things' })
+    fireEvent.change(box, { target: { value: 'ab' } })
+    // The debounce fires and searches "ab". The router puts the new URL in a transition, so it
+    // hasn't rendered yet when the next key arrives.
+    vi.advanceTimersByTime(300)
+    fireEvent.change(box, { target: { value: 'abm' } })
+    expect(box).toHaveValue('abm')
+    await act(async () => {
+      vi.advanceTimersByTime(300)
+    })
+    expect(box).toHaveValue('abm')
+    expect(screen.getByTestId('where')).toHaveTextContent('?q=abm')
+  })
+
+  it('should keep a search whose URL update is still pending when a chip is clicked', async () => {
+    renderList({})
+    await screen.findByText('Alpha')
+    vi.useFakeTimers()
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search things' }), { target: { value: 'ab' } })
+    // The search for "ab" is sent, but its URL hasn't rendered when the chip is clicked.
+    vi.advanceTimersByTime(300)
+    fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
+    await act(async () => {})
+    expect(screen.getByTestId('where')).toHaveTextContent('?q=ab&category=Guide')
+  })
+
+  it('should keep a cleared field when an older search lands after it', async () => {
+    renderList({})
+    await screen.findByText('Alpha')
+    vi.useFakeTimers()
+    const box = screen.getByRole('searchbox', { name: 'Search things' })
+    fireEvent.change(box, { target: { value: 'ab' } })
+    vi.advanceTimersByTime(300)
+    // Cleared before the URL for "ab" rendered: the clear searches '' right away.
+    fireEvent.change(box, { target: { value: '' } })
+    await act(async () => {})
+    expect(box).toHaveValue('')
+    expect(screen.getByTestId('where')).toHaveTextContent(/^$/)
   })
 })
