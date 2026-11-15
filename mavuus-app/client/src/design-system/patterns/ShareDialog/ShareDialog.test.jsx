@@ -80,4 +80,38 @@ describe('ShareDialog', () => {
     expect(success).not.toHaveBeenCalled()
     expect(error).toHaveBeenCalledWith("Couldn't copy the link. Select it and copy it instead.", undefined)
   })
+
+  it('should show an error and not open the mail app when the invite email is not an address', async () => {
+    const user = userEvent.setup()
+    const onOpenChange = vi.fn()
+    render(<ShareDialog open onOpenChange={onOpenChange} url="https://mavuus.com/r/2" />)
+    const field = screen.getByRole('textbox', { name: 'Send invite to your friend' })
+    await user.type(field, 'not-an-email')
+    await user.click(screen.getByRole('button', { name: 'Submit' }))
+    expect(field).toHaveAttribute('aria-invalid', 'true')
+    expect(field).toHaveAccessibleDescription(/Enter an email address/)
+    expect(onOpenChange).not.toHaveBeenCalled()
+  })
+
+  it('should open the mail app with the invite message and close when the email is valid', async () => {
+    const user = userEvent.setup()
+    const onOpenChange = vi.fn()
+    const location = { href: 'http://localhost/' }
+    vi.spyOn(window, 'location', 'get').mockReturnValue(location)
+    render(
+      <ShareDialog
+        open
+        onOpenChange={onOpenChange}
+        url="https://mavuus.com/register?ref=AB12"
+        shareTitle="Join me on Mavuus"
+        inviteMessage="Join me on Mavuus:"
+      />,
+    )
+    await user.type(screen.getByRole('textbox', { name: 'Send invite to your friend' }), 'pat@example.com')
+    await user.click(screen.getByRole('button', { name: 'Submit' }))
+    expect(location.href).toBe(
+      'mailto:pat@example.com?subject=Join%20me%20on%20Mavuus&body=Join%20me%20on%20Mavuus%3A%20https%3A%2F%2Fmavuus.com%2Fregister%3Fref%3DAB12',
+    )
+    expect(onOpenChange).toHaveBeenCalledWith(false)
+  })
 })

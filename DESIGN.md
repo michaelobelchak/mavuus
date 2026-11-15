@@ -317,7 +317,7 @@ Controls share one height scale (`lib/controlSizes.js`): xs 32px, sm 40px, md 48
 | `CheckList` | Benefit lists | `items`, `size` sm or md, `reveal` | |
 | `DescriptionList` | Label and value rows ("Details" panels) | `items` [{ key, label, value }] | Empty values are skipped |
 | `VideoEmbed` | A 16:9 player | `src` (YouTube or Vimeo page URL, or a video file), `title`, `emptyLabel` | No `src` shows "Video coming soon" |
-| `ShareDialog` | Share a page | `open`/`onOpenChange` or `trigger`, `title`, `url` (default the current page), `shareTitle` | Network links, Copy (toast) and an email invite |
+| `ShareDialog` | Share a page | `open`/`onOpenChange` or `trigger`, `title`, `url` (default the current page), `shareTitle`, `inviteMessage` | Network links, Copy (toast) and an email invite, checked before the mail app opens. Copy elsewhere with `copyText` from `lib/copyText.js` |
 | `ScrollProgress` | Reading progress on long pages | none | Decorative, fixed at the top of the window |
 | `Reveal` | Scroll-in motion | `variant` rise, fade, clip; `index` (stagger); `as` | See section 13 |
 | `CountUp` | Animated numbers | `value` | Non-numeric values render as is |

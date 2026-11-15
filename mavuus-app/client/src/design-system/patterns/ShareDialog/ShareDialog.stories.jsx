@@ -23,3 +23,14 @@ export default {
 export const Default = {}
 
 export const Open = { args: { defaultOpen: true } }
+
+/** A referral link: the email invite starts with `inviteMessage` instead of the default line. */
+export const Invite = {
+  args: {
+    defaultOpen: true,
+    title: 'Share your invite link',
+    url: 'https://mavuus.com/register?ref=MAVUUS2026',
+    shareTitle: 'Join me on Mavuus',
+    inviteMessage: "I'd like you to join me on Mavuus, a community for marketing leaders:",
+  },
+}

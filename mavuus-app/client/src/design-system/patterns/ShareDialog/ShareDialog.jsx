@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { Facebook, Linkedin, MessageCircle, Send, Twitter } from 'lucide-react'
+import { copyText } from '../../lib/copyText'
 import { Button, Input } from '../../primitives'
 import { Dialog } from '../Dialog'
 import { FormField } from '../FormField'
@@ -27,50 +28,43 @@ const NETWORKS = [
  * - `open` / `onOpenChange(open)`, or a `trigger`, as on Dialog. `title` names the dialog
  *   (default "Share").
  * - `url`: what to share (default the current page). `shareTitle`: the item's name, used as the
- *   post text and the email subject.
+ *   post text and the email subject. `inviteMessage`: the email's first words, before the link
+ *   (default "I thought you'd like this:").
+ * The invite email is checked before the mail app opens; a bad address shows a field error.
  * Needs one <Toaster /> in the app for the copy confirmation. Other props go to the Dialog.
  */
-export function ShareDialog({ title = 'Share', url, shareTitle = '', onOpenChange, ...props }) {
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+export function ShareDialog({
+  title = 'Share',
+  url,
+  shareTitle = '',
+  inviteMessage = "I thought you'd like this:",
+  onOpenChange,
+  ...props
+}) {
   const toast = useToast()
   const [invite, setInvite] = useState('')
+  const [inviteError, setInviteError] = useState('')
   const linkRef = useRef(null)
   const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '')
 
-  // The Clipboard API first; without it (or when it's refused) select the read-only field and
-  // use execCommand('copy'). Success is only claimed when one of them worked.
-  const copyWithSelection = () => {
-    const input = linkRef.current
-    if (!input) return false
-    input.focus()
-    input.select()
-    try {
-      return document.execCommand?.('copy') === true
-    } catch {
-      return false
-    }
-  }
-
   const copy = async () => {
-    let copied = false
-    if (navigator.clipboard?.writeText) {
-      try {
-        await navigator.clipboard.writeText(shareUrl)
-        copied = true
-      } catch {
-        copied = false
-      }
-    }
-    if (!copied) copied = copyWithSelection()
-    if (copied) toast.success('Link copied to clipboard')
+    if (await copyText(shareUrl, linkRef.current)) toast.success('Link copied to clipboard')
     else toast.error("Couldn't copy the link. Select it and copy it instead.")
   }
 
   const sendInvite = (event) => {
     event.preventDefault()
-    if (!invite.trim()) return
+    const email = invite.trim()
+    if (!email) return
+    if (!EMAIL.test(email)) {
+      setInviteError('Enter an email address like name@company.com')
+      return
+    }
     const subject = encodeURIComponent(shareTitle || 'Check this out on Mavuus')
-    const body = encodeURIComponent(`I thought you'd like this: ${shareUrl}`)
-    window.location.href = `mailto:${invite.trim()}?subject=${subject}&body=${body}`
+    const body = encodeURIComponent(`${inviteMessage} ${shareUrl}`)
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
     setInvite('')
     onOpenChange?.(false)
   }
@@ -108,9 +102,17 @@ export function ShareDialog({ title = 'Share', url, shareTitle = '', onOpenChang
             }
           />
         </FormField>
-        <form onSubmit={sendInvite} className="flex flex-col gap-ds-sm">
-          <FormField label="Send invite to your friend">
-            <Input type="email" value={invite} onChange={(event) => setInvite(event.target.value)} placeholder="friend@example.com" />
+        <form noValidate onSubmit={sendInvite} className="flex flex-col gap-ds-sm">
+          <FormField label="Send invite to your friend" error={inviteError || undefined}>
+            <Input
+              type="email"
+              value={invite}
+              onChange={(event) => {
+                setInvite(event.target.value)
+                setInviteError('')
+              }}
+              placeholder="friend@example.com"
+            />
           </FormField>
           <Button type="submit" className="self-start">
             Submit
