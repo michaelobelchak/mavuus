@@ -15,6 +15,10 @@ import { MEMBERS_PATH, MESSAGES_PATH } from './shared/paths'
 const LIST_POLL_MS = 10_000
 const THREAD_POLL_MS = 5_000
 const SEND_ERROR = "Couldn't send your message. Try again."
+const ANNOUNCE_MAX = 140
+
+// A screen reader hears a long message as its first 140 characters.
+const clip = (text) => (text.length > ANNOUNCE_MAX ? `${text.slice(0, ANNOUNCE_MAX).trimEnd()}...` : text)
 
 const parseId = (value) => {
   const id = Number(value)
@@ -48,12 +52,18 @@ export default function MessagesPage() {
   const [recipient, setRecipient] = useState({ id: null, status: 'loading', member: null })
   const [drafts, setDrafts] = useState({})
   const [sending, setSending] = useState(false)
-  const [announcement, setAnnouncement] = useState('')
+  // A counter with the text, so the same words twice ("Message sent") still change the live region.
+  const [announcement, setAnnouncementState] = useState({ text: '', n: 0 })
+  const setAnnouncement = (text) => setAnnouncementState((prev) => ({ text, n: prev.n + 1 }))
   const sendingRef = useRef(false)
   const composerRef = useRef(null)
   // The conversation on screen: a response for any other one is dropped.
   const activeRef = useRef(null)
   const knownRef = useRef({ id: null, ids: new Set() })
+  // Every thread load gets a number; a response older than the one on screen is dropped, so a slow
+  // poll can't bring back the messages from before a send.
+  const seqRef = useRef(0)
+  const appliedRef = useRef({ id: null, seq: 0 })
   const rowsRef = useRef([])
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token])
   const listHeadingId = useId()
@@ -103,11 +113,15 @@ export default function MessagesPage() {
 
   const loadThread = useCallback(
     async (id, { signal, poll = false } = {}) => {
+      seqRef.current += 1
+      const seq = seqRef.current
+      const stale = () => appliedRef.current.id === id && appliedRef.current.seq > seq
       try {
         const res = await fetch(`/api/messages/conversations/${id}/messages`, { headers: auth, signal })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const body = await res.json()
-        if (signal?.aborted || activeRef.current !== id) return
+        if (signal?.aborted || activeRef.current !== id || stale()) return
+        appliedRef.current = { id, seq }
         const messages = Array.isArray(body) ? body : []
         const known = knownRef.current.id === id ? knownRef.current.ids : null
         const incoming = known ? messages.filter((m) => !known.has(m.id) && m.sender_id !== user?.id) : []
@@ -118,14 +132,14 @@ export default function MessagesPage() {
           const name = row?.other_user_name || 'this member'
           const last = incoming[incoming.length - 1]
           setAnnouncement(
-            incoming.length === 1 ? `New message from ${name}: ${last.content}` : `${incoming.length} new messages from ${name}`,
+            incoming.length === 1 ? `New message from ${name}: ${clip(last.content)}` : `${incoming.length} new messages from ${name}`,
           )
         }
         // Opening a thread marks it read, and so does a poll that brought new messages. The shell
         // hears about it when something was unread, or when the list hasn't loaded yet to say.
         if (!poll || incoming.length > 0) markRead(id, incoming.length > 0 || !row || (row.unread_count || 0) > 0)
       } catch (err) {
-        if (signal?.aborted || err?.name === 'AbortError' || activeRef.current !== id) return
+        if (signal?.aborted || err?.name === 'AbortError' || activeRef.current !== id || stale()) return
         if (!poll) setThread({ id, status: 'error', messages: [] })
       }
     },
@@ -192,6 +206,9 @@ export default function MessagesPage() {
   const send = async () => {
     const text = draft.trim()
     if (!text || sendingRef.current || !draftKey) return
+    const sentDraft = draft
+    // Text typed while the message was on its way stays in the composer.
+    const clearSent = (key) => setDrafts((prev) => (prev[key] === sentDraft ? { ...prev, [key]: '' } : prev))
     sendingRef.current = true
     setSending(true)
     const key = draftKey
@@ -207,7 +224,7 @@ export default function MessagesPage() {
           toast.error(await errorMessage(res, SEND_ERROR))
           return
         }
-        setDraft(key, '')
+        clearSent(key)
         setAnnouncement('Message sent')
         await Promise.all([loadThread(conversationId), loadList({ quiet: true })])
       } else {
@@ -221,7 +238,7 @@ export default function MessagesPage() {
           return
         }
         const { conversationId: created } = await res.json()
-        setDraft(key, '')
+        clearSent(key)
         setAnnouncement('Message sent')
         await loadList({ quiet: true })
         setSearchParams({ conversation: String(created) }, { replace: true })
@@ -337,7 +354,7 @@ export default function MessagesPage() {
     sending,
     composerRef,
     onBack: back,
-    announcement,
+    announcement: announcement.text && `${announcement.text}${announcement.n % 2 ? '\u00a0' : ''}`,
   }
   const unavailable = (title, description) => (
     <Centered>

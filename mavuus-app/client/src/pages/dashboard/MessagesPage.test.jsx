@@ -66,6 +66,19 @@ function renderPage(url = '/dashboard/messages', routes = {}) {
   return fetchMock
 }
 
+// Holds one POST until the test calls the returned function (mockApi answers right away).
+function holdPost(fetchMock, url, body = { id: 13 }) {
+  const original = fetchMock.getMockImplementation()
+  let release
+  const gate = new Promise((resolve) => (release = resolve))
+  fetchMock.mockImplementation((input, init = {}) =>
+    input === url && init.method === 'POST'
+      ? gate.then(() => ({ ok: true, status: 201, json: () => Promise.resolve(body) }))
+      : original(input, init),
+  )
+  return () => release()
+}
+
 const posts = (fetchMock, url) => fetchMock.mock.calls.filter(([u, init]) => u === url && init?.method === 'POST')
 
 describe('MessagesPage', () => {
@@ -129,6 +142,82 @@ describe('MessagesPage', () => {
     window.removeEventListener('mavuus:messages-read', onRead)
   })
 
+  it('should keep text typed while a message was sending', async () => {
+    const user = userEvent.setup()
+    const fetchMock = renderPage('/dashboard/messages?conversation=1')
+    const finish = holdPost(fetchMock, '/api/messages/conversations/1/messages')
+    const composer = await screen.findByRole('textbox', { name: 'Message Tom Bradley' })
+    await user.type(composer, 'Hello{Enter}')
+    await user.type(composer, ' and more')
+    finish()
+    await waitFor(() => expect(screen.getByText(/^Message sent/)).toBeInTheDocument())
+    expect(composer).toHaveValue('Hello and more')
+  })
+
+  it('should not let an older poll overwrite the reload after a send', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      let gets = 0
+      let finishPoll
+      const sent = { id: 13, sender_id: 7, content: 'Sent just now', created_at: '2026-03-14T09:00:00Z' }
+      renderPage('/dashboard/messages?conversation=1', {
+        'GET /api/messages/conversations/1/messages': () => {
+          gets += 1
+          if (gets === 2) return new Promise((resolve) => (finishPoll = resolve)).then(() => tomMessages)
+          return gets === 1 ? tomMessages : [...tomMessages, sent]
+        },
+        'POST /api/messages/conversations/1/messages': reply(201, { id: 13 }),
+      })
+      await screen.findByText('Hi! Loved your talk.')
+      await vi.advanceTimersByTimeAsync(5000)
+      expect(gets).toBe(2)
+      await user.type(screen.getByRole('textbox', { name: 'Message Tom Bradley' }), 'Sent just now{Enter}')
+      expect(await screen.findByText('Sent just now', { selector: 'p' })).toBeInTheDocument()
+      finishPoll()
+      for (let i = 0; i < 5; i += 1) await vi.advanceTimersByTimeAsync(20)
+      await new Promise((resolve) => queueMicrotask(resolve))
+      expect(screen.getByText('Sent just now', { selector: 'p' })).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('should announce each send, and shorten long new-message announcements', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      let messages = tomMessages
+      renderPage('/dashboard/messages?conversation=1', {
+        'GET /api/messages/conversations/1/messages': () => messages,
+        'POST /api/messages/conversations/1/messages': reply(201, { id: 13 }),
+      })
+      const composer = await screen.findByRole('textbox', { name: 'Message Tom Bradley' })
+      const status = () => screen.getByText(/Message sent|New message/).textContent
+      await user.type(composer, 'One{Enter}')
+      await waitFor(() => expect(status()).toMatch(/^Message sent/))
+      const first = status()
+      await user.type(composer, 'Two{Enter}')
+      await waitFor(() => expect(status()).not.toBe(first))
+      expect(status()).toMatch(/^Message sent/)
+
+      messages = [...tomMessages, { id: 20, sender_id: 2, content: 'x'.repeat(400), created_at: '2026-03-14T09:00:00Z' }]
+      await vi.advanceTimersByTimeAsync(5000)
+      await waitFor(() => expect(status()).toMatch(/^New message from Tom Bradley/))
+      expect(status().length).toBeLessThanOrEqual(180)
+      expect(status().trim()).toMatch(/\.\.\.$/)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('should count only messages as list items, not the day labels', async () => {
+    renderPage('/dashboard/messages?conversation=1')
+    const list = await screen.findByRole('list', { name: 'Messages with Tom Bradley' })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(tomMessages.length)
+    expect(within(list).getByText(/Saturday, Mar 14/)).toBeInTheDocument()
+  })
+
   it('should put the picked conversation in the URL', async () => {
     const user = userEvent.setup()
     renderPage()
@@ -156,10 +245,8 @@ describe('MessagesPage', () => {
 
   it('should send once when Enter is pressed twice before the reply', async () => {
     const user = userEvent.setup()
-    let finish
-    const fetchMock = renderPage('/dashboard/messages?conversation=1', {
-      'POST /api/messages/conversations/1/messages': () => new Promise((resolve) => (finish = resolve)).then(() => reply(201, { id: 13 })),
-    })
+    const fetchMock = renderPage('/dashboard/messages?conversation=1')
+    const finish = holdPost(fetchMock, '/api/messages/conversations/1/messages')
     const composer = await screen.findByRole('textbox', { name: 'Message Tom Bradley' })
     await user.type(composer, 'Hello')
     await user.keyboard('{Enter}{Enter}')

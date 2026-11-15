@@ -19,7 +19,8 @@ function MessageList({ messages, selfId, otherName, label }) {
         const newDay = isNewDay(message.created_at, messages[index - 1]?.created_at)
         return [
           newDay && (
-            <li key={`day-${message.id}`} className="flex justify-center py-ds-xs">
+            // A label between messages, not a list item of its own.
+            <li key={`day-${message.id}`} role="presentation" className="flex justify-center py-ds-xs">
               <Caption className="rounded-chip bg-surface-sunken px-ds-sm py-ds-xxs">
                 <time dateTime={toDateTime(message.created_at)}>{dayLabel(message.created_at)}</time>
               </Caption>
