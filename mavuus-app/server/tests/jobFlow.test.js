@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import Database from 'better-sqlite3'
+import { readFileSync } from 'fs'
+import { fileURLToPath } from 'url'
 import request from 'supertest'
 import { createTestApp, generateTestToken } from './setup.js'
 import { ensureJobApplicationStatuses } from '../db/jobApplications.js'
@@ -94,6 +96,20 @@ describe('ensureJobApplicationStatuses', () => {
     const { lastInsertRowid } = old.prepare('INSERT INTO job_applications (job_id, user_id) VALUES (5, 1)').run()
     expect(Number(lastInsertRowid)).toBeGreaterThan(9)
     old.close()
+  })
+
+  it('should rebuild the table with the same columns as the current schema', () => {
+    const old = oldDatabase()
+    ensureJobApplicationStatuses(old)
+    const fresh = new Database(':memory:')
+    fresh.exec(readFileSync(fileURLToPath(new URL('../db/schema.sql', import.meta.url)), 'utf-8'))
+    const columns = (database) => database.prepare('PRAGMA table_info(job_applications)').all()
+    expect(columns(old)).toEqual(columns(fresh))
+    const checks = (database) =>
+      database.prepare("SELECT sql FROM sqlite_master WHERE name = 'job_applications'").get().sql.match(/CHECK\(status IN \(([^)]*)\)\)/)[1]
+    expect(checks(old)).toBe(checks(fresh))
+    old.close()
+    fresh.close()
   })
 
   it('should leave a current table alone', () => {

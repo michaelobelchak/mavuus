@@ -18,8 +18,9 @@ export function ensureJobApplicationStatuses(db) {
   const table = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'job_applications'").get()
   if (!table || table.sql.includes("'hired'")) return false
   const checked = APPLICATION_STATUSES.map((status) => `'${status}'`).join(', ')
-  const sequence = db.prepare("SELECT seq FROM sqlite_sequence WHERE name = 'job_applications'").get()?.seq ?? 0
   db.transaction(() => {
+    // Read inside the transaction, so no insert can land between this read and the drop.
+    const sequence = db.prepare("SELECT seq FROM sqlite_sequence WHERE name = 'job_applications'").get()?.seq ?? 0
     db.exec(`
       CREATE TABLE job_applications_next (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

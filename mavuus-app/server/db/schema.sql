@@ -203,6 +203,8 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 
 -- Job Applications
+-- Keep in step with db/jobApplications.js: it rebuilds this table on older databases (whose
+-- CHECK lacks 'hired') with these exact columns and statuses. tests/jobFlow.test.js compares them.
 CREATE TABLE IF NOT EXISTS job_applications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   job_id INTEGER REFERENCES jobs(id) ON DELETE CASCADE,
