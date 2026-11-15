@@ -1,15 +1,37 @@
 import { Router } from 'express'
-import { authenticateToken } from '../middleware/auth.js'
+import jwt from 'jsonwebtoken'
+import { authenticateToken, JWT_SECRET } from '../middleware/auth.js'
 import { validateLength, MAX_LENGTHS } from '../middleware/validate.js'
 
 const router = Router()
 
+// What members see of a job: no admin notes or moderation status.
+const PUBLIC_COLUMNS = [
+  'id', 'title', 'company', 'description', 'location', 'type', 'category', 'salary_range', 'seniority',
+  'status', 'hired_user_id', 'posted_by', 'created_at',
+]
+const publicColumns = (alias) => PUBLIC_COLUMNS.map((column) => (alias ? `${alias}.${column}` : column)).join(', ')
+// Jobs an admin hid or removed stay out of the member lists.
+const APPROVED = "moderation_status = 'approved'"
+const JOB_STATUSES = ['open', 'in-progress', 'completed', 'closed']
+
+// The signed-in member on a public route, or null (no token or an invalid one).
+function optionalUser(req) {
+  const token = req.cookies?.token || req.headers.authorization?.split(' ')[1]
+  if (!token) return null
+  try {
+    return jwt.verify(token, JWT_SECRET)
+  } catch {
+    return null
+  }
+}
+
 // Public: Get all jobs (no auth needed for browsing)
 router.get('/', (req, res) => {
-  const { type, category, posted_by, status, search, page = 1, limit = 20 } = req.query
+  const { type, category, seniority, posted_by, status, search, page = 1, limit = 20 } = req.query
   const db = req.app.locals.db
 
-  const conditions = []
+  const conditions = [APPROVED]
   const params = []
 
   if (type) {
@@ -19,6 +41,10 @@ router.get('/', (req, res) => {
   if (category) {
     conditions.push('category = ?')
     params.push(category)
+  }
+  if (seniority) {
+    conditions.push('seniority = ?')
+    params.push(seniority)
   }
   if (posted_by) {
     conditions.push('posted_by = ?')
@@ -43,7 +69,7 @@ router.get('/', (req, res) => {
   const offset = (pageNum - 1) * limitNum
 
   const data = db.prepare(
-    `SELECT * FROM jobs${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`
+    `SELECT ${publicColumns()} FROM jobs${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`
   ).all(...params, limitNum, offset)
 
   res.json({ data, total, page: pageNum, totalPages, limit: limitNum })
@@ -53,10 +79,10 @@ router.get('/', (req, res) => {
 router.get('/completed-by/:userId', (req, res) => {
   const db = req.app.locals.db
   const jobs = db.prepare(`
-    SELECT j.*, u.name as poster_name, u.avatar_url as poster_avatar
+    SELECT ${publicColumns('j')}, u.name as poster_name, u.avatar_url as poster_avatar
     FROM jobs j
     LEFT JOIN users u ON u.id = j.posted_by
-    WHERE j.hired_user_id = ? AND j.status = 'completed'
+    WHERE j.hired_user_id = ? AND j.status = 'completed' AND j.${APPROVED}
     ORDER BY j.created_at DESC
   `).all(req.params.userId)
   res.json(jobs)
@@ -66,7 +92,7 @@ router.get('/completed-by/:userId', (req, res) => {
 router.get('/saved', authenticateToken, (req, res) => {
   const db = req.app.locals.db
   const saved = db.prepare(`
-    SELECT j.*, sj.saved_at FROM saved_jobs sj
+    SELECT ${publicColumns('j')}, sj.saved_at FROM saved_jobs sj
     JOIN jobs j ON j.id = sj.job_id
     WHERE sj.user_id = ?
     ORDER BY sj.saved_at DESC
@@ -91,7 +117,7 @@ router.get('/my-applications', authenticateToken, (req, res) => {
 router.get('/my-postings', authenticateToken, (req, res) => {
   const db = req.app.locals.db
   const postings = db.prepare(`
-    SELECT j.*,
+    SELECT ${publicColumns('j')},
       (SELECT COUNT(*) FROM job_applications WHERE job_id = j.id) as applicant_count
     FROM jobs j WHERE j.posted_by = ?
     ORDER BY j.created_at DESC
@@ -103,7 +129,7 @@ router.get('/my-postings', authenticateToken, (req, res) => {
 router.get('/:id', (req, res) => {
   const db = req.app.locals.db
   const job = db.prepare(`
-    SELECT j.*, u.name as poster_name, u.title as poster_title, u.avatar_url as poster_avatar,
+    SELECT ${publicColumns('j')}, j.moderation_status, u.name as poster_name, u.title as poster_title, u.avatar_url as poster_avatar,
            h.name as hired_name, h.avatar_url as hired_avatar
     FROM jobs j
     LEFT JOIN users u ON u.id = j.posted_by
@@ -112,7 +138,12 @@ router.get('/:id', (req, res) => {
   `).get(req.params.id)
 
   if (!job) return res.status(404).json({ error: 'Job not found' })
-  res.json(job)
+  // A hidden or removed job is still there for the member who posted it.
+  const { moderation_status: moderation, ...visible } = job
+  if (moderation !== 'approved' && Number(optionalUser(req)?.id) !== Number(job.posted_by)) {
+    return res.status(404).json({ error: 'Job not found' })
+  }
+  res.json(visible)
 })
 
 // Auth: Create a job
@@ -137,6 +168,9 @@ router.put('/:id', authenticateToken, (req, res) => {
   if (!existing) return res.status(404).json({ error: 'Job not found or not authorized' })
 
   const { title, company, description, location, type, category, salary_range, status, hired_user_id } = req.body
+  if (status !== undefined && !JOB_STATUSES.includes(status)) {
+    return res.status(400).json({ error: `Status must be one of ${JOB_STATUSES.join(', ')}` })
+  }
   db.prepare('UPDATE jobs SET title = ?, company = ?, description = ?, location = ?, type = ?, category = ?, salary_range = ?, status = ?, hired_user_id = ? WHERE id = ?')
     .run(title || existing.title, company || existing.company, description ?? existing.description, location ?? existing.location, type ?? existing.type, category ?? existing.category, salary_range ?? existing.salary_range, status ?? existing.status, hired_user_id !== undefined ? hired_user_id : existing.hired_user_id, req.params.id)
 

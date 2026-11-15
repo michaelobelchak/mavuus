@@ -87,3 +87,58 @@ describe('ensureJobApplicationStatuses', () => {
     expect(ensureJobApplicationStatuses(db)).toBe(false)
   })
 })
+
+describe('job status changes', () => {
+  it('should refuse a status the jobs table does not allow', async () => {
+    const res = await request(app).put('/api/jobs/10').set('Authorization', `Bearer ${alice}`).send({ status: 'paused' })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/status/i)
+  })
+
+  it('should change the status for the poster', async () => {
+    const res = await request(app).put('/api/jobs/10').set('Authorization', `Bearer ${alice}`).send({ status: 'completed' })
+    expect(res.status).toBe(200)
+    expect(db.prepare('SELECT status FROM jobs WHERE id = 10').get().status).toBe('completed')
+  })
+})
+
+describe('public job routes', () => {
+  it('should leave hidden and removed jobs out of the list and never send admin fields', async () => {
+    const res = await request(app).get('/api/jobs?limit=100')
+    const titles = res.body.data.map((job) => job.title)
+    expect(titles).toContain('Hire Me Job')
+    expect(titles).not.toContain('Hidden Job')
+    expect(titles).not.toContain('Removed Job')
+    expect(res.body.total).toBe(res.body.data.length)
+    for (const job of res.body.data) {
+      expect(job).not.toHaveProperty('admin_notes')
+      expect(job).not.toHaveProperty('moderation_status')
+    }
+  })
+
+  it('should answer 404 for a hidden job unless the poster asks', async () => {
+    expect((await request(app).get('/api/jobs/11')).status).toBe(404)
+    expect((await request(app).get('/api/jobs/11').set('Authorization', `Bearer ${bob}`)).status).toBe(404)
+    const own = await request(app).get('/api/jobs/11').set('Authorization', `Bearer ${alice}`)
+    expect(own.status).toBe(200)
+    expect(own.body).not.toHaveProperty('admin_notes')
+  })
+
+  it('should not send admin fields on a single job or saved jobs', async () => {
+    const job = await request(app).get('/api/jobs/10')
+    expect(job.status).toBe(200)
+    expect(job.body).not.toHaveProperty('admin_notes')
+    expect(job.body).not.toHaveProperty('moderation_status')
+
+    await request(app).post('/api/jobs/10/save').set('Authorization', `Bearer ${bob}`)
+    const saved = await request(app).get('/api/jobs/saved').set('Authorization', `Bearer ${bob}`)
+    expect(saved.body.map((j) => j.id)).toContain(10)
+    for (const row of saved.body) expect(row).not.toHaveProperty('admin_notes')
+  })
+
+  it('should filter the list by seniority on the server', async () => {
+    const res = await request(app).get('/api/jobs?seniority=Senior&limit=100')
+    expect(res.body.data.map((job) => job.title)).toEqual(['Hire Me Job'])
+    expect(res.body.total).toBe(1)
+  })
+})
