@@ -241,3 +241,16 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 **Decision (review):** the job detail page keeps a single Save button in the side card; the old header bookmark repeated it.
 
 **Non-obvious (review):** dropping a table deletes its `sqlite_sequence` row, so the rebuilt `job_applications` would restart AUTOINCREMENT at the highest copied id and could reuse ids of deleted applications. `ensureJobApplicationStatuses` writes back the larger of the old counter and the new one. SQLite's table-change recipe also turns `foreign_keys` off around a rebuild; it isn't needed here because no table references `job_applications`.
+
+**Decision (code review):** resume links are plain links to `GET /api/files/resumes/:name`, authorized by the httpOnly session cookie the login already sets (`authenticateToken` reads the cookie first). Rejected: fetching the PDF as a blob with the bearer token (more code, no real download link, blob URLs to revoke) and short-lived signed URLs (a secret in the address bar and history, plus a signing scheme to maintain). The route answers 404 for anything the member may not read, so it doesn't reveal which files exist.
+
+**Decision (code review):** who may read a resume: its owner, admins, the poster of a job the owner applied to (with that file, or with the profile resume the applicants list falls back to) and members who may see the owner's full profile, because the member profile page has always offered the resume to them. Old `/uploads/resumes/<name>` rows are not rewritten: `resumeName` accepts both forms and `resumeHref` maps both to the route.
+
+**Decision (code review):** uploading a resume in the apply dialog replaces the profile resume (what the server already did), and the field says so. Rejected: a separate application-only copy, which needs a new upload route and storage rule for one dialog. The old profile file is kept while any application points at it.
+
+**Decision (code review):** a hire is final and single: the status route checks the job is open with no hire and refuses moving a hired application, all in one transaction. A hidden posting keeps its link in My Postings because the detail page still opens for its poster.
+
+**Non-obvious (code review):**
+- `/api/profile/me` never returned `resume_url`, so the apply dialog's profile resume choice had never shown in the real app; the unit test mocked it in.
+- The seeded demo profile points at `/uploads/resumes/demo-user-resume.pdf`, a file that doesn't exist, so the demo's profile resume link answers 404 until a real file is uploaded.
+- ProfilePage (second half of 3D) shows the resume file name without a link; when it moves onto the system, link it with `resumeHref`.
