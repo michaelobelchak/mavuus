@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Bookmark, Briefcase, FileText, Plus } from 'lucide-react'
 import { Alert, Dialog, DialogClose, EmptyState, FormField, Tabs, useToast } from '@/design-system/patterns'
 import { JobCard, JobCardSkeleton, StatusBadge } from '@/design-system/organisms'
-import { Button, Input, Select, Text, Textarea } from '@/design-system/primitives'
+import { Badge, Button, Input, Select, Text, Textarea } from '@/design-system/primitives'
 import { formatDate } from '@/design-system/lib/formatDate'
 import { useAuth } from '../../context/AuthContext'
 import { JOB_TYPES, jobCardProps, jobTypeLabel } from './shared/jobs'
@@ -11,6 +11,13 @@ import { JOBS_PATH } from './shared/paths'
 import { listOf } from './shared/reviewProps'
 
 const TABS = ['applications', 'saved', 'postings']
+// Each tab loads its own list, so one failing endpoint doesn't take down the other tabs.
+const ENDPOINTS = {
+  applications: '/api/jobs/my-applications',
+  saved: '/api/jobs/saved',
+  postings: '/api/jobs/my-postings',
+}
+const LOADING = { status: 'loading', rows: [] }
 const LIST = 'flex flex-col gap-ds-md'
 const emptyForm = (company) => ({
   title: '',
@@ -36,34 +43,23 @@ export default function MyJobsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const requested = searchParams.get('tab')
   const tab = TABS.includes(requested) ? requested : 'applications'
-  const [data, setData] = useState({ applications: [], saved: [], postings: [] })
-  const [status, setStatus] = useState('loading')
-  const [attempt, setAttempt] = useState(0)
+  const [lists, setLists] = useState({ applications: LOADING, saved: LOADING, postings: LOADING })
   const removing = useRef(new Set())
   const [postOpen, setPostOpen] = useState(false)
   const [posting, setPosting] = useState(false)
   const [form, setForm] = useState(() => emptyForm(user?.company))
 
-  const load = useCallback(
-    async (signal) => {
-      const headers = { Authorization: `Bearer ${token}` }
-      const get = async (url) => {
-        const res = await fetch(url, { headers, signal })
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return listOf(await res.json())
-      }
+  const setList = (name, next) => setLists((prev) => ({ ...prev, [name]: next }))
+  const loadList = useCallback(
+    async (name, signal) => {
       try {
-        const [applications, saved, postings] = await Promise.all([
-          get('/api/jobs/my-applications'),
-          get('/api/jobs/saved'),
-          get('/api/jobs/my-postings'),
-        ])
-        if (signal?.aborted) return
-        setData({ applications, saved, postings })
-        setStatus('ready')
+        const res = await fetch(ENDPOINTS[name], { headers: { Authorization: `Bearer ${token}` }, signal })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const rows = listOf(await res.json())
+        if (!signal?.aborted) setLists((prev) => ({ ...prev, [name]: { status: 'ready', rows } }))
       } catch (err) {
         if (signal?.aborted || err?.name === 'AbortError') return
-        setStatus('error')
+        setLists((prev) => ({ ...prev, [name]: { status: 'error', rows: [] } }))
       }
     },
     [token],
@@ -71,9 +67,14 @@ export default function MyJobsPage() {
 
   useEffect(() => {
     const controller = new AbortController()
-    load(controller.signal)
+    for (const name of TABS) loadList(name, controller.signal)
     return () => controller.abort()
-  }, [load, attempt])
+  }, [loadList])
+
+  const retry = (name) => {
+    setList(name, LOADING)
+    loadList(name)
+  }
 
   const changeTab = (next) => {
     setSearchParams((prev) => {
@@ -90,7 +91,7 @@ export default function MyJobsPage() {
     try {
       const res = await fetch(`/api/jobs/${job.id}/save`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      setData((prev) => ({ ...prev, saved: prev.saved.filter((row) => row.id !== job.id) }))
+      setLists((prev) => ({ ...prev, saved: { ...prev.saved, rows: prev.saved.rows.filter((row) => row.id !== job.id) } }))
       toast.success('Job removed from saved')
     } catch {
       toast.error("Couldn't remove the job. Try again.")
@@ -120,7 +121,7 @@ export default function MyJobsPage() {
       toast.success('Job posted!')
       setPostOpen(false)
       setForm(emptyForm(user?.company))
-      await load()
+      await loadList('postings')
       changeTab('postings')
     } catch {
       toast.error('Failed to post job')
@@ -144,50 +145,59 @@ export default function MyJobsPage() {
     </Button>
   )
 
-  let panels
-  if (status === 'loading') {
-    panels = (
-      <ul aria-busy="true" aria-label="Loading your jobs" className={LIST}>
-        {[0, 1, 2].map((i) => (
-          <li key={i}>
-            <JobCardSkeleton announce={false} />
-          </li>
-        ))}
-      </ul>
-    )
-  } else if (status === 'error') {
-    panels = (
-      <Alert
-        tone="error"
-        title="We couldn't load your jobs"
-        description="Check your connection and try again."
-        actions={
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              setStatus('loading')
-              setAttempt((n) => n + 1)
-            }}
-          >
-            Try again
-          </Button>
-        }
-      />
-    )
+  const ERROR_TITLES = {
+    applications: "We couldn't load your applications",
+    saved: "We couldn't load your saved jobs",
+    postings: "We couldn't load your postings",
   }
+  // A tab's body: skeletons, its own error with Try again, the empty state or the list.
+  const body = (name, empty, list) => {
+    const { status, rows } = lists[name]
+    if (status === 'loading') {
+      return (
+        <ul aria-busy="true" aria-label={`Loading ${name}`} className={LIST}>
+          {[0, 1, 2].map((i) => (
+            <li key={i}>
+              <JobCardSkeleton announce={false} />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    if (status === 'error') {
+      return (
+        <Alert
+          tone="error"
+          title={ERROR_TITLES[name]}
+          description="Check your connection and try again."
+          actions={
+            <Button size="sm" variant="outline" onClick={() => retry(name)}>
+              Try again
+            </Button>
+          }
+        />
+      )
+    }
+    return rows.length === 0 ? empty : list(rows)
+  }
+  const label = (name, text) => (lists[name].status === 'ready' ? `${text} (${lists[name].rows.length})` : text)
 
-  const { applications, saved, postings } = data
   const items = [
     {
       value: 'applications',
-      label: `Applications (${applications.length})`,
-      content:
-        applications.length === 0 ? (
-          <EmptyState headingLevel={2} icon={FileText} title="No applications yet" description="Browse jobs and apply to get started." actions={browse} />
-        ) : (
+      label: label('applications', 'Applications'),
+      content: body(
+        'applications',
+        <EmptyState
+          headingLevel={2}
+          icon={FileText}
+          title="No applications yet"
+          description="Browse jobs and apply to get started."
+          actions={browse}
+        />,
+        (rows) => (
           <JobList label="My applications">
-            {applications.map((app) => (
+            {rows.map((app) => (
               <li key={app.id}>
                 <JobCard
                   headingLevel={2}
@@ -195,29 +205,37 @@ export default function MyJobsPage() {
                   company={app.job_company}
                   location={app.job_location}
                   type={jobTypeLabel(app.job_type)}
-                  status={<StatusBadge status={app.status} size="sm" />}
+                  status={
+                    <>
+                      <StatusBadge status={app.status} size="sm" />
+                      {app.unavailable && <Badge size="sm">No longer available</Badge>}
+                    </>
+                  }
                   postedLabel={`Applied ${formatDate(app.applied_at)}`}
-                  to={`${JOBS_PATH}/${app.job_id}`}
+                  // A job an admin hid or removed would only open "Job not found".
+                  to={app.unavailable ? undefined : `${JOBS_PATH}/${app.job_id}`}
                 />
               </li>
             ))}
           </JobList>
         ),
+      ),
     },
     {
       value: 'saved',
-      label: `Saved (${saved.length})`,
-      content:
-        saved.length === 0 ? (
-          <EmptyState headingLevel={2}
-            icon={Bookmark}
-            title="No saved jobs"
-            description="Bookmark jobs you're interested in to find them here."
-            actions={browse}
-          />
-        ) : (
+      label: label('saved', 'Saved'),
+      content: body(
+        'saved',
+        <EmptyState
+          headingLevel={2}
+          icon={Bookmark}
+          title="No saved jobs"
+          description="Bookmark jobs you're interested in to find them here."
+          actions={browse}
+        />,
+        (rows) => (
           <JobList label="Saved jobs">
-            {saved.map((job) => (
+            {rows.map((job) => (
               <li key={job.id}>
                 <JobCard
                   headingLevel={2}
@@ -231,21 +249,23 @@ export default function MyJobsPage() {
             ))}
           </JobList>
         ),
+      ),
     },
     {
       value: 'postings',
-      label: `Postings (${postings.length})`,
-      content:
-        postings.length === 0 ? (
-          <EmptyState headingLevel={2}
-            icon={Briefcase}
-            title="No job postings"
-            description="Post a job to find qualified marketing professionals."
-            actions={postButton('sm')}
-          />
-        ) : (
+      label: label('postings', 'Postings'),
+      content: body(
+        'postings',
+        <EmptyState
+          headingLevel={2}
+          icon={Briefcase}
+          title="No job postings"
+          description="Post a job to find qualified marketing professionals."
+          actions={postButton('sm')}
+        />,
+        (rows) => (
           <JobList label="My postings">
-            {postings.map((job) => (
+            {rows.map((job) => (
               <li key={job.id}>
                 <JobCard
                   headingLevel={2}
@@ -261,6 +281,7 @@ export default function MyJobsPage() {
             ))}
           </JobList>
         ),
+      ),
     },
   ]
 
@@ -271,15 +292,7 @@ export default function MyJobsPage() {
         {postButton('md')}
       </div>
 
-      {panels ?? (
-        <Tabs
-          aria-label="My jobs"
-          items={items}
-          value={tab}
-          onValueChange={changeTab}
-          listClassName="overflow-x-auto"
-        />
-      )}
+      <Tabs aria-label="My jobs" items={items} value={tab} onValueChange={changeTab} listClassName="overflow-x-auto" />
 
       <Dialog
         open={postOpen}

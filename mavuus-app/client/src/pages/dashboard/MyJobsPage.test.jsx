@@ -142,13 +142,27 @@ describe('MyJobsPage', () => {
     await waitFor(() => expect(error).toHaveBeenCalledWith('Title must be 200 characters or less', undefined))
   })
 
-  it('should show an error with Try again when the lists fail to load', async () => {
+  it('should show an error with Try again on the one tab whose list failed, and keep the others working', async () => {
     const user = userEvent.setup()
     let fail = true
     renderPage('/dashboard/my-jobs', { 'GET /api/jobs/saved': () => (fail ? reply(500, {}) : saved) })
-    expect(await screen.findByText("We couldn't load your jobs")).toBeInTheDocument()
+    // The applications tab still loads.
+    expect(await screen.findByRole('link', { name: 'Senior Content Strategist' })).toBeInTheDocument()
+    expect(screen.queryByText("We couldn't load your saved jobs")).not.toBeInTheDocument()
+    await user.click(screen.getByRole('tab', { name: 'Saved' }))
+    expect(await screen.findByText("We couldn't load your saved jobs")).toBeInTheDocument()
     fail = false
     await user.click(screen.getByRole('button', { name: 'Try again' }))
-    expect(await screen.findByRole('link', { name: 'Senior Content Strategist' })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Content Marketing Manager' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Saved (1)' })).toBeInTheDocument()
+  })
+
+  it('should show an application for a job that is gone without a link and say it is no longer available', async () => {
+    renderPage('/dashboard/my-jobs', {
+      'GET /api/jobs/my-applications': [{ ...applications[0], unavailable: true }],
+    })
+    expect(await screen.findByRole('heading', { name: 'Senior Content Strategist' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Senior Content Strategist' })).not.toBeInTheDocument()
+    expect(screen.getByText('No longer available')).toBeInTheDocument()
   })
 })
