@@ -85,7 +85,7 @@ export default function RegisterPage() {
     }
     setLoading(true)
     try {
-      await register(form.name, form.email, form.password)
+      await register(form.name, form.email, form.password, { ref: searchParams.get('ref') || undefined })
       navigate('/dashboard')
     } catch (err) {
       setError(err.message)
