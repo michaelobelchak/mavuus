@@ -117,6 +117,13 @@ describe('Dialog', () => {
     expect(dialog).toHaveClass('motion-reduce:data-[starting-style]:scale-100')
   })
 
+  it('should keep the body at its full height when the dialog is taller than the screen', async () => {
+    // The popup scrolls as a whole; a body that could shrink let tall forms slide under the footer.
+    renderDialog({ defaultOpen: true })
+    const field = await screen.findByRole('textbox', { name: 'Email' })
+    expect(field.closest('label').parentElement).toHaveClass('shrink-0')
+  })
+
   it('should warn and fall back to md when the size is unknown', async () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     renderDialog({ defaultOpen: true, size: 'xl' })
