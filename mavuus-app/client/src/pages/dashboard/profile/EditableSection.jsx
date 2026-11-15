@@ -11,10 +11,11 @@ import { changedKeys } from './profileFields'
  * - `initial()`: the form's starting values. `validate(values)`: `{ field: message }` for problems.
  * - `save(changedValues, values)`: resolves when saved; throw an Error to show its message. Only
  *   changed fields are passed. Save stays off until something changed.
+ * - `stepKey`: the profile completion step whose button focuses Edit (`data-profile-step`).
  * - `children({ values, errors, set })`: the fields. `set(key, value)` clears that field's error.
  * Focus goes to the first field on Edit and back to Edit after Save or Cancel.
  */
-export function EditableSection({ title, editLabel, view, initial, validate, save, children }) {
+export function EditableSection({ title, editLabel, view, initial, validate, save, stepKey, children }) {
   const [editing, setEditing] = useState(false)
   const [values, setValues] = useState(null)
   const [errors, setErrors] = useState({})
@@ -79,7 +80,7 @@ export function EditableSection({ title, editLabel, view, initial, validate, sav
       title={title}
       actions={
         !editing && (
-          <Button ref={editRef} variant="outline" size="sm" leadingIcon={Pencil} aria-label={editLabel} onClick={open}>
+          <Button ref={editRef} variant="outline" size="sm" leadingIcon={Pencil} aria-label={editLabel} data-profile-step={stepKey} onClick={open}>
             Edit
           </Button>
         )

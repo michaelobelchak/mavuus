@@ -77,6 +77,7 @@ function AboutSection({ profile, onSave }) {
     <EditableSection
       title="About"
       editLabel="Edit about"
+      stepKey="bio"
       view={
         <div className="flex flex-col gap-ds-md">
           {profile.bio ? (
@@ -243,6 +244,7 @@ function SkillsSection({ skills, onAdd, onRemove }) {
       >
         <FormField label="Add a skill" error={error || undefined} className="grow">
           <Input
+            data-profile-step="skills"
             value={text}
             onChange={(event) => {
               setText(event.target.value)

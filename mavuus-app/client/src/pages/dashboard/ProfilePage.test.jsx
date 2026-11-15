@@ -99,6 +99,18 @@ describe('ProfilePage', () => {
     expect(await screen.findByRole('progressbar', { name: 'Profile 60% complete' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Upload a resume' }))
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('?tab=experience'))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Upload resume' })).toHaveFocus())
+    await user.click(screen.getByRole('button', { name: 'Add your experience' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Add experience' })).toHaveFocus())
+  })
+
+  it('should take a completion step on the About tab to its section', async () => {
+    const user = userEvent.setup()
+    renderPage('/dashboard/profile?tab=billing', {}, { ...baseProfile, bio: '', skills: [] })
+    await user.click(await screen.findByRole('button', { name: 'Write a short bio' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Edit about' })).toHaveFocus())
+    await user.click(screen.getByRole('button', { name: 'Add three skills' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Add a skill' })).toHaveFocus())
   })
 
   it('should save only the changed personal fields, with Save off until something changed', async () => {
@@ -212,6 +224,7 @@ describe('ProfilePage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Remove' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(calls(fetchMock, 'DELETE', '/api/profile/me/experience/9')).toHaveLength(2)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Add experience' })).toHaveFocus())
   })
 
   it('should link the resume through the private route, check uploads and remove it', async () => {
@@ -262,6 +275,30 @@ describe('ProfilePage', () => {
     await user.click(screen.getByRole('button', { name: 'Save visibility' }))
     await waitFor(() => expect(calls(fetchMock, 'PUT', '/api/profile/me')).toHaveLength(1))
     expect(lastBody(fetchMock, 'PUT', '/api/profile/me')).toEqual({ profile_visibility: 'connections' })
+  })
+
+  it('should keep a newer switch when an older reload answers after it', async () => {
+    const user = userEvent.setup()
+    let gets = 0
+    let finishReload
+    renderPage('/dashboard/profile?tab=account', {
+      'GET /api/profile/me': () => {
+        gets += 1
+        // The reload left before the switch was flipped: it has the new visibility, not the switch.
+        const later = { ...baseProfile, profile_visibility: 'connections' }
+        return gets === 1 ? baseProfile : new Promise((resolve) => (finishReload = resolve)).then(() => later)
+      },
+    })
+    await user.click(await screen.findByRole('radio', { name: /Connections only/ }))
+    await user.click(screen.getByRole('button', { name: 'Save visibility' }))
+    await waitFor(() => expect(gets).toBe(2))
+    const jobs = screen.getByRole('switch', { name: 'Jobs' })
+    await user.click(jobs)
+    await waitFor(() => expect(jobs).toBeChecked())
+    finishReload()
+    await new Promise((resolve) => setTimeout(resolve, 30))
+    expect(jobs).toBeChecked()
+    expect(screen.getByRole('radio', { name: /Connections only/ })).toBeChecked()
   })
 
   it('should check a new password and show a wrong current password on its field', async () => {

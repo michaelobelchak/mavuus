@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Alert, Tabs, useToast } from '@/design-system/patterns'
 import { Button, Skeleton } from '@/design-system/primitives'
@@ -39,14 +39,24 @@ export default function ProfilePage() {
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token])
   const json = useMemo(() => ({ ...auth, 'Content-Type': 'application/json' }), [auth])
   const profile = state.profile
+  // Local changes since a reload started are applied again on top of its answer, so a reload that
+  // left before a switch was flipped can't flip it back. Only the newest reload is applied.
+  const patchesRef = useRef([])
+  const loadSeq = useRef(0)
 
   const load = useCallback(
     async (signal) => {
+      loadSeq.current += 1
+      const seq = loadSeq.current
+      const since = patchesRef.current.length
       try {
         const res = await fetch('/api/profile/me', { headers: auth, signal })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
-        if (!signal?.aborted) setState({ status: 'ready', profile: data })
+        if (signal?.aborted || seq !== loadSeq.current) return
+        const later = Object.assign({}, ...patchesRef.current.slice(since))
+        patchesRef.current = []
+        setState({ status: 'ready', profile: { ...data, ...later } })
       } catch (err) {
         if (signal?.aborted || err?.name === 'AbortError') return
         // A failed reload after a save keeps the profile on screen.
@@ -77,7 +87,22 @@ export default function ProfilePage() {
     return () => controller.abort()
   }, [userId, auth])
 
-  const patch = (fields) => setState((prev) => (prev.profile ? { ...prev, profile: { ...prev.profile, ...fields } } : prev))
+  const patch = (fields) => {
+    patchesRef.current.push(fields)
+    setState((prev) => (prev.profile ? { ...prev, profile: { ...prev.profile, ...fields } } : prev))
+  }
+
+  // A completion step's button: open its tab, then focus (and scroll to) the control that does it.
+  const [stepRequest, setStepRequest] = useState(null)
+  const handledStep = useRef(null)
+  useEffect(() => {
+    if (!stepRequest || handledStep.current === stepRequest) return
+    const target = document.querySelector(`[data-profile-step="${stepRequest.key}"]`)
+    if (!target) return
+    handledStep.current = stepRequest
+    target.scrollIntoView?.({ block: 'center' })
+    target.focus()
+  }, [stepRequest, tab])
 
   const changeTab = (next) => {
     setSearchParams((prev) => {
@@ -278,7 +303,10 @@ export default function ProfilePage() {
         profile={profile}
         completion={profileCompletion(profile)}
         onUploadAvatar={uploadAvatar}
-        onStep={(step) => changeTab(step.tab)}
+        onStep={(step) => {
+          changeTab(step.tab)
+          setStepRequest({ key: step.key })
+        }}
       />
       <Tabs
         aria-label="Profile sections"

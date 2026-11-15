@@ -140,7 +140,7 @@ function ExperienceDialog({ open, onOpenChange, editing, onSave }) {
 }
 
 /** Confirms removing a role; a failure keeps the dialog open with an error. */
-function DeleteDialog({ target, onOpenChange, onDelete }) {
+function DeleteDialog({ target, onOpenChange, onDelete, finalFocus }) {
   const [error, setError] = useState('')
   const [deleting, setDeleting] = useState(false)
   const busy = useRef(false)
@@ -169,6 +169,7 @@ function DeleteDialog({ target, onOpenChange, onDelete }) {
       open={Boolean(target)}
       onOpenChange={onOpenChange}
       size="sm"
+      finalFocus={finalFocus}
       title="Remove this role?"
       description={target ? `${target.title} at ${target.company} will be removed from your profile. This can't be undone.` : undefined}
       footer={
@@ -255,7 +256,7 @@ function ResumeSection({ filename, url, onUpload, onRemove }) {
           <Text size="body-sm" tone="secondary">
             Add your resume so employers you apply to can read it.
           </Text>
-          <Button variant="outline" leadingIcon={Upload} loading={busy === 'upload'} onClick={() => inputRef.current?.click()}>
+          <Button variant="outline" leadingIcon={Upload} loading={busy === 'upload'} data-profile-step="resume" onClick={() => inputRef.current?.click()}>
             {chooseLabel}
           </Button>
         </div>
@@ -274,9 +275,11 @@ function ResumeSection({ filename, url, onUpload, onRemove }) {
 export function ExperienceTab({ profile, onSaveExperience, onDeleteExperience, onUploadResume, onRemoveResume }) {
   const [dialog, setDialog] = useState({ open: false, editing: null })
   const [deleting, setDeleting] = useState(null)
+  // The one Add experience button on screen (header or empty state); focus lands here after a delete.
+  const addRef = useRef(null)
   const experience = profile.experience || []
   const add = (
-    <Button leadingIcon={Plus} onClick={() => setDialog({ open: true, editing: null })}>
+    <Button ref={addRef} data-profile-step="experience" leadingIcon={Plus} onClick={() => setDialog({ open: true, editing: null })}>
       Add experience
     </Button>
   )
@@ -334,7 +337,7 @@ export function ExperienceTab({ profile, onSaveExperience, onDeleteExperience, o
         onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}
         onSave={(form) => onSaveExperience(dialog.editing, form)}
       />
-      <DeleteDialog target={deleting} onOpenChange={(open) => !open && setDeleting(null)} onDelete={onDeleteExperience} />
+      <DeleteDialog target={deleting} onOpenChange={(open) => !open && setDeleting(null)} onDelete={onDeleteExperience} finalFocus={addRef} />
     </div>
   )
 }
