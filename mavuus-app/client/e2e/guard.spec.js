@@ -41,4 +41,18 @@ test.describe('public pages: third-party guard', () => {
     await requestImage(page, outside(PENDING_HOSTS[0]))
     expect(problems).toEqual([])
   })
+
+  test('lets a page that opts in use a subdomain of a pending host', async ({ page }) => {
+    const problems = watchPage(page, { allowHosts: PENDING_HOSTS })
+    await page.goto('/faq')
+    await requestImage(page, outside('fastly.picsum.photos'))
+    expect(problems).toEqual([])
+  })
+
+  test('still reports a look-alike host on a page that opts in', async ({ page }) => {
+    const problems = watchPage(page, { allowHosts: PENDING_HOSTS })
+    await page.goto('/faq')
+    await requestImage(page, outside('evilpicsum.photos'))
+    expect(problems).toEqual([`third-party request: GET ${outside('evilpicsum.photos')}`])
+  })
 })

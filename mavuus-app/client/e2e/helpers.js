@@ -11,6 +11,12 @@ export const WIDTHS = [1440, 1024, 768, 390]
 // /login and /register) may request them; every other page fails on them.
 export const PENDING_HOSTS = ['images.unsplash.com', 'picsum.photos']
 
+// A host is allowed when it is listed or is a subdomain of a listed host: picsum.photos redirects
+// each image to fastly.picsum.photos.
+export function isAllowedHost(hostname, allowHosts) {
+  return allowHosts.some((host) => hostname === host || hostname.endsWith(`.${host}`))
+}
+
 export function isLocal(url) {
   try {
     const { protocol, hostname } = new URL(url)
@@ -48,7 +54,7 @@ export function watchPage(page, { allowHosts = [] } = {}) {
   const problems = []
   page.on('request', (request) => {
     const url = request.url()
-    if (!isLocal(url) && !allowHosts.includes(new URL(url).hostname)) problems.push(`third-party request: ${request.method()} ${url}`)
+    if (!isLocal(url) && !isAllowedHost(new URL(url).hostname, allowHosts)) problems.push(`third-party request: ${request.method()} ${url}`)
   })
   page.on('pageerror', (error) => problems.push(`page error: ${error.message}`))
   page.on('console', (message) => {
