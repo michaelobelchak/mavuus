@@ -87,7 +87,8 @@ router.post('/register', (req, res) => {
   console.log(`[Email Verification] Link: http://localhost:5173/verify-email?token=${verificationToken}`)
 
   // Track referral if ref code provided
-  const { ref } = req.query || {}
+  // Only a single code counts: ?ref=A&ref=B arrives as an array and is ignored.
+  const ref = typeof req.query?.ref === 'string' ? req.query.ref : null
   if (ref) {
     const referralCode = db.prepare('SELECT user_id FROM referral_codes WHERE code = ?').get(ref)
     if (referralCode) {

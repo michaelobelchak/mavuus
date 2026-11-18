@@ -49,7 +49,8 @@ function Section({ section, collapsed, ...itemProps }) {
  * - `collapsed`: the icon rail (labels become tooltips, the logo becomes the mark).
  * - `badges`: counts per badge key (`{ messages: 3 }`). `onNavigate(event, item)`: a link was followed.
  * - `logo` replaces the Mavuus logo; `logoTo` is where it links (default '/dashboard').
- * - `footer`: content under the nav (a user card, "Back to site").
+ * - `footer`: content under the nav (a user card, "Back to site"), or a function that gets
+ *   `{ collapsed }` and returns it, so the footer can switch to icons in the rail.
  * - `onCollapsedChange(next)`: shows a collapse toggle at the bottom when set.
  * `aria-label` names the nav (default "Main"); `className` and other props go to the root.
  */
@@ -70,6 +71,7 @@ export function AppSidebar({
   const location = useLocation()
   const activeTo = findActiveItem(nav, location)?.to ?? null
   const toggleLabel = collapsed ? 'Expand sidebar' : 'Collapse sidebar'
+  const footerContent = typeof footer === 'function' ? footer({ collapsed }) : footer
   const toggle = onCollapsedChange && (
     <IconButton
       icon={collapsed ? PanelLeftOpen : PanelLeftClose}
@@ -95,9 +97,11 @@ export function AppSidebar({
           {logo ?? <DefaultLogo collapsed={collapsed} />}
         </RouterLink>
       </div>
+      {/* relative: the rail's visually hidden labels and tooltip text are absolutely positioned, so
+          the nav must be their containing block or they hang below it and stretch the page. */}
       <nav
         aria-label={ariaLabel}
-        className={cn('flex min-h-0 grow flex-col gap-ds-sm overflow-y-auto py-ds-xs', collapsed ? 'px-ds-sm' : 'px-ds-md')}
+        className={cn('relative flex min-h-0 grow flex-col gap-ds-sm overflow-y-auto py-ds-xs', collapsed ? 'px-ds-sm' : 'px-ds-md')}
       >
         {nav.map((section, index) => (
           <Section
@@ -110,14 +114,14 @@ export function AppSidebar({
           />
         ))}
       </nav>
-      {(footer || toggle) && (
+      {(footerContent || toggle) && (
         <div
           className={cn(
             'flex shrink-0 flex-col gap-ds-xs border-t border-border-subtle py-ds-md',
             collapsed ? 'items-center px-ds-sm' : 'px-ds-md',
           )}
         >
-          {footer}
+          {footerContent}
           {toggle &&
             (collapsed ? (
               <Tooltip content={toggleLabel} side="right">

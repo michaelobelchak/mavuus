@@ -1,8 +1,21 @@
 import { Router } from 'express'
 import { authenticateToken } from '../middleware/auth.js'
+import { MAX_LENGTHS } from '../middleware/validate.js'
 
 const router = Router()
 router.use(authenticateToken)
+
+// A message body: text that isn't blank (sanitizeBody already trimmed it) and fits the limit.
+function messageError(content) {
+  if (typeof content !== 'string' || !content) return 'Message text is required'
+  if (content.length > MAX_LENGTHS.message) return `Messages can be ${MAX_LENGTHS.message.toLocaleString('en-US')} characters at most`
+  return null
+}
+
+const ACTIVE = 'COALESCE(is_banned, 0) = 0 AND COALESCE(is_deleted, 0) = 0'
+
+const isParticipant = (db, conversationId, userId) =>
+  Boolean(db.prepare('SELECT 1 FROM conversation_participants WHERE conversation_id = ? AND user_id = ?').get(conversationId, userId))
 
 // GET /api/messages/conversations - List my conversations
 router.get('/conversations', (req, res) => {
@@ -11,9 +24,9 @@ router.get('/conversations', (req, res) => {
     SELECT c.id, c.updated_at,
       cp2.user_id as other_user_id,
       u.name as other_user_name, u.title as other_user_title, u.avatar_url as other_user_avatar,
-      (SELECT content FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message,
-      (SELECT sender_id FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_sender_id,
-      (SELECT created_at FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_at,
+      (SELECT content FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC, id DESC LIMIT 1) as last_message,
+      (SELECT sender_id FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC, id DESC LIMIT 1) as last_message_sender_id,
+      (SELECT created_at FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC, id DESC LIMIT 1) as last_message_at,
       (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id AND m.created_at > COALESCE(cp.last_read_at, '1970-01-01') AND m.sender_id != ?) as unread_count
     FROM conversations c
     JOIN conversation_participants cp ON cp.conversation_id = c.id AND cp.user_id = ?
@@ -27,8 +40,17 @@ router.get('/conversations', (req, res) => {
 // POST /api/messages/conversations - Start new conversation
 router.post('/conversations', (req, res) => {
   const db = req.app.locals.db
-  const { userId, message } = req.body
-  if (!userId || !message) return res.status(400).json({ error: 'userId and message are required' })
+  const { message } = req.body
+  const raw = req.body.userId
+  const userId = typeof raw === 'number' || typeof raw === 'string' ? Number(raw) : NaN
+  if (!raw || !message) return res.status(400).json({ error: 'userId and message are required' })
+  if (!Number.isInteger(userId) || userId < 1) return res.status(400).json({ error: 'userId must be a member id' })
+  const invalid = messageError(message)
+  if (invalid) return res.status(400).json({ error: invalid })
+  if (userId === req.user.id) return res.status(400).json({ error: "You can't message yourself" })
+  // Only an active member: not a missing id, and not a banned or deleted account.
+  const recipient = db.prepare(`SELECT id FROM users WHERE id = ? AND ${ACTIVE}`).get(userId)
+  if (!recipient) return res.status(404).json({ error: 'Member not found' })
 
   // Check if conversation already exists between these two users
   const existing = db.prepare(`
@@ -66,7 +88,7 @@ router.get('/conversations/:id/messages', (req, res) => {
     SELECT m.id, m.sender_id, m.content, m.created_at, u.name as sender_name, u.avatar_url as sender_avatar
     FROM messages m JOIN users u ON u.id = m.sender_id
     WHERE m.conversation_id = ?
-    ORDER BY m.created_at ASC
+    ORDER BY m.created_at ASC, m.id ASC
   `).all(req.params.id)
 
   res.json(messages)
@@ -76,10 +98,16 @@ router.get('/conversations/:id/messages', (req, res) => {
 router.post('/conversations/:id/messages', (req, res) => {
   const db = req.app.locals.db
   const { content } = req.body
-  if (!content) return res.status(400).json({ error: 'Content is required' })
+  const invalid = messageError(content)
+  if (invalid) return res.status(400).json({ error: invalid })
 
-  const participant = db.prepare('SELECT * FROM conversation_participants WHERE conversation_id = ? AND user_id = ?').get(req.params.id, req.user.id)
-  if (!participant) return res.status(403).json({ error: 'Not a participant' })
+  if (!isParticipant(db, req.params.id, req.user.id)) return res.status(403).json({ error: 'Not a participant' })
+  // The other member must still be active, as when the conversation started.
+  const other = db.prepare(`
+    SELECT u.id FROM conversation_participants cp JOIN users u ON u.id = cp.user_id
+    WHERE cp.conversation_id = ? AND cp.user_id != ? AND ${ACTIVE.replace(/is_/g, 'u.is_')}
+  `).get(req.params.id, req.user.id)
+  if (!other) return res.status(404).json({ error: 'Member not found' })
 
   const result = db.prepare('INSERT INTO messages (conversation_id, sender_id, content) VALUES (?, ?, ?)').run(req.params.id, req.user.id, content)
   db.prepare('UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(req.params.id)
@@ -91,6 +119,7 @@ router.post('/conversations/:id/messages', (req, res) => {
 // PUT /api/messages/conversations/:id/read - Mark as read
 router.put('/conversations/:id/read', (req, res) => {
   const db = req.app.locals.db
+  if (!isParticipant(db, req.params.id, req.user.id)) return res.status(403).json({ error: 'Not a participant' })
   db.prepare('UPDATE conversation_participants SET last_read_at = CURRENT_TIMESTAMP WHERE conversation_id = ? AND user_id = ?').run(req.params.id, req.user.id)
   res.json({ success: true })
 })

@@ -8,6 +8,7 @@ node_modules/
 
 # Uploads
 mavuus-app/server/uploads/
+mavuus-app/server/private/
 
 # Environment
 .env

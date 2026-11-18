@@ -3,7 +3,8 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { compareToBaseline, countBaseline, lintSource, run, scanClassTokens } from './lint-design-system.mjs'
+import { compareToBaseline, countBaseline, listFiles, lintSource, run, scanClassTokens } from './lint-design-system.mjs'
+import { PRAVATAR_HOST, WEBFLOW_HOST } from './localize-assets.mjs'
 
 const FIXTURES = path.join(import.meta.dirname, '__fixtures__', 'lint-ds')
 const EM_DASH = String.fromCharCode(0x2014)
@@ -312,6 +313,97 @@ describe('ds-allow overrides', () => {
 
   it('should accept CSS comment overrides', () => {
     expect(lintSource('src/a.css', '/* ds-allow no-raw-color: scrollbar thumb */\n.a { color: #fff; }\n')).toEqual([])
+  })
+})
+
+describe('no-remote-assets', () => {
+  // Hosts come from the localize script, so this test file never spells a banned host itself.
+  const webflow = `https://${WEBFLOW_HOST}/6689664d9906e5efe6bbc54d/6689763240456e66e970e5aa_logo.svg`
+  const avatar = `https://${PRAVATAR_HOST}/150?u=a@b.com`
+  const uploads = `https://uploads-ssl.${'web'}flow.com/x/logo.png`
+  const remote = (file, source) => only('no-remote-assets', lintSource(file, source).map((v) => v.rule))
+
+  it('should flag the Webflow CDN, other Webflow asset hosts and the avatar service in JS, CSS and HTML', () => {
+    expect(remote('src/pages/A.jsx', `export const a = '${webflow}'\nexport const b = \`${avatar}\`\n`)).toHaveLength(2)
+    expect(remote('src/index.css', `@font-face { src: url("${webflow}"); }\n`)).toHaveLength(1)
+    expect(remote('index.html', `<link rel="preload" href="${uploads}" />\n`)).toHaveLength(1)
+    expect(remote('src/design-system/README.md', `![logo](${webflow})\n`)).toHaveLength(1)
+  })
+
+  it('should flag a host written without a protocol, such as a CDN prefix constant', () => {
+    expect(remote('src/data/live/home.js', `const CDN = '${WEBFLOW_HOST}'\n`)).toHaveLength(1)
+  })
+
+  it('should apply to tests, stories and files outside src/', () => {
+    expect(remote('src/design-system/primitives/Avatar/Avatar.test.jsx', `const src = '${avatar}'\n`)).toHaveLength(1)
+    expect(remote('src/design-system/primitives/Avatar/Avatar.stories.jsx', `const src = '${avatar}'\n`)).toHaveLength(1)
+    expect(remote('.storybook/storyUser.js', `export const u = { avatar_url: '${avatar}' }\n`)).toHaveLength(1)
+  })
+
+  it('should only check remote assets outside src/, not the other rules', () => {
+    expect(lintSource('e2e/helpers.js', "const c = { className: 'bg-[#fff]' }\n")).toEqual([])
+  })
+
+  it('should pass local paths and other hosts', () => {
+    expect(remote('src/pages/A.jsx', "export const a = '/images/logos/logo.svg'\nexport const b = 'https://www.linkedin.com/company/mavuus'\n")).toEqual([])
+  })
+
+  it('should be an error that the baseline never absorbs', () => {
+    const violations = lintSource('src/pages/A.jsx', `export const a = '${webflow}'\n`)
+    expect(violations[0]).toMatchObject({ rule: 'no-remote-assets', severity: 'error' })
+    expect(compareToBaseline(violations, { 'src/pages/A.jsx': { 'no-remote-assets': 5 } }).failing).toHaveLength(1)
+  })
+
+  it('should honor a ds-allow override with a reason', () => {
+    expect(remote('scripts/x.mjs', `// ds-allow no-remote-assets: the hosts this script downloads from\nexport const HOST = '${WEBFLOW_HOST}'\n`)).toEqual([])
+  })
+})
+
+describe('listFiles', () => {
+  it('should also cover the server next to the client, but not its node_modules or uploads', () => {
+    const app = fs.mkdtempSync(path.join(os.tmpdir(), 'lint-ds-app-'))
+    const files = ['client/src/a.jsx', 'server/index.js', 'server/db/seed.js', 'server/routes/auth.js', 'server/tests/auth.test.js', 'server/node_modules/p/a.js', 'server/uploads/avatars/x.js']
+    for (const file of files) {
+      fs.mkdirSync(path.dirname(path.join(app, file)), { recursive: true })
+      fs.writeFileSync(path.join(app, file), '')
+    }
+    expect(listFiles(path.join(app, 'client'))).toEqual(['../server/db/seed.js', '../server/index.js', '../server/routes/auth.js', '../server/tests/auth.test.js', 'src/a.jsx'])
+    fs.rmSync(app, { recursive: true, force: true })
+  })
+
+  it('should cover the server SQL and JSON and the text files in public/, not other assets', () => {
+    const app = fs.mkdtempSync(path.join(os.tmpdir(), 'lint-ds-app-'))
+    const files = ['client/public/llms.txt', 'client/public/robots.txt', 'client/public/data.json', 'client/public/x.html', 'client/public/images/a.webp', 'client/scripts/assets-manifest.json', 'server/db/schema.sql', 'server/package.json', 'server/node_modules/p/package.json']
+    for (const file of files) {
+      fs.mkdirSync(path.dirname(path.join(app, file)), { recursive: true })
+      fs.writeFileSync(path.join(app, file), '')
+    }
+    expect(listFiles(path.join(app, 'client'))).toEqual(['../server/db/schema.sql', '../server/package.json', 'public/data.json', 'public/llms.txt', 'public/robots.txt', 'public/x.html'])
+    fs.rmSync(app, { recursive: true, force: true })
+  })
+
+  it('should flag a remote asset host in llms.txt and in SQL', () => {
+    const logo = `https://${WEBFLOW_HOST}/6689664d9906e5efe6bbc54d/6689763240456e66e970e5aa_logo.svg`
+    expect(lintSource('public/llms.txt', `- Logo: ${logo}\n`).map((v) => v.rule)).toEqual(['no-remote-assets'])
+    expect(lintSource('../server/db/schema.sql', `INSERT INTO t VALUES ('${logo}');\n`).map((v) => v.rule)).toEqual(['no-remote-assets'])
+    expect(lintSource('../server/package.json', '{ "name": "server" }\n')).toEqual([])
+  })
+
+  it('should flag a remote asset host in a server seed', () => {
+    const avatar = `https://${PRAVATAR_HOST}/150?u=a@b.com`
+    expect(lintSource('../server/db/seed.js', `const users = [['a@b.com', '${avatar}']]\n`).map((v) => v.rule)).toEqual(['no-remote-assets'])
+    expect(lintSource('../server/db/seed.js', "const c = { className: 'bg-[#fff]' }\n")).toEqual([])
+  })
+
+  it('should cover src/, index.html, .storybook/, e2e/ and scripts/, but not fixtures, screenshots or node_modules', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'lint-ds-files-'))
+    const files = ['src/a.jsx', 'index.html', '.storybook/preview.js', 'e2e/helpers.js', 'e2e/screenshots/x.html', 'scripts/a.mjs', 'scripts/__fixtures__/lint-ds/x.jsx', 'node_modules/p/a.js', 'public/x.js']
+    for (const file of files) {
+      fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true })
+      fs.writeFileSync(path.join(root, file), '')
+    }
+    expect(listFiles(root)).toEqual(['.storybook/preview.js', 'e2e/helpers.js', 'index.html', 'scripts/a.mjs', 'src/a.jsx'])
+    fs.rmSync(root, { recursive: true, force: true })
   })
 })
 

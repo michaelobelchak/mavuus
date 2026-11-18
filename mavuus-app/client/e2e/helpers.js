@@ -1,29 +1,61 @@
-import { expect } from '@playwright/test'
+import { test as base, expect } from '@playwright/test'
 
 export const DEMO_STATE = 'e2e/.auth/demo.json'
 export const WIDTHS = [1440, 1024, 768, 390]
 
-function isLocal(url) {
+// Hosts whose files are not localized yet, pending the owner's OK: images.unsplash.com serves the
+// cover photos in server/db/seed.js and src/data/mockData.js and the testimonial faces on the
+// login and register pages; picsum.photos serves 12 placeholder covers in server/db/seed.js (six
+// on-demand sessions and six resources), which show on the lists, detail pages, related grids
+// and the member home. Only the pages that list them in `allowHosts` (member and admin pages,
+// /login and /register) may request them; every other page fails on them.
+export const PENDING_HOSTS = ['images.unsplash.com', 'picsum.photos']
+
+// A host is allowed when it is listed or is a subdomain of a listed host: picsum.photos redirects
+// each image to fastly.picsum.photos.
+export function isAllowedHost(hostname, allowHosts) {
+  return allowHosts.some((host) => hostname === host || hostname.endsWith(`.${host}`))
+}
+
+export function isLocal(url) {
   try {
-    const { hostname } = new URL(url)
+    const { protocol, hostname } = new URL(url)
+    if (protocol === 'data:' || protocol === 'blob:') return true
     return hostname === 'localhost' || hostname === '127.0.0.1'
   } catch {
     return true
   }
 }
 
+/**
+ * The e2e `test`. With the `blockExternal` option (the offline project in playwright.config.js)
+ * every request to a host other than localhost is aborted at the network level, so the run
+ * proves the site renders with no outside network at all.
+ */
+export const test = base.extend({
+  blockExternal: [false, { option: true }],
+  // Playwright's fixture callback is not a React hook, so it is named `provide` here.
+  page: async ({ page, blockExternal }, provide) => {
+    if (blockExternal) await page.route((url) => !isLocal(url.href), (route) => route.abort('internetdisconnected'))
+    await provide(page)
+  },
+})
+
 const AUTH_ME = /^\/api\/auth\/me$/
 
 /**
  * Collects the problems a page should never have: uncaught errors, console errors from the app,
- * /api responses of 400 or more, and failed requests to the app's own origin. The only allowed
- * /api error is the 401 from /api/auth/me when logged out.
- *
- * Intentional deviation: failed loads from third-party hosts (live Webflow CDN images and fonts,
- * pravatar avatars) are ignored, so the suite passes offline and isn't flaky on external CDNs.
+ * /api responses of 400 or more, failed requests to the app's own origin, and any request to
+ * another host except the ones in `allowHosts`. Fonts and site images are served from public/.
+ * The only allowed /api error is the 401 from /api/auth/me when logged out. In the offline
+ * project outside requests are also aborted, but they still count as problems here.
  */
-export function watchPage(page) {
+export function watchPage(page, { allowHosts = [] } = {}) {
   const problems = []
+  page.on('request', (request) => {
+    const url = request.url()
+    if (!isLocal(url) && !isAllowedHost(new URL(url).hostname, allowHosts)) problems.push(`third-party request: ${request.method()} ${url}`)
+  })
   page.on('pageerror', (error) => problems.push(`page error: ${error.message}`))
   page.on('console', (message) => {
     if (message.type() !== 'error') return
@@ -101,25 +133,38 @@ export function findOverflow(page) {
 
 /**
  * Visits `path` at one width: checks the page's main content renders, takes a full-page
- * screenshot to e2e/screenshots/<name>-<width>.png, checks there is no horizontal overflow
- * (the document doesn't scroll sideways and no element sticks out past the viewport, even where
- * the layout clips it) and that the page logged no errors.
+ * screenshot to e2e/screenshots/<name>-<width>.png (<name>-<width>-offline.png in the offline
+ * project), checks there is no horizontal overflow
+ * (the document doesn't scroll sideways, #main-content isn't wider than its own box when it
+ * exists, and no element sticks out past the viewport, even where the layout clips it) and that
+ * the page logged no errors.
  */
-export async function checkPage(page, { name, path, width, ready }) {
-  const problems = watchPage(page)
+export async function checkPage(page, { name, path, width, ready, allowHosts = [] }) {
+  const problems = watchPage(page, { allowHosts })
   await page.setViewportSize({ width, height: 900 })
   await page.goto(path)
   await ready(page)
   await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
-  await page.screenshot({ path: `e2e/screenshots/${name}-${width}.png`, fullPage: true, animations: 'disabled' })
-  const { scrollWidth, innerWidth } = await page.evaluate(() => ({
-    scrollWidth: document.documentElement.scrollWidth,
-    innerWidth: window.innerWidth,
-  }))
+  const suffix = base.info().project.name === 'offline' ? '-offline' : ''
+  await page.screenshot({ path: `e2e/screenshots/${name}-${width}${suffix}.png`, fullPage: true, animations: 'disabled' })
+  const { scrollWidth, innerWidth, main } = await page.evaluate(() => {
+    const el = document.getElementById('main-content')
+    return {
+      scrollWidth: document.documentElement.scrollWidth,
+      innerWidth: window.innerWidth,
+      main: el ? { scrollWidth: el.scrollWidth, clientWidth: el.clientWidth } : null,
+    }
+  })
   const offenders = await findOverflow(page)
   expect
     .soft(scrollWidth, `${name} at ${width}px scrolls sideways: ${offenders.join('; ')}`)
     .toBeLessThanOrEqual(innerWidth)
+  // <main id="main-content"> can clip or scroll its own overflow, which the document check can't see.
+  if (main) {
+    expect
+      .soft(main.scrollWidth, `${name} at ${width}px: #main-content is wider than its box: ${offenders.join('; ')}`)
+      .toBeLessThanOrEqual(main.clientWidth)
+  }
   expect.soft(offenders, `${name} at ${width}px has elements past the right edge`).toEqual([])
   expect(problems, `${name} at ${width}px had errors`).toEqual([])
 }

@@ -1,66 +1,123 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { Bookmark, Clock, Download, User } from 'lucide-react'
+import { Card, DescriptionList, MediaFrame, ScrollProgress, SectionHeader, ShareDialog, useToast } from '@/design-system/patterns'
+import { CommentThread, MetaList, ResourceCard } from '@/design-system/organisms'
+import { Badge, Button, Heading, Text } from '@/design-system/primitives'
+import { isHttpUrl } from '@/design-system/lib/safeUrl'
 import { useAuth } from '../../context/AuthContext'
-import { useToast } from '../../components/ui/Toast'
-import Badge from '../../components/ui/Badge'
-import Button from '../../components/ui/Button'
-import Card from '../../components/ui/Card'
-import DetailPageHeader from '../../components/ui/DetailPageHeader'
-import ShareModal from '../../components/ui/ShareModal'
-import ScrollProgress from '../../components/ui/ScrollProgress'
-import CommentSection from '../../components/ui/CommentSection'
-import {
-  Clock,
-  User,
-  Download,
-  FileText,
-  Bookmark,
-} from 'lucide-react'
+import { useComments } from '../../hooks/useComments'
+import { useDetailResource } from '../../hooks/useDetailResource'
+import { RESOURCES_PATH, resourceCardProps } from './academy/cardProps'
+import { DetailError, DetailLayout, DetailNotFound, DetailSkeleton, DetailTopBar } from './shared/DetailChrome'
+
+// **bold** spans inside a line of resource content.
+function inline(text) {
+  return text.split(/\*\*(.*?)\*\*/).map((part, k) =>
+    k % 2 === 1 ? (
+      <strong key={k} className="font-semibold text-text-primary">
+        {part}
+      </strong>
+    ) : (
+      part
+    ),
+  )
+}
+
+// The light markdown the seed content uses: ## and ### headings (h3 and h4 here, under the
+// title's h2), "- " and "1. " lists, **bold** and paragraphs split by blank lines.
+function renderContent(text) {
+  if (!text) return null
+  return text.split('\n\n').map((block, i) => {
+    const trimmed = block.trim()
+    if (!trimmed) return null
+    const heading = /^(#{2,3}) (.*)$/m.exec(trimmed.split('\n')[0])
+    if (heading) {
+      // A heading line can carry its paragraph in the same block ("### 1. Title\nBody").
+      const rest = trimmed.split('\n').slice(1).join(' ').trim()
+      return (
+        <div key={i} className="mt-ds-xs flex flex-col gap-ds-xs">
+          <Heading level={heading[1].length + 1} size="h4">
+            {heading[2]}
+          </Heading>
+          {rest && (
+            <Text size="body-sm" tone="secondary">
+              {inline(rest)}
+            </Text>
+          )}
+        </div>
+      )
+    }
+    if (trimmed.startsWith('- ')) {
+      const items = trimmed.split('\n').filter((l) => l.trim().startsWith('- '))
+      return (
+        <ul key={i} className="flex list-disc flex-col gap-ds-xxs pl-ds-lg text-body-sm text-text-secondary">
+          {items.map((item, j) => (
+            <li key={j}>{inline(item.trim().slice(2))}</li>
+          ))}
+        </ul>
+      )
+    }
+    if (/^\d+\.\s/.test(trimmed)) {
+      const items = trimmed.split('\n').filter((l) => /^\d+\.\s/.test(l.trim()))
+      return (
+        <ol key={i} className="flex list-decimal flex-col gap-ds-xxs pl-ds-lg text-body-sm text-text-secondary">
+          {items.map((item, j) => (
+            <li key={j}>{inline(item.trim().replace(/^\d+\.\s/, ''))}</li>
+          ))}
+        </ol>
+      )
+    }
+    return (
+      <Text key={i} size="body-sm" tone="secondary">
+        {inline(trimmed)}
+      </Text>
+    )
+  })
+}
 
 export default function ResourceDetailPage() {
   const { id } = useParams()
   const { token } = useAuth()
-  const navigate = useNavigate()
   const toast = useToast()
-  const [resource, setResource] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { data: resource, loading, error, retry } = useDetailResource(`/api/resources/${id}`, token)
   const [shareOpen, setShareOpen] = useState(false)
-  const [bookmarked, setBookmarked] = useState(false)
-  const [relatedResources, setRelatedResources] = useState([])
+  // Per-resource state is stored with the id it belongs to, so following a related card never
+  // shows the previous resource's bookmark or related list.
+  const [bookmark, setBookmark] = useState({ id: null, on: false })
+  const [related, setRelated] = useState({ id: null, items: [] })
+  const comments = useComments('resource', parseInt(id, 10))
+  const bookmarked = bookmark.id === id && bookmark.on
+  const relatedResources = related.id === id ? related.items : []
+  const category = resource?.category
 
   useEffect(() => {
-    const fetchResource = async () => {
-      try {
-        const res = await fetch(`/api/resources/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.ok) setResource(await res.json())
-      } catch (err) {
-        console.error('Failed to load resource', err)
-      } finally { setLoading(false) }
-    }
-    fetchResource()
-
-    // Check bookmark status
-    if (token) {
-      fetch('/api/resources/bookmarked', { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.ok ? r.json() : [])
-        .then(bookmarks => setBookmarked(bookmarks.some(b => b.id === parseInt(id))))
-        .catch(() => {})
-    }
-  }, [id, token])
-
-  // Fetch related resources once we have the resource
-  useEffect(() => {
-    if (!resource) return
-    fetch(`/api/resources?category=${encodeURIComponent(resource.category)}&limit=4`)
-      .then(r => r.ok ? r.json() : { data: [] })
-      .then(json => {
-        const items = (json.data || json).filter(r => r.id !== parseInt(id)).slice(0, 3)
-        setRelatedResources(items)
+    if (!token) return
+    const controller = new AbortController()
+    fetch('/api/resources/bookmarked', { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((bookmarks) => {
+        if (controller.signal.aborted || !Array.isArray(bookmarks)) return
+        setBookmark({ id, on: bookmarks.some((b) => b.id === parseInt(id, 10)) })
       })
       .catch(() => {})
-  }, [resource, id])
+    return () => controller.abort()
+  }, [id, token])
+
+  // Related resources from the same category, once the resource is known.
+  useEffect(() => {
+    if (!category) return
+    const controller = new AbortController()
+    fetch(`/api/resources?category=${encodeURIComponent(category)}&limit=4`, { signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((json) => {
+        if (controller.signal.aborted) return
+        const list = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : []
+        setRelated({ id, items: list.filter((r) => r.id !== parseInt(id, 10)).slice(0, 3) })
+      })
+      .catch(() => {})
+    return () => controller.abort()
+  }, [category, id])
 
   const toggleBookmark = async () => {
     try {
@@ -70,156 +127,121 @@ export default function ResourceDetailPage() {
       })
       if (res.ok) {
         const data = await res.json()
-        setBookmarked(data.bookmarked)
+        setBookmark({ id, on: Boolean(data.bookmarked) })
       }
     } catch {
       toast.error("Couldn't update bookmark. Try again.")
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-brand-pink border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
+  if (loading) return <DetailSkeleton label="Loading resource" />
+
+  if (error) {
+    return <DetailError title="We couldn't load this resource" onRetry={retry} backTo={RESOURCES_PATH} backLabel="Back to Resources" />
   }
 
   if (!resource) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-neutral-500">Resource not found</p>
-        <button onClick={() => navigate('/dashboard/resources')}
-          className="text-brand-pink hover:underline mt-2 inline-block cursor-pointer">
-          Back to Resources
-        </button>
-      </div>
-    )
+    return <DetailNotFound title="Resource not found" backTo={RESOURCES_PATH} backLabel="Back to Resources" />
   }
 
-  const renderContent = (text) => {
-    if (!text) return null
-    return text.split('\n\n').map((block, i) => {
-      const trimmed = block.trim()
-      if (!trimmed) return null
-      if (trimmed.startsWith('## ')) return <h2 key={i} className="text-xl font-bold text-dark-blue mt-8 mb-3">{trimmed.slice(3)}</h2>
-      if (trimmed.startsWith('### ')) return <h3 key={i} className="text-lg font-semibold text-dark-blue mt-6 mb-2">{trimmed.slice(4)}</h3>
-      if (trimmed.startsWith('- ')) {
-        const items = trimmed.split('\n').filter(l => l.trim().startsWith('- '))
-        return (
-          <ul key={i} className="list-disc list-inside space-y-1 mb-4 text-neutral-600">
-            {items.map((item, j) => {
-              const text = item.trim().slice(2)
-              const parts = text.split(/\*\*(.*?)\*\*/)
-              return <li key={j} className="text-sm leading-relaxed">{parts.map((part, k) => k % 2 === 1 ? <strong key={k} className="text-dark-blue">{part}</strong> : part)}</li>
-            })}
-          </ul>
-        )
-      }
-      if (/^\d+\.\s/.test(trimmed)) {
-        const items = trimmed.split('\n').filter(l => /^\d+\.\s/.test(l.trim()))
-        return <ol key={i} className="list-decimal list-inside space-y-1 mb-4 text-neutral-600">{items.map((item, j) => <li key={j} className="text-sm leading-relaxed">{item.trim().replace(/^\d+\.\s/, '')}</li>)}</ol>
-      }
-      const parts = trimmed.split(/\*\*(.*?)\*\*/)
-      return <p key={i} className="text-sm text-neutral-600 leading-relaxed mb-4">{parts.map((part, k) => k % 2 === 1 ? <strong key={k} className="text-dark-blue">{part}</strong> : part)}</p>
-    })
-  }
-
-  const isDownloadable = resource.type === 'template'
+  // Templates with a file get Download; everything else (and a template without a file) gets Bookmark.
+  const downloadHref = resource.type === 'template' && isHttpUrl(resource.url) ? resource.url : null
 
   return (
-    <div className="max-w-6xl">
+    <div className="flex flex-col gap-ds-lg">
       <ScrollProgress />
-      <DetailPageHeader onShare={() => setShareOpen(true)} backLabel="Back to Resources" />
+      <DetailTopBar backTo={RESOURCES_PATH} backLabel="Back to Resources" onShare={() => setShareOpen(true)} />
 
-      {resource.thumbnail_url && (
-        <div className="h-64 rounded-2xl overflow-hidden mb-6">
-          <img src={resource.thumbnail_url} alt={resource.title} className="w-full h-full object-cover" />
-        </div>
-      )}
+      <DetailLayout
+        asideLabel="Resource info"
+        asideWidth="lg:w-72"
+        comments={<CommentThread {...comments} />}
+        main={
+          <>
+          {resource.thumbnail_url && <MediaFrame src={resource.thumbnail_url} alt={resource.title} ratio="16/9" eager />}
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1">
-          <div className="bg-white rounded-2xl border border-neutral-100 p-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Badge variant="gray">{resource.category}</Badge>
-              <Badge variant="blue">{resource.type}</Badge>
+          <Card as="article" aria-labelledby="resource-title" padding="lg" className="flex flex-col gap-ds-md">
+            <div className="flex flex-wrap items-center gap-ds-xs">
+              <Badge size="sm">{resource.category}</Badge>
+              <Badge size="sm" tone="info" className="capitalize">
+                {resource.type}
+              </Badge>
             </div>
-            <h1 className="text-2xl font-bold text-dark-blue mb-3">{resource.title}</h1>
-            <div className="flex flex-wrap gap-4 text-sm text-neutral-500 mb-6 pb-6 border-b border-neutral-100">
-              <span className="flex items-center gap-1"><User size={14} />{resource.author}</span>
-              <span className="flex items-center gap-1"><Clock size={14} />{resource.read_time}</span>
+            <Heading id="resource-title" level={2} size="h3">
+              {resource.title}
+            </Heading>
+            <MetaList
+              className="border-b border-border-subtle pb-ds-md"
+              items={[
+                { key: 'author', icon: User, label: resource.author },
+                { key: 'time', icon: Clock, label: resource.read_time },
+              ]}
+            />
+            <div className="flex flex-col gap-ds-sm">
+              {resource.content ? (
+                renderContent(resource.content)
+              ) : (
+                <Text size="body-sm" tone="secondary">
+                  {resource.description}
+                </Text>
+              )}
             </div>
-            {resource.content ? (
-              <div className="prose-content">{renderContent(resource.content)}</div>
-            ) : (
-              <p className="text-sm text-neutral-600 leading-relaxed">{resource.description}</p>
-            )}
-          </div>
+          </Card>
 
-          {/* Comments */}
-          <div className="mt-6">
-            <CommentSection entityType="resource" entityId={parseInt(id)} />
-          </div>
-        </div>
-
-        <div className="w-full lg:w-72 space-y-4">
-          <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-            {isDownloadable ? (
-              <Button className="w-full mb-2"><Download size={16} /> Download Template</Button>
+          </>
+        }
+        aside={
+          <>
+          <Card padding="lg">
+            {downloadHref ? (
+              <Button block leadingIcon={Download} href={downloadHref} download>
+                Download Template
+              </Button>
             ) : (
-              <Button className="w-full mb-2" onClick={toggleBookmark} variant={bookmarked ? 'outline' : 'primary'}>
-                <Bookmark size={16} className={bookmarked ? 'fill-brand-pink' : ''} />
+              <Button
+                block
+                variant={bookmarked ? 'outline' : 'primary'}
+                leadingIcon={Bookmark}
+                aria-pressed={bookmarked}
+                onClick={toggleBookmark}
+                className={bookmarked ? '[&>svg]:fill-current' : undefined}
+              >
                 {bookmarked ? 'Bookmarked' : 'Bookmark'}
               </Button>
             )}
-          </div>
+          </Card>
 
-          <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-            <h3 className="text-sm font-semibold text-dark-blue mb-3">Details</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-neutral-500">Author</span><span className="text-dark-blue font-medium">{resource.author}</span></div>
-              <div className="flex justify-between"><span className="text-neutral-500">Type</span><span className="text-dark-blue font-medium capitalize">{resource.type}</span></div>
-              <div className="flex justify-between"><span className="text-neutral-500">Category</span><span className="text-dark-blue font-medium">{resource.category}</span></div>
-              <div className="flex justify-between"><span className="text-neutral-500">Read Time</span><span className="text-dark-blue font-medium">{resource.read_time}</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
+          <Card as="section" aria-labelledby="resource-details-title" padding="lg" className="flex flex-col gap-ds-sm">
+            <Heading id="resource-details-title" level={2} size="h4">
+              Details
+            </Heading>
+            <DescriptionList
+              items={[
+                { key: 'author', label: 'Author', value: resource.author },
+                { key: 'type', label: 'Type', value: <span className="capitalize">{resource.type}</span> },
+                { key: 'category', label: 'Category', value: resource.category },
+                { key: 'time', label: 'Read Time', value: resource.read_time },
+              ]}
+            />
+          </Card>
+          </>
+        }
+      />
 
-      {/* Related Resources */}
       {relatedResources.length > 0 && (
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold text-dark-blue mb-5">Related Resources</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {relatedResources.map(r => (
-              <Link key={r.id} to={`/dashboard/resources/${r.id}`} className="block no-underline">
-                <Card hover>
-                  <div className="h-32 rounded-xl mb-3 overflow-hidden">
-                    {r.thumbnail_url ? (
-                      <img src={r.thumbnail_url} alt={r.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
-                        <FileText size={24} className="text-brand-blue/40" />
-                      </div>
-                    )}
-                  </div>
-                  <Badge variant="gray">{r.category}</Badge>
-                  <h3 className="text-sm font-semibold text-dark-blue mt-2 line-clamp-2">{r.title}</h3>
-                  <p className="text-xs text-neutral-500 mt-1">{r.author}</p>
-                </Card>
-              </Link>
+        <section className="flex flex-col gap-ds-md">
+          <SectionHeader size="h3" title="Related Resources" />
+          <ul aria-label="Related resources" className="grid grid-cols-1 gap-ds-md sm:grid-cols-2 xl:grid-cols-3">
+            {relatedResources.map((r) => (
+              <li key={r.id}>
+                <ResourceCard {...resourceCardProps(r)} />
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       )}
 
-      <ShareModal
-        open={shareOpen}
-        onClose={() => setShareOpen(false)}
-        title={`Share ${resource.title}`}
-        shareTitle={resource.title}
-      />
+      <ShareDialog open={shareOpen} onOpenChange={setShareOpen} title={`Share ${resource.title}`} shareTitle={resource.title} />
     </div>
   )
 }

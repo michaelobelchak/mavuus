@@ -73,7 +73,8 @@ function ConnectionAction({ connection, name, onConnect, onAccept, connecting, m
  *   `onConnect`, `onAccept`, `connecting` (busy Connect button) and `messageTo` (the Message link
  *   once connected) drive the action at the bottom. `isSelf` hides it. A Pending or Connected
  *   badge shows next to the tier.
- * - `to` / `href`: the name is the card's stretched link; the action sits above it.
+ * - `to` / `href`: the name is the card's stretched link; the action sits above it. `linkState`:
+ *   react-router location state for a `to` link (a page can tell it was opened from this list).
  * - `headingLevel` (default 3), `as` (default article). Other props go to the Card.
  */
 export function MemberCard({
@@ -90,6 +91,7 @@ export function MemberCard({
   isSelf = false,
   to,
   href,
+  linkState,
   headingLevel,
   as = 'article',
   className,
@@ -125,7 +127,7 @@ export function MemberCard({
       <div className="flex w-full min-w-0 flex-col gap-ds-xxs">
         <Heading id={titleId} level={level} size="h4" className="truncate">
           {linked ? (
-            <CardLink to={to} href={href}>
+            <CardLink to={to} href={href} state={to !== undefined ? linkState : undefined}>
               {name}
             </CardLink>
           ) : (

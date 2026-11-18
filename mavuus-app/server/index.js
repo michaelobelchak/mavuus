@@ -14,6 +14,8 @@ import { mkdirSync, readFileSync } from 'fs'
 
 import { JWT_SECRET } from './middleware/auth.js'
 import { dbPath, rateLimitMax } from './config.js'
+import { ensureVendorReviewIndex } from './db/vendorReviews.js'
+import { ensureJobApplicationStatuses } from './db/jobApplications.js'
 import authRoutes from './routes/auth.js'
 import sessionsRoutes from './routes/sessions.js'
 import resourcesRoutes from './routes/resources.js'
@@ -34,9 +36,12 @@ import commentsRoutes from './routes/comments.js'
 import referralsRoutes from './routes/referrals.js'
 import speakersRoutes from './routes/speakers.js'
 import uploadRoutes from './routes/upload.js'
+import filesRoutes from './routes/files.js'
+import { migrateResumeFiles } from './db/resumes.js'
 import adminRoutes from './routes/admin.js'
 import publicContentRoutes from './routes/public-content.js'
 import { sanitizeBody } from './middleware/sanitize.js'
+import { serveClient } from './static.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -44,7 +49,6 @@ const PORT = process.env.PORT || 3001
 
 // Ensure uploads directory exists
 mkdirSync(join(__dirname, 'uploads', 'avatars'), { recursive: true })
-mkdirSync(join(__dirname, 'uploads', 'resumes'), { recursive: true })
 
 // Database. DB_PATH (relative to this folder) lets e2e runs use their own file.
 const db = new Database(dbPath())
@@ -53,6 +57,16 @@ db.pragma('journal_mode = WAL')
 // Ensure schema is applied (idempotent — uses CREATE TABLE IF NOT EXISTS)
 const schemaSQL = readFileSync(join(__dirname, 'db', 'schema.sql'), 'utf-8')
 db.exec(schemaSQL)
+// One review per member per vendor; an older database's repeat reviews go first (latest kept).
+const repeatReviews = ensureVendorReviewIndex(db)
+if (repeatReviews > 0) console.warn(`Removed ${repeatReviews} repeat vendor review(s) before creating idx_reviews_vendor_once`)
+// Older databases refuse the 'hired' application status; rebuild that table once.
+if (ensureJobApplicationStatuses(db)) console.warn('Rebuilt job_applications so applications can be marked hired')
+// Resumes move out of the static /uploads folder; legacy names become random .pdf names.
+const resumeFiles = migrateResumeFiles(db)
+if (resumeFiles.moved || resumeFiles.renamed || resumeFiles.removed) {
+  console.warn(`Resume files: ${resumeFiles.moved} moved to private/, ${resumeFiles.renamed} renamed, ${resumeFiles.removed} non-PDF removed`)
+}
 
 // Make db available to routes
 app.locals.db = db
@@ -81,6 +95,7 @@ app.use(express.json({ limit: '1mb' }))
 app.use(sanitizeBody)
 
 // Static uploads
+// Static uploads (avatars, images). Resumes live in private/, outside this root.
 app.use('/uploads', express.static(join(__dirname, 'uploads')))
 
 // Passport Google OAuth setup
@@ -150,6 +165,7 @@ app.use('/api/comments', commentsRoutes)
 app.use('/api/referrals', referralsRoutes)
 app.use('/api/speakers', speakersRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api/files', filesRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api', publicContentRoutes)
 
@@ -160,10 +176,7 @@ app.get('/api/health', (req, res) => {
 
 // Serve client in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(join(__dirname, '../client/dist')))
-  app.get('*', (req, res) => {
-    res.sendFile(join(__dirname, '../client/dist/index.html'))
-  })
+  serveClient(app, join(__dirname, '../client/dist'))
 }
 
 app.listen(PORT, () => {

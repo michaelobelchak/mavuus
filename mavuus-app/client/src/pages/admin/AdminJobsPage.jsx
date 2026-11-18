@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/ui/Toast'
 import { Search, ChevronLeft, ChevronRight, Eye, EyeOff, Trash2, RotateCcw, FileText, X, Download, StickyNote } from 'lucide-react'
+import { resumeHref } from '../dashboard/shared/resumeHref'
 
 export default function AdminJobsPage() {
   const { token } = useAuth()
@@ -320,8 +321,8 @@ export default function AdminJobsPage() {
                       <option value="rejected">Rejected</option>
                       <option value="withdrawn">Withdrawn</option>
                     </select>
-                    {app.resume_url && (
-                      <a href={app.resume_url} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-pink hover:underline flex items-center gap-1">
+                    {resumeHref(app.resume_url) && (
+                      <a href={resumeHref(app.resume_url)} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-pink hover:underline flex items-center gap-1">
                         <Download size={12} /> Resume
                       </a>
                     )}

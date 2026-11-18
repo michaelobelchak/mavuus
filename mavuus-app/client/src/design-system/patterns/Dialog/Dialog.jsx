@@ -24,6 +24,8 @@ export function Dialog({ size, ...props }) {
       component="Dialog"
       viewportClassName="items-center justify-center p-ds-md"
       popupClass={dialogVariants({ size: resolvedSize })}
+      // The popup scrolls as a whole, so the body never shrinks under the footer.
+      bodyClassName="shrink-0"
       {...props}
     />
   )

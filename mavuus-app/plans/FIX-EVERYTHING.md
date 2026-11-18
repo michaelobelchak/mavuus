@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS waitlist (
 
 ### 4.3 Seed Data Review
 - Verify all seed data uses consistent company name casing
-- Verify all avatar URLs resolve (pravatar.cc links)
+- Verify all avatar URLs resolve (local files in `public/images/avatars/` since 2026-11-14)
 - Verify all thumbnail URLs resolve
 - Add at least 3-5 blog/article entries so BlogDetailPage has real content to fetch
 

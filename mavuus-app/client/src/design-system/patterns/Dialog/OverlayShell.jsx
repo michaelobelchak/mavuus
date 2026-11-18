@@ -12,7 +12,8 @@ const DISMISS_REASONS = ['escape-key', 'outside-press']
  * The modal frame Dialog and Sheet share, on Base UI Dialog (focus trap, scroll lock, focus return,
  * outside content made inert). Not exported from the barrel: use Dialog or Sheet.
  * - `component` names the caller in dev warnings. `viewportClassName` places the popup,
- *   `popupClass` is the caller's resolved popup styling.
+ *   `popupClass` is the caller's resolved popup styling, `bodyClassName` styles the children's
+ *   wrapper (Sheet lets it shrink so a child can scroll inside; Dialog keeps it full height).
  * - Base UI Root options (`modal`, `onOpenChangeComplete`, `actionsRef`, `handle`, `triggerId`,
  *   `defaultTriggerId`) go to the Root; everything else goes to the Popup.
  */
@@ -34,6 +35,7 @@ export function OverlayShell({
   defaultTriggerId,
   viewportClassName,
   popupClass,
+  bodyClassName = 'min-h-0',
   className,
   children,
   ref,
@@ -90,7 +92,7 @@ export function OverlayShell({
               </div>
             )}
             {children !== undefined && children !== null && (
-              <div className="min-h-0 grow text-body text-text-primary">{children}</div>
+              <div className={cn('grow text-body text-text-primary', bodyClassName)}>{children}</div>
             )}
             {footer && <div className="flex flex-wrap justify-end gap-ds-sm">{footer}</div>}
             {/* Last in the DOM so the first field, not the close button, gets the initial focus. */}

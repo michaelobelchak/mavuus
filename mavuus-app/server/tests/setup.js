@@ -9,17 +9,27 @@ import { dirname, join } from 'path'
 import { mkdirSync } from 'fs'
 
 import { JWT_SECRET } from '../middleware/auth.js'
+import { ensureVendorReviewIndex } from '../db/vendorReviews.js'
+import { ensureJobApplicationStatuses } from '../db/jobApplications.js'
 import { sanitizeBody } from '../middleware/sanitize.js'
 import authRoutes from '../routes/auth.js'
 import jobsRoutes from '../routes/jobs.js'
 import profileRoutes from '../routes/profile.js'
 import adminRoutes from '../routes/admin.js'
+import membersRoutes from '../routes/members.js'
+import reviewsRoutes from '../routes/reviews.js'
+import searchRoutes from '../routes/search.js'
+import vendorsRoutes from '../routes/vendors.js'
+import filesRoutes from '../routes/files.js'
+import messagesRoutes from '../routes/messages.js'
+import referralsRoutes from '../routes/referrals.js'
+import { RESUMES_DIR } from '../db/resumes.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // Ensure uploads directories exist (some routes reference them)
 mkdirSync(join(__dirname, '..', 'uploads', 'avatars'), { recursive: true })
-mkdirSync(join(__dirname, '..', 'uploads', 'resumes'), { recursive: true })
+mkdirSync(RESUMES_DIR, { recursive: true })
 
 export function createTestApp() {
   // In-memory database for test isolation
@@ -31,6 +41,8 @@ export function createTestApp() {
   const schemaPath = join(__dirname, '..', 'db', 'schema.sql')
   const schema = readFileSync(schemaPath, 'utf-8')
   db.exec(schema)
+  ensureVendorReviewIndex(db)
+  ensureJobApplicationStatuses(db)
 
   // Seed test data
   const hash1 = bcrypt.hashSync('Password1', 10)
@@ -60,6 +72,14 @@ export function createTestApp() {
   app.use('/api/jobs', jobsRoutes)
   app.use('/api/profile', profileRoutes)
   app.use('/api/admin', adminRoutes)
+  app.use('/api/members', membersRoutes)
+  app.use('/api/reviews', reviewsRoutes)
+  app.use('/api/search', searchRoutes)
+  app.use('/api/vendors', vendorsRoutes)
+  app.use('/api/files', filesRoutes)
+  app.use('/api/messages', messagesRoutes)
+  app.use('/api/referrals', referralsRoutes)
+  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')))
 
   return { app, db }
 }

@@ -20,5 +20,7 @@ export default defineConfig({
     exclude: [...configDefaults.exclude, 'e2e/**'],
     setupFiles: ['./src/test/setup.js'],
     passWithNoTests: true,
+    // Spies made with vi.spyOn (console, toast) are restored after every test.
+    restoreMocks: true,
   },
 })

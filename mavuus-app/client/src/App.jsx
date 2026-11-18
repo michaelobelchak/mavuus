@@ -3,10 +3,11 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 
 // Layouts
 import PublicLayout from './components/layout/PublicLayout'
-import DashboardLayout from './components/layout/DashboardLayout'
 import ProtectedRoute from './components/layout/ProtectedRoute'
-import AdminLayout from './components/layout/AdminLayout'
 import AdminRoute from './components/layout/AdminRoute'
+import MemberLayout from './layouts/MemberLayout'
+import AdminLayout from './layouts/AdminLayout'
+import { SiteSkipLink } from './layouts/SiteSkipLink'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 
 // Public Pages (eager — landing page performance)
@@ -37,6 +38,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import AuthCallbackPage from './pages/auth/AuthCallbackPage'
 import VerifyEmailPage from './pages/auth/VerifyEmailPage'
+import { KeyedById } from './pages/dashboard/shared/KeyedById'
 
 // Dashboard Pages (lazy — code-split behind auth)
 const AcademyPage = lazy(() => import('./pages/dashboard/AcademyPage'))
@@ -95,9 +97,7 @@ export default function App() {
   return (
     <ErrorBoundary>
     <Suspense fallback={<LazyFallback />}>
-      <a href="#main-content" className="skip-to-main">
-        Skip to main content
-      </a>
+      <SiteSkipLink />
       <RouteTitles />
       <BackToTop />
       <ShortcutsHelp />
@@ -143,7 +143,7 @@ export default function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <DashboardLayout />
+              <MemberLayout />
             </ProtectedRoute>
           }
         >
@@ -155,11 +155,12 @@ export default function App() {
           <Route path="resources" element={<ResourcesPage />} />
           <Route path="resources/:id" element={<ResourceDetailPage />} />
           <Route path="members" element={<MembersPage />} />
-          <Route path="members/:id" element={<MemberProfilePage />} />
+          {/* Keep each <Route path=...> on one line: shellTitle.test.js reads these routes line by line. */}
+          <Route path="members/:id" element={<KeyedById><MemberProfilePage /></KeyedById>} />
           <Route path="vendors" element={<VendorsPage />} />
-          <Route path="vendors/:id" element={<VendorDetailPage />} />
+          <Route path="vendors/:id" element={<KeyedById><VendorDetailPage /></KeyedById>} />
           <Route path="jobs" element={<JobsPage />} />
-          <Route path="jobs/:id" element={<JobDetailPage />} />
+          <Route path="jobs/:id" element={<KeyedById><JobDetailPage /></KeyedById>} />
           <Route path="my-jobs" element={<MyJobsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="messages" element={<MessagesPage />} />

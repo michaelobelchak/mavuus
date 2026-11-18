@@ -91,8 +91,10 @@ export function AuthProvider({ children }) {
     return data.user
   }
 
-  async function register(name, email, password) {
-    const res = await fetch(`${API_BASE}/auth/register`, {
+  // `ref` is the referral code from an invite link (/register?ref=CODE); the server records who invited them.
+  async function register(name, email, password, { ref } = {}) {
+    const query = ref ? `?ref=${encodeURIComponent(ref)}` : ''
+    const res = await fetch(`${API_BASE}/auth/register${query}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password }),

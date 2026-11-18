@@ -2,8 +2,9 @@ import { ArrowLeft, Briefcase, MessageCircle, Users } from 'lucide-react'
 import { withAuth } from '../../../../../.storybook/decorators'
 import { useAuth } from '../../../../context/AuthContext'
 import { Card, SearchInput, StatCard } from '../../../patterns'
-import { Button, Heading, Text } from '../../../primitives'
+import { Heading, Text } from '../../../primitives'
 import { ADMIN_NAV, MEMBER_NAV } from '../nav'
+import { SidebarNavItem } from '../SidebarNavItem'
 import { AppShell } from './AppShell'
 
 // Reads the signed-in user from AuthContext, the way the app layouts will wire the shell.
@@ -64,13 +65,31 @@ export const AdminShell = {
     logoTo: '/admin',
     title: 'Users',
     badges: undefined,
-    sidebarFooter: (
-      <Button to="/dashboard" variant="ghost" leadingIcon={ArrowLeft} block>
-        Back to dashboard
-      </Button>
+    // A function footer gets `{ collapsed }`, so the link turns into an icon in the rail.
+    sidebarFooter: ({ collapsed }) => (
+      <ul className="m-ds-none list-none p-ds-none">
+        <SidebarNavItem
+          item={{ label: 'Back to dashboard', icon: ArrowLeft, to: '/dashboard' }}
+          activeTo={null}
+          collapsed={collapsed}
+        />
+      </ul>
     ),
   },
   parameters: { router: { initialEntries: ['/admin/users'] } },
+}
+
+// The document scrolls: the sidebar and the top bar stay put while the page moves under them.
+export const LongPage = {
+  args: {
+    children: (
+      <div className="flex flex-col gap-ds-lg">
+        {Array.from({ length: 4 }, (_, index) => (
+          <SampleContent key={index} />
+        ))}
+      </div>
+    ),
+  },
 }
 
 export const Rail = { globals: { viewport: { value: 'rail', isRotated: false } } }

@@ -2,19 +2,19 @@ import { Router } from 'express'
 import multer from 'multer'
 import { fileURLToPath } from 'url'
 import { dirname, join, extname } from 'path'
-import { unlinkSync, existsSync } from 'fs'
+import { randomUUID } from 'crypto'
+import { existsSync, unlinkSync } from 'fs'
 import { authenticateToken } from '../middleware/auth.js'
+import { MAX_LENGTHS, validateUrl } from '../middleware/validate.js'
+import { RESUMES_DIR, resumeInUse, resumeName, resumePath, resumeUrl, startsLikePdf } from '../db/resumes.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const uploadsDir = join(__dirname, '..', 'uploads', 'resumes')
 const avatarsDir = join(__dirname, '..', 'uploads', 'avatars')
 
+// Always a random .pdf name: the original name and extension are never trusted.
 const resumeStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const ext = extname(file.originalname)
-    cb(null, `resume-${req.user.id}-${Date.now()}${ext}`)
-  },
+  destination: (req, file, cb) => cb(null, RESUMES_DIR),
+  filename: (req, file, cb) => cb(null, `${randomUUID()}.pdf`),
 })
 
 const resumeUpload = multer({
@@ -28,6 +28,16 @@ const resumeUpload = multer({
     }
   },
 })
+
+// Deletes the member's old resume file unless an application still points at it.
+function removeOldResume(db, url) {
+  const name = resumeName(url)
+  if (!name || resumeInUse(db, name)) return
+  const path = resumePath(name)
+  if (existsSync(path)) {
+    try { unlinkSync(path) } catch { /* ignore */ }
+  }
+}
 
 const avatarStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, avatarsDir),
@@ -51,6 +61,48 @@ const avatarUpload = multer({
   },
 })
 
+const VISIBILITIES = new Set(['public', 'connections', 'private'])
+const TEXT_LIMITS = {
+  name: MAX_LENGTHS.name,
+  title: MAX_LENGTHS.title,
+  company: MAX_LENGTHS.company,
+  bio: MAX_LENGTHS.bio,
+  industry: 100,
+  location: 200,
+  timezone: 100,
+  linkedin_url: 500,
+  website_url: 500,
+  avatar_url: 500,
+}
+const FLAGS = ['notification_email', 'notification_messages', 'notification_connections', 'notification_jobs']
+
+/** The first problem with a profile update, or null. Fields left out (undefined) are not checked. */
+function profileUpdateError(body) {
+  for (const [field, max] of Object.entries(TEXT_LIMITS)) {
+    const value = body[field]
+    if (value === undefined || value === null) continue
+    if (typeof value !== 'string') return `${field} must be text`
+    if (value.length > max) return `${field} can be ${max} characters at most`
+  }
+  for (const field of ['linkedin_url', 'website_url']) {
+    if (body[field] && !validateUrl(body[field])) return 'Links must start with http:// or https://'
+  }
+  if (body.profile_visibility !== undefined && !VISIBILITIES.has(body.profile_visibility)) {
+    return 'Visibility must be public, connections or private'
+  }
+  const years = body.years_experience
+  // An empty value clears it, as before.
+  if (years !== undefined && years !== null && years !== '') {
+    const number = typeof years === 'string' ? Number(years) : years
+    if (!Number.isInteger(number) || number < 0 || number > 70) return 'Years of experience must be a whole number from 0 to 70'
+  }
+  for (const field of FLAGS) {
+    const value = body[field]
+    if (value !== undefined && ![0, 1, true, false].includes(value)) return `${field} must be on or off`
+  }
+  return null
+}
+
 const router = Router()
 
 // All routes require auth
@@ -62,7 +114,7 @@ router.get('/me', (req, res) => {
   const user = db.prepare(`
     SELECT u.id, u.email, u.name, u.title, u.company, u.avatar_url, u.role, u.membership_tier, u.created_at,
            p.bio, p.industry, p.years_experience, p.linkedin_url, p.website_url, p.location, p.timezone,
-           p.resume_filename, p.profile_visibility, p.notification_email, p.notification_messages,
+           p.resume_filename, p.resume_url, p.profile_visibility, p.notification_email, p.notification_messages,
            p.notification_connections, p.notification_jobs
     FROM users u
     LEFT JOIN user_profiles p ON u.id = p.user_id
@@ -81,7 +133,17 @@ router.get('/me', (req, res) => {
 // PUT /api/profile/me - Update profile
 router.put('/me', (req, res) => {
   const db = req.app.locals.db
-  const { name, title, company, avatar_url, bio, industry, years_experience, linkedin_url, website_url, location, timezone, profile_visibility, notification_email, notification_messages, notification_connections, notification_jobs } = req.body
+  const invalid = profileUpdateError(req.body)
+  if (invalid) return res.status(400).json({ error: invalid })
+  const { name, title, company, avatar_url, bio, industry, linkedin_url, website_url, location, timezone, profile_visibility } = req.body
+  const years_experience = typeof req.body.years_experience === 'string' && req.body.years_experience !== ''
+    ? Number(req.body.years_experience)
+    : req.body.years_experience
+  const flag = (value) => (value === undefined || value === null ? value : value ? 1 : 0)
+  const notification_email = flag(req.body.notification_email)
+  const notification_messages = flag(req.body.notification_messages)
+  const notification_connections = flag(req.body.notification_connections)
+  const notification_jobs = flag(req.body.notification_jobs)
 
   // Update users table fields
   if (name || title !== undefined || company !== undefined || avatar_url !== undefined) {
@@ -108,6 +170,11 @@ router.put('/me', (req, res) => {
       notification_jobs = COALESCE(excluded.notification_jobs, notification_jobs),
       updated_at = CURRENT_TIMESTAMP
   `).run(req.user.id, bio ?? null, industry ?? null, years_experience ?? null, linkedin_url ?? null, website_url ?? null, location ?? null, timezone ?? null, profile_visibility ?? null, notification_email ?? null, notification_messages ?? null, notification_connections ?? null, notification_jobs ?? null)
+
+  // COALESCE keeps a field the update left out, so an empty value clears it here.
+  if (req.body.years_experience === '') {
+    db.prepare('UPDATE user_profiles SET years_experience = NULL WHERE user_id = ?').run(req.user.id)
+  }
 
   res.json({ success: true })
 })
@@ -173,23 +240,24 @@ router.delete('/me/experience/:id', (req, res) => {
 router.post('/me/resume', (req, res) => {
   resumeUpload.single('resume')(req, res, (err) => {
     if (err) {
-      return res.status(400).json({ error: err.message || 'Upload failed' })
+      const error = err.code === 'LIMIT_FILE_SIZE' ? 'Resume must be 5 MB or less' : err.message || 'Upload failed'
+      return res.status(400).json({ error })
     }
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
     }
+    // The browser's mimetype is only a claim; a PDF starts with "%PDF-". An unreadable file fails too.
+    if (!startsLikePdf(req.file.path)) {
+      try { unlinkSync(req.file.path) } catch { /* ignore */ }
+      return res.status(400).json({ error: 'Only PDF files are allowed' })
+    }
 
     const db = req.app.locals.db
-    const resumeUrl = `/uploads/resumes/${req.file.filename}`
+    const newUrl = resumeUrl(req.file.filename)
 
-    // Remove old resume file if exists
+    // The old file goes unless an application still uses it.
     const existing = db.prepare('SELECT resume_url FROM user_profiles WHERE user_id = ?').get(req.user.id)
-    if (existing?.resume_url) {
-      const oldPath = join(__dirname, '..', existing.resume_url)
-      if (existsSync(oldPath)) {
-        try { unlinkSync(oldPath) } catch { /* ignore */ }
-      }
-    }
+    if (existing?.resume_url) removeOldResume(db, existing.resume_url)
 
     db.prepare(`
       INSERT INTO user_profiles (user_id, resume_filename, resume_url, updated_at)
@@ -198,9 +266,9 @@ router.post('/me/resume', (req, res) => {
         resume_filename = excluded.resume_filename,
         resume_url = excluded.resume_url,
         updated_at = CURRENT_TIMESTAMP
-    `).run(req.user.id, req.file.originalname, resumeUrl)
+    `).run(req.user.id, req.file.originalname, newUrl)
 
-    res.json({ success: true, filename: req.file.originalname, url: resumeUrl })
+    res.json({ success: true, filename: req.file.originalname, url: newUrl })
   })
 })
 
@@ -236,12 +304,7 @@ router.delete('/me/resume', (req, res) => {
   const db = req.app.locals.db
   const existing = db.prepare('SELECT resume_url FROM user_profiles WHERE user_id = ?').get(req.user.id)
 
-  if (existing?.resume_url) {
-    const filePath = join(__dirname, '..', existing.resume_url)
-    if (existsSync(filePath)) {
-      try { unlinkSync(filePath) } catch { /* ignore */ }
-    }
-  }
+  if (existing?.resume_url) removeOldResume(db, existing.resume_url)
 
   db.prepare('UPDATE user_profiles SET resume_filename = NULL, resume_url = NULL, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?')
     .run(req.user.id)

@@ -164,9 +164,13 @@ Headings get `text-balance`. Base `h1` to `h6` rules sit in `@layer base` so uti
 | 1024 to 1279px | 80px icon rail (`w-20`) with tooltips; a toggle expands it, saved in localStorage under `mv.sidebar.collapsed` (only applies in this band) |
 | Below 1024px | Hidden; the top bar's menu button opens it in a left `Sheet` with focus on the active link. Escape or navigation closes it |
 
-The top bar (`AppTopBar`) holds the page title (an h1) or breadcrumbs on the left and search, actions, notifications and the account menu on the right. From 768px the search sits in the bar; below that a Search button opens it in a popover. `/` focuses search.
+The top bar (`AppTopBar`) holds the page title (an h1, one line with an ellipsis and the full text as its `title`, 18px below 640px) or breadcrumbs on the left and search, actions, notifications and the account menu on the right. From 768px the search sits in the bar; below that a Search button opens it in a popover. `/` focuses search.
 
-Pages render into `<main id="main-content">`: `bg-surface-sunken`, `p-ds-md` (`lg:p-ds-xl`), `lg:rounded-tl-panel`. A "Skip to main content" link comes first.
+The document scrolls, not a panel. The sidebar is `sticky top-0 h-dvh` and its nav scrolls on its own when it is longer than the screen (the admin nav); the top bar is sticky at the top of the content column (`z-(--ds-z-sticky)`, white behind it). So phone address bars collapse, tapping the iOS status bar scrolls to the top, Space and Page Down scroll after a sidebar click, and window scroll listeners (BackToTop, ScrollProgress, scroll locks) keep working.
+
+Pages render into `<main id="main-content">` in normal flow: `bg-surface-sunken`, `p-ds-md` (`lg:p-ds-xl`), `lg:rounded-tl-panel`. A "Skip to main content" link comes first.
+
+The root carries `data-app-shell`. While it is on the page, `styles/app-shell.css` sets `scroll-padding-top` on `html` so keyboard focus and anchors land below the top bar (WCAG 2.4.11), and defines `--shell-topbar-h` (80px) and `--shell-main-pad` (16px, 32px from 1024px) for pages that fill the screen; `ShellLayout` adds `--shell-banner-h` while the email verification banner shows. After a navigation (not on first load) focus moves to the page title, an h1 with `tabIndex={-1}`, also when the link was followed from the mobile sheet or the notifications sheet.
 
 ### Public site
 
@@ -302,7 +306,7 @@ Controls share one height scale (`lib/controlSizes.js`): xs 32px, sm 40px, md 48
 | `EmptyState` | Nothing to show | `icon`, `title`, `description`, `actions`, `headingLevel`, `size` sm or md | |
 | `Alert`, `Banner` | Inline messages | `tone` info, success, warning, error; `title`, `description`, `actions`, `onDismiss` | Warning and error use `role="alert"`; Banner is always a status |
 | `PageHeader` | Top of a page | `title` (always h1), `description`, `eyebrow`, `breadcrumbs`, `actions` | One per page |
-| `SectionHeader` | Top of a section | `title`, `headingLevel`, `description`, `eyebrow`, `actions` | |
+| `SectionHeader` | Top of a section | `title`, `headingLevel`, `size` (heading look), `description`, `eyebrow`, `actions` | In the app shell use `size="h3"` so h2 sections stay below the top bar's h1 |
 | `Dialog`, `DialogClose` | Modal tasks and confirms | `trigger` or `open`/`onOpenChange`, `title` (required), `description`, `footer`, `size` sm, md, lg, `dismissible` | Close from the footer with `DialogClose` around a Button |
 | `Sheet`, `SheetClose` | Side drawers | Same as Dialog, plus `side` right or left, `size` sm 320, md 400, lg 560 | |
 | `DropdownMenu` | A menu of actions | `trigger`, `items` [{ label, icon, onSelect, to, href, tone: 'danger', disabled }, { type: 'separator' }, { type: 'label' }], `side`, `align` | The trigger needs a name |
@@ -311,6 +315,10 @@ Controls share one height scale (`lib/controlSizes.js`): xs 32px, sm 40px, md 48
 | `ChartCard`, `BarChart`, `LineChart` | One chart with a "View as table" toggle | Card: `title`, `data`, `xKey`, `series` [{ key, label, color 1 to 6 }], `valueFormatter`, `height` sm, md, lg, `tableView`; bare chart inside | Put the config on the card, not the chart |
 | `MediaFrame` | Images in cards and heroes | `src`, `alt`, `ratio` 3/2 (default), 16/9, 4/3, 1/1, 4/5, `eager` | |
 | `CheckList` | Benefit lists | `items`, `size` sm or md, `reveal` | |
+| `DescriptionList` | Label and value rows ("Details" panels) | `items` [{ key, label, value }] | Empty values are skipped |
+| `VideoEmbed` | A 16:9 player | `src` (YouTube or Vimeo page URL, or a video file), `title`, `emptyLabel` | No `src` shows "Video coming soon" |
+| `ShareDialog` | Share a page | `open`/`onOpenChange` or `trigger`, `title`, `url` (default the current page), `shareTitle`, `inviteMessage` | Network links, Copy (toast) and an email invite, checked before the mail app opens. Copy elsewhere with `copyText` from `lib/copyText.js` |
+| `ScrollProgress` | Reading progress on long pages | none | Decorative, fixed at the top of the window |
 | `Reveal` | Scroll-in motion | `variant` rise, fade, clip; `index` (stagger); `as` | See section 13 |
 | `CountUp` | Animated numbers | `value` | Non-numeric values render as is |
 
@@ -321,7 +329,7 @@ Organisms take data as props and never fetch.
 | Component | Domain | When to use | Key props |
 |---|---|---|---|
 | `AppShell` | app-shell | The signed-in layout | `nav` (`MEMBER_NAV` or `ADMIN_NAV`), `navLabel`, `badges`, `title`, `breadcrumbs`, `actions`, `search`, `notifications`, `user`, `userMenuItems`, `onLogout` |
-| `AppSidebar` | app-shell | The sidebar (AppShell renders it) | `nav`, `collapsed`, `badges`, `footer`, `onCollapsedChange` |
+| `AppSidebar` | app-shell | The sidebar (AppShell renders it) | `nav`, `collapsed`, `badges`, `footer` (a node, or `({ collapsed }) => node` to switch to icons in the rail), `onCollapsedChange` |
 | `AppTopBar` | app-shell | The top bar (AppShell renders it) | `title`, `breadcrumbs`, `search`, `actions`, `notifications`, `user`, `onOpenNav` |
 | `SidebarNavItem` | app-shell | One nav row | `item`, `activeTo`, `collapsed`, `badges` |
 | `nav.js` | app-shell | Nav config | `MEMBER_NAV`, `ADMIN_NAV`, `findActiveItem`, `flattenNav`, `buildUserMenuItems` |
@@ -338,12 +346,13 @@ Organisms take data as props and never fetch.
 | `ReviewCard` | dashboard | A review | `reviewerName`, `rating`, `text`, `subject`, `dateLabel`, `dateTime`, `clamp` |
 | `RecommendationCard` | dashboard | A recommendation | `fromName`, `fromTitle`, `message`, `subject`, `dateLabel`, `dateTime` |
 | `MetaList` | dashboard | Icon facts row | `items` [{ key, icon, label }] |
+| `CommentThread` | dashboard | Comments with one level of replies | `comments` [{ id, authorName, authorAvatarSrc, content, timeLabel, dateTime, own, replies }], `currentUser`, `loading`, `onPost`, `onReply`, `onDelete`, `headingLevel` (2). The app hook `useComments(entityType, id)` returns these props |
 | `CompanyLogo` | dashboard | Company or vendor logo | `name`, `src`, `size` md or lg |
 | `StarRating` | dashboard | Read-only or input rating | `value`, `onChange` (makes it an input), `label`, `size` |
 | `StatusBadge` | admin | Any status string | `status`, `label`; `STATUS_BADGES`, `resolveStatus` |
 | `AdminDataTable` | admin | Admin lists with search, filters, bulk and row actions | `search`, `filters`, `onClearFilters`, `toolbarActions`, `selectable`, `bulkActions`, `rowActions`, `error`, `onRetry`, `onActionError`, plus DataTable props |
 
-Every dashboard card except `MetaList`, `CompanyLogo` and `StarRating` ships a `...Skeleton` (for example `JobCardSkeleton`). Cards are articles named by their title, take `headingLevel` (default 3) and fill their grid cell.
+Every dashboard card except `MetaList`, `CompanyLogo`, `StarRating` and `CommentThread` (it has a `loading` state) ships a `...Skeleton` (for example `JobCardSkeleton`). Cards are articles named by their title, take `headingLevel` (default 3) and fill their grid cell.
 
 Dates: cards take preformatted text (`dateLabel`, `postedLabel` on JobCard, `time` on MessageThreadItem) plus an optional `dateTime` for the `<time>` element. Build them with `formatDate` and `toDateTime` from `lib/formatDate.js`.
 
@@ -465,6 +474,7 @@ src/design-system/
 Rules, checked by tools:
 
 - **Layering** (`ds-layering` in `npm run lint:ds`, error): primitives never import patterns or organisms; patterns never import organisms. The barrel tests also check that patterns don't import organisms and that organisms never import app `components/`, `context/` or `pages/`.
+- **Local assets only** (`no-remote-assets`, error everywhere, tests and stories included): no Webflow CDN, other Webflow asset hosts or pravatar. Fonts and images live in `client/public/` (see `scripts/localize-assets.mjs`).
 - **Retired folders** (`no-retired-imports`): the design system never imports `components/ui/` or `components/live/` (error inside `src/design-system/`, a warning elsewhere until Phase 8).
 - **Barrels:** each tier barrel has a test that fails when a component folder's exports are missing from it.
 - **Stories:** `npm run check:stories` fails when a component folder (each folder in `primitives/` and `patterns/`, each component folder in `organisms/<domain>/`) has no `*.stories.jsx`, or when an organism component file sits loose in a domain folder.
@@ -475,10 +485,10 @@ Inside the design system, files import each other with relative paths (`../../pr
 ## 18. Known gaps
 
 - **Dark theme.** Not built. Adding `role.dark` to `tokens.json` emits a `[data-theme="dark"]` block; the Storybook theme toolbar's dark option is a placeholder that falls back to light until then.
-- **Webflow CDN assets.** Fixel Text, the Mavuus wordmark and the public site images still load from the live Webflow CDN. They must move into the repo before launch, pending the founders' OK.
-- **Pages not migrated.** Phase 8 moves the dashboard, admin, auth and public pages onto the system. Until then legacy pages keep their own styling and `components/ui/` and `components/live/` still exist. The app shell isn't wired in yet and `<Toaster />` isn't mounted in the app.
-- **Legacy lint baseline.** `scripts/lint-design-system.baseline.json` holds 651 legacy errors in 97 files outside the design system (477 `no-arbitrary-size`, 75 `no-raw-color`, 72 `no-em-dash`, 27 `no-inline-style`). A run fails when a count goes up or a new file has errors; when counts drop, run `npm run lint:ds -- --update-baseline`. `src/design-system/` has no baseline.
-- **Legacy bugs logged for Phase 8:** the closed notifications drawer in `DashboardLayout.jsx` is likely still focusable, and the weekly signups bars on `AdminDashboardPage` render empty.
+- **Remote images left: Unsplash.** Fixel Text, the wordmark, every public site image and the demo avatars are local files in `client/public/` since Stage 1 (`public/fonts/fixel/`, `public/images/<page>/`, listed in `scripts/assets-manifest.json`), and `no-remote-assets` keeps the Webflow and pravatar hosts out. The session and resource cover photos in the seeds, mock data and auth pages still load from `images.unsplash.com`; the e2e guard allows that one host on those pages only until the owner approves localizing them. Twelve covers in `server/db/seed.js` (six on-demand sessions, six resources) are `picsum.photos` placeholders; the e2e guard treats that host like Unsplash (`PENDING_HOSTS`), under the same pending approval.
+- **Pages not migrated.** Phase 8 moves the dashboard, admin, auth and public pages onto the system. Until then legacy pages keep their own styling and `components/ui/` and `components/live/` still exist. The app shell is live for `/dashboard` and `/admin` (`src/layouts/`). `<Toaster />` is mounted in `main.jsx` next to the legacy `ToastProvider` (Batch 3B); migrated pages use the design-system `useToast`. Migrated so far: AcademyPage, LiveSessionsPage, SessionDetailPage, OnDemandPage, ResourcesPage and ResourceDetailPage.
+- **Legacy lint baseline.** `scripts/lint-design-system.baseline.json` holds 619 legacy errors in 89 files outside the design system (456 `no-arbitrary-size`, 71 `no-raw-color`, 66 `no-em-dash`, 26 `no-inline-style`). A run fails when a count goes up or a new file has errors; when counts drop, run `npm run lint:ds -- --update-baseline`. `src/design-system/` has no baseline.
+- **Legacy bugs logged for Phase 8:** the weekly signups bars on `AdminDashboardPage` render empty. (The focusable closed notifications drawer went away with the app shell in Batch 3A: the new panel is a Sheet, unmounted while closed.)
 
 ## 19. Agent prompt guide
 

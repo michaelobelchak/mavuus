@@ -203,6 +203,8 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 
 -- Job Applications
+-- Keep in step with db/jobApplications.js: it rebuilds this table on older databases (whose
+-- CHECK lacks 'hired') with these exact columns and statuses. tests/jobFlow.test.js compares them.
 CREATE TABLE IF NOT EXISTS job_applications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   job_id INTEGER REFERENCES jobs(id) ON DELETE CASCADE,
@@ -210,7 +212,7 @@ CREATE TABLE IF NOT EXISTS job_applications (
   cover_letter TEXT,
   resume_filename TEXT,
   resume_url TEXT,
-  status TEXT DEFAULT 'applied' CHECK(status IN ('applied', 'reviewing', 'interview', 'offer', 'rejected', 'withdrawn')),
+  status TEXT DEFAULT 'applied' CHECK(status IN ('applied', 'reviewing', 'interview', 'offer', 'rejected', 'withdrawn', 'hired')),
   applied_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(job_id, user_id)
@@ -391,3 +393,10 @@ CREATE TABLE IF NOT EXISTS audit_log (
   ip_address TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- One review per member per vendor: the unique index idx_reviews_vendor_once is created by
+-- ensureVendorReviewIndex (db/vendorReviews.js) after this schema runs, together with removing
+-- repeat rows an older database may hold.
+
+-- Vendor owner lookups (the member directory leaves owner accounts out)
+CREATE INDEX IF NOT EXISTS idx_vendors_user_id ON vendors(user_id);

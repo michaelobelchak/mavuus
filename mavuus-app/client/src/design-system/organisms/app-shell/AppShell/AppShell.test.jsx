@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { createRef } from 'react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockViewport } from '../../../test/browserMocks'
 import { MEMBER_NAV } from '../nav'
@@ -57,6 +58,23 @@ describe('AppShell', () => {
     expect(within(screen.getByRole('main')).getByText('Page content')).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: 'Jobs' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Notifications, 2 unread' })).toBeInTheDocument()
+  })
+
+  it('should let the document scroll, with a sticky sidebar and top bar, when the page is long', () => {
+    const { container } = renderShell(1440)
+    const root = container.firstElementChild
+    const main = screen.getByRole('main')
+    // jsdom has no layout, so this checks the classes that decide who scrolls: not <main>, not
+    // a fixed-height wrapper, but the window.
+    expect(root.className).not.toMatch(/(^|\s)h-dvh(\s|$)/)
+    expect(main.className).not.toMatch(/overflow-y-auto|overflow-auto/)
+    expect(screen.getByRole('banner').className).toMatch(/(^|\s)sticky(\s|$)/)
+    expect(screen.getByRole('navigation', { name: 'Main' }).closest('.sticky')).not.toBeNull()
+  })
+
+  it('should keep the rail nav the containing block of its hidden labels so they cannot stretch the page', () => {
+    renderShell(1100)
+    expect(screen.getByRole('navigation', { name: 'Main' })).toHaveClass('relative', 'overflow-y-auto')
   })
 
   it('should show an icon rail with tooltip labels between 1024 and 1279px', () => {
@@ -154,6 +172,58 @@ describe('AppShell', () => {
     await user.click(within(dialog).getByRole('link', { name: 'Speakers' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), { timeout: 3000 })
     expect(screen.getByTestId('where')).toHaveTextContent('/dashboard/speakers')
+  })
+
+  it('should mark its root so global CSS can pad focus scrolling below the sticky top bar', () => {
+    const { container } = renderShell(1440)
+    expect(container.firstElementChild).toHaveAttribute('data-app-shell')
+  })
+
+  it('should leave focus alone on first load and move it to the page title after navigating', async () => {
+    const user = userEvent.setup()
+    renderShell(1440)
+    const title = screen.getByRole('heading', { level: 1, name: 'Jobs' })
+    expect(title).not.toHaveFocus()
+    expect(title).toHaveAttribute('tabindex', '-1')
+    await user.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Speakers' }))
+    expect(screen.getByTestId('where')).toHaveTextContent('/dashboard/speakers')
+    await waitFor(() => expect(title).toHaveFocus())
+  })
+
+  it('should hand the page title to a titleRef', () => {
+    const titleRef = createRef()
+    renderShell(1440, { titleRef })
+    expect(titleRef.current).toBe(screen.getByRole('heading', { level: 1, name: 'Jobs' }))
+  })
+
+  it('should leave focus in an open dialog that navigates instead of pulling it to the title', async () => {
+    const user = userEvent.setup()
+    function DialogThatNavigates() {
+      const navigate = useNavigate()
+      return (
+        <div role="dialog" aria-label="Apply">
+          <button type="button" onClick={() => navigate('/dashboard/my-jobs')}>
+            Save and view my jobs
+          </button>
+        </div>
+      )
+    }
+    renderShell(1440, { actions: <DialogThatNavigates /> })
+    const button = screen.getByRole('button', { name: 'Save and view my jobs' })
+    await user.click(button)
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(button).toHaveFocus()
+  })
+
+  it('should leave focus on the page title, not the menu button, when a link in the mobile sheet is followed', async () => {
+    const user = userEvent.setup()
+    renderShell(390)
+    await user.click(screen.getByRole('button', { name: 'Open menu' }))
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('link', { name: 'Speakers' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), { timeout: 3000 })
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(screen.getByRole('heading', { level: 1, name: 'Jobs' })).toHaveFocus()
   })
 
   it('should open the sheet on first render with defaultNavOpen', async () => {

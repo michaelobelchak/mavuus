@@ -4,6 +4,9 @@ import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { dbPath } from '../config.js'
 import bcrypt from 'bcryptjs'
+import { ensureVendorOwners } from './vendorOwners.js'
+import { ensureVendorReviewIndex, seedVendorReviews } from './vendorReviews.js'
+import { ensureJobApplicationStatuses } from './jobApplications.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // DB_PATH is relative to the server folder (e2e uses db/e2e.db); the default is db/mavuus.db.
@@ -15,6 +18,8 @@ db.pragma('journal_mode = WAL')
 // Run schema
 const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8')
 db.exec(schema)
+ensureVendorReviewIndex(db)
+ensureJobApplicationStatuses(db)
 
 // Seed users (IDs 1-12, with avatar_url)
 const passwordHash = bcrypt.hashSync('demo123', 10)
@@ -24,23 +29,23 @@ const insertUser = db.prepare(`
 `)
 
 const users = [
-  ['sarah@techflow.com', passwordHash, 'Sarah Chen', 'VP of Marketing', 'TechFlow', 'https://i.pravatar.cc/150?u=sarah@techflow.com', 'member', 'pro'],
-  ['marcus@growthbase.com', passwordHash, 'Marcus Johnson', 'CMO', 'GrowthBase', 'https://i.pravatar.cc/150?u=marcus@growthbase.com', 'member', 'pro'],
-  ['priya@cloudscale.com', passwordHash, 'Priya Patel', 'Director of Demand Gen', 'CloudScale', 'https://i.pravatar.cc/150?u=priya@cloudscale.com', 'member', 'pro'],
-  ['elena@drift.com', passwordHash, 'Elena Rodriguez', 'CMO', 'Drift', 'https://i.pravatar.cc/150?u=elena@drift.com', 'member', 'pro'],
-  ['david@twilio.com', passwordHash, 'David Kim', 'SVP Marketing', 'Twilio', 'https://i.pravatar.cc/150?u=david@twilio.com', 'member', 'pro'],
-  ['aisha@figma.com', passwordHash, 'Aisha Okafor', 'Head of Marketing', 'Figma', 'https://i.pravatar.cc/150?u=aisha@figma.com', 'member', 'pro'],
-  ['demo@mavuus.com', passwordHash, 'Demo User', 'Marketing Director', 'Mavuus', 'https://i.pravatar.cc/150?u=demo@mavuus.com', 'admin', 'pro'],
-  ['jennifer@hubspot.com', passwordHash, 'Jennifer Martinez', 'VP Marketing', 'HubSpot', 'https://i.pravatar.cc/150?u=jennifer@hubspot.com', 'member', 'pro'],
-  ['alex@stripe.com', passwordHash, 'Alex Thompson', 'Head of Growth', 'Stripe', 'https://i.pravatar.cc/150?u=alex@stripe.com', 'member', 'pro'],
-  ['maya@spotify.com', passwordHash, 'Maya Williams', 'Director of Brand', 'Spotify', 'https://i.pravatar.cc/150?u=maya@spotify.com', 'member', 'free'],
-  ['ryan@shopify.com', passwordHash, 'Ryan Cooper', 'CMO', 'Shopify', 'https://i.pravatar.cc/150?u=ryan@shopify.com', 'member', 'pro'],
-  ['lisa@notion.com', passwordHash, 'Lisa Park', 'VP Demand Gen', 'Notion', 'https://i.pravatar.cc/150?u=lisa@notion.com', 'member', 'free'],
-  ['tom@datadog.com', passwordHash, 'Tom Bradley', 'Director of Marketing', 'Datadog', 'https://i.pravatar.cc/150?u=tom@datadog.com', 'member', 'pro'],
-  ['nina@intercom.com', passwordHash, 'Nina Vasquez', 'VP Growth Marketing', 'Intercom', 'https://i.pravatar.cc/150?u=nina@intercom.com', 'member', 'pro'],
-  ['james@amplitude.com', passwordHash, 'James Wright', 'VP Growth', 'Amplitude', 'https://i.pravatar.cc/150?u=james@amplitude.com', 'member', 'pro'],
-  ['omar@canva.com', passwordHash, 'Omar Hassan', 'VP Brand', 'Canva', 'https://i.pravatar.cc/150?u=omar@canva.com', 'member', 'pro'],
-  ['rachel@asana.com', passwordHash, 'Rachel Foster', 'Head of Content', 'Asana', 'https://i.pravatar.cc/150?u=rachel@asana.com', 'member', 'free'],
+  ['sarah@techflow.com', passwordHash, 'Sarah Chen', 'VP of Marketing', 'TechFlow', '/images/avatars/avatar-21.webp', 'member', 'pro'],
+  ['marcus@growthbase.com', passwordHash, 'Marcus Johnson', 'CMO', 'GrowthBase', '/images/avatars/avatar-14.webp', 'member', 'pro'],
+  ['priya@cloudscale.com', passwordHash, 'Priya Patel', 'Director of Demand Gen', 'CloudScale', '/images/avatars/avatar-18.webp', 'member', 'pro'],
+  ['elena@drift.com', passwordHash, 'Elena Rodriguez', 'CMO', 'Drift', '/images/avatars/avatar-07.webp', 'member', 'pro'],
+  ['david@twilio.com', passwordHash, 'David Kim', 'SVP Marketing', 'Twilio', '/images/avatars/avatar-05.webp', 'member', 'pro'],
+  ['aisha@figma.com', passwordHash, 'Aisha Okafor', 'Head of Marketing', 'Figma', '/images/avatars/avatar-01.webp', 'member', 'pro'],
+  ['demo@mavuus.com', passwordHash, 'Demo User', 'Marketing Director', 'Mavuus', '/images/avatars/avatar-06.webp', 'admin', 'pro'],
+  ['jennifer@hubspot.com', passwordHash, 'Jennifer Martinez', 'VP Marketing', 'HubSpot', '/images/avatars/avatar-09.webp', 'member', 'pro'],
+  ['alex@stripe.com', passwordHash, 'Alex Thompson', 'Head of Growth', 'Stripe', '/images/avatars/avatar-02.webp', 'member', 'pro'],
+  ['maya@spotify.com', passwordHash, 'Maya Williams', 'Director of Brand', 'Spotify', '/images/avatars/avatar-15.webp', 'member', 'free'],
+  ['ryan@shopify.com', passwordHash, 'Ryan Cooper', 'CMO', 'Shopify', '/images/avatars/avatar-20.webp', 'member', 'pro'],
+  ['lisa@notion.com', passwordHash, 'Lisa Park', 'VP Demand Gen', 'Notion', '/images/avatars/avatar-13.webp', 'member', 'free'],
+  ['tom@datadog.com', passwordHash, 'Tom Bradley', 'Director of Marketing', 'Datadog', '/images/avatars/avatar-23.webp', 'member', 'pro'],
+  ['nina@intercom.com', passwordHash, 'Nina Vasquez', 'VP Growth Marketing', 'Intercom', '/images/avatars/avatar-16.webp', 'member', 'pro'],
+  ['james@amplitude.com', passwordHash, 'James Wright', 'VP Growth', 'Amplitude', '/images/avatars/avatar-08.webp', 'member', 'pro'],
+  ['omar@canva.com', passwordHash, 'Omar Hassan', 'VP Brand', 'Canva', '/images/avatars/avatar-17.webp', 'member', 'pro'],
+  ['rachel@asana.com', passwordHash, 'Rachel Foster', 'Head of Content', 'Asana', '/images/avatars/avatar-19.webp', 'member', 'free'],
 ]
 
 users.forEach(u => insertUser.run(...u))
@@ -53,26 +58,26 @@ const insertSession = db.prepare(`
 
 const sessions = [
   // Live sessions
-  ['Building a Content Engine That Scales', 'Learn how to build a scalable content machine that drives organic growth. We\'ll cover editorial calendars, content repurposing frameworks, and team scaling strategies that took TechFlow from 3 to 30 content pieces per week.', 'Sarah Chen', 'VP of Marketing, TechFlow', 'https://i.pravatar.cc/150?u=sarah@techflow.com', 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=340&fit=crop', 'live', 'Content Strategy', '2026-03-20T14:00:00Z', '60 min', 0],
-  ['ABM Playbook: From 0 to Enterprise Pipeline', 'A practical guide to implementing account-based marketing from scratch. Learn how GrowthBase built a $10M pipeline using targeted ABM strategies, intent data, and personalized outreach.', 'Marcus Johnson', 'CMO, GrowthBase', 'https://i.pravatar.cc/150?u=marcus@growthbase.com', 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&h=340&fit=crop', 'live', 'ABM', '2026-03-22T16:00:00Z', '45 min', 0],
-  ['The Future of AI in B2B Marketing', 'Exploring how AI is reshaping demand generation and customer engagement. From predictive lead scoring to AI-generated content at scale — what\'s real and what\'s hype.', 'Priya Patel', 'Director of Demand Gen, CloudScale', 'https://i.pravatar.cc/150?u=priya@cloudscale.com', 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=340&fit=crop', 'live', 'AI & Tech', '2026-03-25T15:00:00Z', '60 min', 0],
-  ['Product-Led Growth for B2B Marketers', 'How to align marketing with product-led growth motions. Covers free trial optimization, activation funnels, and the role of marketing in PLG companies.', 'Alex Thompson', 'Head of Growth, Stripe', 'https://i.pravatar.cc/150?u=alex@stripe.com', 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=340&fit=crop', 'live', 'Growth', '2026-03-28T17:00:00Z', '50 min', 0],
-  ['Community-Led Marketing: Beyond the Hype', 'What community-led growth actually looks like when it works. Real frameworks from companies that built revenue-generating communities — not just Slack groups that went quiet after launch.', 'Jennifer Martinez', 'VP Marketing, HubSpot', 'https://i.pravatar.cc/150?u=jennifer@hubspot.com', 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=600&h=340&fit=crop', 'live', 'Community', '2026-04-02T16:00:00Z', '55 min', 0],
-  ['CMO Compensation & Influence at the Exec Table', 'A candid conversation with three sitting CMOs about negotiating comp, defending budget in board meetings, and earning real influence beyond the marketing org.', 'Leah Andrew', 'VP Marketing, Lyft', 'https://i.pravatar.cc/150?u=leah@lyft.com', 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=600&h=340&fit=crop', 'live', 'Leadership', '2026-04-05T15:00:00Z', '60 min', 0],
+  ['Building a Content Engine That Scales', 'Learn how to build a scalable content machine that drives organic growth. We\'ll cover editorial calendars, content repurposing frameworks, and team scaling strategies that took TechFlow from 3 to 30 content pieces per week.', 'Sarah Chen', 'VP of Marketing, TechFlow', '/images/avatars/avatar-21.webp', 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=340&fit=crop', 'live', 'Content Strategy', '2026-03-20T14:00:00Z', '60 min', 0],
+  ['ABM Playbook: From 0 to Enterprise Pipeline', 'A practical guide to implementing account-based marketing from scratch. Learn how GrowthBase built a $10M pipeline using targeted ABM strategies, intent data, and personalized outreach.', 'Marcus Johnson', 'CMO, GrowthBase', '/images/avatars/avatar-14.webp', 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&h=340&fit=crop', 'live', 'ABM', '2026-03-22T16:00:00Z', '45 min', 0],
+  ['The Future of AI in B2B Marketing', 'Exploring how AI is reshaping demand generation and customer engagement. From predictive lead scoring to AI-generated content at scale — what\'s real and what\'s hype.', 'Priya Patel', 'Director of Demand Gen, CloudScale', '/images/avatars/avatar-18.webp', 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=340&fit=crop', 'live', 'AI & Tech', '2026-03-25T15:00:00Z', '60 min', 0],
+  ['Product-Led Growth for B2B Marketers', 'How to align marketing with product-led growth motions. Covers free trial optimization, activation funnels, and the role of marketing in PLG companies.', 'Alex Thompson', 'Head of Growth, Stripe', '/images/avatars/avatar-02.webp', 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=340&fit=crop', 'live', 'Growth', '2026-03-28T17:00:00Z', '50 min', 0],
+  ['Community-Led Marketing: Beyond the Hype', 'What community-led growth actually looks like when it works. Real frameworks from companies that built revenue-generating communities — not just Slack groups that went quiet after launch.', 'Jennifer Martinez', 'VP Marketing, HubSpot', '/images/avatars/avatar-09.webp', 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=600&h=340&fit=crop', 'live', 'Community', '2026-04-02T16:00:00Z', '55 min', 0],
+  ['CMO Compensation & Influence at the Exec Table', 'A candid conversation with three sitting CMOs about negotiating comp, defending budget in board meetings, and earning real influence beyond the marketing org.', 'Leah Andrew', 'VP Marketing, Lyft', '/images/avatars/avatar-12.webp', 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=600&h=340&fit=crop', 'live', 'Leadership', '2026-04-05T15:00:00Z', '60 min', 0],
   // On-demand sessions
-  ['Mastering LinkedIn Ads for B2B', 'Deep dive into LinkedIn advertising strategies that drive quality leads. Learn campaign structure, audience targeting, creative best practices, and budget optimization techniques that reduced our CPL by 40%.', 'Elena Rodriguez', 'CMO, Drift', 'https://i.pravatar.cc/150?u=elena@drift.com', 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&h=340&fit=crop', 'on-demand', 'Paid Media', null, '42 min', 1240],
-  ['Brand Storytelling Workshop', 'Craft compelling brand narratives that resonate with your audience. This hands-on workshop covers story frameworks, emotional positioning, and how to translate brand values into marketing campaigns that convert.', 'Omar Hassan', 'VP Brand, Canva', 'https://i.pravatar.cc/150?u=omar@canva.com', 'https://images.unsplash.com/photo-1523289333742-be1143f6b766?w=600&h=340&fit=crop', 'on-demand', 'Branding', null, '55 min', 2870],
-  ['Data-Driven Campaign Optimization', 'Use analytics and data to continuously improve campaign performance. Learn attribution modeling, multi-touch analysis, and how to build dashboards that give actionable insights to your entire team.', 'James Wright', 'VP Growth, Amplitude', 'https://i.pravatar.cc/150?u=james@amplitude.com', 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=340&fit=crop', 'on-demand', 'Analytics', null, '38 min', 956],
-  ['SEO Strategy for B2B SaaS in 2026', 'A comprehensive look at modern B2B SEO — from programmatic pages to AI-powered content briefs. Covers technical SEO audits, content clusters, and link building strategies that moved Asana from page 3 to page 1.', 'Rachel Foster', 'Head of Content, Asana', 'https://i.pravatar.cc/150?u=rachel@asana.com', 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=600&h=340&fit=crop', 'on-demand', 'SEO', null, '47 min', 1830],
-  ['Retention Marketing Masterclass', 'How to reduce churn and increase LTV through lifecycle marketing. Covers email nurture sequences, in-app messaging, customer health scoring, and win-back campaigns that recovered 15% of churned accounts.', 'Ryan Cooper', 'CMO, Shopify', 'https://i.pravatar.cc/150?u=ryan@shopify.com', 'https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=600&h=340&fit=crop', 'on-demand', 'Growth', null, '51 min', 2150],
-  ['Building a Marketing Tech Stack That Scales', 'Navigate the martech landscape and build a stack that grows with your company. Covers evaluation frameworks, integration strategies, and how to avoid the common pitfalls of tool sprawl.', 'Nina Vasquez', 'VP Growth Marketing, Intercom', 'https://i.pravatar.cc/150?u=nina@intercom.com', 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=340&fit=crop', 'on-demand', 'MarTech', null, '44 min', 1580],
+  ['Mastering LinkedIn Ads for B2B', 'Deep dive into LinkedIn advertising strategies that drive quality leads. Learn campaign structure, audience targeting, creative best practices, and budget optimization techniques that reduced our CPL by 40%.', 'Elena Rodriguez', 'CMO, Drift', '/images/avatars/avatar-07.webp', 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&h=340&fit=crop', 'on-demand', 'Paid Media', null, '42 min', 1240],
+  ['Brand Storytelling Workshop', 'Craft compelling brand narratives that resonate with your audience. This hands-on workshop covers story frameworks, emotional positioning, and how to translate brand values into marketing campaigns that convert.', 'Omar Hassan', 'VP Brand, Canva', '/images/avatars/avatar-17.webp', 'https://images.unsplash.com/photo-1523289333742-be1143f6b766?w=600&h=340&fit=crop', 'on-demand', 'Branding', null, '55 min', 2870],
+  ['Data-Driven Campaign Optimization', 'Use analytics and data to continuously improve campaign performance. Learn attribution modeling, multi-touch analysis, and how to build dashboards that give actionable insights to your entire team.', 'James Wright', 'VP Growth, Amplitude', '/images/avatars/avatar-08.webp', 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=340&fit=crop', 'on-demand', 'Analytics', null, '38 min', 956],
+  ['SEO Strategy for B2B SaaS in 2026', 'A comprehensive look at modern B2B SEO — from programmatic pages to AI-powered content briefs. Covers technical SEO audits, content clusters, and link building strategies that moved Asana from page 3 to page 1.', 'Rachel Foster', 'Head of Content, Asana', '/images/avatars/avatar-19.webp', 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=600&h=340&fit=crop', 'on-demand', 'SEO', null, '47 min', 1830],
+  ['Retention Marketing Masterclass', 'How to reduce churn and increase LTV through lifecycle marketing. Covers email nurture sequences, in-app messaging, customer health scoring, and win-back campaigns that recovered 15% of churned accounts.', 'Ryan Cooper', 'CMO, Shopify', '/images/avatars/avatar-20.webp', 'https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=600&h=340&fit=crop', 'on-demand', 'Growth', null, '51 min', 2150],
+  ['Building a Marketing Tech Stack That Scales', 'Navigate the martech landscape and build a stack that grows with your company. Covers evaluation frameworks, integration strategies, and how to avoid the common pitfalls of tool sprawl.', 'Nina Vasquez', 'VP Growth Marketing, Intercom', '/images/avatars/avatar-16.webp', 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=340&fit=crop', 'on-demand', 'MarTech', null, '44 min', 1580],
   // Additional on-demand sessions
-  ['Scaling Organic Growth Without Burning Out Your Team', 'Discover sustainable growth strategies that compound over time without exhausting your marketing team. Learn frameworks for prioritizing high-impact initiatives, automating repetitive workflows, and building a growth engine that runs on systems rather than heroics.', 'Danielle Park', 'VP of Growth, Notion', 'https://i.pravatar.cc/150?u=danielle@notion.com', 'https://picsum.photos/seed/video7/800/450', 'on-demand', 'Growth', null, '48 min', 2340],
-  ['Rebranding in Public: Lessons from a $500M Company Rebrand', 'A candid behind-the-scenes look at what it takes to rebrand a well-known B2B company while keeping customers, employees, and investors aligned. Covers timeline planning, stakeholder management, creative development, and the rollout strategy that kept churn below 1%.', 'Tomás Guerrero', 'Chief Brand Officer, Zendesk', 'https://i.pravatar.cc/150?u=tomas@zendesk.com', 'https://picsum.photos/seed/video8/800/450', 'on-demand', 'Brand', null, '55 min', 1870],
-  ['Content Repurposing at Scale: One Idea, Ten Formats', 'Stop creating content from scratch every time. This session walks through a repeatable content atomization framework that turns a single piece of long-form content into ten or more assets across channels — blog posts, social snippets, email sequences, video clips, and more.', 'Keiko Tanaka', 'Head of Content, HubSpot', 'https://i.pravatar.cc/150?u=keiko@hubspot.com', 'https://picsum.photos/seed/video9/800/450', 'on-demand', 'Content', null, '37 min', 2780],
-  ['Marketing Attribution Beyond Last Touch', 'Multi-touch attribution is broken — but you still need to prove ROI. This session explores practical alternatives including incrementality testing, media mix modeling, and self-reported attribution. Learn how top B2B teams are measuring what actually drives pipeline in a privacy-first world.', 'Andre Williams', 'VP Analytics, Salesforce', 'https://i.pravatar.cc/150?u=andre@salesforce.com', 'https://picsum.photos/seed/video10/800/450', 'on-demand', 'Analytics', null, '42 min', 1560],
-  ['Technical SEO for B2B: Beyond the Basics', 'Go past keyword research and on-page optimization into the technical foundations that separate page-one results from the rest. Covers site architecture for enterprise sites, Core Web Vitals optimization, JavaScript rendering strategies, and international SEO structures that doubled organic traffic at Moz.', 'Laura Chen', 'Director of SEO, Moz', 'https://i.pravatar.cc/150?u=laura@moz.com', 'https://picsum.photos/seed/video11/800/450', 'on-demand', 'SEO', null, '52 min', 980],
-  ['Launching Products That Stick: A Product Marketing Masterclass', 'Most product launches fail to move the needle. This masterclass covers the end-to-end product launch process — from positioning and messaging to sales enablement and post-launch measurement. Includes real examples from launches that generated over $20M in first-year pipeline.', 'Simone Adler', 'VP of Product Marketing, Slack', 'https://i.pravatar.cc/150?u=simone@slack.com', 'https://picsum.photos/seed/video12/800/450', 'on-demand', 'Product Marketing', null, '60 min', 2150],
+  ['Scaling Organic Growth Without Burning Out Your Team', 'Discover sustainable growth strategies that compound over time without exhausting your marketing team. Learn frameworks for prioritizing high-impact initiatives, automating repetitive workflows, and building a growth engine that runs on systems rather than heroics.', 'Danielle Park', 'VP of Growth, Notion', '/images/avatars/avatar-04.webp', 'https://picsum.photos/seed/video7/800/450', 'on-demand', 'Growth', null, '48 min', 2340],
+  ['Rebranding in Public: Lessons from a $500M Company Rebrand', 'A candid behind-the-scenes look at what it takes to rebrand a well-known B2B company while keeping customers, employees, and investors aligned. Covers timeline planning, stakeholder management, creative development, and the rollout strategy that kept churn below 1%.', 'Tomás Guerrero', 'Chief Brand Officer, Zendesk', '/images/avatars/avatar-24.webp', 'https://picsum.photos/seed/video8/800/450', 'on-demand', 'Brand', null, '55 min', 1870],
+  ['Content Repurposing at Scale: One Idea, Ten Formats', 'Stop creating content from scratch every time. This session walks through a repeatable content atomization framework that turns a single piece of long-form content into ten or more assets across channels — blog posts, social snippets, email sequences, video clips, and more.', 'Keiko Tanaka', 'Head of Content, HubSpot', '/images/avatars/avatar-10.webp', 'https://picsum.photos/seed/video9/800/450', 'on-demand', 'Content', null, '37 min', 2780],
+  ['Marketing Attribution Beyond Last Touch', 'Multi-touch attribution is broken — but you still need to prove ROI. This session explores practical alternatives including incrementality testing, media mix modeling, and self-reported attribution. Learn how top B2B teams are measuring what actually drives pipeline in a privacy-first world.', 'Andre Williams', 'VP Analytics, Salesforce', '/images/avatars/avatar-03.webp', 'https://picsum.photos/seed/video10/800/450', 'on-demand', 'Analytics', null, '42 min', 1560],
+  ['Technical SEO for B2B: Beyond the Basics', 'Go past keyword research and on-page optimization into the technical foundations that separate page-one results from the rest. Covers site architecture for enterprise sites, Core Web Vitals optimization, JavaScript rendering strategies, and international SEO structures that doubled organic traffic at Moz.', 'Laura Chen', 'Director of SEO, Moz', '/images/avatars/avatar-11.webp', 'https://picsum.photos/seed/video11/800/450', 'on-demand', 'SEO', null, '52 min', 980],
+  ['Launching Products That Stick: A Product Marketing Masterclass', 'Most product launches fail to move the needle. This masterclass covers the end-to-end product launch process — from positioning and messaging to sales enablement and post-launch measurement. Includes real examples from launches that generated over $20M in first-year pipeline.', 'Simone Adler', 'VP of Product Marketing, Slack', '/images/avatars/avatar-22.webp', 'https://picsum.photos/seed/video12/800/450', 'on-demand', 'Product Marketing', null, '60 min', 2150],
 ]
 
 sessions.forEach(s => insertSession.run(...s))
@@ -641,6 +646,9 @@ const vendorData = [
 
 vendorData.forEach(v => insertVendor.run(...v))
 
+// Vendor owner accounts, so vendors can be reviewed and messaged.
+ensureVendorOwners(db, passwordHash)
+
 // Seed jobs (with seniority and expanded descriptions)
 const insertJob = db.prepare(`
   INSERT OR IGNORE INTO jobs (title, company, description, location, type, category, salary_range, seniority, status, hired_user_id, posted_by, created_at)
@@ -833,14 +841,14 @@ const insertSpeaker = db.prepare(`
 `)
 
 const speakerData = [
-  ['Sarah Chen', 'VP of Marketing', 'TechFlow', 'https://i.pravatar.cc/150?u=sarah@techflow.com', 'Sarah leads marketing at TechFlow, driving 3x pipeline growth in 2 years. She specializes in content-led growth and has built teams from 2 to 30.', 'https://linkedin.com/in/sarahchen'],
-  ['Marcus Johnson', 'CMO', 'GrowthBase', 'https://i.pravatar.cc/150?u=marcus@growthbase.com', 'Marcus is a seasoned CMO with 15+ years in B2B marketing. He\'s known for his ABM playbook that generated $50M+ in enterprise pipeline.', 'https://linkedin.com/in/marcusjohnson'],
-  ['Priya Patel', 'Director of Demand Gen', 'CloudScale', 'https://i.pravatar.cc/150?u=priya@cloudscale.com', 'Priya specializes in data-driven demand generation strategies. She\'s a frequent speaker on AI-powered marketing and predictive analytics.', 'https://linkedin.com/in/priyapatel'],
-  ['Elena Rodriguez', 'CMO', 'Drift', 'https://i.pravatar.cc/150?u=elena@drift.com', 'Elena has built marketing teams at three successful startups. She\'s an expert in conversational marketing and LinkedIn advertising.', 'https://linkedin.com/in/elenarodriguez'],
-  ['Omar Hassan', 'VP Brand', 'Canva', 'https://i.pravatar.cc/150?u=omar@canva.com', 'Omar leads brand strategy at Canva, overseeing global campaigns that reach millions. He\'s passionate about the intersection of design and marketing.', 'https://linkedin.com/in/omarhassan'],
-  ['James Wright', 'VP Growth', 'Amplitude', 'https://i.pravatar.cc/150?u=james@amplitude.com', 'James is a growth analytics expert who has helped dozens of B2B companies build data-driven marketing organizations.', 'https://linkedin.com/in/jameswright'],
-  ['Rachel Foster', 'Head of Content', 'Asana', 'https://i.pravatar.cc/150?u=rachel@asana.com', 'Rachel built Asana\'s content program from scratch, growing organic traffic 10x in 3 years through programmatic SEO and content clusters.', 'https://linkedin.com/in/rachelfoster'],
-  ['Nina Vasquez', 'VP Growth Marketing', 'Intercom', 'https://i.pravatar.cc/150?u=nina@intercom.com', 'Nina leads growth marketing at Intercom, specializing in martech stack optimization and marketing operations at scale.', 'https://linkedin.com/in/ninavasquez'],
+  ['Sarah Chen', 'VP of Marketing', 'TechFlow', '/images/avatars/avatar-21.webp', 'Sarah leads marketing at TechFlow, driving 3x pipeline growth in 2 years. She specializes in content-led growth and has built teams from 2 to 30.', 'https://linkedin.com/in/sarahchen'],
+  ['Marcus Johnson', 'CMO', 'GrowthBase', '/images/avatars/avatar-14.webp', 'Marcus is a seasoned CMO with 15+ years in B2B marketing. He\'s known for his ABM playbook that generated $50M+ in enterprise pipeline.', 'https://linkedin.com/in/marcusjohnson'],
+  ['Priya Patel', 'Director of Demand Gen', 'CloudScale', '/images/avatars/avatar-18.webp', 'Priya specializes in data-driven demand generation strategies. She\'s a frequent speaker on AI-powered marketing and predictive analytics.', 'https://linkedin.com/in/priyapatel'],
+  ['Elena Rodriguez', 'CMO', 'Drift', '/images/avatars/avatar-07.webp', 'Elena has built marketing teams at three successful startups. She\'s an expert in conversational marketing and LinkedIn advertising.', 'https://linkedin.com/in/elenarodriguez'],
+  ['Omar Hassan', 'VP Brand', 'Canva', '/images/avatars/avatar-17.webp', 'Omar leads brand strategy at Canva, overseeing global campaigns that reach millions. He\'s passionate about the intersection of design and marketing.', 'https://linkedin.com/in/omarhassan'],
+  ['James Wright', 'VP Growth', 'Amplitude', '/images/avatars/avatar-08.webp', 'James is a growth analytics expert who has helped dozens of B2B companies build data-driven marketing organizations.', 'https://linkedin.com/in/jameswright'],
+  ['Rachel Foster', 'Head of Content', 'Asana', '/images/avatars/avatar-19.webp', 'Rachel built Asana\'s content program from scratch, growing organic traffic 10x in 3 years through programmatic SEO and content clusters.', 'https://linkedin.com/in/rachelfoster'],
+  ['Nina Vasquez', 'VP Growth Marketing', 'Intercom', '/images/avatars/avatar-16.webp', 'Nina leads growth marketing at Intercom, specializing in martech stack optimization and marketing operations at scale.', 'https://linkedin.com/in/ninavasquez'],
 ]
 
 speakerData.forEach(s => insertSpeaker.run(...s))
@@ -1053,7 +1061,7 @@ const notificationData = [
 ]
 notificationData.forEach(n => insertNotification.run(...n))
 
-// Seed reviews (member-to-member for completed jobs + member-to-vendor)
+// Seed reviews (member-to-member for completed jobs; vendor reviews come from vendorReviews.js)
 const insertReview = db.prepare(`
   INSERT OR IGNORE INTO reviews (reviewer_id, reviewee_id, vendor_id, job_id, rating, text, created_at)
   VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -1066,19 +1074,11 @@ const reviewData = [
   // Job 2 completed: Marcus (poster) reviews David (hired), and David reviews Marcus
   [2, 5, null, 2, 4, 'David brought strong strategic thinking to our growth marketing efforts. His paid media expertise helped us exceed pipeline targets by 20%.', '2026-03-08T09:00:00Z'],
   [5, 2, null, 2, 5, 'Marcus is an outstanding leader. The GrowthBase team is well-organized and the growth marketing role was exactly as described. Highly recommend working here.', '2026-03-08T12:00:00Z'],
-  // Vendor reviews
-  [1, 7, 1, null, 5, 'ContentPro Agency transformed our content pipeline. Their team understood our B2B audience perfectly and delivered consistent, high-quality work.', '2026-02-15T10:00:00Z'],
-  [4, 7, 3, null, 4, 'BrandSpark Studio delivered a stunning rebrand for us. Creative, professional, and great at meeting deadlines. Would definitely work with them again.', '2026-02-20T14:00:00Z'],
 ]
 reviewData.forEach(r => insertReview.run(...r))
 
-// Update vendor ratings based on reviews
-db.prepare(`
-  UPDATE vendors SET
-    rating = (SELECT ROUND(AVG(rating), 1) FROM reviews WHERE vendor_id = vendors.id),
-    reviews_count = (SELECT COUNT(*) FROM reviews WHERE vendor_id = vendors.id)
-  WHERE id IN (SELECT DISTINCT vendor_id FROM reviews WHERE vendor_id IS NOT NULL)
-`).run()
+// Vendor reviews from members, written to each vendor's owner, and ratings recalculated from them.
+seedVendorReviews(db)
 
 // Seed recommendations
 const insertRecommendation = db.prepare(`

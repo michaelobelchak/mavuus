@@ -6,7 +6,7 @@ export const storyUser = {
   name: 'Demo User',
   title: 'Marketing Director',
   company: 'Mavuus',
-  avatar_url: 'https://i.pravatar.cc/150?u=demo@mavuus.com',
+  avatar_url: '/images/avatars/avatar-06.webp',
   role: 'admin',
   membership_tier: 'pro',
   email_verified: 1,

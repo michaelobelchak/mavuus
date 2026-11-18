@@ -93,3 +93,205 @@ The "why" behind how this project is set up and built. Newest entries at the bot
 - A hidden browser preview pane pauses `requestAnimationFrame`, so count-ups, reveals and chart animations look stuck there. Verify motion in headless Chromium (Playwright) instead.
 - Unlayered base heading rules beat Tailwind utilities; base `h1` to `h6` styles must stay in `@layer base`.
 - SQLite `CURRENT_TIMESTAMP` is UTC with no zone marker (`2026-10-28 23:30:00`), so `new Date()` reads it as local time. `parseDate` treats that shape as UTC and date-only strings as local calendar dates; Vitest runs in UTC so date tests are stable.
+
+## Local fonts and images - 2026-11-14
+
+**Decision:** the owner asked for local copies of the fonts and images, so the site no longer depends on the live Webflow site. If that site went away, the font and every public image would go blank. Fonts and images now live in `client/public/`, recorded in `scripts/assets-manifest.json`.
+
+**WebP and size:** a first pass kept the Webflow files byte for byte (140.5 MB with the CDN's srcset variants), too much for git without LFS. The committed set is WebP: lossy quality 82 with alpha kept for photos and thumbnails, lossless for logos and PNGs under 10 KB, Webflow WebP files kept as they are when no resizing is needed, and the AVIF hero decoded with `sips` first. Originals are capped at 1600px (nothing renders wider than about 1300 CSS pixels), and the width tables in `posts.js` and `home.js` are capped to match. The 222 srcset variants are resized from the local original (`--variants`), with heights rounded the way the CDN rounds them and taken from the source proportions for capped originals, so every page keeps its exact height. Result: 16.4 MB. The heavy first pass is kept on the local branch `feat/local-assets-heavy`.
+
+**Folder scheme:** `fonts/fixel/`, `images/<page>/` by where a file is used (`home`, `about`, `services`, `resources` for live events, `posts`, `videos`, `faq`, `logos`, `contact`), `images/shared/` for a file used on more than one page, and `images/avatars/avatar-NN.webp`. Names drop the Webflow hash and are slugified. Size variants keep their `-p-<width>` suffix next to their original, because `srcSetFor` (posts) and the Insights slider build srcsets from the original's name. Avatars are numbered in URL order the first time they are seen and never renumbered.
+
+**License:** Fixel is by MacPaw under the SIL Open Font License 1.1 (GitHub reports `OFL-1.1` for github.com/macpaw/fixel; no Reserved Font Name). `public/fonts/fixel/OFL.txt` is the repo's own license file. The fonts are unmodified.
+
+**Rejected:**
+- Committing the Webflow originals and variants: 140.5 MB of thumbnails in history.
+- Dropping srcset variants: pages would download the full-size images at every width.
+- Reusing `public/assets/`: none of the downloads matched an existing file byte for byte.
+
+**Non-obvious:**
+- Stored avatar URLs are relative (`/images/avatars/...`) and served by the client, like uploads at `/uploads/...`. Production serves both from one Express origin; dev needed a `/uploads` proxy.
+- `db/mavuus.db` keeps the old remote avatar URLs until it is reset (`cd mavuus-app/server && rm -f db/mavuus.db && node db/seed.js`).
+- The Unsplash cover photos in the seeds, mock data and auth pages are still remote; the e2e guard names that one host until the owner OKs downloading them.
+- `about/img-how-we-got.webp` (and the capped originals behind `posts/career-compass-jacob-warwick-p-1600.webp` and `posts/the-2026-cmo-role-p-1600.webp`) is byte-identical to its `-p-1600` copy, about 67 KB each. It stays: the page only names the variants, but `--variants` builds them from the original, and deleting it would make the next `--download` fetch it from the CDN again. Removing the copy instead would mean pointing those srcsets at the original; not worth it for 200 KB.
+- The Unsplash photos are allowed per page in the e2e guard (`PENDING_HOSTS`): member and admin pages, `/login` and `/register`. Any other page fails on them, offline too.
+- Full-page screenshots in headless Chromium can leave a lazy, async-decoded image in a horizontal carousel unpainted. The parity captures set `decoding = 'sync'` and wait for `img.decode()` on every image.
+
+## App shell live - 2026-11-14 (feat/app-shell-live, Batch 3A)
+
+**Decision:** the member and admin areas share one `ShellLayout` in `src/layouts/` around the design-system `AppShell`. The shell glue lives outside `design-system/` because it reads `AuthContext` and fetches, which organisms may not do. Titles come from the nav (`findActiveItem`) plus a short list of detail-page titles, so a new list route only needs its nav item.
+
+**Decision (coordinator):** the document scrolls, not `<main>`. The sidebar is `sticky top-0 h-dvh` with its own scrolling nav, the top bar is sticky in the content column and `<main>` is in normal flow. `ScrollToTop` (window) resets the scroll on navigation.
+
+**Rejected:**
+- `<main>` as the scroller (the first version of this batch): the phone address bar never collapses (50 to 100px lost), tapping the iOS status bar stops scrolling to the top, Space and Page Down do nothing after clicking a sidebar link, BackToTop, ScrollProgress and the legacy Modal scroll lock break, and the e2e overflow and full-page checks go blind.
+- Breadcrumbs on detail pages: on a phone the crumb wrapped and repeated the title, and every detail page already has its own "Back to ..." link.
+- Keeping the sidebar profile-completion ring and referral card: the rail has no room for them, the Invite page already copies the referral link, and the completion nudge belongs on the home or profile page (Batch 3B or 3D).
+- Keeping `MobileFAB`: it repeated three nav links and covered page content at 390px; the mobile nav sheet has them.
+- Keeping the Messages icon in the top bar: the Messages nav item now carries the unread count.
+- Keeping the admin sidebar user card and "Mavuus Admin" title: the account menu shows the user and the nav is labeled Admin.
+- Keeping the staggered fade-in of notification rows: an inline animation style per row for little value.
+
+**Non-obvious:**
+- `SiteSkipLink` (above the routes in App.jsx) can't read a context from the shell below it, so `shellPresence.js` is a tiny store: `ShellLayout` registers in a layout effect and the site link hides while a shell is mounted. A 404 under `/dashboard` keeps its skip link.
+- The rail nav needs `position: relative`: its visually hidden section labels and tooltip text are absolutely positioned, and without a positioned nav they hung below the sticky sidebar and made short admin pages scroll 175px.
+- The top bar title is an h1 and most legacy pages still render their own h1 (two per page) until their batch moves them to `PageHeader`.
+- Pulse rule kept from the old bell: the first load never pulses, only a rise from a count above zero.
+- `Cmd/Ctrl+K` (`CommandPalette`), `?` (`ShortcutsHelp`), `BackToTop` and `ConnectionStatus` stay mounted in `App.jsx` and work under the shell. `ScrollProgress` (only on ResourceDetailPage) now uses `z-(--ds-z-overlay)` so it shows above the sticky top bar.
+- Legacy `sticky top-6` on SpeakersPage now slides under the 80px top bar; fix it when the page migrates (3C).
+- Focus after navigation goes to the top bar h1 (`tabIndex -1`). The mobile nav and notifications sheets return focus on close, so their `finalFocus` picks the title when a link in them was followed; otherwise their focus trap and return would pull focus back to the menu button or the bell. Titles still live in the nav config and RouteTitles only sets `document.title`; focusing the h1 is what announces the new page.
+- `html` has `scroll-behavior: smooth`, so focus scrolling animates; `e2e/shell.spec.js` waits for scrollY to settle before measuring.
+- Notification polls: a local change (mark read) bumps a version, and a poll that started before it is ignored. The list shows the newest 50 notifications (server LIMIT), so the chips count the loaded list while the sheet description keeps the overall unread total.
+- `/api/search` is public (no auth) and returns member names; logged for Stage 4.
+
+## Dashboard pages 1 - 2026-11-14 (feat/member-pages-1, Batch 3B)
+
+**Decision:** legacy feature components the pages needed (ShareModal, VideoPlayer, ScrollProgress, CommentSection) got design-system versions instead of staying as imports from `components/ui`. CommentThread is presentational (organisms never fetch); `src/hooks/useComments.js` owns the requests and maps API rows to its props. The legacy files stay for the pages not migrated yet (JobDetail, VendorDetail, MemberProfile, BlogDetail).
+
+**Decision:** `<Toaster />` is mounted in `main.jsx` beside the legacy `ToastProvider`, so migrated pages use the design-system `useToast` while legacy pages keep theirs until 3I removes the old provider.
+
+**Decision:** detail pages keep the shell's generic title ("Live session", "Resource") as the h1 and render the item title as the page's h2. A per-page title override would need the page to push its title up into the shell (context or a store) after its fetch; not worth it for this batch, and the generic h1 plus the h2 reads fine.
+
+**Decision:** the back link on detail pages goes to the list (`/dashboard/live-sessions` etc.) instead of `navigate(-1)`, so it works from a shared link or a new tab.
+
+**Rejected:**
+- A StatCard row on the member home: the page has no real member metrics to show and the plan says not to invent them.
+- Keeping the "LIVE" pill over every live session cover on the home page: all those sessions are scheduled, not live, so the pill was wrong; the section title already says what they are.
+- Keeping the "View Details" button inside each live session card: it was a second link to the same place inside a card that is already one link.
+- Allowing `picsum.photos` on the two list routes only (the first version of this batch): the same covers show on detail pages, related grids and the member home, so the guard would depend on which seeded ids the test happens to visit. It sits in `PENDING_HOSTS` next to Unsplash instead; public pages still allow nothing external.
+
+**Non-obvious:**
+- SectionHeader's h2 defaults to the 36px h2 size, larger than the 22px top bar title, so app pages pass `size="h3"`.
+- Every seeded live session date is in the past, so the countdown and registration form never show with seed data; the unit test covers them with a future date.
+- The demo profile is complete, so the home nudge doesn't show for demo@mavuus.com; the unit test covers it.
+- Session and resource detail pages send `PUT /api/sessions/:id/view`, so the read-only smoke run bumps view counts in `db/e2e.db`; harmless, nothing asserts on them.
+- Detail pages put the side cards before the comments in the DOM and use a two-column grid from lg (`grid-cols-[minmax(0,1fr)_auto]`, aside `row-span-2`), instead of `order-*` utilities, so reading and tab order match what phones show.
+- The top bar title wrapped on phones although it had `truncate`: the Heading's `text-balance` set `text-wrap` after `white-space: nowrap`. `text-nowrap` replaces it through tailwind-merge.
+- Detail pages are reused by react-router when only `:id` changes (a related card), so every per-item state is stored with the id it belongs to (`{ id, value }`) and derived as empty for any other id, instead of resetting state in effects. `useDetailResource` does the same with a request key.
+- The session registration form isn't sent: `POST /api/sessions/:id/register` takes no body. The fields are prefilled from `/api/profile/me` and the server side is logged in Stage 4.
+- CatalogList keeps `q`, the filter and `page` in the URL; typing uses `replace` so the history isn't one entry per keystroke, while chips and pages push entries for back and forward.
+
+
+## Dashboard pages 2 - 2026-11-14 (feat/member-pages-2, Batch 3C)
+
+**Decision:** CatalogList grew props instead of being forked: options as `{ value, label }`, `filterQuery` for filters the API names differently, `paged={false}` for `/api/speakers` (no page or limit sent), filter-aware empty copy, a `children` slot for the pending requests and `gridClassName`. It and `DetailChrome` moved to `pages/dashboard/shared/` with `DetailSection`, `JobLinkList`, `reviewProps.js` and `paths.js`.
+
+**Decision (follow-up):** vendor owner accounts are told apart by `vendors.user_id`, not by a role. `users.role` has `CHECK(role IN ('member', 'admin'))`, and SQLite can't change a CHECK without rebuilding the users table, which existing databases (and their foreign keys) would need a migration for. `NOT_VENDOR_OWNER` in `server/db/vendorOwners.js` keeps them out of `/api/members` and `/api/search`. No route sets `vendors.user_id` today, so only seeded owners match.
+
+**Decision (review):** vendor owner accounts are full member accounts (role member) that the `vendors.user_id` link marks as owners; nothing else about them differs. When owners get their own dashboard, add a `vendor` role (needs a users table rebuild migration, because of the role CHECK) or an `is_vendor_account` column (a safe `ALTER TABLE ADD COLUMN`). The seeded owner password (`demo123`) is demo-only, like every seeded account.
+
+**Decision (review):** one vendor review per member is enforced by a partial unique index (`idx_reviews_vendor_once`), created by `ensureVendorReviewIndex` after the schema runs (server start, `seed.js`, `seed-demo.js`, test setup) rather than in schema.sql: an older database with repeat rows would refuse the index and stop the server. It runs only while the index is missing and, in one transaction, deletes the repeats keeping each member's latest review (highest id: the latest opinion wins), recalculates ratings and creates the index, so a failure rolls everything back. The server warns with the deleted count.
+
+**Decision (review):** the server, not the client, picks a vendor review's reviewee (the vendor's owner). The old client sent its own id as a fallback, which is why seeded vendors couldn't be reviewed.
+
+**Decision (follow-up):** the Members chips are server filters (`tier`, `connections=1` with an EXISTS on accepted connections) so paging and counts follow them. CatalogList's `filterItems` became `filterQuery` (a value as API params).
+
+**Decision (follow-up):** below lg the speaker details are a Sheet driven by the same `?speaker=` param. Speaker cards link with `{ fromList: true }` state (MemberCard `linkState`); closing goes back only with that state, otherwise it removes `?speaker=` in place, so closing never leaves the page. `finalFocus` finds the card through `data-speaker-id`, because the Sheet opens from a link navigation, not a trigger, so Base UI has no trigger to return to.
+
+**Decision:** the picked speaker is a URL param (`?speaker=1`) and each MemberCard links to it, instead of a button card: MemberCard is a link card, there is no SpeakerCard, and the URL makes the panel shareable and back-button friendly.
+
+**Decision:** Members chips write one `filter` param (`connections`, `pro`, `free`). Before, the tier lived in component state and `?filter=connections` in the URL, so a tier picked before My Connections kept filtering with no chip showing it.
+
+**Rejected:**
+- Accept on the member cards for incoming requests: the pending panel above already has Accept and Decline, and the old card only showed a disabled Pending.
+- ConnectionRequest's own status announcement: the rows leave the list after accept or decline (as before) and the toasts stay, so `announce={false}`.
+- A per-page share on the member profile: it never had one.
+- The LinkedIn icon on each speaker card: a second link inside a link card; the panel has it.
+
+**Non-obvious:**
+- Before the follow-up, no seeded vendor had a `user_id`, so Contact Vendor was always disabled and a vendor review posted the reviewer as `reviewee_id`, which the server refuses. Seeded owner accounts fixed both; the disabled state and its hint remain for a vendor without one.
+- `useToast()` from the design system calls `toast.success(message, undefined)`, so tests spying on sonner assert `toHaveBeenCalledWith(message, undefined)`.
+- `Card` only renders div, article, section or li (`as="header"` falls back with a console error the capture caught).
+- Only MemberProfilePage and VendorDetailPage were in the lint baseline (em dashes); the list pages had only retired-import warnings.
+- Undeclared in the first pass, kept on purpose: free members get no tier badge (MemberCard shows paid tiers only); an incoming request's card shows only the Pending badge; the member profile facts moved to a Details aside and the resume became a download button; back links go to fixed list paths instead of `navigate(-1)`; some labels went to sentence case.
+- Vendor ratings used to be seeded totals with no review rows behind them; now `seedVendorReviews` writes 30 rows and recalculates every vendor from them.
+- `mockApi` prefers an exact URL match (query included) over a path-only one, so tests can answer `?tier=free` differently from the default list.
+- react-router 7's MemoryRouter and BrowserRouter render location changes in `React.startTransition`, and `setSearchParams` gives its updater the rendered params. CatalogList therefore ignores the late echo of its own sent search (or the field snapped back and the next search was dropped) and builds URL changes on its own pending URL until it renders (or a chip right after a search dropped `q`). This was the flaky LiveSessionsPage history test; `CatalogList.test.jsx` forces both interleavings with fake timers.
+
+
+## Dashboard pages 3, first half - 2026-11-14 (feat/member-pages-3, Batch 3D Jobs)
+
+**Decision:** Jobs needs three filters, so CatalogList grew a `filters` prop rendered as selects in the design-system FilterBar (each with an "Any ..." option and Clear filters) instead of three chip rows, which wrapped into a wall of 16 chips beside the search. The single-filter chip path and its URL race handling are untouched; both modes share the same `update` queue.
+
+**Decision:** seniority moved to the server (`/api/jobs?seniority=`). The old page filtered the loaded page of 20 on the client, so paging and the count ignored it. Same reasoning as the Members filters in 3C.
+
+**Decision:** `hired` was added to the `job_applications` CHECK and older databases get a one-time table rebuild (`ensureJobApplicationStatuses`, in one transaction, rows and ids kept). No table references `job_applications`, so the drop and rename are safe with foreign keys on. Rejected: dropping the `hired` application status and only setting `jobs.hired_user_id`, because applicants and notifications already show the application status.
+
+**Decision:** a hidden or removed job answers 404 on `/api/jobs/:id` except for its poster, read from an optional token on that public route. Rejected: 404 for everyone, which would make a poster's own job vanish from My Jobs links.
+
+**Decision:** on the job detail page the description, applicants and reviews sit in DetailLayout's lower slot (`comments`), so below 1024px the order is header, actions, details, then the long description. With everything in `main`, Apply was 2,000px down on a phone.
+
+**Decision:** Hire asks for confirmation in a Dialog. It changes the job's status and notifies the applicant, and there is no un-hire.
+
+**Rejected:**
+- CommentThread on jobs: the old page had no comments, and adding them is a feature, not a migration.
+- A Filters toggle like the old page: with the filters in the URL, a hidden panel could hide active filters.
+
+**Non-obvious:**
+- The Dialog body had `min-h-0 grow` in a scrolling flex popup, so a form taller than the screen shrank its body and the textarea slid under the footer. Dialog passes `bodyClassName="shrink-0"`; Sheet keeps `min-h-0` because the mobile nav scrolls inside it.
+- The seeded demo profile has no `resume_url`, so the apply dialog shows the file field, not the profile/upload choice; the unit test covers the choice.
+- `seed.js` uses `INSERT OR IGNORE`, which also ignores CHECK failures: that is how the two hired applications vanished without an error.
+- The detail page's busy guard is a ref (`busyRef`) plus state for the spinner, so two clicks in the same frame can't both send.
+- `/api/jobs/:id/applicants` still sends applicant emails to the poster; the apply dialog says the profile is shared with the employer, so it was kept.
+
+**Decision (review):** hidden or removed jobs stay in a member's applications (their history) but come back `unavailable: true` and render without a link and with "No longer available"; apply and save refuse them with a 404 and the saved list leaves them out. Rejected: dropping them from My Applications, which would make an application vanish without a word.
+
+**Decision (review):** My Jobs loads its three lists separately, each with its own loading, error and Try again, so a failing `/api/jobs/saved` doesn't hide your applications. Counts show in a tab label only once its list loaded.
+
+**Decision (review):** the job detail page keeps a single Save button in the side card; the old header bookmark repeated it.
+
+**Non-obvious (review):** dropping a table deletes its `sqlite_sequence` row, so the rebuilt `job_applications` would restart AUTOINCREMENT at the highest copied id and could reuse ids of deleted applications. `ensureJobApplicationStatuses` writes back the larger of the old counter and the new one. SQLite's table-change recipe also turns `foreign_keys` off around a rebuild; it isn't needed here because no table references `job_applications`.
+
+**Decision (code review):** resume links are plain links to `GET /api/files/resumes/:name`, authorized by the httpOnly session cookie the login already sets (`authenticateToken` reads the cookie first). Rejected: fetching the PDF as a blob with the bearer token (more code, no real download link, blob URLs to revoke) and short-lived signed URLs (a secret in the address bar and history, plus a signing scheme to maintain). The route answers 404 for anything the member may not read, so it doesn't reveal which files exist.
+
+**Decision (code review):** who may read a resume: its owner, admins, the poster of a job the owner applied to (with that file, or with the profile resume the applicants list falls back to) and members who may see the owner's full profile, because the member profile page has always offered the resume to them. Old `/uploads/resumes/<name>` rows are not rewritten: `resumeName` accepts both forms and `resumeHref` maps both to the route.
+
+**Decision (code review):** uploading a resume in the apply dialog replaces the profile resume (what the server already did), and the field says so. Rejected: a separate application-only copy, which needs a new upload route and storage rule for one dialog. The old profile file is kept while any application points at it.
+
+**Decision (code review):** a hire is final and single: the status route checks the job is open with no hire and refuses moving a hired application, all in one transaction. A hidden posting keeps its link in My Postings because the detail page still opens for its poster.
+
+**Non-obvious (code review):**
+- `/api/profile/me` never returned `resume_url`, so the apply dialog's profile resume choice had never shown in the real app; the unit test mocked it in.
+- The seeded demo profile points at `/uploads/resumes/demo-user-resume.pdf`, a file that doesn't exist, so the demo's profile resume link answers 404 until a real file is uploaded.
+- ProfilePage (second half of 3D) shows the resume file name without a link; when it moves onto the system, link it with `resumeHref`.
+
+**Decision (re-review):** resumes live in `server/private/resumes`, outside the static root, instead of `uploads/resumes` behind a path blocklist. The blocklist compared the raw path while serve-static decodes it, so `/uploads/%72esumes/<file>` served any resume. Keeping private files out of every static root removes the whole class of bypass; a blocklist would need to match the decoded, normalized path forever. Legacy `resume-*` files get random names only when they start with `%PDF-`; anything else is deleted and its rows cleared, since it was never a valid upload.
+
+**Decision (re-review):** the demo resume is a PDF built in code (`samplePdf`) under a fixed name (`00000000-0000-4000-8000-000000000007.pdf`), so no binary sits in the repo and e2e resets don't pile up files.
+
+**Open (owner):** resume visibility. Members who may see a full profile can open its resume (the member profile page always offered it). Proposed for the founders' checklist: a separate resume setting defaulting to "employers I apply to".
+
+**Known gaps (logged in the plan):** authenticated routes trust the JWT and never recheck the user row, so ban and role changes wait for the 7-day token to expire (Stage 4, 9d); `POST /api/reviews` with a `job_id` doesn't check the job is completed or that the two members are its poster and hire (Stage 4, 9c, confirmed still open).
+
+
+## Dashboard pages 3, second half - 2026-11-14 (feat/member-pages-4, Batch 3D Messages, Profile, Invite)
+
+**Decision:** the open conversation is `?conversation=<id>` (the param VendorDetailPage already sent), not a `/messages/:id` route, so existing links keep working and the list stays mounted. Thread rows are links with `{ fromList: true }` state; the phone back button goes back in history only with that state, otherwise it navigates to the list.
+
+**Decision:** `?user=<id>` with no existing thread shows a new-conversation view (the member from `GET /api/members/:id`) and the first message goes to `POST /api/messages/conversations`, then the URL is replaced with `?conversation=<new id>`. The old page silently did nothing, so every Message button for someone you hadn't written to was dead. Rejected: creating the conversation on open, which would leave empty threads in both members' lists.
+
+**Decision:** the shell's unread badge refreshes through a window event (`announceMessagesRead()` in `layouts/messagesRead.js`, bumping MemberLayout's `refreshKey`). Rejected: putting the search in `refreshKey`, which would refetch on every keystroke of every list search; and a context, which would re-render the whole shell for a counter.
+
+**Decision:** your own messages use `surface-brand-strong` (blue) with white text. The old pink bubble with white text is about 3:1, below AA for body text, and pink stays an accent.
+
+**Decision:** the thread marks read on open and only on polls that brought new messages (the old page sent a PUT every 5 seconds), and tells the shell only when something was unread.
+
+**Decision:** profile sections save only the fields that changed. The server's `PUT /api/profile/me` uses COALESCE, so sending the whole form was harmless, but sending less keeps a stale form from overwriting a change made elsewhere. Name, title and company also go to `updateUser` so the shell shows them.
+
+**Decision:** visibility waits for a Save button (a RadioGroup), notifications save on toggle (Switch). That follows the system's rule: Switch for settings that apply right away, a form control with Save for a choice with privacy impact.
+
+**Decision:** `profileCompletion` moved to `pages/dashboard/shared/` with each step's button text and tab, so the home nudge and the profile can't disagree.
+
+**Rejected:**
+- A design-system TagInput for skills: chips with a remove icon, an Add field and suggestion chips cover it with existing parts.
+- A larger Avatar size for the profile header: MemberProfilePage uses `lg`, and both headers now match.
+- Confirming resume removal: the old page removed it right away and the file is easy to upload again.
+
+**Non-obvious:**
+- `GET /api/members/:id` needs no sign-in and returned any member's email, including banned and deleted accounts. Nothing in the client used the email; it's gone and those accounts answer 404.
+- Starting a conversation with yourself answered 500: the "existing conversation" query matched any conversation you're in when both ids are yours, then the participant insert hit the primary key.
+- Invite links never counted: the server reads `?ref=` on `/api/auth/register`, but RegisterPage never forwarded it. The seeded demo account has no referrals, so the Invite page shows the empty state in the demo.
+- `sanitizeBody` trims every string, so a message of spaces arrives empty and gets the 400.
+- `--shell-fill-h` is declared on `[data-app-shell]`, not on `html`, because ShellLayout sets `--shell-banner-h` inline on the shell root and a custom property resolves where it's declared.
+
+**Known gaps (logged in the plan):** any member can message any other member, including ones with a private or connections-only profile; `PUT /api/profile/me` still takes any `avatar_url` string (length checked only).

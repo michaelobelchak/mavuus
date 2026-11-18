@@ -10,6 +10,7 @@ Execute phases in order. Each phase builds on the previous one.
 
 | File | Focus | Est. Sessions |
 |------|-------|---------------|
+| `FINISH-AND-LAUNCH-PLAN.md` | ACTIVE 2026-11-14: local assets, owner section updates, Phase 8 page migration, launch readiness, hosting | 6 to 9 |
 | `WEBSITE-1TO1-REBUILD.md` | DONE 2026-10-31: public pages rebuilt 1:1 to live mavuus.com | - |
 | `DESIGN-SYSTEM-PLAN.md` | Phases 0 to 7 DONE 2026-11-06 (foundation, map in root `DESIGN.md`); Phase 8 NEXT: migrate every page onto it | 4 to 6 |
 | `2026-11-06-design-system-design.md` | DONE 2026-11-06: approved design for the design system (scope, tokens, components, app shell, guards) | - |

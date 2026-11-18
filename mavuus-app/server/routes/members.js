@@ -1,6 +1,8 @@
 import { Router } from 'express'
 import jwt from 'jsonwebtoken'
 import { JWT_SECRET } from '../middleware/auth.js'
+import { NOT_VENDOR_OWNER } from '../db/vendorOwners.js'
+import { parsePaging } from '../middleware/validate.js'
 
 const router = Router()
 
@@ -26,11 +28,25 @@ function isConnected(db, userId1, userId2) {
   return !!conn
 }
 
+const TIERS = ['pro', 'free']
+
 router.get('/', optionalAuth, (req, res) => {
-  const { search, page = 1, limit = 20 } = req.query
+  const { search, tier, connections } = req.query
   const db = req.app.locals.db
 
-  const conditions = []
+  if (tier !== undefined && !TIERS.includes(tier)) {
+    return res.status(400).json({ error: `tier must be one of: ${TIERS.join(', ')}` })
+  }
+  if (connections !== undefined && connections !== '1' && connections !== '0') {
+    return res.status(400).json({ error: 'connections must be 1 or 0' })
+  }
+  const onlyConnections = connections === '1'
+  if (onlyConnections && !req.user) {
+    return res.status(401).json({ error: 'Sign in to list your connections' })
+  }
+
+  // Banned and deleted accounts and vendor owner accounts aren't in the directory.
+  const conditions = ['COALESCE(u.is_banned, 0) = 0', 'COALESCE(u.is_deleted, 0) = 0', NOT_VENDOR_OWNER]
   const params = []
 
   // Privacy filter
@@ -47,19 +63,31 @@ router.get('/', optionalAuth, (req, res) => {
     params.push(term, term, term)
   }
 
+  if (tier) {
+    conditions.push('u.membership_tier = ?')
+    params.push(tier)
+  }
+
+  // Members with an accepted connection to the signed-in member, in either direction.
+  if (onlyConnections) {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM connections c WHERE c.status = 'accepted'
+        AND ((c.requester_id = ? AND c.receiver_id = u.id) OR (c.receiver_id = ? AND c.requester_id = u.id))
+    )`)
+    params.push(req.user.id, req.user.id)
+  }
+
   const whereClause = conditions.length ? ' WHERE ' + conditions.join(' AND ') : ''
 
   const total = db.prepare(
     `SELECT COUNT(*) as count FROM users u LEFT JOIN user_profiles p ON u.id = p.user_id${whereClause}`
   ).get(...params).count
 
-  const pageNum = Math.max(1, parseInt(page))
-  const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
+  const { page: pageNum, limit: limitNum, offset } = parsePaging(req.query)
   const totalPages = Math.ceil(total / limitNum)
-  const offset = (pageNum - 1) * limitNum
 
   const data = db.prepare(
-    `SELECT u.id, u.name, u.email, u.title, u.company, u.avatar_url, u.membership_tier, u.created_at
+    `SELECT u.id, u.name, u.title, u.company, u.avatar_url, u.membership_tier, u.created_at
      FROM users u
      LEFT JOIN user_profiles p ON u.id = p.user_id
      ${whereClause}
@@ -116,10 +144,12 @@ router.get('/:id/profile', optionalAuth, (req, res) => {
   res.json({ ...member, skills, experience, connection_count: connectionCount, limited: false })
 })
 
+// GET /api/members/:id - A member's card (no email: this route needs no sign-in). Banned and
+// deleted accounts answer 404, as they are left out of the member list.
 router.get('/:id', (req, res) => {
   const db = req.app.locals.db
   const member = db.prepare(
-    'SELECT id, name, email, title, company, avatar_url, membership_tier, created_at FROM users WHERE id = ?'
+    'SELECT id, name, title, company, avatar_url, membership_tier, created_at FROM users WHERE id = ? AND COALESCE(is_banned, 0) = 0 AND COALESCE(is_deleted, 0) = 0'
   ).get(req.params.id)
 
   if (!member) {

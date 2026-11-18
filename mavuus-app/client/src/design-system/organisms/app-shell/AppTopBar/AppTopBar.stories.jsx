@@ -39,3 +39,9 @@ export const NotificationsOpen = {
 }
 
 export const MobileSearch = { globals: { viewport: { value: 'mobile', isRotated: false } } }
+
+/** A long title stays on one line and ends in an ellipsis; the full text is its name and hover title. */
+export const LongTitle = {
+  args: { title: 'Recommendations and referrals', onOpenNav: () => {} },
+  globals: { viewport: { value: 'mobile', isRotated: false } },
+}

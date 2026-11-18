@@ -1,3 +1,4 @@
+export { CommentThread } from './CommentThread'
 export { CompanyLogo } from './CompanyLogo'
 export { ConnectionRequest, ConnectionRequestSkeleton } from './ConnectionRequest'
 export { JobCard, JobCardSkeleton } from './JobCard'

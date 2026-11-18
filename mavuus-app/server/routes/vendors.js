@@ -1,9 +1,13 @@
 import { Router } from 'express'
+import { parsePaging } from '../middleware/validate.js'
 
 const router = Router()
 
+// What members see of a vendor: no admin notes or moderation status.
+const PUBLIC_COLUMNS = 'id, user_id, company_name, description, categories, rating, reviews_count, location, website, created_at'
+
 router.get('/', (req, res) => {
-  const { category, search, page = 1, limit = 20 } = req.query
+  const { category, search } = req.query
   const db = req.app.locals.db
 
   const conditions = []
@@ -22,13 +26,11 @@ router.get('/', (req, res) => {
   const whereClause = conditions.length ? ' WHERE ' + conditions.join(' AND ') : ''
 
   const total = db.prepare(`SELECT COUNT(*) as count FROM vendors${whereClause}`).get(...params).count
-  const pageNum = Math.max(1, parseInt(page))
-  const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
+  const { page: pageNum, limit: limitNum, offset } = parsePaging(req.query)
   const totalPages = Math.ceil(total / limitNum)
-  const offset = (pageNum - 1) * limitNum
 
   const vendors = db.prepare(
-    `SELECT * FROM vendors${whereClause} ORDER BY rating DESC LIMIT ? OFFSET ?`
+    `SELECT ${PUBLIC_COLUMNS} FROM vendors${whereClause} ORDER BY rating DESC LIMIT ? OFFSET ?`
   ).all(...params, limitNum, offset)
 
   // Parse categories from comma-separated string
@@ -42,7 +44,7 @@ router.get('/', (req, res) => {
 
 router.get('/:id', (req, res) => {
   const db = req.app.locals.db
-  const vendor = db.prepare('SELECT * FROM vendors WHERE id = ?').get(req.params.id)
+  const vendor = db.prepare(`SELECT ${PUBLIC_COLUMNS} FROM vendors WHERE id = ?`).get(req.params.id)
 
   if (!vendor) {
     return res.status(404).json({ error: 'Vendor not found' })

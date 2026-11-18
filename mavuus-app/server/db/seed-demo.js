@@ -15,6 +15,12 @@ import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { dbPath } from '../config.js'
 import { readFileSync } from 'fs'
+import { healRemoteAvatars } from './healAvatars.js'
+import { ensureVendorOwners } from './vendorOwners.js'
+import { ensureVendorReviewIndex, seedVendorReviews } from './vendorReviews.js'
+import { ensureJobApplicationStatuses } from './jobApplications.js'
+import { migrateResumeFiles, resumeName, resumePath, resumeUrl, samplePdf } from './resumes.js'
+import { existsSync, writeFileSync } from 'fs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // DB_PATH is relative to the server folder (e2e uses db/e2e.db); the default is db/mavuus.db.
@@ -23,6 +29,15 @@ const db = new Database(dbPath())
 // Ensure schema exists before we try to write
 const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8')
 db.exec(schema)
+// One review per member per vendor; an older database's repeat reviews go first (latest kept).
+const repeatReviews = ensureVendorReviewIndex(db)
+if (repeatReviews > 0) console.log(`  Removed ${repeatReviews} repeat vendor review(s)`)
+// Older databases refuse the 'hired' application status (and dropped the seeded hires).
+if (ensureJobApplicationStatuses(db)) console.log('  Rebuilt job_applications to allow hired')
+
+// Older databases still hold remote avatar URLs; point them at the local files.
+const healed = healRemoteAvatars(db)
+if (healed > 0) console.log(`  Healed ${healed} remote avatar URL(s)`)
 
 const DEMO_EMAIL = 'demo@mavuus.com'
 const DEMO_PASSWORD = 'demo123'
@@ -42,7 +57,7 @@ if (!demo) {
     'Demo User',
     'Marketing Director',
     'Mavuus',
-    'https://i.pravatar.cc/150?u=demo@mavuus.com',
+    '/images/avatars/avatar-06.webp',
     'admin',
     'pro'
   )
@@ -55,7 +70,7 @@ if (!demo) {
      name = COALESCE(NULLIF(name,''), 'Demo User'),
      title = COALESCE(NULLIF(title,''), 'Marketing Director'),
      company = COALESCE(NULLIF(company,''), 'Mavuus'),
-     avatar_url = COALESCE(NULLIF(avatar_url,''), 'https://i.pravatar.cc/150?u=demo@mavuus.com')
+     avatar_url = COALESCE(NULLIF(avatar_url,''), '/images/avatars/avatar-06.webp')
      WHERE id = ?`
   ).run(demo.id)
   console.log('  ✓ Updated demo user id', demo.id)
@@ -85,9 +100,30 @@ db.prepare(`
   'New York, NY',
   'America/New_York',
   'demo-user-resume.pdf',
-  '/uploads/resumes/demo-user-resume.pdf'
+  null
 )
 console.log('  ✓ Profile upserted')
+
+// A real sample resume, so the demo profile's resume link opens. Resumes live in
+// private/resumes (see resumes.js); a fixed name keeps reruns and e2e resets to one file.
+const resumeFiles = migrateResumeFiles(db)
+if (resumeFiles.moved || resumeFiles.renamed || resumeFiles.removed) {
+  console.log(`  ✓ Resume files: ${resumeFiles.moved} moved, ${resumeFiles.renamed} renamed, ${resumeFiles.removed} removed`)
+}
+const DEMO_RESUME = '00000000-0000-4000-8000-000000000007.pdf'
+const demoResume = db.prepare('SELECT resume_url FROM user_profiles WHERE user_id = ?').get(demoId)?.resume_url
+const demoResumeName = resumeName(demoResume)
+if (!demoResumeName || !existsSync(resumePath(demoResumeName))) {
+  if (!existsSync(resumePath(DEMO_RESUME))) {
+    writeFileSync(
+      resumePath(DEMO_RESUME),
+      samplePdf(['Demo User', 'Marketing Director', 'New York, NY', 'Sample resume for the Mavuus demo account.']),
+    )
+  }
+  db.prepare("UPDATE user_profiles SET resume_url = ?, resume_filename = 'demo-user-resume.pdf' WHERE user_id = ?")
+    .run(resumeUrl(DEMO_RESUME), demoId)
+  console.log('  ✓ Sample resume set on the demo profile')
+}
 
 // ─── 3. Skills ───────────────────────────────────────────────
 const demoSkills = [
@@ -142,6 +178,58 @@ const connTotal = db.prepare(
   `SELECT COUNT(*) c FROM connections WHERE requester_id = ? OR receiver_id = ?`
 ).get(demoId, demoId).c
 console.log(`  ✓ Connections ensured (${connTotal} total: ~${connAccepted} accepted, ~${connPending} pending)`)
+
+// One member who shows their profile to connections only and isn't connected to demo, so the
+// limited profile view (privacy rules on /api/members/:id/profile) has seeded data.
+const limitedMember = db.prepare('SELECT id FROM users WHERE email = ?').get('rachel@asana.com')
+const limitedConnected =
+  limitedMember &&
+  db.prepare('SELECT 1 FROM connections WHERE (requester_id = ? AND receiver_id = ?) OR (requester_id = ? AND receiver_id = ?)')
+    .get(demoId, limitedMember.id, limitedMember.id, demoId)
+if (limitedMember && !limitedConnected) {
+  db.prepare(
+    `INSERT INTO user_profiles (user_id, profile_visibility) VALUES (?, 'connections')
+     ON CONFLICT(user_id) DO UPDATE SET profile_visibility = 'connections'`
+  ).run(limitedMember.id)
+  console.log(`  ✓ Profile visibility set to connections for user ${limitedMember.id}`)
+}
+
+// Vendor owner accounts (older databases seeded their vendors without one).
+const vendorsLinked = ensureVendorOwners(db, bcrypt.hashSync(DEMO_PASSWORD, 10))
+if (vendorsLinked > 0) console.log(`  ✓ Linked ${vendorsLinked} vendor(s) to owner accounts`)
+// Real review rows for every vendor, written to the owners, and ratings recalculated from them.
+const vendorReviewsAdded = seedVendorReviews(db)
+console.log(`  ✓ Vendor reviews ensured (${vendorReviewsAdded} added), ratings recalculated`)
+
+// Job applications: every hired member has a hired application (older databases refused the
+// status and dropped them), and the demo account's open postings have applicants to hire.
+const hiresAdded = db.prepare(`
+  INSERT OR IGNORE INTO job_applications (job_id, user_id, status, applied_at)
+  SELECT id, hired_user_id, 'hired', created_at FROM jobs WHERE hired_user_id IS NOT NULL
+`).run().changes
+// A hired member who already had an application (say, still "reviewing") gets it marked hired.
+const hiresUpdated = db.prepare(`
+  UPDATE job_applications SET status = 'hired', updated_at = CURRENT_TIMESTAMP
+  WHERE status != 'hired'
+    AND EXISTS (SELECT 1 FROM jobs j WHERE j.id = job_applications.job_id AND j.hired_user_id = job_applications.user_id)
+`).run().changes
+const insertApplicant = db.prepare(
+  'INSERT OR IGNORE INTO job_applications (job_id, user_id, cover_letter, status, applied_at) VALUES (?, ?, ?, ?, ?)'
+)
+const demoApplicants = [
+  ['marcus@growthbase.com', 'I have run SEO programs for two B2B SaaS teams and can start next week.', 'reviewing', '2026-03-09T10:00:00Z'],
+  ['lisa@notion.com', 'Our content clusters doubled organic signups. Happy to share the playbook.', 'applied', '2026-03-10T15:30:00Z'],
+]
+let applicantsAdded = 0
+for (const job of db.prepare("SELECT id FROM jobs WHERE posted_by = ? AND status = 'open'").all(demoId)) {
+  const taken = db.prepare('SELECT COUNT(*) c FROM job_applications WHERE job_id = ?').get(job.id).c
+  if (taken > 0) continue
+  for (const [email, letter, status, appliedAt] of demoApplicants) {
+    const member = db.prepare('SELECT id FROM users WHERE email = ?').get(email)
+    if (member) applicantsAdded += insertApplicant.run(job.id, member.id, letter, status, appliedAt).changes
+  }
+}
+console.log(`  ✓ Job applications ensured (${hiresAdded} hires added, ${hiresUpdated} marked hired, ${applicantsAdded} applicants on the demo postings)`)
 
 // ─── 6. Conversations + messages ─────────────────────────────
 // Create a handful of conversations if demo has none. Idempotent by checking existing.

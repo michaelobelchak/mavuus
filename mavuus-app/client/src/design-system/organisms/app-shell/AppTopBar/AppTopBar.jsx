@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Bell, ChevronDown, Menu, Search } from 'lucide-react'
 import { useMediaQuery } from '../../../hooks'
 import { cn } from '../../../lib/cn'
@@ -56,15 +57,17 @@ function NotificationsButton({ count, onClick, open, controlsId, buttonRef, puls
  * - `title`, `breadcrumbs` (`[{ label, to }]`, the last is the current page).
  * - `search`: a SearchInput. From 768px it sits in the bar; below that a Search button opens it in
  *   a full-width popover with focus in the field (Escape closes it and focus returns). `/` focuses
- *   it (or opens it) unless the person is typing in a field. `actions`: page-level buttons.
+ *   it (or opens it) unless the person is typing in a field; navigating closes the popover.
+ *   `actions`: page-level buttons.
  * - `notifications`: `{ count, onClick, open?, controlsId?, buttonRef?, pulse? }`. The button is
  *   named "Notifications, 3 unread"; `open` sets aria-expanded (and `controlsId` aria-controls
  *   while open) for a drawer, `buttonRef` reaches the button for focus return, and `pulse` makes
  *   it pulse briefly when the count goes up.
- * - `user` (`{ name, email, avatar_url, role }`), `userMenuItems` (DropdownMenu items; default
+ * - `user` (`{ name, email, avatar_url, role }`; the menu opens with the name and email), `userMenuItems` (DropdownMenu items; default
  *   Profile, Settings, Admin panel for admins and Log out, which calls `onLogout`).
  * - `onOpenNav`: shows the menu button (below 1024px) that opens the mobile nav; `navOpen` sets
- *   its aria-expanded and `menuButtonRef` reaches it (for focus return).
+ *   its aria-expanded and `menuButtonRef` reaches it (for focus return). `titleRef` reaches the h1
+ *   (tabIndex -1), which AppShell focuses after a navigation.
  * `className` and other props go to the `<header>`.
  */
 export function AppTopBar({
@@ -80,6 +83,7 @@ export function AppTopBar({
   navOpen = false,
   navId,
   menuButtonRef,
+  titleRef,
   className,
   ref,
   ...props
@@ -92,6 +96,13 @@ export function AppTopBar({
   if (wasWide !== wideSearch) {
     setWasWide(wideSearch)
     if (wideSearch) setSearchOpen(false)
+  }
+  // Following a link (a search result) closes the mobile search popover.
+  const { pathname } = useLocation()
+  const [searchPath, setSearchPath] = useState(pathname)
+  if (searchPath !== pathname) {
+    setSearchPath(pathname)
+    setSearchOpen(false)
   }
   const searchBoxRef = useRef(null)
   const mobileSearchRef = useRef(null)
@@ -118,12 +129,18 @@ export function AppTopBar({
     return () => cancelAnimationFrame(frame)
   }, [searchOpen, wideSearch])
   const items = userMenuItems ?? buildUserMenuItems({ user, onLogout })
-  const menuItems = user?.name ? [{ type: 'label', label: user.name }, ...items] : items
+  const menuHeader = user?.name && (
+    <span className="flex min-w-0 flex-col">
+      <span className="truncate text-body-sm text-text-primary">{user.name}</span>
+      {user.email && <span className="truncate font-normal">{user.email}</span>}
+    </span>
+  )
+  const menuItems = menuHeader ? [{ type: 'label', label: menuHeader }, ...items] : items
 
   return (
     <header
       ref={ref}
-      className={cn('flex min-h-20 shrink-0 items-center gap-ds-md px-ds-md py-ds-sm lg:px-ds-xl', className)}
+      className={cn('flex min-h-20 shrink-0 items-center gap-ds-xxs px-ds-sm py-ds-sm sm:gap-ds-md sm:px-ds-md lg:px-ds-xl', className)}
       {...props}
     >
       {onOpenNav && (
@@ -141,13 +158,22 @@ export function AppTopBar({
       <div className="flex min-w-0 grow flex-col gap-ds-xxs">
         {breadcrumbs?.length > 0 && <Breadcrumbs items={breadcrumbs} />}
         {title && (
-          <Heading level={1} size="h3" className="m-ds-none truncate">
+          // One line with an ellipsis (text-nowrap beats the heading's text-balance); the full title
+          // stays in the text for screen readers and in `title` for a hover. A step smaller below sm.
+          <Heading
+            ref={titleRef}
+            tabIndex={-1}
+            level={1}
+            size="h3"
+            title={typeof title === 'string' ? title : undefined}
+            className="m-ds-none truncate text-nowrap max-sm:text-h4"
+          >
             {title}
           </Heading>
         )}
       </div>
       {search && wideSearch && (
-        <div ref={searchBoxRef} className="w-full max-w-sm">
+        <div ref={searchBoxRef} className="w-full max-w-64 lg:max-w-sm">
           {search}
         </div>
       )}

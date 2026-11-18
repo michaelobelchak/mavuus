@@ -24,6 +24,8 @@ jobs:
           cache: npm
           cache-dependency-path: mavuus-app/client/package-lock.json
       - run: npm ci
+      # cwebp for the localize-assets resize tests (they are skipped where it is missing).
+      - run: sudo apt-get update && sudo apt-get install -y webp
       - run: npx eslint . --max-warnings 0
       - run: npx vitest run
       - run: npx vite build

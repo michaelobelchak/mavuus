@@ -80,7 +80,7 @@ export default function EventsPage() {
                   </div>
 
                   {/* Event card */}
-                  <div className="flex flex-col-reverse lg:flex-row items-start lg:justify-between gap-6 lg:gap-0 w-full lg:w-[950px] group cursor-pointer">
+                  <div className="flex flex-col-reverse lg:flex-row items-start lg:justify-between gap-6 lg:gap-0 w-full min-w-0 lg:max-w-[950px] group cursor-pointer">
                     {/* Text */}
                     <div className="flex flex-col gap-6 w-full lg:w-[496px]">
                       <h3 className="text-[24px] leading-[1.3] font-semibold text-dark-blue group-hover:text-brand-blue transition-colors duration-300">

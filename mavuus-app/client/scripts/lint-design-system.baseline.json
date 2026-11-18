@@ -8,20 +8,6 @@
   "src/components/index.js": {
     "no-em-dash": 1
   },
-  "src/components/layout/AdminLayout.jsx": {
-    "no-arbitrary-size": 1,
-    "no-raw-color": 1
-  },
-  "src/components/layout/DashboardLayout.jsx": {
-    "no-arbitrary-size": 5,
-    "no-em-dash": 2,
-    "no-inline-style": 1
-  },
-  "src/components/layout/DashboardSidebar.jsx": {
-    "no-arbitrary-size": 3,
-    "no-em-dash": 2,
-    "no-raw-color": 3
-  },
   "src/components/layout/Footer.jsx": {
     "no-arbitrary-size": 7
   },
@@ -181,9 +167,6 @@
     "no-arbitrary-size": 1,
     "no-inline-style": 1
   },
-  "src/components/ui/SearchResultsDropdown.jsx": {
-    "no-arbitrary-size": 1
-  },
   "src/components/ui/ShareModal.jsx": {
     "no-arbitrary-size": 6,
     "no-raw-color": 4
@@ -262,39 +245,6 @@
     "no-arbitrary-size": 27,
     "no-em-dash": 3,
     "no-raw-color": 10
-  },
-  "src/pages/dashboard/AcademyPage.jsx": {
-    "no-arbitrary-size": 4,
-    "no-em-dash": 2
-  },
-  "src/pages/dashboard/JobDetailPage.jsx": {
-    "no-em-dash": 1
-  },
-  "src/pages/dashboard/JobsPage.jsx": {
-    "no-inline-style": 1
-  },
-  "src/pages/dashboard/LiveSessionsPage.jsx": {
-    "no-arbitrary-size": 1
-  },
-  "src/pages/dashboard/MemberProfilePage.jsx": {
-    "no-em-dash": 3
-  },
-  "src/pages/dashboard/MessagesPage.jsx": {
-    "no-arbitrary-size": 5,
-    "no-em-dash": 3
-  },
-  "src/pages/dashboard/OnDemandPage.jsx": {
-    "no-arbitrary-size": 1
-  },
-  "src/pages/dashboard/ProfilePage.jsx": {
-    "no-arbitrary-size": 1,
-    "no-em-dash": 5
-  },
-  "src/pages/dashboard/SessionDetailPage.jsx": {
-    "no-arbitrary-size": 5
-  },
-  "src/pages/dashboard/VendorDetailPage.jsx": {
-    "no-em-dash": 1
   },
   "src/pages/public/AboutPage.jsx": {
     "no-arbitrary-size": 3

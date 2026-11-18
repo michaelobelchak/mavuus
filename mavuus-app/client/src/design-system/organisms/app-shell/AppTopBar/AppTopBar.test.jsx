@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { Link, MemoryRouter } from 'react-router-dom'
 import { createRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mockViewport } from '../../../test/browserMocks'
@@ -27,6 +27,14 @@ describe('AppTopBar', () => {
   it('should render the title as the page h1', () => {
     renderBar()
     expect(screen.getByRole('heading', { level: 1, name: 'Jobs' })).toBeInTheDocument()
+  })
+
+  it('should keep a long title on one line with an ellipsis, the full text in its name and title', () => {
+    renderBar({ title: 'Recommendations and referrals' })
+    const heading = screen.getByRole('heading', { level: 1, name: 'Recommendations and referrals' })
+    expect(heading).toHaveClass('truncate', 'text-nowrap')
+    expect(heading).not.toHaveClass('text-balance')
+    expect(heading).toHaveAttribute('title', 'Recommendations and referrals')
   })
 
   it('should render breadcrumbs above the title when given', () => {
@@ -57,6 +65,14 @@ describe('AppTopBar', () => {
     expect(screen.getByRole('menuitem', { name: 'Admin panel' })).toBeInTheDocument()
     await user.click(screen.getByRole('menuitem', { name: 'Log out' }))
     expect(onLogout).toHaveBeenCalledOnce()
+  })
+
+  it('should head the account menu with the name and email', async () => {
+    const user = userEvent.setup()
+    renderBar()
+    await user.click(screen.getByRole('button', { name: 'Account menu' }))
+    const group = await screen.findByRole('group', { name: /Demo User/ })
+    expect(group).toHaveTextContent('demo@mavuus.com')
   })
 
   it('should use the userMenuItems it is given', async () => {
@@ -191,5 +207,18 @@ describe('AppTopBar', () => {
       timeout: 3000,
     })
     expect(screen.getByRole('button', { name: 'Search' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('should close the mobile search when a link in it is followed', async () => {
+    const user = userEvent.setup()
+    mockViewport(390)
+    renderBar({ search: <Link to="/dashboard/jobs/9">Head of Growth</Link> })
+    const button = screen.getByRole('button', { name: 'Search' })
+    await user.click(button)
+    await user.click(await screen.findByRole('link', { name: 'Head of Growth' }))
+    await waitFor(() => expect(screen.queryByRole('link', { name: 'Head of Growth' })).not.toBeInTheDocument(), {
+      timeout: 3000,
+    })
+    expect(button).toHaveAttribute('aria-expanded', 'false')
   })
 })

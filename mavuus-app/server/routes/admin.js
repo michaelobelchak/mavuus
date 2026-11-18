@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { recalcVendorRating } from '../db/vendorReviews.js'
 import { authenticateToken } from '../middleware/auth.js'
 import { isAdmin, logAudit } from '../middleware/admin.js'
 
@@ -421,9 +422,7 @@ router.delete('/reviews/:id', (req, res) => {
   const db = req.app.locals.db
   const review = db.prepare('SELECT vendor_id FROM reviews WHERE id = ?').get(req.params.id)
   db.prepare('DELETE FROM reviews WHERE id = ?').run(req.params.id)
-  if (review?.vendor_id) {
-    db.prepare('UPDATE vendors SET rating = COALESCE((SELECT ROUND(AVG(rating), 1) FROM reviews WHERE vendor_id = ?), 0), reviews_count = (SELECT COUNT(*) FROM reviews WHERE vendor_id = ?) WHERE id = ?').run(review.vendor_id, review.vendor_id, review.vendor_id)
-  }
+  if (review?.vendor_id) recalcVendorRating(db, review.vendor_id)
   logAudit(db, req.user.id, 'delete_review', 'review', parseInt(req.params.id), null, req.ip)
   res.json({ success: true })
 })
