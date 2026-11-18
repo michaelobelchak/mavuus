@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directories: ['/mavuus-app/client', '/mavuus-app/server']
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    groups:
+      react:
+        patterns: ['react', 'react-dom', 'react-router*', '@types/react*']
+      testing:
+        patterns: ['vitest', '@vitest/*', '@playwright/test', '@testing-library/*']
+      tooling:
+        patterns: ['eslint*', '@eslint/*', 'vite', '@vitejs/*', 'tailwindcss', '@tailwindcss/*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
